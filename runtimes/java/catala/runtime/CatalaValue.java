@@ -62,7 +62,7 @@ public abstract class CatalaValue<T extends CatalaValue<?>> implements Comparabl
     }
 
     public CatalaBool lessThan(CatalaPosition p, T o) {
-        return CatalaBool.fromBoolean(this.compareTo(p, o) < 0);
+        return CatalaBool.of(this.compareTo(p, o) < 0);
     }
 
     public CatalaBool lessThan(T o) {
@@ -70,7 +70,7 @@ public abstract class CatalaValue<T extends CatalaValue<?>> implements Comparabl
     }
 
     public CatalaBool lessEqThan(CatalaPosition p, T o) {
-        return CatalaBool.fromBoolean(this.compareTo(p, o) <= 0);
+        return CatalaBool.of(this.compareTo(p, o) <= 0);
     }
 
     public CatalaBool lessEqThan(T o) {
@@ -78,7 +78,7 @@ public abstract class CatalaValue<T extends CatalaValue<?>> implements Comparabl
     }
 
     public CatalaBool greaterThan(CatalaPosition p, T o) {
-        return CatalaBool.fromBoolean(this.compareTo(p, o) > 0);
+        return CatalaBool.of(this.compareTo(p, o) > 0);
     }
 
     public CatalaBool greaterThan(T o) {
@@ -86,7 +86,7 @@ public abstract class CatalaValue<T extends CatalaValue<?>> implements Comparabl
     }
 
     public CatalaBool greaterEqThan(CatalaPosition p, T o) {
-        return CatalaBool.fromBoolean(this.compareTo(p, o) >= 0);
+        return CatalaBool.of(this.compareTo(p, o) >= 0);
     }
 
     public CatalaBool greaterEqThan(T o) {

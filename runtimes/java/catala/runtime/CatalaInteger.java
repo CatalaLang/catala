@@ -10,7 +10,7 @@ public final class CatalaInteger extends CatalaValue<CatalaInteger> {
 
     private final BigInteger value;
 
-    public CatalaInteger(BigInteger value) {
+    public CatalaInteger(final BigInteger value) {
         this.value = value;
     }
 
@@ -18,8 +18,32 @@ public final class CatalaInteger extends CatalaValue<CatalaInteger> {
         this.value = BigInteger.valueOf(value);
     }
 
+    public CatalaInteger(long value) {
+        this.value = BigInteger.valueOf(value);
+    }
+
     public CatalaInteger(String value) {
         this.value = new BigInteger(value);
+    }
+
+    public static final CatalaInteger of(CatalaDecimal dec) {
+        return new CatalaInteger(dec.getNumerator().divide(dec.getDenominator()));
+    }
+
+    public static final CatalaInteger of(int i) {
+        return new CatalaInteger(i);
+    }
+
+    public static final CatalaInteger of(long i) {
+        return new CatalaInteger(i);
+    }
+
+    public static final CatalaInteger of(Double d) {
+        return new CatalaInteger(d.longValue());
+    }
+
+    public static final CatalaInteger of(String s) {
+        return new CatalaInteger(new BigInteger(s));
     }
 
     public final BigInteger asBigInteger() {
@@ -31,15 +55,29 @@ public final class CatalaInteger extends CatalaValue<CatalaInteger> {
     }
 
     public final CatalaMoney asMoney() {
-        return CatalaMoney.ofCents(BigInteger.valueOf(100)).multiply(this);
+        return new CatalaMoney(this);
     }
 
-    public static final CatalaInteger ofDecimal(CatalaDecimal dec) {
-        return new CatalaInteger(dec.getNumerator().divide(dec.getDenominator()));
+    /**
+     * @return this {@code CatalaInteger} converted to a {@code long}.
+     * @throws ArithmeticException if the value of {@code this} will not exactly
+     * fit in a {@code long}.
+     */
+    public long asLong() {
+        return this.value.longValueExact();
     }
 
-    public static final CatalaInteger valueOf(long value) {
-        return new CatalaInteger(BigInteger.valueOf(value));
+    /**
+     * @return this {@code CatalaInteger} converted to an {@code int}.
+     * @throws ArithmeticException if the value of {@code this} will not exactly
+     * fit in an {@code int}.
+     */
+    public int asInt() {
+        return this.value.intValueExact();
+    }
+
+    public double asDouble() {
+        return this.value.doubleValue();
     }
 
     public final CatalaInteger negate() {
@@ -66,38 +104,6 @@ public final class CatalaInteger extends CatalaValue<CatalaInteger> {
         return new CatalaDecimal(this, denum);
     }
 
-    /**
-     * @return this {@code CatalaInteger} converted to a {@code long}.
-     */
-    public long longValue() {
-        return this.value.longValue();
-    }
-
-    /**
-     * @return this {@code CatalaInteger} converted to a {@code long}.
-     * @throws ArithmeticException if the value of {@code this} will not exactly
-     * fit in a {@code long}.
-     */
-    public long longValueExact() {
-        return this.value.longValueExact();
-    }
-
-    /**
-     * @return this {@code CatalaInteger} converted to an {@code int}.
-     */
-    public int intValue() {
-        return this.value.intValue();
-    }
-
-    /**
-     * @return this {@code CatalaInteger} converted to an {@code int}.
-     * @throws ArithmeticException if the value of {@code this} will not exactly
-     * fit in an {@code int}.
-     */
-    public int intValueExact() {
-        return this.value.intValueExact();
-    }
-
     @Override
     public int compareTo(CatalaPosition p, CatalaInteger o) {
         return this.value.compareTo(o.value);
@@ -105,12 +111,7 @@ public final class CatalaInteger extends CatalaValue<CatalaInteger> {
 
     @Override
     public CatalaBool equalsTo(CatalaPosition p, CatalaInteger o) {
-        return CatalaBool.fromBoolean(this.value.equals(o.value));
-    }
-
-    @Override
-    public int hashCode() {
-        return this.value.hashCode();
+        return CatalaBool.of(this.value.equals(o.value));
     }
 
     @Override

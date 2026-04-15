@@ -154,7 +154,7 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | ToInt_rat | ToInt_mon -> pp_print_string ppf "asInteger"
   | ToMoney_rat | ToMoney_int -> pp_print_string ppf "asMoney"
   | Round_mon -> pp_print_string ppf "round"
-  | Round_rat -> pp_print_string ppf "round"
+  | Round_rat -> pp_print_string ppf "roundDecimal"
   | Concat -> pp_print_string ppf "append"
   | Add_rat_rat | Add_mon_mon | Add_dur_dur | Add_int_int ->
     pp_print_string ppf "add"
@@ -255,7 +255,7 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
   | LUnit -> pp_print_string ppf "null"
   | LRat i ->
     if Q.den i = Z.one then
-      fprintf ppf "CatalaDecimal.ofInteger(%a)" format_lit
+      fprintf ppf "CatalaDecimal.of(%a)" format_lit
         (Mark.copy l (LInt (Q.num i)))
     else
       fprintf ppf "new CatalaDecimal(%a, %a)" format_lit

@@ -11,8 +11,8 @@ public final class CatalaDuration extends CatalaValue<CatalaDuration> {
         this.period = period;
     }
 
-    public static final CatalaDuration of(int years, int months, int days) {
-        return new CatalaDuration(new Period(years, months, days));
+    public CatalaDuration(int years, int months, int days) {
+        this.period = new Period(years, months, days);
     }
 
     public boolean isZero() {
@@ -21,16 +21,36 @@ public final class CatalaDuration extends CatalaValue<CatalaDuration> {
                 && this.period.days == 0;
     }
 
-    public final int years() {
+    public final int getYears() {
         return this.period.years;
     }
 
-    public final int months() {
+    public final int getMonths() {
         return this.period.months;
     }
 
-    public final int days() {
+    public final int getDays() {
         return this.period.days;
+    }
+
+    public static final CatalaDuration of(int years, int months, int days) {
+        return new CatalaDuration(years, months, days);
+    }
+
+    public static final CatalaDuration ofYears(int years) {
+        return new CatalaDuration(years, 0, 0);
+    }
+
+    public static final CatalaDuration ofMonths(int months) {
+        return new CatalaDuration(0, months, 0);
+    }
+
+    public static final CatalaDuration ofDays(int days) {
+        return new CatalaDuration(0, 0, days);
+    }
+
+    public final Period asPeriod() {
+        return this.period;
     }
 
     public final CatalaDuration add(CatalaDuration other) {
@@ -51,36 +71,35 @@ public final class CatalaDuration extends CatalaValue<CatalaDuration> {
     }
 
     public final CatalaDecimal divide(CatalaDuration other) {
-        if (this.years() != 0 || this.months() != 0
-                || other.years() != 0 || other.months() != 0) {
+        if (this.getYears() != 0 || this.getMonths() != 0
+                || other.getYears() != 0 || other.getMonths() != 0) {
             throw new IllegalArgumentException("Can only divide durations expressed in days");
         }
-        if (other.days() == 0) {
+        if (other.getDays() == 0) {
             throw new IllegalArgumentException("Duration: divide by zero");
         }
-        return new CatalaDecimal(this.days(), other.days());
+        return new CatalaDecimal(this.getDays(), other.getDays());
 
     }
 
     @Override
     public int compareTo(CatalaPosition p, CatalaDuration o) {
-        if (this.months() == 0 && o.months() == 0 && this.years() == 0 && o.years() == 0) {
-            return ((Integer) (this.days())).compareTo(o.days());
-        } else if (this.days() == 0 && o.days() == 0) {
-            return ((Integer) (this.years() * 12 + this.months()))
-                    .compareTo(o.years() * 12 + o.months());
+        if (this.getMonths() == 0 && o.getMonths() == 0 && this.getYears() == 0 && o.getYears() == 0) {
+            return ((Integer) (this.getDays())).compareTo(o.getDays());
+        } else if (this.getDays() == 0 && o.getDays() == 0) {
+            return ((Integer) (this.getYears() * 12 + this.getMonths()))
+                    .compareTo(o.getYears() * 12 + o.getMonths());
         } else {
-            throw CatalaError.error
-                (CatalaError.Error.DateError, p,
-                 "ambiguous date computation with no rounding mode specified");
+            throw CatalaError.error(CatalaError.Error.DateError, p,
+                    "ambiguous date computation with no rounding mode specified");
         }
     }
 
     @Override
     public CatalaBool equalsTo(CatalaPosition pos, CatalaDuration other) {
-        return (CatalaBool.fromBoolean(this.years() == other.years()
-                && this.months() == other.months()
-                && this.days() == other.days()
+        return (CatalaBool.of(this.getYears() == other.getYears()
+                && this.getMonths() == other.getMonths()
+                && this.getDays() == other.getDays()
                 || this.compareTo(pos, other) == 0));
     }
 

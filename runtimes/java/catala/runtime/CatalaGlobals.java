@@ -11,7 +11,6 @@ public class CatalaGlobals {
 
     public static Language lang = Language.EN;
 
-
     public static CatalaValue<?> fromJSONString(CatalaPosition p, String json){
         throw CatalaError.error(CatalaError.Error.NotImplemented, p);
     }

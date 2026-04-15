@@ -23,7 +23,7 @@ public final class CatalaPosition
 
     @Override
     public CatalaBool equalsTo(CatalaPosition p, CatalaPosition o) {
-        return CatalaBool.fromBoolean(this.filename.equals(o.filename) && this.startLine == o.startLine
+        return CatalaBool.of(this.filename.equals(o.filename) && this.startLine == o.startLine
                 && this.startColumn == o.startColumn && this.endLine == o.endLine);
     }
 

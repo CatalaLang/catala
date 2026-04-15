@@ -38,7 +38,7 @@ public final class CatalaOption<T extends CatalaValue<?>> extends CatalaValue<Ca
     @Override
     public CatalaBool equalsTo(CatalaPosition p, CatalaOption<T> o) {
         if (this == NONE) {
-            return CatalaBool.fromBoolean(o == NONE);
+            return CatalaBool.of(o == NONE);
         } else if (o == NONE) {
             return CatalaBool.FALSE;
         } else {

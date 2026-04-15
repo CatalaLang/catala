@@ -14,7 +14,7 @@ public final class CatalaBool extends CatalaValue<CatalaBool> {
         return value;
     }
 
-    public static CatalaBool fromBoolean(boolean b) {
+    public static CatalaBool of(boolean b) {
         if (b) {
             return TRUE;
         } else {
@@ -23,24 +23,29 @@ public final class CatalaBool extends CatalaValue<CatalaBool> {
     }
 
     public CatalaBool not() {
-        return fromBoolean(!this.value);
+        return of(!this.value);
     }
 
     public CatalaBool and(CatalaBool other) {
-        return fromBoolean(this.value && other.value);
+        return of(this.value && other.value);
     }
 
     public CatalaBool or(CatalaBool other) {
-        return fromBoolean(this.value || other.value);
+        return of(this.value || other.value);
     }
 
     public CatalaBool xor(CatalaBool other) {
-        return fromBoolean(this.value ^ other.value);
+        return of(this.value ^ other.value);
+    }
+
+    @Override
+    public CatalaBool equalsTo(CatalaBool other) {
+        return of(this.value == other.value);
     }
 
     @Override
     public CatalaBool equalsTo(CatalaPosition p, CatalaBool other) {
-        return fromBoolean(this.value == other.value);
+        return this.equalsTo(other);
     }
 
     @Override

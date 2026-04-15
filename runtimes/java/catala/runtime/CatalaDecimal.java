@@ -21,34 +21,76 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
         this.value = value;
     }
 
-    //keeping this package-level for now
-    CatalaDecimal(int num, int den) {
-        this.value = BigFraction.of(num, den);
+    public CatalaDecimal(int numerator, int denominator) {
+        this.value = BigFraction.of(numerator, denominator);
     }
 
-    public CatalaDecimal(CatalaInteger num, CatalaInteger den) {
-        this.value = BigFraction.of(num.asBigInteger(), den.asBigInteger());
+    public CatalaDecimal(final CatalaInteger numerator, final CatalaInteger denominator) {
+        this.value = BigFraction.of(numerator.asBigInteger(), denominator.asBigInteger());
     }
 
-    /**
-     * @throws IllegalArgumentException if the given {@code value} is NaN or
-     * infinite.
-     */
     public CatalaDecimal(Double d) {
         this.value = BigFraction.from(d);
+    }
+
+    public CatalaDecimal(int d) {
+        this(d, 1);
+    }
+
+    public static final CatalaDecimal of(Double d) {
+        return new CatalaDecimal(d);
+    }
+
+    public static final CatalaDecimal of(CatalaInteger ci) {
+        return new CatalaDecimal(BigFraction.of(ci.asBigInteger()));
+    }
+
+    public static final CatalaDecimal of(int i) {
+        return new CatalaDecimal(i, 1);
+    }
+
+    public static final CatalaDecimal of(long l) {
+        return new CatalaDecimal(CatalaInteger.of(l), CatalaInteger.ONE);
+    }
+
+    public static final CatalaDecimal of(String s) {
+        return new CatalaDecimal(BigFraction.parse(s));
+    }
+
+    public static final CatalaDecimal of(CatalaMoney cm) {
+        return new CatalaDecimal(cm.asIntegerCents(), new CatalaInteger(100));
     }
 
     public CatalaInteger asInteger() {
         return new CatalaInteger(this.value.getNumerator().divide(this.value.getDenominator()));
     }
 
-    public CatalaDecimal negate() {
-        return new CatalaDecimal(this.value.negate());
+    public int asInt() {
+        return this.asInteger().asInt();
     }
 
-    @Override
-    public int hashCode() {
-        return this.value.hashCode();
+    public long asLong() {
+        return this.asInteger().asLong();
+    }
+
+    final BigDecimal asBigDecimal(int scale, RoundingMode roundingMode) {
+        return this.value.bigDecimalValue(scale, roundingMode);
+    }
+
+    final BigDecimal asBigDecimal() {
+        return this.value.bigDecimalValue();
+    }
+
+    final Double asDouble() {
+        return this.value.bigDecimalValue().doubleValue();
+    }
+
+    public final CatalaMoney asMoney() {
+        return new CatalaMoney(this);
+    }
+
+    public CatalaDecimal negate() {
+        return new CatalaDecimal(this.value.negate());
     }
 
     public final BigInteger getDenominator() {
@@ -98,45 +140,20 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
         }
     }
 
-    public CatalaDecimal round() {
-        return new CatalaDecimal(new CatalaInteger(this.bigDecimalValue(0, RoundingMode.HALF_UP).toBigInteger()),
-                new CatalaInteger(1));
+    public CatalaDecimal roundDecimal() {
+        return new CatalaDecimal(this.round(), new CatalaInteger(1));
     }
 
-    final BigDecimal bigDecimalValue(int scale, RoundingMode roundingMode) {
-        return this.value.bigDecimalValue(scale, roundingMode);
-    }
-
-    final BigDecimal bigDecimalValue() {
-        return this.value.bigDecimalValue();
-    }
-
-    final Double doubleValue() {
-        return this.value.bigDecimalValue().doubleValue();
-    }
-
-    public static final CatalaDecimal ofInteger(CatalaInteger ci) {
-        return new CatalaDecimal(BigFraction.of(ci.asBigInteger()));
-    }
-
-    public static final CatalaDecimal ofMoney(CatalaMoney cm) {
-        return new CatalaDecimal(BigFraction.of(cm.asCents(), BigInteger.valueOf(100)));
-    }
-
-    public final CatalaMoney asMoney() {
-        return CatalaMoney.ofCents(BigInteger.valueOf(100)).multiply(this);
-    }
-
-    static final CatalaDecimal ofMoneyAsCents(CatalaMoney cm) {
-        return new CatalaDecimal(BigFraction.of(cm.asCents()));
-    }
-
-    public static final CatalaDecimal ofDouble(Double d) {
-        return new CatalaDecimal(d);
+    public CatalaInteger round() {
+        return new CatalaInteger(this.asBigDecimal(0, RoundingMode.HALF_UP).toBigInteger());
     }
 
     public final CatalaDecimal divide(CatalaDecimal other) {
         return new CatalaDecimal(this.value.divide(other.value));
+    }
+
+    public final CatalaDecimal divide(CatalaInteger other) {
+        return new CatalaDecimal(this.value.divide(other.asBigInteger()));
     }
 
     @Override
@@ -151,13 +168,13 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
 
     @Override
     public CatalaBool equalsTo(CatalaPosition p, CatalaDecimal o) {
-        return CatalaBool.fromBoolean(this.value.equals(o.value));
+        return CatalaBool.of(this.value.equals(o.value));
     }
 
     @Override
     public String toString() {
         NumberFormat nf;
-        BigDecimal f = this.bigDecimalValue(10, RoundingMode.HALF_UP);
+        BigDecimal f = this.asBigDecimal(10, RoundingMode.HALF_UP);
         if (CatalaGlobals.lang == CatalaGlobals.Language.EN) {
             nf = NumberFormat.getInstance(Locale.ENGLISH);
         } else {

@@ -1,3 +1,4 @@
+
 import catala.runtime.*;
 import catala.dates_calc.Date;
 import java.util.*;
@@ -20,7 +21,7 @@ public class Period_internal {
 
         public static final CatalaFunction<CatalaArray<CatalaTuple>, CatalaArray<CatalaTuple>> sort
                 = p -> {
-                    CatalaValue[] arr = (CatalaValue[])p.asArray();
+                    CatalaValue[] arr = (CatalaValue[]) p.asArray();
                     CatalaTuple[] sorted = new CatalaTuple[arr.length];
                     System.arraycopy(arr, 0, sorted, 0, arr.length);
                     Arrays.sort(sorted, 0, sorted.length, new PeriodAssocComparator());
