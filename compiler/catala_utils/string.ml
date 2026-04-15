@@ -175,31 +175,27 @@ module Arg = struct
         else if i2 >= len2 then 1
         else
           let c1 = get s1 i1 and c2 = get s2 i2 in
-          if Char.equal c1 c2 then aux (i1 + 1) (i2 + 1)
-          else
-            match c1, c2 with
-            | '0' .. '9', _ -> (
-              let x1, i1' = readnum (int c1) s1 (i1 + 1) in
-              let x2, i2' = readnum 0 s2 i2 in
-              match Int.compare x1 x2 with
-              | 0 -> (
-                match Int.compare (i1' - i1) (i2' - i2) with
-                | 0 -> aux i1' i2'
-                | n -> n)
+          match c1, c2 with
+          | '0' .. '9', _ -> (
+            let x1, i1' = readnum (int c1) s1 (i1 + 1) in
+            let x2, i2' = readnum 0 s2 i2 in
+            match Int.compare x1 x2 with
+            | 0 -> (
+              match Int.compare (i1' - i1) (i2' - i2) with
+              | 0 -> aux i1' i2'
               | n -> n)
-            | _, '0' .. '9' -> (
-              let x1, i1' = readnum 0 s1 i1 in
-              let x2, i2' = readnum (int c2) s2 (i2 + 1) in
-              match Int.compare x1 x2 with
-              | 0 -> (
-                match Int.compare (i1' - i1) (i2' - i2) with
-                | 0 -> aux i1' i2'
-                | n -> n)
+            | n -> n)
+          | _, '0' .. '9' -> (
+            let x1, i1' = readnum 0 s1 i1 in
+            let x2, i2' = readnum (int c2) s2 (i2 + 1) in
+            match Int.compare x1 x2 with
+            | 0 -> (
+              match Int.compare (i1' - i1) (i2' - i2) with
+              | 0 -> aux i1' i2'
               | n -> n)
-            | _ -> (
-              match Char.compare c1 c2 with
-              | 0 -> aux (i1 + 1) (i2 + 1)
-              | n -> n)
+            | n -> n)
+          | _ -> (
+            match Char.compare c1 c2 with 0 -> aux (i1 + 1) (i2 + 1) | n -> n)
       in
       aux 0 0
 end
