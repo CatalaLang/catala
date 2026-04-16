@@ -684,6 +684,23 @@ let export_code_items ppml ppi modname exports ctx =
     modname;
   Format.fprintf ppi "val default : default@,"
 
+let reexport_used_modules ppml ppi used_modules =
+  List.iter
+    (fun (modulename, node) ->
+      if node.intf_id.is_external then
+        let info = ModuleName.get_info modulename in
+        (* This is a little fix for items that uses the external module and
+           append _jsoo no matter what. A real fix would be to detect when it's
+           an external module and not append _jsoo but for now it does the
+           job. *)
+        pp [ppml; ppi] "module@ %a_jsoo@ =@ %a@," Uid.MarkedString.format info
+          Uid.MarkedString.format info
+      else
+        let info = ModuleName.get_info modulename in
+        pp [ppml; ppi] "module@ %a_jsoo@ =@ %a_jsoo@," Uid.MarkedString.format
+          info Uid.MarkedString.format info)
+    used_modules
+
 let format_program
     output_file
     ppml
@@ -711,6 +728,8 @@ let format_program
      @,"
     (fun fmt o -> Option.iter (Format.fprintf fmt "open %s@,") o)
     modname;
+  reexport_used_modules ppml ppi
+    (ModuleName.Map.bindings p.decl_ctx.ctx_modules);
   format_ctx ~include_:true type_ordering ppml ppi p.decl_ctx;
   let exports = format_code_items ppml ppi p.code_items in
   export_code_items ppml ppi modname exports p.decl_ctx;
