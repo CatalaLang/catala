@@ -54,7 +54,7 @@ let format_to_module_name fmt s =
        (fun ppf m -> Format.fprintf ppf "%a_jsoo." Uid.Module.format m))
     p Uid.MarkedString.format i
 
-let format_typ (fmt : Format.formatter) (typ : typ) : unit =
+let format_typ ~code_item (fmt : Format.formatter) (typ : typ) : unit =
   let rec aux bctx fmt typ =
     let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
       if typ_needs_parens t then Format.fprintf fmt "(%a)" (aux bctx) t
@@ -73,7 +73,8 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
     | TAbstract e ->
       Format.fprintf fmt "%a.jsoo" format_to_module_name (`Aname e)
     | TArrow (t1, t2) ->
-      Format.fprintf fmt "@[<hov 2>(%a)@]"
+      Format.fprintf fmt
+        (if code_item then "@[<hov 2>%a@]" else "@[<hov 2>(%a)@]")
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt " ->@ ")
            format_typ_with_parens)
@@ -206,7 +207,7 @@ and format_typ_of (fmt : Format.formatter) (typ : typ) : unit =
   aux Bindlib.empty_ctxt fmt typ
 
 let format_struct_field_typ (fmt : Format.formatter) (typ : typ) : unit =
-  Format.fprintf fmt "@[<hov 2>%a@] Js.prop" format_typ typ
+  Format.fprintf fmt "@[<hov 2>%a@] Js.prop" (format_typ ~code_item:false) typ
 
 let format_struct_field_to
     var
@@ -394,7 +395,9 @@ let format_ctx
                (fun fmt (enum_cons, enum_cons_type) ->
                  Format.fprintf fmt
                    "@[<hov 2>method %a :@ %a Js.optdef Js.prop@]"
-                   format_enum_cons_name enum_cons format_typ enum_cons_type))
+                   format_enum_cons_name enum_cons
+                   (format_typ ~code_item:false)
+                   enum_cons_type))
             variants
       in
       Format.fprintf ppi "@[<hv 2>module %a : sig@ @[<hv 2>type "
@@ -517,7 +520,8 @@ let format_code_items
         | Topdef (_name, typ, vis, _e) ->
           if vis = Public then (
             Format.fprintf ppi "@,@[<hov 2>val %a_jsoo : %a@]@," format_var var
-              format_typ typ;
+              (format_typ ~code_item:true)
+              typ;
             let rec aux bctx typ =
               match Mark.remove typ with
               | TArrow (lt, te) | TDefault (TArrow (lt, te), _) ->
@@ -526,7 +530,9 @@ let format_code_items
                   "@,\
                    @[<v 2>@[<hov 2>let %a_jsoo : %a =@]@ fun %a -> %a (%a \
                    %a)@]@,"
-                  format_var var format_typ typ
+                  format_var var
+                  (format_typ ~code_item:true)
+                  typ
                   (Format.pp_print_list
                      ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
                      (fun fmt _t ->
@@ -546,8 +552,9 @@ let format_code_items
               | _ ->
                 Format.fprintf ppml
                   "@,@[<v 2>@[<hov 2>let %a_jsoo : %a =@]@ %a %a@]@,"
-                  To_ocaml.format_var var format_typ typ format_typ_to typ
-                  To_ocaml.format_var var;
+                  To_ocaml.format_var var
+                  (format_typ ~code_item:true)
+                  typ format_typ_to typ To_ocaml.format_var var;
                 `value (var, typ)
             in
             aux Bindlib.empty_ctxt typ :: acc)
@@ -594,15 +601,20 @@ let export_code_items ppml ppi modname exports ctx =
          match e with
          | `value (v, t) ->
            Format.fprintf fmt "@[<hov 2>method %a :@ %a Js.prop@]"
-             format_method_var v format_typ t
+             format_method_var v
+             (format_typ ~code_item:true)
+             t
          | `meth (v, lt, te) -> begin
            match lt with
            | [(TLit TUnit, _)] ->
              Format.fprintf fmt "@[<hov 2>method %a :@ %a Js.meth@]"
-               format_method_var v format_typ te
+               format_method_var v
+               (format_typ ~code_item:true)
+               te
            | _ ->
              Format.fprintf fmt "@[<hov 2>method %a :@ %a Js.meth@]"
-               format_method_var v format_typ
+               format_method_var v
+               (format_typ ~code_item:true)
                (Mark.ghost (TArrow (lt, te)))
          end
          | `scope (v, i, o) ->
