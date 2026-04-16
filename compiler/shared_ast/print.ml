@@ -811,7 +811,6 @@ let scope_let_kind ?debug:(_debug = true) fmt k =
   match k with
   | DestructuringInputStruct -> keyword fmt "get"
   | ScopeVarDefinition -> keyword fmt "set"
-  | SubScopeVarDefinition -> keyword fmt "sub_set"
   | CallingSubScope -> keyword fmt "call"
   | DestructuringSubScopeResults -> keyword fmt "sub_get"
   | Assertion -> keyword fmt "assert"

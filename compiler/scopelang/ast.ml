@@ -45,12 +45,6 @@ type 'm rule =
       io : Desugared.Ast.io;
       e : 'm expr;
     }
-  | SubScopeVarDefinition of {
-      var : (ScopeVar.t, Pos.t list) Mark.ed;
-      var_within_origin_scope : ScopeVar.t;
-      typ : typ;
-      e : 'm expr;
-    }
   | Assertion of { e : 'm expr; pos : Pos.t }
 
 type scope_var_ty = {
@@ -80,9 +74,6 @@ let type_rule decl_ctx env = function
   | ScopeVarDefinition ({ typ; e; _ } as def) ->
     let e = Typing.expr decl_ctx ~env ~typ e in
     ScopeVarDefinition { def with e = Expr.unbox e }
-  | SubScopeVarDefinition ({ typ; e; _ } as def) ->
-    let e = Typing.expr decl_ctx ~env ~typ e in
-    SubScopeVarDefinition { def with e = Expr.unbox e }
   | Assertion { e; pos } ->
     let typ = Mark.add (Expr.pos e) (TLit TBool) in
     let e = Typing.expr decl_ctx ~env ~typ e in
