@@ -22,7 +22,12 @@ let pp dest fmt = Format.kdprintf (fun k -> List.iter k dest) fmt
 let method_name = function
   | "" -> invalid_arg "empty method name"
   | s ->
-    let s = if String.contains s '_' then s ^ "_" else s in
+    let s =
+      (* Don't want the _in to not confuse the user of the js interface *)
+      if String.ends_with ~suffix:"_in" s then s
+      else if String.contains s '_' then s ^ "_"
+      else s
+    in
     let code = Char.code (String.get s 0) in
     if code >= 65 && code <= 90 then "_" ^ s else s
 
