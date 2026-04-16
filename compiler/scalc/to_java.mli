@@ -23,6 +23,11 @@ val op_needs_pos : 'a operator -> naked_typ -> bool
 val renaming : Renaming.t
 
 val format_program :
-  class_name:string -> File.t option -> Format.formatter -> Ast.program -> unit
+  is_stdlib:bool ->
+  class_name:string ->
+  File.t option ->
+  Format.formatter ->
+  Ast.program ->
+  unit
 (** Usage [format_program ~class_name file ppf p] where [class_name] must be a
     valid Java identifier. *)

@@ -64,16 +64,20 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
         return new CatalaMoney(units.multiply(BigInteger.valueOf(100)));
     }
 
-    public static final CatalaMoney of(final CatalaInteger cents) {
-        return new CatalaMoney(cents);
+    public static final CatalaMoney of(final CatalaInteger units) {
+        return new CatalaMoney(units);
     }
 
-    public static final CatalaMoney of(long cents) {
-        return new CatalaMoney(cents);
+    public static final CatalaMoney of(long units) {
+        return new CatalaMoney(units);
     }
 
-    public static final CatalaMoney of(int cents) {
-        return new CatalaMoney(cents);
+    public static final CatalaMoney of(int units) {
+        return new CatalaMoney(units);
+    }
+
+    public static final CatalaMoney of(Double units) {
+        return new CatalaMoney(units);
     }
 
     public final BigInteger asBigIntegerCents() {
@@ -139,7 +143,8 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
     }
 
     public final CatalaMoney multiply(CatalaMoney other) {
-        return new CatalaMoney(this.value.multiply(other.value));
+        return new CatalaMoney(this.value.multiply(other.value)
+                .divide(BigInteger.valueOf(100l)));
     }
 
     /**

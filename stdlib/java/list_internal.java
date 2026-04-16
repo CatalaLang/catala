@@ -1,3 +1,4 @@
+package catala.stdlib;
 
 import catala.runtime.*;
 import java.util.Arrays;

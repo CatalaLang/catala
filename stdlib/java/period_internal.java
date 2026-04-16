@@ -1,21 +1,22 @@
+package catala.stdlib;
 
 import catala.runtime.*;
 import catala.dates_calc.Date;
 import java.util.*;
 
-class PeriodAssocComparator implements Comparator<CatalaTuple> {
-
-    @Override
-    public int compare(CatalaTuple assc1, CatalaTuple assc2) {
-        CatalaTuple t1 = CatalaValue.<CatalaTuple>cast(assc1.get(0));
-        CatalaTuple t2 = CatalaValue.<CatalaTuple>cast(assc2.get(0));
-        CatalaDate d1 = t1.get(0, CatalaDate.class);
-        CatalaDate d2 = t2.get(0, CatalaDate.class);
-        return d1.compareTo(d2);
-    }
-}
-
 public class Period_internal {
+
+    public static class PeriodAssocComparator implements Comparator<CatalaTuple> {
+
+        @Override
+        public int compare(CatalaTuple assc1, CatalaTuple assc2) {
+            CatalaTuple t1 = CatalaValue.<CatalaTuple>cast(assc1.get(0));
+            CatalaTuple t2 = CatalaValue.<CatalaTuple>cast(assc2.get(0));
+            CatalaDate d1 = t1.get(0, CatalaDate.class);
+            CatalaDate d2 = t2.get(0, CatalaDate.class);
+            return d1.compareTo(d2);
+        }
+    }
 
     public static class Globals {
 
