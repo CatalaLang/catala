@@ -39,12 +39,6 @@ type 'm rule =
       io : Desugared.Ast.io;
       e : 'm expr;
     }
-  | SubScopeVarDefinition of {
-      var : ScopeVar.t * Pos.t list;  (** Variable within the current scope *)
-      var_within_origin_scope : ScopeVar.t;
-      typ : typ; (* non-thunked at this point for reentrant vars *)
-      e : 'm expr;
-    }
   | Assertion of { e : 'm expr; pos : Pos.t }
 
 type scope_var_ty = {

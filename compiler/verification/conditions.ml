@@ -316,12 +316,9 @@ let rec generate_verification_conditions_scope_body_expr
             (Print.expr ()) e)
       | DestructuringInputStruct ->
         { ctx with input_vars = scope_let_var :: ctx.input_vars }, [], []
-      | ScopeVarDefinition | SubScopeVarDefinition ->
+      | ScopeVarDefinition ->
         (* For scope variables, we should check both that they never evaluate to
-           emptyError nor conflictError. But for subscope variable definitions,
-           what we're really doing is adding exceptions to something defined in
-           the subscope so we just ought to verify only that the exceptions
-           overlap. *)
+           emptyError nor conflictError. *)
         let e =
           Expr.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
         in

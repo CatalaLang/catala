@@ -110,9 +110,7 @@ let rec expr_used_defs modul e =
 let expr_used_defs e = expr_used_defs None e
 
 let rule_used_defs = function
-  | Ast.Assertion { e; _ }
-  | Ast.ScopeVarDefinition { e; _ }
-  | Ast.SubScopeVarDefinition { e; _ } ->
+  | Ast.Assertion { e; _ } | Ast.ScopeVarDefinition { e; _ } ->
     (* TODO: maybe this info could be passed on from previous passes without
        walking through all exprs again *)
     expr_used_defs e

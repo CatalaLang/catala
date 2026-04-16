@@ -67,11 +67,6 @@ let scope ?debug fmt (name, (decl, _pos)) =
               Format.pp_print_space fmt ()
             | _ -> ())
           (Print.expr ?debug ()) e
-      | SubScopeVarDefinition { var; typ; e; _ } ->
-        Print.attrs fmt (Mark.get (ScopeVar.get_info (fst var)));
-        Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword "let"
-          ScopeVar.format (Mark.remove var) Print.punctuation ":" Print.typ typ
-          Print.punctuation "=" (Print.expr ?debug ()) e
       | Assertion { e; _ } ->
         Format.fprintf fmt "%a %a" Print.keyword "assert" (Print.expr ?debug ())
           e)

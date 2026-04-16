@@ -591,19 +591,11 @@ let translate_rule
     'm Ast.expr scope_body_expr Bindlib.box)
     * 'm ctx =
   match rule with
-  | S.ScopeVarDefinition { var; typ; e; _ }
-  | S.SubScopeVarDefinition { var; typ; e; _ } ->
+  | S.ScopeVarDefinition { var; typ; e; io } ->
     let scope_var = Mark.remove var in
     let decl_pos = Expr.no_attrs_pos (Mark.get (ScopeVar.get_info scope_var)) in
     let pos_mark, _ = pos_mark_mk e in
-    let scope_let_kind, io =
-      match rule with
-      | S.ScopeVarDefinition { io; _ } -> ScopeVarDefinition, io
-      | S.SubScopeVarDefinition _ ->
-        ( SubScopeVarDefinition,
-          { io_input = NoInput, decl_pos; io_output = false, decl_pos } )
-      | S.Assertion _ -> assert false
-    in
+    let scope_let_kind = ScopeVarDefinition in
     let a_name = ScopeVar.get_info (Mark.remove var) in
     let a_var = Var.make (Mark.remove a_name) in
     let new_e = translate_expr ctx e in
@@ -771,10 +763,7 @@ let translate_scope_decl
          or not ? *)
       Message.error ~pos:pos_sigma "Scope %a has no content" ScopeName.format
         scope_name
-    | ( S.ScopeVarDefinition { e; _ }
-      | S.SubScopeVarDefinition { e; _ }
-      | S.Assertion { e; _ } )
-      :: _ ->
+    | (S.ScopeVarDefinition { e; _ } | S.Assertion { e; _ }) :: _ ->
       Expr.no_attrs (Mark.get e)
   in
   let scope_mark =

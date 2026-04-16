@@ -691,9 +691,6 @@ type ('e, 'elt, 'last) bound_list =
 type scope_let_kind =
   | DestructuringInputStruct  (** [let x = input.field]*)
   | ScopeVarDefinition  (** [let x = error_on_empty e]*)
-  | SubScopeVarDefinition
-      (** [let s.x = fun _ -> e] or [let s.x = error_on_empty e] for input-only
-          subscope variables. *)
   | CallingSubScope  (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
   | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
   | Assertion  (** [let () = assert e]*)
