@@ -1,0 +1,18 @@
+name: nightly-trigger
+
+# Cron schedules only work on branch master. So to build the DEB job from the
+# `pkgdeb` branch on schedule we have to add a specific job just to do the
+# trigger. Get me out of here...
+
+on:
+  schedule:
+    - cron: 10 2 * * 2-6
+  workflow_dispatch:
+
+jobs:
+  deb-trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run debian.yml --ref pkgdeb
