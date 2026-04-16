@@ -73,7 +73,7 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
     | TAbstract e ->
       Format.fprintf fmt "%a.jsoo" format_to_module_name (`Aname e)
     | TArrow (t1, t2) ->
-      Format.fprintf fmt "@[<hov 2>%a@]"
+      Format.fprintf fmt "@[<hov 2>(%a)@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt " ->@ ")
            format_typ_with_parens)
