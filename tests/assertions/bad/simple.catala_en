@@ -26,21 +26,21 @@ $ catala test-scope A
 └─
 ┌─[ERROR]─ 1/2 ─
 │
-│  Assertion failed: 6 ≯ 6
-│
-├─➤ tests/assertions/bad/simple.catala_en:12.3-12.18:
-│    │
-│ 12 │   assertion w > 6
-│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─
-┌─[ERROR]─ 2/2 ─
-│
 │  Assertion failed: Upper bound for w: 6 ≮ 6
 │
 ├─➤ tests/assertions/bad/simple.catala_en:9.3-9.18:
 │   │
 │ 9 │   assertion w < 6
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  Assertion failed: 6 ≯ 6
+│
+├─➤ tests/assertions/bad/simple.catala_en:12.3-12.18:
+│    │
+│ 12 │   assertion w > 6
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```

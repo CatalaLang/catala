@@ -131,53 +131,7 @@ let loc =
 
 let glob1 = 44.12
 
-let glob3 (x: money) = return to_rat x + 10.
-
-let glob4 (x: money) (y: decimal) = return to_rat x * y + 10.
-
-let glob5_init =
-  decl x : decimal;
-  x = to_rat 2 * 3.;
-  decl y : decimal;
-  y = 1000.;
-  return x * y
-
-let glob5 = glob5_init ()
-
 let glob2 = A {"y": ≥ nth(2) loc glob1 30., "z": 123. * 17.}
-
-let s2 (s2_in: #[test] S2_in) =
-  decl a : decimal;
-  init a__1 : optional of (decimal, code_location) =
-    Present (glob3 ¤44.00 + 100., nth(6) loc);
-  switch a__1:
-  | Absent _ →
-    fatal NoValue
-  | Present arg →
-    a = arg."0";
-  return S2 {"a": a}
-
-let s3 (s3_in: #[test] S3_in) =
-  decl a : decimal;
-  init a__1 : optional of (decimal, code_location) =
-    Present (50. + glob4 ¤44.00 55., nth(8) loc);
-  switch a__1:
-  | Absent _ →
-    fatal NoValue
-  | Present arg →
-    a = arg."0";
-  return S3 {"a": a}
-
-let s4 (s4_in: #[test] S4_in) =
-  decl a : decimal;
-  init a__1 : optional of (decimal, code_location) =
-    Present (glob5 + 1., nth(10) loc);
-  switch a__1:
-  | Absent _ →
-    fatal NoValue
-  | Present arg →
-    a = arg."0";
-  return S4 {"a": a}
 
 let s (s_in: #[test] S_in) =
   decl a : decimal;
@@ -196,6 +150,52 @@ let s (s_in: #[test] S_in) =
   | Present arg →
     b = arg."0";
   return S {"a": a, "b": b}
+
+let glob3 (x: money) = return to_rat x + 10.
+
+let s2 (s2_in: #[test] S2_in) =
+  decl a : decimal;
+  init a__1 : optional of (decimal, code_location) =
+    Present (glob3 ¤44.00 + 100., nth(6) loc);
+  switch a__1:
+  | Absent _ →
+    fatal NoValue
+  | Present arg →
+    a = arg."0";
+  return S2 {"a": a}
+
+let glob4 (x: money) (y: decimal) = return to_rat x * y + 10.
+
+let s3 (s3_in: #[test] S3_in) =
+  decl a : decimal;
+  init a__1 : optional of (decimal, code_location) =
+    Present (50. + glob4 ¤44.00 55., nth(8) loc);
+  switch a__1:
+  | Absent _ →
+    fatal NoValue
+  | Present arg →
+    a = arg."0";
+  return S3 {"a": a}
+
+let glob5_init =
+  decl x : decimal;
+  x = to_rat 2 * 3.;
+  decl y : decimal;
+  y = 1000.;
+  return x * y
+
+let glob5 = glob5_init ()
+
+let s4 (s4_in: #[test] S4_in) =
+  decl a : decimal;
+  init a__1 : optional of (decimal, code_location) =
+    Present (glob5 + 1., nth(10) loc);
+  switch a__1:
+  | Absent _ →
+    fatal NoValue
+  | Present arg →
+    a = arg."0";
+  return S4 {"a": a}
 ```
 
 ```catala-test-cli
@@ -226,6 +226,16 @@ class A(CatalaStruct):
         'z': 'z', # content Decimal
     }
 
+class S(CatalaStruct):
+    __slots__ = ('a', 'b')
+    a: Decimal
+    b: A
+    name = 'S'
+    fields = {
+        'a': 'a', # content Decimal
+        'b': 'b', # content A
+    }
+
 class S2(CatalaStruct):
     __slots__ = ('a')
     a: Decimal
@@ -248,16 +258,6 @@ class S4(CatalaStruct):
     name = 'S4'
     fields = {
         'a': 'a', # content Decimal
-    }
-
-class S(CatalaStruct):
-    __slots__ = ('a', 'b')
-    a: Decimal
-    b: A
-    name = 'S'
-    fields = {
-        'a': 'a', # content Decimal
-        'b': 'b', # content A
     }
 
 class SIn(CatalaStruct):
@@ -298,44 +298,7 @@ loc = (Array([SourcePosition(filename="tests/name_resolution/good/toplevel_defs.
 
 glob1 = (Decimal('1103/25'))
 
-def glob3(x:Money) -> Decimal:
-    return (Decimal(x) + Decimal('10'))
-
-def glob4(x:Money, y:Decimal) -> Decimal:
-    return ((Decimal(x) * y) + Decimal('10'))
-
-def glob5_init() -> Decimal:
-    x = ((Decimal(Integer(2)) * Decimal('3')))
-    y = (Decimal('1000'))
-    return (x * y)
-
-glob5 = (glob5_init())
-
 glob2 = (A(y = (glob1 >= Decimal('30')), z = (Decimal('123') * Decimal('17'))))
-
-def s2(s2_in:S2In) -> S2:
-    a__1 = (Option(CatalaTuple((glob3(Money('44.00')) + Decimal('100')), loc[5])))
-    if a__1.value is not None:
-        a = (a__1.value[0])
-    else:
-        raise NoValue(loc[4])
-    return S2(a = a)
-
-def s3(s3_in:S3In) -> S3:
-    a__1 = (Option(CatalaTuple((Decimal('50') + glob4(Money('44.00'), Decimal('55'))), loc[7])))
-    if a__1.value is not None:
-        a = (a__1.value[0])
-    else:
-        raise NoValue(loc[6])
-    return S3(a = a)
-
-def s4(s4_in:S4In) -> S4:
-    a__1 = (Option(CatalaTuple((glob5 + Decimal('1')), loc[9])))
-    if a__1.value is not None:
-        a = (a__1.value[0])
-    else:
-        raise NoValue(loc[8])
-    return S4(a = a)
 
 def s(s_in:SIn) -> S:
     a__1 = (Option(CatalaTuple((glob1 * glob1), loc[2])))
@@ -350,8 +313,48 @@ def s(s_in:SIn) -> S:
         raise NoValue(loc[1])
     return S(a = a, b = b)
 
+def glob3(x:Money) -> Decimal:
+    return (Decimal(x) + Decimal('10'))
+
+def s2(s2_in:S2In) -> S2:
+    a__1 = (Option(CatalaTuple((glob3(Money('44.00')) + Decimal('100')), loc[5])))
+    if a__1.value is not None:
+        a = (a__1.value[0])
+    else:
+        raise NoValue(loc[4])
+    return S2(a = a)
+
+def glob4(x:Money, y:Decimal) -> Decimal:
+    return ((Decimal(x) * y) + Decimal('10'))
+
+def s3(s3_in:S3In) -> S3:
+    a__1 = (Option(CatalaTuple((Decimal('50') + glob4(Money('44.00'), Decimal('55'))), loc[7])))
+    if a__1.value is not None:
+        a = (a__1.value[0])
+    else:
+        raise NoValue(loc[6])
+    return S3(a = a)
+
+def glob5_init() -> Decimal:
+    x = ((Decimal(Integer(2)) * Decimal('3')))
+    y = (Decimal('1000'))
+    return (x * y)
+
+glob5 = (glob5_init())
+
+def s4(s4_in:S4In) -> S4:
+    a__1 = (Option(CatalaTuple((glob5 + Decimal('1')), loc[9])))
+    if a__1.value is not None:
+        a = (a__1.value[0])
+    else:
+        raise NoValue(loc[8])
+    return S4(a = a)
+
 # Automatic Catala tests
 if __name__ == "__main__":
+  s_test = (s(SIn()))
+  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.", file=stderr)
+  print(s_test)
   s2_test = (s2(S2In()))
   print("/x1b[32m[RESULT]/x1b[m Scope S2 executed successfully.", file=stderr)
   print(s2_test)
@@ -361,7 +364,4 @@ if __name__ == "__main__":
   s4_test = (s4(S4In()))
   print("/x1b[32m[RESULT]/x1b[m Scope S4 executed successfully.", file=stderr)
   print(s4_test)
-  s_test = (s(SIn()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.", file=stderr)
-  print(s_test)
 ```

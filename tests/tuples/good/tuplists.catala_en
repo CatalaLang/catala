@@ -117,15 +117,15 @@ let topval lis2 : list of money =
 let topval lis3 : list of money =
   [¤20.00; ¤200.00; ¤10.00; ¤23.00; ¤25.00; ¤12.00]
 
-let topval grok : (decimal, money, money) → (money, decimal) =
-  λ (dec: decimal) (mon1: money) (mon2: money) →
-  (mon1 * dec, mon1 / mon2)
-
 let topval tlist : list of (decimal, money, money) =
   map2
     (λ (a: decimal) (b_c: (money, money)) → (a, b_c.0, b_c.1))
     lis1
     map2 (λ (b: money) (c: money) → (b, c)) lis2 lis3
+
+let topval grok : (decimal, money, money) → (money, decimal) =
+  λ (dec: decimal) (mon1: money) (mon2: money) →
+  (mon1 * dec, mon1 / mon2)
 
 #[test]
 let scope S (S_in: S_in): S =

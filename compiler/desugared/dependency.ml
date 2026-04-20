@@ -87,7 +87,7 @@ module ScopeDependencies =
   Graph.Persistent.Digraph.ConcreteBidirectionalLabeled (Vertex) (Edge)
 (** Module of the graph, provided by OCamlGraph *)
 
-module TopologicalTraversal = Graph.Topological.Make (ScopeDependencies)
+module TopologicalTraversal = Graph.Topological.Make_stable (ScopeDependencies)
 (** Module of the topological traversal of the graph, provided by OCamlGraph *)
 
 module SCC = Graph.Components.Make (ScopeDependencies)

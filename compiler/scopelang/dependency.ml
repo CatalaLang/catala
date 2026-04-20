@@ -68,7 +68,7 @@ end
 module SDependencies =
   Graph.Persistent.Digraph.ConcreteBidirectionalLabeled (SVertex) (SEdge)
 
-module STopologicalTraversal = Graph.Topological.Make (SDependencies)
+module STopologicalTraversal = Graph.Topological.Make_stable (SDependencies)
 
 module SSCC = Graph.Components.Make (SDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
@@ -257,7 +257,7 @@ end
 module TDependencies =
   Graph.Persistent.Digraph.ConcreteBidirectionalLabeled (TypeIdent) (TEdge)
 
-module TTopologicalTraversal = Graph.Topological.Make (TDependencies)
+module TTopologicalTraversal = Graph.Topological.Make_stable (TDependencies)
 
 module TSCC = Graph.Components.Make (TDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)

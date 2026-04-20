@@ -126,14 +126,14 @@ let scope TestSubDefault
     in
     if true then result1 else result1
   in
-  let set x12 : decimal =
-    error_empty ⟨ ⟨true ⊢ ⟨sub.cfun2 24⟩⟩ | false ⊢ ∅ ⟩
-  in
+  let set ci : integer = error_empty ⟨ ⟨true ⊢ ⟨sub.ci⟩⟩ | false ⊢ ∅ ⟩ in
+  let set cm : money = error_empty ⟨ ⟨true ⊢ ⟨sub.cm⟩⟩ | false ⊢ ∅ ⟩ in
   let set x11 : decimal =
     error_empty ⟨ ⟨true ⊢ ⟨sub.cfun1 24⟩⟩ | false ⊢ ∅ ⟩
   in
-  let set cm : money = error_empty ⟨ ⟨true ⊢ ⟨sub.cm⟩⟩ | false ⊢ ∅ ⟩ in
-  let set ci : integer = error_empty ⟨ ⟨true ⊢ ⟨sub.ci⟩⟩ | false ⊢ ∅ ⟩ in
+  let set x12 : decimal =
+    error_empty ⟨ ⟨true ⊢ ⟨sub.cfun2 24⟩⟩ | false ⊢ ∅ ⟩
+  in
   return { TestSubDefault ci = ci; cm = cm; x11 = x11; x12 = x12; }
 ```
 
