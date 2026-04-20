@@ -29,8 +29,7 @@ $ catala test-scope A
 └─
 ┌─[ERROR]─ 1/3 ─
 │
-│  Assertion failed: ☹.
-│  The condition resolved to: 3 < 0
+│  Assertion failed: ☹: 3 ≮ 0
 │
 ├─➤ tests/assertions/bad/inline.catala_en:9.5-9.20:
 │   │
@@ -39,8 +38,7 @@ $ catala test-scope A
 └─
 ┌─[ERROR]─ 2/3 ─
 │
-│  Assertion failed.
-│  The condition resolved to: 6 = -6
+│  Assertion failed: 6 ≠ -6
 │
 ├─➤ tests/assertions/bad/inline.catala_en:11.5-11.21:
 │    │
@@ -49,8 +47,7 @@ $ catala test-scope A
 └─
 ┌─[ERROR]─ 3/3 ─
 │
-│  Assertion failed: Check that a is more than -6.
-│  The condition resolved to: ~ (6 > -6)
+│  Assertion failed: Check that a is more than -6: 6 > -6
 │
 ├─➤ tests/assertions/bad/inline.catala_en:13.5-13.27:
 │    │

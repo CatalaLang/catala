@@ -44,7 +44,7 @@ scope S:
 $ catala test-scope S
 ┌─[RESULT]─ S ─
 │ a = 12
-│ b = 2025-01-01
+│ b = |2025-01-01|
 └─
 ```
 
@@ -130,12 +130,12 @@ let topval t1 : list of decimal =
 
 let scope s (s_in: S_in): S =
   let set a : integer =
-    match (Present (identity 12, <polymorphism:39.23-37>)) with
+    match Present (identity 12, <polymorphism:39.23-37>) with
     | Absent → error NoValue
     | Present arg → arg.0
   in
   let set b : date =
-    match (Present (identity 2025-01-01, <polymorphism:40.23-47>)) with
+    match Present (identity |2025-01-01|, <polymorphism:40.23-47>) with
     | Absent → error NoValue
     | Present arg → arg.0
   in

@@ -24,7 +24,7 @@ $ catala Typecheck --check-invariants
 $ catala Lcalc -s Foo
 let scope Foo (foo_in: Foo_in): Foo =
   let set bar : integer =
-    match (Present (0, <simple:8.25-26>)) with
+    match Present (0, <simple:8.25-26>) with
     | Absent → error NoValue
     | Present arg → arg.0
   in

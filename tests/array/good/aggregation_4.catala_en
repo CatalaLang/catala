@@ -55,11 +55,11 @@ let topval closure_aggregate_periods_from_last_five_years :
   let env__1 : (date) = from_closure_env env in
   let date_of_sale_or_exchange : date = env__1.0 in
   if
-    date_of_sale_or_exchange <= period.begin + [5 years, 0 months, 0 days]
+    date_of_sale_or_exchange ≤ period.begin + [5 years, 0 months, 0 days]
   then
     period.end - period.begin
   else if
-    date_of_sale_or_exchange >= period.end + [5 years, 0 months, 0 days]
+    date_of_sale_or_exchange ≥ period.end + [5 years, 0 months, 0 days]
   then
     [0 years, 0 months, 0 days]
   else period.end + [5 years, 0 months, 0 days] - date_of_sale_or_exchange
@@ -84,25 +84,25 @@ let topval closure_aggregate_periods_from_last_five_years__3 :
   let env__1 : (date) = from_closure_env env in
   let date_of_sale_or_exchange : date = env__1.0 in
   match
-    (Present
-       (reduce
-          let aggregate_periods_from_last_five_years :
-              (closure_env, duration, duration) → duration =
-            closure_aggregate_periods_from_last_five_years__2
-          in
-          (aggregate_periods_from_last_five_years, to_closure_env ())
-          let aggregate_periods_from_last_five_years :
-              (closure_env, unit) → duration =
-            closure_aggregate_periods_from_last_five_years__1
-          in
-          (aggregate_periods_from_last_five_years, to_closure_env ())
-          map (let aggregate_periods_from_last_five_years :
-                   (closure_env, Period) → duration =
-                 closure_aggregate_periods_from_last_five_years
-               in
-               (aggregate_periods_from_last_five_years,
-                 to_closure_env (date_of_sale_or_exchange)))
-            periods, <aggregation_4:25.5-31.65>))
+    Present
+      (reduce
+         let aggregate_periods_from_last_five_years :
+             (closure_env, duration, duration) → duration =
+           closure_aggregate_periods_from_last_five_years__2
+         in
+         (aggregate_periods_from_last_five_years, to_closure_env ())
+         let aggregate_periods_from_last_five_years :
+             (closure_env, unit) → duration =
+           closure_aggregate_periods_from_last_five_years__1
+         in
+         (aggregate_periods_from_last_five_years, to_closure_env ())
+         map (let aggregate_periods_from_last_five_years :
+                  (closure_env, Period) → duration =
+                closure_aggregate_periods_from_last_five_years
+              in
+              (aggregate_periods_from_last_five_years,
+                to_closure_env (date_of_sale_or_exchange)))
+           periods, <aggregation_4:25.5-31.65>)
   with
   | Absent → error NoValue
   | Present arg → arg.0
@@ -130,12 +130,12 @@ let scope section121_single_person
     match
       (match
          if
-           (let code_and_env :
-                ((closure_env, (list of Period)) → duration, closure_env) =
-              aggregate_periods_from_last_five_years
-            in
-            code_and_env.0 code_and_env.1 property_ownage)
-           >= [0 years, 0 months, 730 days]
+           let code_and_env :
+               ((closure_env, (list of Period)) → duration, closure_env) =
+             aggregate_periods_from_last_five_years
+           in
+           code_and_env.0 code_and_env.1 property_ownage
+           ≥ [0 years, 0 months, 730 days]
          then
            Present (true, <aggregation_4:35.15-24>)
          else Absent

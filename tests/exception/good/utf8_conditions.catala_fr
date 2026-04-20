@@ -95,10 +95,10 @@ $ catala Exceptions -s Test -v x
 │ The exception tree structure is as follows:
 │ 
 │ "base"
-│ │ [individu.revenu <= $100,000.00]
+│ │ [individu.revenu ≤ $100,000.00]
 │ └── "haut_revenu"
 │     │ [individu.revenu > $100,000.00]
 │     └── "très_haut_revenu"
-│           [individu.revenu > $100,000.00 && individu.revenu <= $200,000.00]
+│           [individu.revenu > $100,000.00 && individu.revenu ≤ $200,000.00]
 └─
 ```

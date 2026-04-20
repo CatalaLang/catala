@@ -144,11 +144,11 @@ let glob5_init =
 
 let glob5 = glob5_init ()
 
-let glob2 = A {"y": >= nth(2) loc glob1 30., "z": 123. * 17.}
+let glob2 = A {"y": ≥ nth(2) loc glob1 30., "z": 123. * 17.}
 
 let s2 (s2_in: #[test] S2_in) =
   decl a : decimal;
-  init a__1 : option (decimal, code_location) =
+  init a__1 : optional of (decimal, code_location) =
     Present (glob3 ¤44.00 + 100., nth(6) loc);
   switch a__1:
   | Absent _ →
@@ -159,7 +159,7 @@ let s2 (s2_in: #[test] S2_in) =
 
 let s3 (s3_in: #[test] S3_in) =
   decl a : decimal;
-  init a__1 : option (decimal, code_location) =
+  init a__1 : optional of (decimal, code_location) =
     Present (50. + glob4 ¤44.00 55., nth(8) loc);
   switch a__1:
   | Absent _ →
@@ -170,7 +170,7 @@ let s3 (s3_in: #[test] S3_in) =
 
 let s4 (s4_in: #[test] S4_in) =
   decl a : decimal;
-  init a__1 : option (decimal, code_location) =
+  init a__1 : optional of (decimal, code_location) =
     Present (glob5 + 1., nth(10) loc);
   switch a__1:
   | Absent _ →
@@ -181,7 +181,7 @@ let s4 (s4_in: #[test] S4_in) =
 
 let s (s_in: #[test] S_in) =
   decl a : decimal;
-  init a__1 : option (decimal, code_location) =
+  init a__1 : optional of (decimal, code_location) =
     Present (glob1 * glob1, nth(3) loc);
   switch a__1:
   | Absent _ →
@@ -189,7 +189,7 @@ let s (s_in: #[test] S_in) =
   | Present arg →
     a = arg."0";
   decl b : A;
-  init b__1 : option (A, code_location) = Present (glob2, nth(4) loc);
+  init b__1 : optional of (A, code_location) = Present (glob2, nth(4) loc);
   switch b__1:
   | Absent _ →
     fatal NoValue

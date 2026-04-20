@@ -11,7 +11,7 @@ scope S:
 ```catala-test-cli
 $ catala test-scope S
 ┌─[RESULT]─ S ─
-│ o = Present (12, $13.00)
+│ o = Present content (12, $13.00)
 └─
 ```
 
@@ -58,6 +58,6 @@ $ catala typecheck
 ```catala-test-cli
 $ catala test-scope S2
 ┌─[RESULT]─ S2 ─
-│ o = Present [Present true; Present true]
+│ o = Present content [Present content true; Present content true]
 └─
 ```

@@ -66,6 +66,11 @@ val expr : ?debug:bool -> unit -> Format.formatter -> ('a, 'm) gexpr -> unit
 val s_expr : Format.formatter -> (_, _) gexpr -> unit
 (** S-expression printer for all AST nodes. *)
 
+val negated_op : Format.formatter -> 'a operator -> unit
+(** Prints crossed out comparison operators, for nicer display of
+    [not (op (a, b))].
+    @raise Invalid_argument on non-comparison operators. *)
+
 (** {2 Generic expression printer interface} *)
 
 module type EXPR_PARAM = sig

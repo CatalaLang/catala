@@ -47,7 +47,7 @@ module StructName =
 module StructField =
   Uid.Gen
     (struct
-      let style = Ocolor_types.(Fg (C4 magenta))
+      let style = Ocolor_types.(Fg (C4 hi_black))
     end)
     ()
 

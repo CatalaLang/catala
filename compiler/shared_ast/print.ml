@@ -160,7 +160,8 @@ let rec typ_gen :
   | TEnum e -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format e
   | TAbstract e -> Format.fprintf fmt "@[<hov 2>%a@]" AbstractType.format e
   | TOption t ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" (typ_gen ()) t
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "optional of" (typ_gen ())
+      t
   | TArrow ([t1], t2) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (typ_with_parens ~colors) t1
       op_style "→" (typ_gen ()) t2
@@ -179,9 +180,9 @@ let rec typ_gen :
   | TArray t1 ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "list of" (typ_gen ()) t1
   | TDefault t1 ->
-    punctuation fmt "⟨";
+    punctuation fmt "⟪";
     typ_gen () fmt t1;
-    punctuation fmt "⟩"
+    punctuation fmt "⟫"
   | TVar tv -> tvar fmt tv
   | TForAll tb ->
     let tvs, ty, bctx = Bindlib.unmbind_in bctx tb in
@@ -206,7 +207,7 @@ let lit (fmt : Format.formatter) (l : lit) : unit =
          ~max_prec_digits:Global.options.max_prec_digits i)
   | LMoney e ->
     lit_style fmt (Format.asprintf "¤%s" (Catala_runtime.money_to_string e))
-  | LDate d -> lit_style fmt (Catala_runtime.date_to_string d)
+  | LDate d -> lit_style fmt ("|" ^ Catala_runtime.date_to_string d ^ "|")
   | LDuration d -> lit_style fmt (Catala_runtime.duration_to_string d)
 
 let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
@@ -219,7 +220,7 @@ let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
 let operator_to_string : type a. a Op.t -> string =
   let open Op in
   function
-  | Not -> "~"
+  | Not -> "not"
   | Length -> "length"
   | ToInt -> "to_int"
   | ToInt_rat -> "to_int_rat"
@@ -295,7 +296,7 @@ let operator_to_string : type a. a Op.t -> string =
 let operator_to_shorter_string : type a. a Op.t -> string =
   let open Op in
   function
-  | Not -> "~"
+  | Not -> "not"
   | Length -> "length"
   | ToInt | ToInt_rat | ToInt_mon -> "to_int"
   | ToRat_int | ToRat_mon | ToRat -> "to_rat"
@@ -325,9 +326,9 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Div_dur_dur | Div ->
     "/"
   | Lt -> "<"
-  | Lte -> "<="
+  | Lte -> "≤"
   | Gt -> ">"
-  | Gte -> ">="
+  | Gte -> "≥"
   | Fold -> "fold"
   | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "to_closure_env"
@@ -336,6 +337,17 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | ConstructorCheck (_, c) ->
     Printf.sprintf "is_%s" (EnumConstructor.to_string c)
   | ValueFromJson (_ty, json) -> Printf.sprintf "json[%s]" json
+
+let negated_op_to_string : type a. a Op.t -> string = function
+  | Xor -> "="
+  | Eq -> "≠"
+  | Lt -> "≮"
+  | Lte -> "≰"
+  | Gt -> "≯"
+  | Gte -> "≱"
+  | _ -> invalid_arg "negated_op_to_string"
+
+let negated_op ppf op = literal_op_style ppf (negated_op_to_string op)
 
 let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
  fun ?(debug = true) fmt op ->
@@ -370,6 +382,7 @@ module Precedence = struct
     | Op of op
     | App (* Function application, right-associative *)
     | Abs (* lambda, *)
+    | Inj (* constructor application *)
     | Dot (* *)
 
   let expr : type a. (a, 't) gexpr -> t =
@@ -414,7 +427,8 @@ module Precedence = struct
     | EAbs _ -> Abs
     | EIfThenElse _ -> Contained
     | EStruct _ -> Contained
-    | EInj _ -> App
+    | EInj { e = ELit LUnit, _; _ } -> Contained
+    | EInj _ -> Inj
     | EMatch _ -> App
     | ETuple _ -> Contained
     | ETupleAccess _ -> Dot
@@ -439,6 +453,8 @@ module Precedence = struct
     | Dot, Dot -> rhs
     | _, Dot -> false
     | Dot, _ -> true
+    | Inj, _ -> true
+    | _, Inj -> false
     | App, App -> not rhs
     | App, Op _ -> true
     | App, Abs -> true
@@ -457,6 +473,7 @@ module Precedence = struct
       | (Mul | Div), (Add | Sub) -> true
       | Mul, (Mul | Div) -> false
       | Div, (Mul | Div) -> rhs)
+    | Op Comp, App -> false
     | Op _, App -> not rhs
     | Op _, _ -> true
     | Contained, _ -> false
@@ -496,8 +513,8 @@ module ExprGen (C : EXPR_PARAM) = struct
     let var = C.var in
     let operator = C.operator in
     let e = C.pre_map e in
-    let paren ~rhs ?(colors = colors) expr fmt e1 =
-      if Precedence.needs_parens ~rhs ~context:e (C.pre_map e1) then (
+    let paren ?(context = e) ~rhs ?(colors = colors) expr fmt e1 =
+      if Precedence.needs_parens ~rhs ~context (C.pre_map e1) then (
         Format.pp_open_hvbox fmt 1;
         pp_color_string (List.hd colors) fmt "(";
         expr (List.tl colors) fmt e1;
@@ -593,6 +610,22 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EAppOp { op = ((Map | Filter) as op), _; args = [arg1; arg2]; _ } ->
         Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs exprc) arg1
           (rhs exprc) arg2
+      | EAppOp { op = Not, _; args = [e]; _ } -> (
+        match e with
+        | EAppOp { op = Not, _; args = [arg1]; _ }, _ -> expr fmt arg1
+        | ( EAppOp
+              {
+                op = ((Eq | Lt | Lte | Gt | Gte | Xor) as op), _;
+                args = [arg1; arg2];
+                _;
+              },
+            _ ) ->
+          Format.fprintf fmt "@[<hv 2>%a %a@ %a@]"
+            (paren ~context:e ~colors ~rhs:false exprc)
+            arg1 negated_op op
+            (paren ~context:e ~colors ~rhs:false exprc)
+            arg2
+        | e -> Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator Not (rhs exprc) e)
       | EAppOp { op = (Log _ as op), _; args = [arg1]; _ } ->
         Format.fprintf fmt "@[<hv 0>%a@ %a@]" operator op (rhs exprc) arg1
       | EAppOp { op = op0, _; args = [_; _]; _ } ->
@@ -1077,11 +1110,9 @@ module UserFacing = struct
      Trying would lead to inconsistencies where some comparable numbers are in %
      and some others not, adding confusion. *)
 
-  let date (lang : Global.backend_lang) ppf d =
+  let date (_lang : Global.backend_lang) ppf d =
     let y, m, d = Catala_runtime.date_to_years_months_days d in
-    match lang with
-    | En | Pl -> Format.fprintf ppf "%04d-%02d-%02d" y m d
-    | Fr -> Format.fprintf ppf "%02d/%02d/%04d" d m y
+    Format.fprintf ppf "|%04d-%02d-%02d|" y m d
 
   let duration (lang : Global.backend_lang) ppf dr =
     let y, m, d = Catala_runtime.duration_to_years_months_days dr in
@@ -1157,7 +1188,9 @@ module UserFacing = struct
     | EInj { name = _; cons; e = ELit LUnit, _ } ->
       Format.fprintf ppf "@[<hov 2>%a@]" EnumConstructor.format cons
     | EInj { name = _; cons; e } ->
-      Format.fprintf ppf "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
+      Format.fprintf ppf "@[<hov 2>%a %a@ %a@]" EnumConstructor.format cons
+        keyword
+        (match lang with En -> "content" | Fr -> "contenu" | Pl -> "typu")
         (value ~fallback lang) e
     | EEmpty -> Format.pp_print_string ppf "ø"
     | ECustom { targs = []; _ } -> expr () ppf e

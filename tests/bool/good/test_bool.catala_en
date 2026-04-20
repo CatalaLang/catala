@@ -27,15 +27,15 @@ $ catala Typecheck --check-invariants
 $ catala Dcalc 
 
 #[test]
-type TestBool_in = { foo_in: ⟨bool⟩; bar_in: ⟨integer⟩; }
+type TestBool_in = { foo_in: ⟪bool⟫; bar_in: ⟪integer⟫; }
 
 #[test]
 type TestBool = { foo: bool; bar: integer; }
 
 #[test]
 let scope TestBool (TestBool_in: TestBool_in): TestBool =
-  let get foo : ⟨bool⟩ = TestBool_in.foo_in in
-  let get bar : ⟨integer⟩ = TestBool_in.bar_in in
+  let get foo : ⟪bool⟫ = TestBool_in.foo_in in
+  let get bar : ⟪integer⟫ = TestBool_in.bar_in in
   let set bar : integer =
     error_empty ⟨ bar | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
@@ -44,7 +44,7 @@ let scope TestBool (TestBool_in: TestBool_in): TestBool =
       ⟨ foo
       | true
         ⊢ ⟨error_empty
-             ⟨ ⟨bar >= 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+             ⟨ ⟨bar ≥ 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
   return { TestBool foo = foo; bar = bar; }
 
@@ -67,10 +67,10 @@ type TestBool = { foo: bool; bar: integer; }
 
 #[test]
 let scope TestBool
-    (foo: ⟨bool⟩|context|output)
-    (bar: ⟨integer⟩|context|output)
+    (foo: ⟪bool⟫|context|output)
+    (bar: ⟪integer⟫|context|output)
   =
   let bar : integer = reentrant or by default error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
   let foo : bool = reentrant or by default
-    error_empty ⟨ ⟨bar >= 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩
+    error_empty ⟨ ⟨bar ≥ 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩
 ```

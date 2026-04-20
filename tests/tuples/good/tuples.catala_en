@@ -46,6 +46,6 @@ $ catala typecheck --check-invariants
 ```catala-test-cli
 $ catala test-scope Test
 ┌─[RESULT]─ Test ─
-│ o = (2001-01-03, 6.0)
+│ o = (|2001-01-03|, 6.0)
 └─
 ```
