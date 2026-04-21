@@ -322,15 +322,15 @@ module Value = struct
     | V (Tuple t1, v1), V (Tuple t2, v2) ->
       List.for_all2 (equal pos) (t1 v1) (t2 v2)
     | V (Struct str1, v1), V (Struct str2, v2) ->
-      (* str1.name = str2.name
-       * && *)
+      str1.name = str2.name
+      &&
       (* could be an assert if well-typed ? *)
       List.for_all2
         (fun (fld1, rv1) (fld2, rv2) -> fld1 = fld2 && equal pos rv1 rv2)
         (str1.fields v1) (str2.fields v2)
     | V (Enum en1, v1), V (Enum en2, v2) ->
-      (* en1.name = en2.name
-       * && *)
+      en1.name = en2.name
+      &&
       (* could be an assert if well-typed ? *)
       let n1, _, x1 = en1.constr v1 in
       let n2, _, x2 = en2.constr v2 in
@@ -533,8 +533,8 @@ module type ExternalTypeSpec = sig
       the left-hand side is respectively smaller, equal or greater than the
       right-hand side *)
 
-  (* val to_expr : t -> string (\** Must output a valid OCaml expression that
-     encodes the given value *\) *)
+  (* val to_expr : t -> string (** Must output a valid OCaml expression that
+     encodes the given value *) *)
 
   val print : t -> string
   (** User-directed printing of the value *)
