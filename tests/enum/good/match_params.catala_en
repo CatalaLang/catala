@@ -1,0 +1,173 @@
+# Test of enums cases with multiple parameters, and matching them.
+
+## Standard enum with multiple parameters
+
+```catala-metadata
+declaration enumeration Bob:
+  -- Zero
+  -- One content integer
+  -- Two content (money, integer)
+  -- Three content (decimal, money, integer)
+
+#[test]
+declaration scope S:
+  internal param content Bob
+  output o1 content integer
+  output o2 content integer
+```
+
+```catala
+scope S:
+  definition param equals Three content (12.12, $12.12, 12)
+  definition o1 equals
+    match param with pattern
+    -- Zero: 0
+    -- One content x: x
+    -- Two content (a, x): integer of a + x
+    -- Three content (a, b, x): integer of a + integer of b + x
+
+  definition o2 equals
+    match param with pattern
+    -- Zero: 0
+    -- One content x: x
+    -- Two content t2: integer of t2.1 + t2.2
+    -- Three content t3: integer of t3.1 + integer of t3.2 + t3.3
+```
+
+```catala-test-cli
+$ catala test-scope S --disable-warnings
+┌─[RESULT]─ S ─
+│ o1 = 36
+│ o2 = 36
+└─
+```
+
+## Short match-check syntax
+
+
+```catala-metadata
+#[test]
+declaration scope S2:
+  internal param content Bob
+  output o1 content list of boolean
+```
+
+```catala
+scope S2:
+  definition param equals Three content (12.12, $12.12, 12)
+  definition o1 equals [
+    param with pattern One;
+    param with pattern Three;
+    param with pattern One content x;
+    param with pattern Three content t;
+    param with pattern Three content t and t = (12.12, $12.12, 12);
+    param with pattern Three content (x, y, z) and x = 44.44;
+    param with pattern Three content (x, y, z) and y = $12.12;
+    param with pattern Three content (x, y, z) and y = $12.12 and x = 12.12
+  ]
+```
+
+```catala-test-cli
+$ catala test-scope S2 --disable-warnings
+┌─[RESULT]─ S2 ─
+│ o1 = [false; true; false; true; true; false; true; true]
+└─
+```
+
+## Matching the polymorphic option type
+
+```catala-metadata
+#[test]
+declaration scope S3:
+  internal opt0 content optional of integer
+  internal opt1 content optional of integer
+  internal opt2 content optional of (money, integer)
+  output r0 content (integer, integer)
+  output r1 content (integer, integer)
+  output r2 content (integer, integer)
+  output r3 content (money, integer)
+```
+
+```catala
+scope S3:
+  definition opt0 equals Absent
+  definition opt1 equals Present content 86
+  definition opt2 equals Present content ($14.14, 86)
+
+  definition r0 equals (
+    (match opt0 with pattern
+     -- Absent: 0
+     -- Present content x: x),
+    (match opt0 with pattern
+     -- Absent: 0
+     -- Present: 1)
+  )
+  definition r1 equals (
+    (match opt1 with pattern
+     -- Absent: 0
+     -- Present content x: x),
+    (match opt1 with pattern
+     -- Absent: 0
+     -- Present: 1)
+  )
+  definition r2 equals (
+    (match opt2 with pattern
+     -- Absent: 0
+     -- Present content x: x.2),
+    (match opt2 with pattern
+     -- Absent: 0
+     -- Present content (x, y): integer of x + y)
+  )
+  definition r3 equals
+    match opt2 with pattern
+    -- Absent: ($99, 99)
+    -- Present content pair: pair
+```
+
+```catala-test-cli
+$ catala test-scope S3 --disable-warnings
+┌─[RESULT]─ S3 ─
+│ r0 = (0, 0)
+│ r1 = (86, 1)
+│ r2 = (86, 100)
+│ r3 = ($14.14, 86)
+└─
+```
+
+## Short match-check syntax on options
+
+
+```catala-metadata
+#[test]
+declaration scope S4:
+  output o1 content list of boolean
+```
+
+```catala
+scope S4:
+  definition o1 equals [
+    Absent with pattern Absent;
+    Absent with pattern Present;
+    (Present content 3) with pattern Absent;
+    (Present content 3) with pattern Present;
+    (Present content 3) with pattern Present content x;
+    (Present content 3) with pattern Present content x and x = 3;
+    (Present content (3, $12)) with pattern Absent;
+    (Present content (3, $12)) with pattern Present;
+    (Present content (3, $12)) with pattern Present content x;
+    (Present content (3, $12)) with pattern Present content x and x.2 = $12;
+    (Present content (3, $12)) with pattern Present content (x, y) and x = 3 and y = $12;
+    (Present content (3, $12)) with pattern Present content (x, y) and x = 3 and y = $1000
+  ]
+```
+
+```catala-test-cli
+$ catala test-scope S4 --disable-warnings
+┌─[RESULT]─ S4 ─
+│ o1 =
+│   [
+│     true; false; false; true; true; true; false; true; true; true; true;
+│     false
+│   ]
+└─
+```

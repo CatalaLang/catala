@@ -84,7 +84,7 @@ type enum_decl = {
   enum_decl_cases : enum_decl_case Mark.pos list;
 }
 
-type match_case_pattern = enum_constr Mark.pos list * lident Mark.pos option
+type match_case_pattern = enum_constr Mark.pos list * lident Mark.pos list
 type op_kind = KPoly | KInt | KDec | KMoney | KDate | KDuration
 
 type binop =

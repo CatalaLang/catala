@@ -785,7 +785,13 @@ and typecheck_expr_top_down : type a m.
     let cases =
       EnumConstructor.Map.mapi
         (fun c_name e ->
-          let c_ty = EnumConstructor.Map.find c_name cases_ty in
+          let c_ty = get_ty env e (EnumConstructor.Map.find c_name cases_ty) in
+          let e =
+            match e with
+            | EAbs ({ tys = [ty]; _ } as abs), m ->
+              EAbs { abs with tys = [union env e c_ty ty] }, m
+            | _ -> assert false
+          in
           let e_ty = TArrow ([c_ty], t_ret), Expr.pos e in
           typecheck_expr_top_down ctx env e_ty e)
         cases
@@ -800,9 +806,6 @@ and typecheck_expr_top_down : type a m.
       EnumConstructor.Map.mapi
         (fun c_name e ->
           let c_ty = EnumConstructor.Map.find c_name cases_ty in
-          (* For now our constructors are limited to zero or one argument. If
-             there is a change to allow for multiple arguments, it might be
-             easier to use tuples directly. *)
           let e_ty = TArrow ([c_ty], t_ret), Expr.pos e in
           typecheck_expr_top_down ctx env e_ty e)
         cases

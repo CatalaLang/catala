@@ -393,7 +393,10 @@ module Content = struct
       List.iteri
         (fun i (c, bt) ->
           let header = Printf.sprintf "%d/%d" (succ i) len in
-          emit_raw ~ppf ~header c target;
+          (try emit_raw ~ppf ~header c target
+           with err ->
+             Format.fprintf ppf "@[<hov 4>failed to print:@ %a@]@,@."
+               Format.pp_print_text (Printexc.to_string err));
           if Global.options.debug then Printexc.print_raw_backtrace stderr bt)
         contents
 
