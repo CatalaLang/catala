@@ -41,6 +41,7 @@ val format_to_module_name :
 
 val format_var : Format.formatter -> 'm Var.t -> unit
 val format_typ : Format.formatter -> typ -> unit
+val format_embedding : Format.formatter -> typ -> unit
 
 val format_program :
   File.t option ->

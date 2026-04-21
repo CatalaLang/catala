@@ -33,6 +33,7 @@ val format_ctx :
   Format.formatter ->
   Format.formatter ->
   decl_ctx ->
+  ModuleName.t option ->
   unit
 
 val format_typ_of : Format.formatter -> typ -> unit

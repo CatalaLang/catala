@@ -233,7 +233,8 @@ let format_ctx
     (type_ordering : TypeIdent.t list)
     (ppml : Format.formatter)
     (ppi : Format.formatter)
-    (ctx : decl_ctx) : unit =
+    (ctx : decl_ctx)
+    (modname : ModuleName.t option) : unit =
   let format_struct_decl (struct_name, struct_fields) =
     if TypeIdent.(Set.mem (Struct struct_name) ctx.ctx_public_types) then
       let fields = StructField.Map.bindings struct_fields in
@@ -282,6 +283,7 @@ let format_ctx
            "{@,\
             %a@;\
             <0-2>}@]@;\
+            val rtype: t Value.ty@;\
             @[<hv 2>class type jsoo_ct = object@;\
             <1 0>%a@;\
             <1 -2>end@]@,\
@@ -304,9 +306,21 @@ let format_ctx
            if include_ then
              Format.fprintf ppml "include %a@," To_ocaml.format_to_module_name
                (`Sname struct_name)
-           else
+           else (
              Format.fprintf ppml "@[<hv 2>type t = {@,%a@;<0-2>}@]@;"
-               type_printer fields
+               type_printer fields;
+             Format.fprintf ppml "@,@[<hv 2>let rtype = Value.Struct {";
+             Format.fprintf ppml "@ name = %S;"
+               (StructName.canonical_str modname struct_name);
+             Format.fprintf ppml "@ @[<hv 2>fields = fun t -> [";
+             StructField.Map.iter
+               (fun fld ty ->
+                 Format.fprintf ppml "@ %S, %a t.%a;"
+                   (StructField.to_string fld)
+                   To_ocaml.format_embedding ty StructField.format fld)
+               struct_fields;
+             Format.fprintf ppml "@;<1 -2>]@]";
+             Format.fprintf ppml "@;<1 -2>}@]")
          in
          Format.fprintf ppml
            "@[<hv 2>class type jsoo_ct = object@;\
@@ -370,10 +384,30 @@ let format_ctx
         if include_ then
           Format.fprintf ppml "include %a@," To_ocaml.format_to_module_name
             (`Ename enum_name)
-        else
+        else (
           Format.fprintf ppml "@[<hv 2>type t = %a%a%a@]@,"
             Format.pp_print_if_newline () Format.pp_print_string "| "
-            enum_printer variants
+            enum_printer variants;
+          Format.fprintf ppml "@,@[<hv 2>let rtype = Value.Enum {";
+          Format.fprintf ppml "@ name = %S;"
+            (EnumName.canonical_str modname enum_name);
+          Format.fprintf ppml "@ @[<v 2>constr = function";
+          List.iteri
+            (fun i (constr, ty) ->
+              match ty with
+              | TLit TUnit, _ ->
+                Format.fprintf ppml "@,| @[<hv 2>%a ->@ %d, %S, None@]"
+                  format_enum_cons_name constr i
+                  (EnumConstructor.to_string constr)
+              | ty ->
+                Format.fprintf ppml
+                  "@,| @[<hv 2>%a x ->@ @[<hov 2>%d,@ %S,@ Some (%a x)@]@]"
+                  format_enum_cons_name constr i
+                  (EnumConstructor.to_string constr)
+                  To_ocaml.format_embedding ty)
+            (EnumConstructor.Map.bindings enum_cons);
+          Format.fprintf ppml "@]";
+          Format.fprintf ppml "@;<1 -2>}@]")
       in
       let print_type_ppi () =
         if include_ then
@@ -703,9 +737,10 @@ let format_program
   ignore hashf;
   File.with_secondary_out_channel ~output_file ~ext:"mli"
   @@ fun intf_file ppi ->
-  let modname =
-    match p.module_name, output_file with
-    | Some (n, _), _ -> Some (ModuleName.to_string n)
+  let modname = Option.map fst p.module_name in
+  let modname_str =
+    match modname, output_file with
+    | Some n, _ -> Some (ModuleName.to_string n)
     | None, Some filename ->
       Some
         (String.capitalize_ascii (String.to_id File.(basename filename -.- "")))
@@ -720,12 +755,12 @@ let format_program
      %a@,\
      @,"
     (fun fmt o -> Option.iter (Format.fprintf fmt "open %s@,") o)
-    modname;
+    modname_str;
   reexport_used_modules ppml ppi
     (ModuleName.Map.bindings p.decl_ctx.ctx_modules);
-  format_ctx ~include_:true type_ordering ppml ppi p.decl_ctx;
+  format_ctx ~include_:true type_ordering ppml ppi p.decl_ctx modname;
   let exports = format_code_items ppml ppi p.code_items in
-  export_code_items ppml ppi modname exports p.decl_ctx;
+  export_code_items ppml ppi modname_str exports p.decl_ctx;
   pp [ppml; ppi] "@]";
   Format.pp_print_flush ppml ();
   Format.pp_print_flush ppi ();
