@@ -138,7 +138,8 @@ let format_program
     (type_ordering : TypeIdent.t list) : unit =
   File.with_secondary_out_channel ~output_file ~ext:"mli"
   @@ fun intf_file ppi ->
-  let modname =
+  let modname = Option.map fst p.module_name in
+  let modname_str =
     match p.module_name, output_file with
     | Some (n, _), _ -> Some (ModuleName.to_string n)
     | None, Some filename ->
@@ -146,7 +147,7 @@ let format_program
         (String.capitalize_ascii (String.to_id File.(basename filename -.- "")))
     | _ -> None
   in
-  let module_name = Option.value modname ~default:"NoName" in
+  let module_name = Option.value modname_str ~default:"NoName" in
   pp [ppml; ppi]
     "@[<v>[%@%@%@ocaml.warning \"-4-26-27-32-33-34-37-41-42-69\"]@,\
      @,\
@@ -160,8 +161,9 @@ let format_program
       | Some obj ->
         Format.fprintf fmt "let %s = (Js.Unsafe.js_expr \"%s\")@,"
           (js_object_name obj) obj)
+    modname_str;
+  To_jsoo_interface.format_ctx ~include_:false type_ordering ppml ppi p.decl_ctx
     modname;
-  To_jsoo_interface.format_ctx ~include_:false type_ordering ppml ppi p.decl_ctx;
   format_code_items module_name ppml ppi p.code_items;
   p.module_name
   |> Option.iter (fun (modname, intf_id) ->
