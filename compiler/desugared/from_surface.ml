@@ -327,6 +327,7 @@ let rec translate_expr
     (inside_definition_of : Ast.ScopeDef.t Mark.pos option)
     (ctxt : Name_resolution.context)
     (local_vars : Ast.expr Var.t Ident.Map.t)
+    ?(no_wildcard_warning = false)
     (expr : S.expression) : Ast.expr boxed =
   let pos = Name_resolution.(translate_pos (Expression expr) (Mark.get expr)) in
   let emark = Untyped { pos } in
@@ -337,8 +338,9 @@ let rec translate_expr
     | None -> Ident.Map.empty
     | Some s -> (ScopeName.Map.find s ctxt.scopes).var_idmap
   in
-  let rec_helper ?(local_vars = local_vars) e =
-    translate_expr scope inside_definition_of ctxt local_vars e
+  let rec_helper ?(local_vars = local_vars) ?no_wildcard_warning e =
+    translate_expr scope inside_definition_of ctxt local_vars
+      ?no_wildcard_warning e
   in
   let rec detuplify_list opos names = function
     (* Where a list is expected (e.g. after [among]), as syntactic sugar, if a
@@ -424,7 +426,8 @@ let rec translate_expr
           Mark.get pattern );
       ]
     in
-    rec_helper (S.MatchWith (e1_sub, (cases, pos)), pos_e1)
+    rec_helper ~no_wildcard_warning:true
+      (S.MatchWith (e1_sub, (cases, pos)), pos_e1)
   | Binop ((((S.And | S.Or | S.Xor), _) as op), e1, e2) ->
     check_formula op e1;
     check_formula op e2;
@@ -817,7 +820,7 @@ let rec translate_expr
     let e1 = rec_helper e1 in
     let cases_d, e_uid =
       disambiguate_match_and_build_expression scope inside_definition_of ctxt
-        local_vars cases
+        local_vars ~no_wildcard_warning cases
     in
     Expr.ematch ~e:e1 ~name:e_uid ~cases:cases_d emark
   | TestMatchCase (e1, pattern) ->
@@ -838,7 +841,7 @@ let rec translate_expr
           Mark.get pattern );
       ]
     in
-    rec_helper (S.MatchWith (e1, (cases, pos)), pos)
+    rec_helper ~no_wildcard_warning:true (S.MatchWith (e1, (cases, pos)), pos)
   | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
   | Tuple es -> Expr.etuple (List.map rec_helper es) emark
   | TupleAccess (e, n) ->
@@ -1170,6 +1173,7 @@ and disambiguate_match_and_build_expression
     (inside_definition_of : Ast.ScopeDef.t Mark.pos option)
     (ctxt : Name_resolution.context)
     (local_vars : Ast.expr Var.t Ident.Map.t)
+    ?(no_wildcard_warning = false)
     (cases : S.match_case Mark.pos list) :
     Ast.expr boxed EnumConstructor.Map.t * EnumName.t =
   let create_var local_vars = function
@@ -1216,8 +1220,14 @@ and disambiguate_match_and_build_expression
     in
     let arity = List.length pos_binder in
     match cell_type with
-    | TTuple tl, _ when arity > 1 && List.length tl = arity ->
+    | TTuple tl, _ when arity > 1 ->
       (* Matching a n-uple payload to a n-ary function : we de-tuplify the payload to have a one-argument function as expected by the match construct *)
+      if List.length tl <> arity then
+        Message.error
+          ~pos:(List.fold_left Pos.join Pos.void pos_binder)
+          "This pattern has %d arguments, while %d are expected by \
+           constructor@ %a."
+          arity (List.length tl) EnumConstructor.format c_uid;
       nary_binder_to_tuple_function cell_type
     | TForAll _, _ when arity > 1 ->
       assert (Type.is_universal cell_type);
@@ -1308,7 +1318,10 @@ and disambiguate_match_and_build_expression
               | Some _ -> None
               | None -> Some c_uid)
         in
-        if EnumConstructor.Map.is_empty missing_constructors then
+        if
+          EnumConstructor.Map.is_empty missing_constructors
+          && not no_wildcard_warning
+        then
           Message.warning ~pos:case_pos
             "Unreachable match case, all constructors of the enumeration@ %a@ \
              are@ already@ specified."
