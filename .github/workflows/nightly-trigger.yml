@@ -15,4 +15,4 @@ jobs:
     steps:
       - env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run debian.yml --ref pkgdeb
+        run: gh workflow run --repo ${GITHUB_REPOSITORY} debian.yml --ref pkgdeb
