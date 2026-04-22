@@ -150,7 +150,6 @@ module type S = sig
       in the _opam directory that can be queried from Poll library. *)
 
   val extra_rules :
-    externls:string list ->
     stdlib_tree:(string * string list * Scan.item list) Seq.t ->
     project_tree:(string * string list * Scan.item list) Seq.t ->
     string list ->

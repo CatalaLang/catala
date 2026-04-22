@@ -63,73 +63,43 @@ module Backend = struct
   let ppx = make "ppx"
   let runtime_targets ~only_source:_ = ["@runtime-jsoo"]
 
-  let jsoo_modfile ?(suffix = "") ~ext (dir, _, modname) =
+  let jsoo_modfile ~suffix ~ext ~dir ~modname =
     Var.(!builddir) / dir / name / (String.to_id modname ^ suffix ^ ext)
 
   let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
 
   type jsoo_cmo = { cmo : string list; jsoo_cmo : string list }
 
-  let retrieve_cmos ~stdlib_tree ~project_tree ~externls targets =
+  let retrieve_cmos ~stdlib_tree ~project_tree targets =
     let pos_targets = List.map Mark.ghost targets in
-    let project_items = Scan.linking_tree project_tree pos_targets in
-    let stdlib_opt =
-      match project_items with
-      | [] -> None
-      | (_, _, item) :: _ -> Ninja.get_stdlib_module item.Scan.file_name
+    let project_items =
+      Scan.linking_tree (Seq.append stdlib_tree project_tree) pos_targets
     in
-    let stdlib_module = Option.value ~default:"Stdlib_en" stdlib_opt in
-    (* Retrieve the topological order for compiling the stdlib *)
-    let stdlib_items =
-      Scan.linking_tree stdlib_tree [Mark.ghost stdlib_module]
-    in
-    (* Get the name of the module (each element of the stdlib should have a
-       module name) so the filter doesn't really apply *)
-    let stdlib_modules =
+    let project_cmo =
       List.filter_map
-        (fun (_, _, item) ->
+        (fun (dir, _, item) ->
           Option.map
-            (fun module_name -> Scan.libcatala, [], Mark.remove module_name)
-            item.Scan.module_def)
-        stdlib_items
-    in
-    (* Get the name of the modules, be careful maybe some file are missed *)
-    let project_modules =
-      List.filter_map
-        (fun (dir, sub_dirs, item) ->
-          Option.map
-            (fun name -> dir, sub_dirs, Mark.remove name)
+            (fun (modname, _) ->
+              let dir = if item.Scan.is_stdlib then Scan.libcatala else dir in
+              jsoo_modfile ~suffix:"" ~ext:".cmo" ~dir ~modname)
             item.Scan.module_def)
         project_items
     in
-    let stdlib_cmo = List.map (jsoo_modfile ~ext:".cmo") stdlib_modules in
-    let stdlib_jsoo_cmo =
-      List.filter_map
-        (fun (dir, sub_dir, modname) ->
-          (* Internal files are written as external librairies in catala and
-             only expose english function. I think it's not necessary to expose
-             those function because you could write your catala project in
-             french for example *)
-          if List.mem modname externls then None
-          else
-            let cmo_file =
-              jsoo_modfile ~suffix:"_jsoo" ~ext:".cmo" (dir, sub_dir, modname)
-            in
-            Some cmo_file)
-        stdlib_modules
-    in
-    let project_cmo = List.map (jsoo_modfile ~ext:".cmo") project_modules in
     let project_jsoo_cmo =
       List.filter_map
-        (fun (dir, sub_dirs, modname) ->
-          if List.mem modname externls then None
+        (fun (dir, _, item) ->
+          if item.Scan.extrnal then
+            (* External modules don't have jsoo interface *)
+            None
           else
-            Some
-              (jsoo_modfile ~suffix:"_jsoo" ~ext:".cmo" (dir, sub_dirs, modname)))
-        project_modules
+            let dir = if item.Scan.is_stdlib then Scan.libcatala else dir in
+            Option.map
+              (fun (modname, _) ->
+                jsoo_modfile ~suffix:"_jsoo" ~ext:".cmo" ~dir ~modname)
+              item.Scan.module_def)
+        project_items
     in
-    ( { cmo = stdlib_cmo; jsoo_cmo = stdlib_jsoo_cmo },
-      { cmo = project_cmo; jsoo_cmo = project_jsoo_cmo } )
+    { cmo = project_cmo; jsoo_cmo = project_jsoo_cmo }
 
   module Flags = struct
     (* Using this flag in ocaml command will use the js_of_ocaml ppx on ocaml
@@ -213,11 +183,9 @@ module Backend = struct
   let target_uniq_fileame ~dir ~module_targets ext =
     File.((dir / String.concat "_" module_targets) ^ "." ^ ext)
 
-  let extra_rules ~externls ~stdlib_tree ~project_tree module_targets =
+  let extra_rules ~stdlib_tree ~project_tree module_targets =
     let open File in
-    let stdlib, project =
-      retrieve_cmos ~stdlib_tree ~project_tree ~externls module_targets
-    in
+    let project = retrieve_cmos ~stdlib_tree ~project_tree module_targets in
     (* Retrieve the compiled files needed for compiling the project to bytes,
        the order is important *)
     let _opam_dir = Lazy.force Flags.ocaml_libdir in
@@ -262,7 +230,7 @@ module Backend = struct
           :: catala_runtime
           :: dates_calc_jsoo
           :: catala_runtime_jsoo
-          :: (stdlib.cmo @ stdlib.jsoo_cmo @ project.cmo @ project.jsoo_cmo))
+          :: (project.cmo @ project.jsoo_cmo))
         ~outputs:[jsoo_file];
       Nj.build "js_of_ocaml"
         ~inputs:(runtime_js :: jsoo_file :: big_integer_input)

@@ -390,7 +390,7 @@ let output_ninja_file
   let extra_rules =
     List.concat_map
       (fun (module Backend : Clerk_backends.Backend.S) ->
-        Backend.extra_rules ~externls ~stdlib_tree ~project_tree module_targets)
+        Backend.extra_rules ~stdlib_tree ~project_tree module_targets)
       enabled_backends
   in
   List.iter pp extra_rules;
