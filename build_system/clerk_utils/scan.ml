@@ -170,10 +170,13 @@ let linking_tree (tree : (string * string list * item list) Seq.t) =
   fun used_modules ->
     let rec traverse acc used_modules =
       List.fold_left
-        (fun acc m ->
-          let it = String.Map.find_opt (Mark.remove m) modules in
+        (fun acc (mname, pos) ->
+          let it = String.Map.find_opt mname modules in
           match it with
-          | None -> acc
+          | None ->
+            Message.error
+              ~extra_pos:["Module required from", pos]
+              "Required module not found: @{<blue>%s@}" mname
           | Some (dir, sub_dir, it) ->
             traverse ((dir, sub_dir, it) :: acc) it.used_modules)
         acc used_modules
