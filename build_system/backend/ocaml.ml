@@ -320,8 +320,6 @@ module Backend = struct
         ~outputs:[Ninja.target ~backend:name module_ext];
     ]
 
-  let extra_rules ~externls:_ ~stdlib_tree:_ ~project_tree:_ _module_targets =
-    []
-
+  let extra_rules ~stdlib_tree:_ ~project_tree:_ _module_targets = []
   let extra_default = []
 end

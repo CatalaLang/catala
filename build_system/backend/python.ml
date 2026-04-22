@@ -113,8 +113,6 @@ module Backend = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name / "src" / "catala")
 
-  let extra_rules ~externls:_ ~stdlib_tree:_ ~project_tree:_ _module_targets =
-    []
-
+  let extra_rules ~stdlib_tree:_ ~project_tree:_ _module_targets = []
   let extra_default = []
 end
