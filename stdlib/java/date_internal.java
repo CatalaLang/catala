@@ -1,53 +1,50 @@
+package catala.stdlib;
+
 import catala.runtime.*;
 import catala.runtime.exception.*;
 
 public class Date_internal {
+
     public static class Globals {
-        public static final CatalaFunction<CatalaTuple,CatalaDate> ofYmd =
-            tup_arg -> {
-            CatalaPosition pos = CatalaValue.<CatalaPosition>cast
-               (tup_arg.get(0));
-            CatalaInteger dyear = CatalaValue.<CatalaInteger>cast
-               (tup_arg.get(1));
-            CatalaInteger dmonth = CatalaValue.<CatalaInteger>cast
-               (tup_arg.get(2));
-            CatalaInteger dday = CatalaValue.<CatalaInteger>cast
-               (tup_arg.get(3));
-            try {
-                /* We'd like to catch overflows here but the bigint docs say that this will truncate without pointing to a way to detect errors */
-                return
-                    CatalaDate.of(dyear.asBigInteger().intValue(),
-                                  dmonth.asBigInteger().intValue(),
-                                  dday.asBigInteger().intValue());
-            } catch (IllegalArgumentException e) {
-                throw CatalaError.error(CatalaError.Error.DateError, pos);
-            }
-        };
 
-        public static final CatalaFunction<CatalaDate,CatalaTuple> toYmd =
-            d -> {
-            return new CatalaTuple(new CatalaInteger[]{d.getYear(), d.getMonth(), d.getDay()});
-        };
+        public static final CatalaFunction<CatalaTuple, CatalaDate> ofYmd
+                = tup_arg -> {
+                    CatalaPosition pos = CatalaValue.<CatalaPosition>cast(tup_arg.get(0));
+                    CatalaInteger dyear = CatalaValue.<CatalaInteger>cast(tup_arg.get(1));
+                    CatalaInteger dmonth = CatalaValue.<CatalaInteger>cast(tup_arg.get(2));
+                    CatalaInteger dday = CatalaValue.<CatalaInteger>cast(tup_arg.get(3));
+                    try {
+                        /* We'd like to catch overflows here but the bigint docs say that this will truncate without pointing to a way to detect errors */
+                        return CatalaDate.of(dyear.asBigInteger().intValue(),
+                                dmonth.asBigInteger().intValue(),
+                                dday.asBigInteger().intValue());
+                    } catch (IllegalArgumentException e) {
+                        throw CatalaError.error(CatalaError.Error.DateError, pos);
+                    }
+                };
 
-        public static final CatalaFunction<CatalaDate,CatalaDate> lastDayOfMonth =
-            d -> {
-            return d.getLastDayOfMonth();
-        };
-        
-        public static final CatalaFunction<CatalaTuple,CatalaDate> addRoundedDown =
-            tup_arg_22 -> {
-            CatalaDate d = CatalaValue.<CatalaDate>cast(tup_arg_22.get(0));
-            CatalaDuration dur = CatalaValue.<CatalaDuration>cast
-               (tup_arg_22.get(1));
-            return d.addDurationRoundDown(new CatalaPosition("", 0, 0, 0, 0, new String[]{}), dur);
-        };
+        public static final CatalaFunction<CatalaDate, CatalaTuple> toYmd
+                = d -> {
+                    return new CatalaTuple(new CatalaInteger[]{d.getYear(), d.getMonth(), d.getDay()});
+                };
 
-        public static final CatalaFunction<CatalaTuple,CatalaDate> addRoundedUp =
-            tup_arg_23 -> {
-            CatalaDate d = CatalaValue.<CatalaDate>cast(tup_arg_23.get(0));
-            CatalaDuration dur = CatalaValue.<CatalaDuration>cast
-               (tup_arg_23.get(1));
-            return d.addDurationRoundUp(new CatalaPosition("", 0, 0, 0, 0, new String[]{}), dur);
-        };
+        public static final CatalaFunction<CatalaDate, CatalaDate> lastDayOfMonth
+                = d -> {
+                    return d.getLastDayOfMonth();
+                };
+
+        public static final CatalaFunction<CatalaTuple, CatalaDate> addRoundedDown
+                = tup_arg_22 -> {
+                    CatalaDate d = CatalaValue.<CatalaDate>cast(tup_arg_22.get(0));
+                    CatalaDuration dur = CatalaValue.<CatalaDuration>cast(tup_arg_22.get(1));
+                    return d.addDurationRoundDown(new CatalaPosition("", 0, 0, 0, 0, new String[]{}), dur);
+                };
+
+        public static final CatalaFunction<CatalaTuple, CatalaDate> addRoundedUp
+                = tup_arg_23 -> {
+                    CatalaDate d = CatalaValue.<CatalaDate>cast(tup_arg_23.get(0));
+                    CatalaDuration dur = CatalaValue.<CatalaDuration>cast(tup_arg_23.get(1));
+                    return d.addDurationRoundUp(new CatalaPosition("", 0, 0, 0, 0, new String[]{}), dur);
+                };
     }
 }

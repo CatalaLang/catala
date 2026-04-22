@@ -14,7 +14,7 @@ public class Dictionnary_ext {
 
         @Override
         public CatalaBool equalsTo(CatalaPosition p, Dictionnary other) {
-           return CatalaBool.fromBoolean(this.map.equals(other.map));
+           return CatalaBool.of(this.map.equals(other.map));
         }
 
         @Override

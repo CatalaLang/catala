@@ -1,3 +1,5 @@
+package catala.stdlib;
+
 import catala.runtime.*;
 import java.math.BigInteger;
 
@@ -12,15 +14,15 @@ public class Money_internal {
                     if (n >= 2) {
                         return m;
                     } else {
-                        BigInteger x = m.asCents();
-                        CatalaInteger ten = CatalaInteger.valueOf(10);
+                        BigInteger x = m.asBigIntegerCents();
+                        CatalaInteger ten = CatalaInteger.of(10);
                         if (n == 1) {
                             CatalaPosition dummy_pos
                             = new CatalaPosition("none", 1, 1, 1, 1, null);
                             return m.multiply(ten).round().divide(dummy_pos, ten);
                         } else {
                             BigInteger pow_ten = ten.asBigInteger().pow(-n);
-                            return CatalaMoney.ofCents(CatalaMoney.ofCents(x.divide(pow_ten)).round().asCents().multiply(pow_ten));
+                            return CatalaMoney.ofCents(CatalaMoney.ofCents(x.divide(pow_ten)).round().asBigIntegerCents().multiply(pow_ten));
                         }
                     }
                 };

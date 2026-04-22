@@ -232,10 +232,12 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
     let classes =
       let class_files =
         target
-        :: List.map
+        :: List.filter_map
              (fun it ->
-               let f = Scan.target_file_name it in
-               (build_dir / dirname f / "java" / basename f) -.- "class")
+               if it.Scan.is_stdlib then None
+               else
+                 let f = Scan.target_file_name it in
+                 Some ((build_dir / dirname f / "java" / basename f) -.- "class"))
              (link_deps item)
       in
       let (h : (string, string list) Hashtbl.t) = Hashtbl.create 5 in
@@ -270,10 +272,11 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
         (fun class_file -> class_file :: fetch_inner_classes class_file)
         class_files
     in
+    let java_dir_prefix = build_dir / Scan.libcatala / "java" in
     let runtime_class_files =
       File.scan_tree
         (fun f -> if Filename.check_suffix f ".class" then Some f else None)
-        (build_dir / Scan.libcatala / "java")
+        java_dir_prefix
       |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
       |> List.of_seq
     in
@@ -282,7 +285,10 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
     @ List.concat_map
         (fun clazz -> ["-C"; Filename.dirname clazz; Filename.basename clazz])
         classes
-    @ runtime_class_files
+    @ List.concat_map
+        (fun clazz ->
+          ["-C"; java_dir_prefix; File.remove_prefix java_dir_prefix clazz])
+        runtime_class_files
   | `Custom rule ->
     let var_bindings =
       ( Var.make "src",
@@ -358,6 +364,8 @@ let make_target ~build_dir ~backend item =
     | `OCaml -> (dir / "ocaml" / base) -.- "cmx"
     | `C -> (dir / "c" / base) -.- "o"
     | `Python -> (dir / "python" / base) -.- "py"
+    | `Java when item.is_stdlib ->
+      (dir / "java" / "catala" / "stdlib" / base) -.- "class"
     | `Java -> (dir / "java" / base) -.- "class"
     | `Custom rule ->
       (dir / rule_subdir rule / base) -.- List.hd rule.Config.in_exts
@@ -473,7 +481,10 @@ let build_clerk_target
               let open File in
               let base =
                 if module_item.Scan.is_stdlib then
-                  local_runtime_dir bk / Scan.target_basename module_item
+                  local_runtime_dir bk
+                  / "catala"
+                  / "stdlib"
+                  / Scan.target_basename module_item
                 else
                   build_dir
                   / module_item.Scan.file_name
@@ -495,13 +506,18 @@ let build_clerk_target
     let all_targets =
       List.fold_left
         (fun acc ((item, tg, backend), _) ->
+          let open File in
           let targets =
             let f =
-              File.(
-                Scan.target_file_name item -.- extension item.Scan.file_name)
+              Scan.target_file_name item -.- extension item.Scan.file_name
             in
             let tf =
-              File.(build_dir / dirname f / backend_subdir backend / basename f)
+              let backend_subdir =
+                build_dir / dirname f / backend_subdir backend
+              in
+              if backend = Clerk_rules.Java && item.is_stdlib then
+                backend_subdir / "catala" / "stdlib" / basename f
+              else backend_subdir / basename f
             in
             let exts =
               if tg.Config.include_objects then
@@ -518,7 +534,10 @@ let build_clerk_target
       |> List.rev
     in
     let install_targets =
-      List.map (fun ((_item, _target, bk), file) -> bk, file) all_target_files
+      List.filter_map
+        (fun ((_item, _target, bk), file) ->
+          if _item.Scan.is_stdlib then None else Some (bk, file))
+        all_target_files
     in
     Nj.format_def nin_ppf (Nj.Default (Nj.Default.make all_targets));
     install_targets, all_modules_deps

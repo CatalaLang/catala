@@ -1157,7 +1157,8 @@ module Commands = struct
         else name
       | None, Stdin _ -> "AnonymousClass"
     in
-    Scalc.To_java.format_program ~class_name output_file ppf prg
+    let is_stdlib = stdlib = None in
+    Scalc.To_java.format_program ~is_stdlib ~class_name output_file ppf prg
 
   let java_cmd =
     Cmd.v

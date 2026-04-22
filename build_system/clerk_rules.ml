@@ -251,11 +251,31 @@ let gen_build_statements
     in
     !Var.tdir / bdir !Var.dst
   in
+  let java_stdlib_target ?backend ext =
+    let ext =
+      match ext.[0] with
+      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "." ^ ext
+      | _ -> ext
+    in
+    let bdir =
+      match backend with
+      | None -> fun f -> f ^ ext
+      | Some b -> fun f -> (b / "catala" / "stdlib" / f) ^ ext
+    in
+    !Var.tdir / bdir !Var.dst
+  in
   let modules = List.rev_map Mark.remove item.used_modules in
   let modfile ?(backend = "ocaml") ext modname =
     match List.assoc_opt modname same_dir_modules with
     | Some _ -> (!Var.tdir / backend / String.to_id modname) ^ ext
     | None -> modname ^ "@" ^ backend ^ "-module"
+  in
+  let java_modfile ext modname =
+    let backend = "java" in
+    match List.assoc_opt modname same_dir_modules with
+    | Some _ when is_stdlib ->
+      (!Var.tdir / backend / "catala" / "stdlib" / String.to_id modname) ^ ext
+    | _ -> modfile ~backend ext modname
   in
   let module_target x = modfile "@ocaml-module" x in
   let catala_src = !Var.tdir / !Var.src in
@@ -372,7 +392,11 @@ let gen_build_statements
           List.to_seq
             [
               Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[java]
-                ~outputs:[target ~backend:"java" "java"];
+                ~outputs:
+                  [
+                    (if is_stdlib then java_stdlib_target ~backend:"java" "java"
+                     else target ~backend:"java" "java");
+                  ];
             ]
       in
       ocaml, c, python, java
@@ -406,7 +430,11 @@ let gen_build_statements
              ~outputs:[target ~backend:"python" "py"]),
         Seq.return
           (Nj.build "catala-java" ?vars ~inputs ~implicit_in
-             ~outputs:[target ~backend:"java" "java"]) )
+             ~outputs:
+               [
+                 (if is_stdlib then java_stdlib_target ~backend:"java" "java"
+                  else target ~backend:"java" "java");
+               ]) )
   in
   let ocamlopt =
     let obj =
@@ -503,10 +531,17 @@ let gen_build_statements
              include_dirs)
     in
     Nj.build "java-class"
-      ~inputs:[target ~backend:"java" "java"]
-      ~implicit_in:
-        ("@runtime-java" :: List.map (modfile ~backend:"java" ".class") modules)
-      ~outputs:[target ~backend:"java" "class"]
+      ~inputs:
+        [
+          (if is_stdlib then java_stdlib_target ~backend:"java" "java"
+           else target ~backend:"java" "java");
+        ]
+      ~implicit_in:("@runtime-java" :: List.map (java_modfile ".class") modules)
+      ~outputs:
+        [
+          (if is_stdlib then java_stdlib_target ~backend:"java" "class"
+           else target ~backend:"java" "class");
+        ]
       ~vars:[Var.class_path, [java_class_path]]
   in
   let expose_module =
@@ -550,7 +585,7 @@ let gen_build_statements
         [
           Nj.build "phony"
             ~outputs:[modname ^ "@java-module"]
-            ~inputs:[modfile ~backend:"java" ".class" modname];
+            ~inputs:[java_modfile ".class" modname];
         ]
       else []
     | _ -> []

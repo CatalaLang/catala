@@ -1,3 +1,5 @@
+package catala.stdlib;
+
 import catala.runtime.*;
 import java.util.Arrays;
 
@@ -41,7 +43,7 @@ public class List_internal {
                         for (int i = n + 1; i < len; i++) {
                             values[i - 1] = lst.get(i);
                         }
-                        return new CatalaArray<CatalaValue<?>>(values);
+                        return new CatalaArray<>(values);
                     } else {
                         return lst;
                     }

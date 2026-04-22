@@ -16,12 +16,84 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
         this.value = valueCents;
     }
 
-    private CatalaMoney(long valueCents) {
-        this.value = BigInteger.valueOf(valueCents);
+    public CatalaMoney(long value) {
+        this.value = BigInteger.valueOf(value * 100);
     }
 
-    public final BigInteger asCents() {
+    public CatalaMoney(int value) {
+        this((long) value);
+    }
+
+    public CatalaMoney(final CatalaDecimal dec) {
+        this.value = dec.multiply(CatalaInteger.of(100)).round().asBigInteger();
+    }
+
+    public CatalaMoney(final CatalaInteger i) {
+        this.value = i.multiply(CatalaInteger.of(100)).asBigInteger();
+    }
+
+    public CatalaMoney(Double dec) {
+        this(new CatalaDecimal(dec));
+    }
+
+    public static final CatalaMoney ofCents(final String cents) {
+        return new CatalaMoney(new BigInteger(cents));
+    }
+
+    public static final CatalaMoney ofCents(final BigInteger cents) {
+        return new CatalaMoney(cents);
+    }
+
+    public static final CatalaMoney ofCents(final CatalaInteger cents) {
+        return new CatalaMoney(cents.asBigInteger());
+    }
+
+    public static final CatalaMoney ofCents(long cents) {
+        return new CatalaMoney(BigInteger.valueOf(cents));
+    }
+
+    public static final CatalaMoney ofCents(int cents) {
+        return new CatalaMoney(BigInteger.valueOf(cents));
+    }
+
+    public static final CatalaMoney of(String units) {
+        return new CatalaMoney(new BigInteger(units).multiply(BigInteger.valueOf(100)));
+    }
+
+    public static final CatalaMoney of(BigInteger units) {
+        return new CatalaMoney(units.multiply(BigInteger.valueOf(100)));
+    }
+
+    public static final CatalaMoney of(final CatalaInteger units) {
+        return new CatalaMoney(units);
+    }
+
+    public static final CatalaMoney of(long units) {
+        return new CatalaMoney(units);
+    }
+
+    public static final CatalaMoney of(int units) {
+        return new CatalaMoney(units);
+    }
+
+    public static final CatalaMoney of(Double units) {
+        return new CatalaMoney(units);
+    }
+
+    public final BigInteger asBigIntegerCents() {
         return this.value;
+    }
+
+    public final CatalaInteger asIntegerCents() {
+        return new CatalaInteger(this.value);
+    }
+
+    public final int asIntCents() {
+        return this.value.intValueExact();
+    }
+
+    public final long asLongCents() {
+        return this.value.longValueExact();
     }
 
     public final CatalaDecimal asDecimal() {
@@ -29,9 +101,22 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
                 new CatalaInteger(BigInteger.valueOf(100)));
     }
 
+    public final double asDouble() {
+        return new CatalaDecimal(new CatalaInteger(this.value),
+                new CatalaInteger(BigInteger.valueOf(100))).asDouble();
+    }
+
     public final CatalaInteger asInteger() {
         BigDecimal bd = new BigDecimal(this.value).divide(new BigDecimal(100), 0, RoundingMode.HALF_UP);
         return new CatalaInteger(bd.toBigInteger());
+    }
+
+    public final int asInt() {
+        return this.value.intValueExact() / 100;
+    }
+
+    public final long asLong() {
+        return this.value.longValueExact() / 100l;
     }
 
     public final CatalaMoney negate() {
@@ -46,11 +131,11 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
     }
 
     public final CatalaMoney subtract(CatalaMoney other) {
-        return new CatalaMoney(this.value.subtract(other.asCents()));
+        return new CatalaMoney(this.value.subtract(other.asBigIntegerCents()));
     }
 
     public final CatalaMoney add(CatalaMoney other) {
-        return new CatalaMoney(this.value.add(other.asCents()));
+        return new CatalaMoney(this.value.add(other.asBigIntegerCents()));
     }
 
     public final CatalaMoney multiply(CatalaInteger other) {
@@ -58,17 +143,17 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
     }
 
     public final CatalaMoney multiply(CatalaMoney other) {
-        return new CatalaMoney(this.value.multiply(other.value));
+        return new CatalaMoney(this.value.multiply(other.value)
+                .divide(BigInteger.valueOf(100l)));
     }
 
     /**
      * Rounds to the nearest cent
      */
     public final CatalaMoney multiply(CatalaDecimal other) {
-        CatalaDecimal thisDecCents
-                = CatalaDecimal.ofMoneyAsCents(this);
-        CatalaDecimal resDecimal = thisDecCents.multiply(other);
-        BigDecimal resBigDecimal = resDecimal.bigDecimalValue(0, RoundingMode.HALF_UP);
+        CatalaDecimal cd = CatalaDecimal.of(this.multiply(CatalaInteger.of(100)));
+        CatalaDecimal resDecimal = cd.multiply(other);
+        BigDecimal resBigDecimal = resDecimal.asBigDecimal(0, RoundingMode.HALF_UP);
         return new CatalaMoney(resBigDecimal.toBigIntegerExact());
     }
 
@@ -87,23 +172,6 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
         return this.multiply(other.inverse(pos));
     }
 
-    public static final CatalaMoney ofCents(String cents) {
-        return new CatalaMoney(new BigInteger(cents));
-    }
-
-    public static final CatalaMoney ofCents(BigInteger cents) {
-        return new CatalaMoney(cents);
-    }
-
-    public static final CatalaMoney ofCents(long cents) {
-        return new CatalaMoney(cents);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.value.hashCode();
-    }
-
     @Override
     public int compareTo(CatalaPosition p, CatalaMoney o) {
         return this.value.compareTo(o.value);
@@ -111,7 +179,7 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
 
     @Override
     public CatalaBool equalsTo(CatalaPosition p, CatalaMoney o) {
-        return CatalaBool.fromBoolean(this.value.equals(o.value));
+        return CatalaBool.of(this.value.equals(o.value));
 
     }
 

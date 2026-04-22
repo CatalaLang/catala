@@ -17,9 +17,8 @@ public final class CatalaDate extends CatalaValue<CatalaDate> {
         try {
             return new CatalaDate(Date.of(year, month, day));
         } catch (IllegalArgumentException e) {
-            throw CatalaError.error
-                (CatalaError.Error.DateError,
-                 String.format("|%04d-%02d-%02d| is not a valid date", year, month, day));
+            throw CatalaError.error(CatalaError.Error.DateError,
+                    String.format("|%04d-%02d-%02d| is not a valid date", year, month, day));
         }
     }
 
@@ -30,15 +29,13 @@ public final class CatalaDate extends CatalaValue<CatalaDate> {
         if (catalaDateLiteral.length() != 12
                 || catalaDateLiteral.charAt(0) != '|'
                 || catalaDateLiteral.charAt(11) != '|') {
-            throw (CatalaError.error
-                   (CatalaError.Error.DateError,
+            throw (CatalaError.error(CatalaError.Error.DateError,
                     String.format("'%s' is not a valid date", catalaDateLiteral)));
         }
         try {
             return new CatalaDate(Date.fromString(catalaDateLiteral.subSequence(1, 11).toString()));
         } catch (IllegalArgumentException e) {
-            throw (CatalaError.error
-                   (CatalaError.Error.DateError,
+            throw (CatalaError.error(CatalaError.Error.DateError,
                     String.format("'%s' is not a valid date", catalaDateLiteral)));
         }
     }
@@ -106,7 +103,7 @@ public final class CatalaDate extends CatalaValue<CatalaDate> {
 
     @Override
     public CatalaBool equalsTo(CatalaPosition p, CatalaDate o) {
-        return CatalaBool.fromBoolean(this.date.equals(o.date));
+        return CatalaBool.of(this.date.equals(o.date));
     }
 
     @Override
@@ -117,6 +114,6 @@ public final class CatalaDate extends CatalaValue<CatalaDate> {
 
     @Override
     public String toJSONString() {
-        return  '"' + this.toString() + '"';
+        return '"' + this.toString() + '"';
     }
 }

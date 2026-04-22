@@ -24,7 +24,15 @@ public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<Cat
     }
 
     public T[] asArray() {
-        return this.values;
+        return Arrays.copyOf(this.values, this.values.length);
+    }
+
+    public Stream<T> asStream() {
+        return Stream.of(this.values);
+    }
+
+    public List<T> asList() {
+        return this.asStream().toList();
     }
 
     public final CatalaInteger length() {
@@ -94,14 +102,6 @@ public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<Cat
         T[] newArray = Arrays.copyOf(this.values, this.values.length + other.values.length);
         System.arraycopy(other.values, 0, newArray, this.values.length, other.values.length);
         return new CatalaArray<>(newArray);
-    }
-
-    public Stream<T> asStream() {
-        return Stream.of(this.values);
-    }
-
-    public List<T> asList() {
-        return this.asStream().toList();
     }
 
     @Override

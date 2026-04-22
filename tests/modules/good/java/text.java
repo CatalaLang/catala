@@ -47,7 +47,7 @@ public class Text {
 
         @Override
         public CatalaBool equalsTo(CatalaPosition p, Text__1 o) {
-            return CatalaBool.fromBoolean(this.s.equals(o.s));
+            return CatalaBool.of(this.s.equals(o.s));
         }
 
         @Override
