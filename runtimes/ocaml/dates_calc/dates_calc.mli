@@ -33,7 +33,7 @@ type date_rounding =
 (** {2 Functions on dates}*)
 
 val make_date : year:int -> month:int -> day:int -> date
-(** @raise [InvalidDate]*)
+(** @raise [InvalidDate] *)
 
 val add_dates : ?round:date_rounding -> date -> period -> date
 (** @raise [AmbiguousComputation] *)
