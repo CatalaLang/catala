@@ -1043,6 +1043,7 @@ let with_ninja_process
     callback_ret
 
 let run_ninja
+    ?(include_dir = true)
     ~config
     ?(enabled_backends = all_backends)
     ~quiet
@@ -1063,8 +1064,9 @@ let run_ninja
       let stdlib_tree =
         Scan.tree stdlib_dir |> Seq.map (fun (f, fl, items) -> f, fl, items)
       in
+      let item_tree = if include_dir then Scan.tree "." else Seq.empty in
       let item_tree =
-        Scan.tree "."
+        item_tree
         |> Seq.filter_map (fun (f, fl, items) ->
             if insource && String.starts_with f ~prefix:"stdlib" then None
             else

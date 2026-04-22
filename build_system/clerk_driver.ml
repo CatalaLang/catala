@@ -1490,16 +1490,28 @@ let runtest_cmd =
 
 let start_cmd =
   let run config quiet (ninja_flags : string list) =
-    Clerk_rules.run_ninja ~code_coverage:false ~quiet ~config
-      ~enabled_backends:[OCaml] ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
-        Nj.format_def nin_ppf
-          (Nj.Default
-             (Nj.Default.make
-                [
-                  "@runtime-ocaml";
-                  "Stdlib_fr@ocaml-module";
-                  "Stdlib_en@ocaml-module";
-                ]));
+    let targets = config.Cli.options.targets in
+    let enabled_backends =
+      let open Clerk_config in
+      List.concat_map
+        (fun target -> List.map Clerk_rules.backend_from_config target.backends)
+        targets
+      |> List.sort_uniq compare
+    in
+    let default =
+      List.fold_left
+        (fun default_rules backend ->
+          let name = rules_backend backend |> string_of_backend in
+          let rule_stdlib_fr = Format.sprintf "Stdlib_fr@%s-module" name in
+          let rule_stdlib_en = Format.sprintf "Stdlib_en@%s-module" name in
+          let runtime_rule = Format.sprintf "@runtime-%s" name in
+          runtime_rule :: rule_stdlib_fr :: rule_stdlib_en :: default_rules)
+        ["Stdlib_fr@src"; "Stdlib_en@src"]
+        enabled_backends
+    in
+    Clerk_rules.run_ninja ~include_dir:false ~code_coverage:false ~quiet ~config
+      ~enabled_backends ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
+        Nj.format_def nin_ppf (Nj.Default (Nj.Default.make default));
         0)
   in
   let doc =
