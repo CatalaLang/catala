@@ -264,10 +264,6 @@ let rec check_formula (op, pos_op) e =
     check_formula (op1, pos_op1) e2
   | _ -> ()
 
-(** Helper that restores surface positions in module paths. *)
-let restore_position path_item mname =
-  ModuleName.map_info (fun (mn, _) -> mn, Mark.get path_item) mname
-
 let translate_literal l pos =
   match l with
   | S.LNumber ((Int i, _), None) -> LInt (Runtime.integer_of_string i)
@@ -644,7 +640,8 @@ let rec translate_expr
         let uid = Name_resolution.get_scope ctxt id in
         (* Retain the correct positions *)
         ScopeName.map_info
-          (fun (_ml, pos) -> List.map2 restore_position path resolved_path, pos)
+          (fun (path1, pos) ->
+            (if resolved_path = [] then path1 else resolved_path), pos)
           uid
       in
       uid, ScopeName.Map.find uid ctxt.scopes
@@ -717,9 +714,9 @@ let rec translate_expr
       | Some (Name_resolution.TScope (_, { out_struct_name = s_uid; _ })) ->
         (* Retain the correct positions *)
         StructName.map_info
-          (fun (_, (s, _pos)) ->
-            let path = List.map2 restore_position path resolved_path in
-            path, (s, Mark.get s_name))
+          (fun (path1, (s, _pos)) ->
+            ( (if resolved_path = [] then path1 else resolved_path),
+              (s, Mark.get s_name) ))
           s_uid
       | _ ->
         Message.error ~pos:(Mark.get s_name)
@@ -812,9 +809,9 @@ let rec translate_expr
         let e_uid = Name_resolution.get_enum ctxt enum in
         (* Retain the correct positions *)
         EnumName.map_info
-          (fun (_, (x, _pos)) ->
-            let path = List.map2 restore_position path resolved_path in
-            path, (x, Mark.get enum))
+          (fun (path1, (x, _pos)) ->
+            ( (if resolved_path = [] then path1 else resolved_path),
+              (x, Mark.get enum) ))
           e_uid
       in
       try

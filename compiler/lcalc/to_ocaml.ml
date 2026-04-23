@@ -313,11 +313,14 @@ let format_var_str (fmt : Format.formatter) (v : string) : unit =
 let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
   format_var_str fmt (Bindlib.name_of v)
 
-let rec needs_parens (e : 'm expr) : bool =
+let rec needs_parens ?context (e : 'm expr) : bool =
   match Mark.remove e with
-  | EApp { f = EAbs { binder; _ }, _; _ } ->
-    let _, body = Bindlib.unmbind binder in
-    needs_parens body
+  | EApp { f = EAbs { binder; _ }, _; _ } -> (
+    match context with
+    | Some ((EInj _ | EArray _), _) -> true
+    | _ ->
+      let _, body = Bindlib.unmbind binder in
+      needs_parens ?context body)
   | ELit (LBool _ | LUnit)
   | EVar _ | ETuple _
   | EInj { e = ELit LUnit, _; _ }
@@ -328,9 +331,9 @@ let rec needs_parens (e : 'm expr) : bool =
 let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     unit =
   let format_expr = format_expr ctx in
-  let format_with_parens (fmt : Format.formatter) (e : 'm expr) =
-    if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
-    else format_expr fmt e
+  let format_with_parens (fmt : Format.formatter) (e1 : 'm expr) =
+    if needs_parens ~context:e e1 then Format.fprintf fmt "(%a)" format_expr e1
+    else format_expr fmt e1
   in
   match Mark.remove e with
   | EVar v -> Format.fprintf fmt "%a" format_var v
@@ -381,9 +384,6 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | EInj { e = ELit LUnit, _; cons; name } ->
     Format.fprintf fmt "@[<hov 2>%a.%a@]" format_to_module_name (`Ename name)
       format_enum_cons_name cons
-  | EInj { e = (EApp { f = EAbs _, _; _ }, _) as e; cons; name } ->
-    Format.fprintf fmt "@[<hov 2>%a.%a@ (%a)@]" format_to_module_name
-      (`Ename name) format_enum_cons_name cons format_expr e
   | EInj { e; cons; name } ->
     Format.fprintf fmt "@[<hov 2>%a.%a@ %a@]" format_to_module_name
       (`Ename name) format_enum_cons_name cons format_with_parens e
