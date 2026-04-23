@@ -96,7 +96,7 @@ let extensions_backend =
 
 let backend_subdir_list =
   List.map
-    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.subdir)
+    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.name)
     all_backends_with_config
 
 let normalize_backends backends =

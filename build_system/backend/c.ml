@@ -55,13 +55,12 @@ module Backend = struct
   module Nj = Ninja_utils
 
   let name = "c"
-  let module_ext = "@c-module"
-  let subdir = "c"
+  let module_ext = "@" ^ name ^ "-module"
   let src_extensions = ["c"; "h"]
   let obj_extensions = ["o"]
 
   let runtime_targets ~only_source =
-    [(if only_source then "@runtime-c-src" else "@runtime-c")]
+    [(if only_source then "@runtime-" ^ name ^ "-src" else "@runtime-" ^ name)]
 
   module Flags = struct
     let default
@@ -94,17 +93,17 @@ module Backend = struct
             ]);
         def c_include
           (lazy
-            (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
-            @ Common.Flags.includes ~backend:"c" include_dirs));
+            (["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]
+            @ Common.Flags.includes ~backend:name include_dirs));
       ]
   end
 
   let[@ocamlformat "disable"] static_base_rules =
   [
     Nj.rule "catala-c"
-      ~command:[!catala_exe; "c"; !catala_flags; !catala_flags_c;
+      ~command:[!catala_exe; name; !catala_flags; !catala_flags_c;
                 "-o"; !output; "--"; !input]
-      ~description:["<catala>"; "c"; "⇒"; !output];
+      ~description:["<catala>"; name; "⇒"; !output];
     Nj.rule "c-object"
       ~command:
         [!cc_exe; !input; !c_flags; !c_include; !includes; "-c"; "-o"; !output]
@@ -114,26 +113,26 @@ module Backend = struct
   let external_copy item =
     let catala_src = !Var.tdir / !Var.src in
     let c, missing =
-      Ninja.extern_src ~backend:"c" ~ext:"c" ~missing:[]
+      Ninja.extern_src ~backend:name ~ext:"c" ~missing:[]
         ~filename:item.Scan.file_name
     in
     let h, missing =
-      Ninja.extern_src ~backend:"c" ~ext:"h" ~missing
+      Ninja.extern_src ~backend:name ~ext:"h" ~missing
         ~filename:item.Scan.file_name
     in
-    Ninja.check_missing ~backend:"c" ~module_def:item.Scan.module_def ~missing
+    Ninja.check_missing ~backend:name ~module_def:item.Scan.module_def ~missing
       ~filename:item.Scan.file_name;
     List.to_seq
       [
         Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[c]
-          ~outputs:[Ninja.target ~backend:"c" "c"];
+          ~outputs:[Ninja.target ~backend:name "c"];
         Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[h]
-          ~outputs:[Ninja.target ~backend:"c" "h"];
+          ~outputs:[Ninja.target ~backend:name "h"];
       ]
 
   let runtime_build_statements ~options:_ ~stdbase =
-    let c_base = stdbase / "c" / "catala_runtime" in
-    let c_src = Var.(!runtime) / "c" in
+    let c_base = stdbase / name / "catala_runtime" in
+    let c_src = Var.(!runtime) / name in
     [
       Nj.build "phony"
         ~inputs:
@@ -143,7 +142,7 @@ module Backend = struct
             (c_base /../ "dates_calc") -.- "c";
             (c_base /../ "dates_calc") -.- "h";
           ]
-        ~outputs:["@runtime-c-src"];
+        ~outputs:["@runtime-" ^ name ^ "-src"];
       Nj.build "phony"
         ~inputs:
           [
@@ -153,7 +152,7 @@ module Backend = struct
             (c_base /../ "dates_calc") -.- "h";
             Var.(!catala_exe);
           ]
-        ~outputs:["@runtime-c"];
+        ~outputs:["@runtime-" ^ name];
       Nj.build "copy"
         ~inputs:[c_src / "catala_runtime.h"]
         ~outputs:[c_base -.- "h"];
@@ -178,19 +177,19 @@ module Backend = struct
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in has_scope_tests =
     let implicit_out =
-      if has_scope_tests then [Ninja.target ~backend:"c" "+main.c"] else []
+      if has_scope_tests then [Ninja.target ~backend:name "+main.c"] else []
     in
     Seq.return
       (Nj.build "catala-c" ?vars ~inputs ~implicit_in
-         ~outputs:[Ninja.target ~backend:"c" "c"]
-         ~implicit_out:(Ninja.target ~backend:"c" "h" :: implicit_out))
+         ~outputs:[Ninja.target ~backend:name "c"]
+         ~implicit_out:(Ninja.target ~backend:name "h" :: implicit_out))
 
-  let modfile ~is_stdlib:_ = Ninja.modfile ~backend:"c"
+  let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
 
   let module_target same_dir_modules =
-    Ninja.modfile ~backend:"c" same_dir_modules "@c-module"
+    Ninja.modfile ~backend:name same_dir_modules module_ext
 
-  let includes = Common.Flags.include_flags ~backend:"c"
+  let includes = Common.Flags.include_flags ~backend:name
 
   let build_object ~include_dirs ~same_dir_modules ~item has_scope_tests =
     let open Scan in
@@ -198,21 +197,23 @@ module Backend = struct
     let implicit_modules = List.map (module_target same_dir_modules) modules in
     let obj =
       Nj.build "c-object"
-        ~inputs:[Ninja.target ~backend:"c" "c"]
+        ~inputs:[Ninja.target ~backend:name "c"]
         ~implicit_in:
-          (Ninja.target ~backend:"c" "h" :: "@runtime-c" :: implicit_modules)
-        ~outputs:[Ninja.target ~backend:"c" "o"]
+          (Ninja.target ~backend:name "h"
+          :: ("@runtime-" ^ name)
+          :: implicit_modules)
+        ~outputs:[Ninja.target ~backend:name "o"]
         ~vars:[Var.includes, includes include_dirs]
       ::
       (if has_scope_tests then
          [
            Nj.build "c-object"
-             ~inputs:[Ninja.target ~backend:"c" "+main.c"]
+             ~inputs:[Ninja.target ~backend:name "+main.c"]
              ~implicit_in:
-               (Ninja.target ~backend:"c" "h"
-               :: "@runtime-c"
+               (Ninja.target ~backend:name "h"
+               :: ("@runtime-" ^ name)
                :: implicit_modules)
-             ~outputs:[Ninja.target ~backend:"c" "+main.o"]
+             ~outputs:[Ninja.target ~backend:name "+main.o"]
              ~vars:[Var.includes, includes include_dirs];
          ]
        else [])
@@ -222,11 +223,11 @@ module Backend = struct
   let expose_module ~same_dir_modules ~used_modules =
     [
       Nj.build "phony"
-        ~inputs:[Ninja.target ~backend:"c" "h"]
+        ~inputs:[Ninja.target ~backend:name "h"]
         ~implicit_in:(List.map (module_target same_dir_modules) used_modules)
-        ~outputs:[Ninja.target ~backend:"c" "@c-module"];
+        ~outputs:[Ninja.target ~backend:name module_ext];
     ]
 
   let runtime_dir : File.t Lazy.t =
-    lazy File.(Lazy.force Poll.runtime_dir / "c")
+    lazy File.(Lazy.force Poll.runtime_dir / name)
 end
