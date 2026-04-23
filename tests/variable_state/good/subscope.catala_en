@@ -46,12 +46,12 @@ $ catala Typecheck --check-invariants
 $ catala Scopelang -s A
 #[test]
 let scope A
-    (foo#bar: ⟨integer⟩|context)
+    (foo#bar: ⟪integer⟫|context)
     (foo#baz: integer|internal)
     (foo#fizz: integer|internal|output)
   =
-  let foo#bar : ⟨integer⟩ = reentrant or by default ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
-  let foo#baz : ⟨integer⟩ =
+  let foo#bar : ⟪integer⟫ = reentrant or by default ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
+  let foo#baz : ⟪integer⟫ =
     ⟨ ⟨true ⊢ ⟨(error_empty foo#bar) + 1⟩⟩ | false ⊢ ∅ ⟩;
   let foo#fizz : integer =
     error_empty ⟨ ⟨true ⊢ ⟨(error_empty foo#baz) + 1⟩⟩ | false ⊢ ∅ ⟩

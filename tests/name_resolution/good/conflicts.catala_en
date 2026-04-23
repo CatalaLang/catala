@@ -93,15 +93,15 @@ let scope assert (assert_in: Assert_in): Assert =
   let set assert__1 : bool =
     match
       (match
-         (Present
-            (let assert__2 : list of integer =
-               map (let assert__3 : (closure_env, integer) → integer =
-                      closure_assert
-                    in
-                    (assert__3, to_closure_env ()))
-                 [0]
-             in
-             false, <conflicts:23.3-59>))
+         Present
+           (let assert__2 : list of integer =
+              map (let assert__3 : (closure_env, integer) → integer =
+                     closure_assert
+                   in
+                   (assert__3, to_closure_env ()))
+                [0]
+            in
+            false, <conflicts:23.3-59>)
        with
        | Absent → Present (false, <conflicts:19.10-16>)
        | Present x → Present x)

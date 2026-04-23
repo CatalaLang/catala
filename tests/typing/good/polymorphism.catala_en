@@ -44,7 +44,7 @@ scope S:
 $ catala test-scope S
 ┌─[RESULT]─ S ─
 │ a = 12
-│ b = 2025-01-01
+│ b = |2025-01-01|
 └─
 ```
 
@@ -90,6 +90,12 @@ let topval empty : integer → list of <t> =
   λ (x: integer) →
   []
 
+let topval t1 : list of decimal =
+  empty 0
+
+let topval t2 : list of money =
+  empty 0
+
 let topval not_possible : <t0> → <t> =
   λ (unit: <t0>) →
   (let weights : list of (<t>, integer) =
@@ -106,6 +112,19 @@ let topval identity : <t> → <t> =
   λ (x: <t>) →
   x
 
+let scope s (s_in: S_in): S =
+  let set a : integer =
+    match Present (identity 12, <polymorphism:39.23-37>) with
+    | Absent → error NoValue
+    | Present arg → arg.0
+  in
+  let set b : date =
+    match Present (identity |2025-01-01|, <polymorphism:40.23-47>) with
+    | Absent → error NoValue
+    | Present arg → arg.0
+  in
+  return { S a = a; b = b; }
+
 let topval pair_to_list : (<t>, <t>) → list of <t> =
   λ (x: <t>) (y: <t>) →
   [x; y]
@@ -121,25 +140,6 @@ let topval many_vars :
      list of <e>) =
   λ (dummy: <b>) →
   ([], [], [], [], [], [], [])
-
-let topval t2 : list of money =
-  empty 0
-
-let topval t1 : list of decimal =
-  empty 0
-
-let scope s (s_in: S_in): S =
-  let set a : integer =
-    match (Present (identity 12, <polymorphism:39.23-37>)) with
-    | Absent → error NoValue
-    | Present arg → arg.0
-  in
-  let set b : date =
-    match (Present (identity 2025-01-01, <polymorphism:40.23-47>)) with
-    | Absent → error NoValue
-    | Present arg → arg.0
-  in
-  return { S a = a; b = b; }
 
 let topval foo : list of date =
   let vs :

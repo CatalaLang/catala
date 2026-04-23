@@ -1178,3 +1178,26 @@ let rec embed_value : type a.
     V.V (E.rtype, Obj.obj obj)
   | ECustom { obj; _ } -> V.V (Function, Obj.obj obj)
   | _ -> invalid_arg "embed_value"
+
+let rec distribute_negation pos e =
+  match skip_wrappers e with
+  | ELit (LBool true), m -> ELit (LBool false), m
+  | ELit (LBool false), m -> ELit (LBool true), m
+  | EAppOp { op = And, opos; tys; args = [e1; e2] }, m ->
+    ( EAppOp
+        {
+          op = Op.Or, opos;
+          tys;
+          args = [distribute_negation pos e1; distribute_negation pos e2];
+        },
+      m )
+  | EAppOp { op = Or, opos; tys; args = [e1; e2] }, m ->
+    ( EAppOp
+        {
+          op = Op.And, opos;
+          tys;
+          args = [distribute_negation pos e1; distribute_negation pos e2];
+        },
+      m )
+  | (_, m) as e ->
+    EAppOp { op = Op.Not, pos; tys = [TLit TBool, mark_pos m]; args = [e] }, m

@@ -462,6 +462,13 @@ val detuplify_application :
     elements in the case where [arg_typs] expects multiple arguments but [args]
     is a single tuple *)
 
+val distribute_negation :
+  Pos.t ->
+  ((< monomorphic : yes ; polymorphic : yes ; .. > as 'a), 'm) gexpr ->
+  ('a, 'm) gexpr
+(** from [e], returns [not e] where the [not] has been distributed to
+    conjunctions, disjunctions and boolean literals *)
+
 (** {2 Formatting} *)
 
 val format : Format.formatter -> ('a, 'm) gexpr -> unit

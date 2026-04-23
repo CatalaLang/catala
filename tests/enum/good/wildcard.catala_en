@@ -59,7 +59,7 @@ $ catala test-scope Simple_case_2
 ```catala-test-cli
 $ catala test-scope Simple_case
 ┌─[RESULT]─ Simple_case ─
-│ x = Case1 2
+│ x = Case1 content 2
 │ y = 31
 └─
 ```

@@ -618,29 +618,25 @@ let rec handle_assert : type d r.
           | _ -> None)
       with
       | Some note ->
-        Format.fprintf ppf "@[<hv 4>Assertion failed:@ @[<hov>%a@].@]"
+        Format.fprintf ppf "@[<hv 4>Assertion failed:@ @[<hov>%a@]@]"
           Format.pp_print_text note
-      | None -> Format.fprintf ppf "Assertion failed."
+      | None -> Format.fprintf ppf "Assertion failed"
     in
     let partially_evaluated_assertion_failure_expr =
       partially_evaluate_expr_for_assertion_failure_message ~eval_expr
         (Expr.skip_wrappers pred)
+      |> Expr.distribute_negation pos
     in
     (match Mark.remove partially_evaluated_assertion_failure_expr with
     | ELit (LBool false) ->
-      if Global.options.no_fail_on_assert then Message.warning ~pos "%t" msg
-      else Message.delayed_error ~kind:AssertFailure () ~pos "%t" msg
+      if Global.options.no_fail_on_assert then Message.warning ~pos "%t." msg
+      else Message.delayed_error ~kind:AssertFailure () ~pos "%t." msg
     | _ ->
-      if Global.options.no_fail_on_assert then
-        Message.warning ~pos
-          "@[<v>%t@,@[<hv 4>The condition resolved to:@ %a@]@]" msg
-          (Print.UserFacing.expr lang)
-          partially_evaluated_assertion_failure_expr
-      else
-        Message.delayed_error ~kind:AssertFailure () ~pos
-          "@[<v>%t@,@[<hv 4>The condition resolved to:@ %a@]@]" msg
-          (Print.UserFacing.expr lang)
-          partially_evaluated_assertion_failure_expr);
+      (if Global.options.no_fail_on_assert then Message.warning
+       else Message.delayed_error ~kind:AssertFailure ())
+        ~pos "@[<hv>%t:@ @[<hv 4>%a@]@]" msg
+        (Print.UserFacing.expr lang)
+        partially_evaluated_assertion_failure_expr);
     Mark.add m (ELit LUnit)
   | _ ->
     Message.error ~pos:(Expr.pos pred) "%a" Format.pp_print_text
@@ -651,15 +647,26 @@ and partially_evaluate_expr_for_assertion_failure_message : type d r.
     eval_expr:
       (((d, r, yes) interpr_kind, 't) gexpr ->
       ((d, r, yes) interpr_kind, 't) gexpr) ->
+    ?neg:bool ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
     ((d, r, yes) interpr_kind, 't) gexpr =
- fun ~eval_expr e ->
+ fun ~eval_expr ?(neg = false) e ->
   (* Here we want to print an expression that explains why an assertion has
      failed. Since assertions have type [bool] and are usually constructed with
      comparisons and logical operators, we leave those unevaluated at the top of
-     the AST while evaluating everything below. This makes for a good error
-     message. *)
+     the AST while evaluating everything below ; we also skip all true subterms
+     within an [And]. This makes for a good error message. *)
   match Mark.remove e with
+  | EAppOp { op = And, _; args = [e1; e2]; _ } when not neg -> (
+    match eval_expr e1 with
+    | ELit (LBool true), _ ->
+      partially_evaluate_expr_for_assertion_failure_message ~eval_expr e2
+    | _ -> partially_evaluate_expr_for_assertion_failure_message ~eval_expr e1)
+  | EAppOp { op = Or, _; args = [e1; e2]; _ } when neg -> (
+    match eval_expr e1 with
+    | ELit (LBool false), _ ->
+      partially_evaluate_expr_for_assertion_failure_message ~eval_expr e2
+    | _ -> partially_evaluate_expr_for_assertion_failure_message ~eval_expr e1)
   | EAppOp
       {
         args = [e1; e2];
@@ -672,9 +679,10 @@ and partially_evaluate_expr_for_assertion_failure_message : type d r.
           tys;
           args =
             [
-              partially_evaluate_expr_for_assertion_failure_message ~eval_expr e1;
               partially_evaluate_expr_for_assertion_failure_message ~eval_expr
-                e2;
+                ~neg e1;
+              partially_evaluate_expr_for_assertion_failure_message ~eval_expr
+                ~neg e2;
             ];
         },
       Mark.get e )
@@ -685,7 +693,8 @@ and partially_evaluate_expr_for_assertion_failure_message : type d r.
           tys;
           args =
             [
-              partially_evaluate_expr_for_assertion_failure_message ~eval_expr e1;
+              partially_evaluate_expr_for_assertion_failure_message ~eval_expr
+                ~neg:(not neg) e1;
             ];
         },
       Mark.get e )

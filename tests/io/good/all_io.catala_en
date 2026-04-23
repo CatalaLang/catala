@@ -34,13 +34,13 @@ $ catala Dcalc -s A
 let scope A (A_in: A_in): A =
   let get c : integer = A_in.c_in in
   let get d : integer = A_in.d_in in
-  let get e : ⟨integer⟩ = A_in.e_in in
-  let get f : ⟨integer⟩ = A_in.f_in in
-  let set a : ⟨integer⟩ = ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ in
+  let get e : ⟪integer⟫ = A_in.e_in in
+  let get f : ⟪integer⟫ = A_in.f_in in
+  let set a : ⟪integer⟫ = ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ in
   let set b : integer =
     error_empty ⟨ ⟨true ⊢ ⟨(error_empty a) + 1⟩⟩ | false ⊢ ∅ ⟩
   in
-  let set e : ⟨integer⟩ =
+  let set e : ⟪integer⟫ =
     ⟨ e | true ⊢ ⟨ ⟨true ⊢ ⟨b + c + d + 1⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
   let set f : integer =

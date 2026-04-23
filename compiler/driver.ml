@@ -379,7 +379,8 @@ module Commands = struct
         File.get_main_out_formatter ~source_file:options.Global.input_src
           ~output_file ?ext ()
       in
-      Message.debug "Writing to %s" (Option.value ~default:"stdout" output_file);
+      Message.debug "Writing to %a" File.format
+        (Option.value ~default:"stdout" output_file);
       with_output (fun ppf -> f output_file ppf)
 
   let makefile options output =
@@ -387,7 +388,7 @@ module Commands = struct
     let backend_extensions_list = [".tex"] in
     let source_file = Global.input_src_file options.Global.input_src in
     let output_file, with_output = get_output options ~ext:"d" output in
-    Message.debug "Writing list of dependencies to %s..."
+    Message.debug "Writing list of dependencies to %a..." File.format
       (Option.value ~default:"stdout" output_file);
     with_output
     @@ fun oc ->

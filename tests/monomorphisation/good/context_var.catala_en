@@ -33,8 +33,8 @@ let scope test_xor (test_xor_in: TestXor_in): TestXor =
            { tuple_1
              elt_0 =
                match
-                 (Some_1
-                    { tuple_1 elt_0 = true; elt_1 = <context_var:8.23-27>; })
+                 Some_1
+                   { tuple_1 elt_0 = true; elt_1 = <context_var:8.23-27>; }
                with
                | None_1 → error NoValue
                | Some_1 arg → arg.elt_0;
@@ -68,7 +68,7 @@ let scope TestXor2 (test_xor2_in: TestXor2_in): TestXor2 =
   in
   let set o : bool =
     match
-      (Some_1 { tuple_1 elt_0 = t.t; elt_1 = <context_var:58.23-26>; })
+      Some_1 { tuple_1 elt_0 = t.t; elt_1 = <context_var:58.23-26>; }
     with
     | None_1 → error NoValue
     | Some_1 arg → arg.elt_0

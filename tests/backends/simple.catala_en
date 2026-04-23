@@ -61,20 +61,6 @@ const catala_type catala_type__Foo()
     "y", catala_type_decimal);
 }
 
-typedef struct Baz {
-  CATALA_DEC b;
-  const CATALA_ARRAY(CATALA_DEC) c;
-} Baz;
-const catala_type catala_type__Baz()
-{
-  static catala_type ty = {UNINITIALIZED};
-  static struct catala_label_type fields[2];
-  if (ty.kind != UNINITIALIZED) return ty;
-  return catala_type_struct(&ty, fields, "Baz", 2,
-    "b", catala_type_decimal,
-    "c", catala_type_array(catala_type_decimal));
-}
-
 enum Bar__code {
   Bar__NO,
   Bar__YES
@@ -95,6 +81,20 @@ const catala_type catala_type__Bar()
   return catala_type_enum(&ty, cases, "Bar", 2,
     "No", catala_type_unit,
     "Yes", catala_type__Foo());
+}
+
+typedef struct Baz {
+  CATALA_DEC b;
+  const CATALA_ARRAY(CATALA_DEC) c;
+} Baz;
+const catala_type catala_type__Baz()
+{
+  static catala_type ty = {UNINITIALIZED};
+  static struct catala_label_type fields[2];
+  if (ty.kind != UNINITIALIZED) return ty;
+  return catala_type_struct(&ty, fields, "Baz", 2,
+    "b", catala_type_decimal,
+    "c", catala_type_array(catala_type_decimal));
 }
 
 typedef struct Baz_in {

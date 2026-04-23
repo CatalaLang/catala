@@ -42,10 +42,10 @@ scope Tnth_element:
 ```catala-test-cli
 $ catala test-scope Tnth_element
 ┌─[RESULT]─ Tnth_element ─
-│ o1 = Present $102.00
+│ o1 = Present content $102.00
 │ o2 = Absent
 │ o3 = Absent
-│ o4 = Present (12.0, 44)
+│ o4 = Present content (12.0, 44)
 └─
 ```
 

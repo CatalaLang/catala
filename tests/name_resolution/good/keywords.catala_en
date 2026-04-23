@@ -22,7 +22,7 @@ scope Test:
 ```catala-test-cli
 $ catala test-scope Test
 ┌─[RESULT]─ Test ─
-│ val = 1970-04-10
+│ val = |1970-04-10|
 └─
 ```
 

@@ -51,17 +51,23 @@ $ catala test-scope S
 │   [
 │     HouseholdMemberTaxed {
 │       -- member:
-│         HouseholdMember { -- birthdate: 2000-01-01 -- revenue: $10,000.00 }
+│         HouseholdMember {
+│           -- birthdate: |2000-01-01|
+│           -- revenue: $10,000.00
+│         }
 │       -- tax: $270.27
 │     };
 │     HouseholdMemberTaxed {
 │       -- member:
-│         HouseholdMember { -- birthdate: 2000-01-02 -- revenue: $1,000.00 }
+│         HouseholdMember {
+│           -- birthdate: |2000-01-02|
+│           -- revenue: $1,000.00
+│         }
 │       -- tax: $27.03
 │     };
 │     HouseholdMemberTaxed {
 │       -- member:
-│         HouseholdMember { -- birthdate: 2000-01-02 -- revenue: $100.00 }
+│         HouseholdMember { -- birthdate: |2000-01-02| -- revenue: $100.00 }
 │       -- tax: $2.70
 │     }
 │   ]

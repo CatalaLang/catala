@@ -175,7 +175,7 @@ type Str = {
 
 #[attr = "Referring to the scope declaration"]
 let scope S
-    (bla: ⟨integer⟩|context|output)
+    (bla: ⟪integer⟫|context|output)
     (x: money|internal|output)
     (o: money|internal|output)
     (o2: (money, #[attr.typ] integer)|internal|output)

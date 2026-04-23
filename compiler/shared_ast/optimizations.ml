@@ -380,7 +380,7 @@ let test_iota_reduction_1 () =
   Alcotest.(check string)
     "same string"
     begin[@ocamlformat "disable"]
-      "before=match (A x) with\n\
+      "before=match A x with\n\
       \       | A x → C x\n\
       \       | B x → D x\n\
        after=C x"
