@@ -178,7 +178,8 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
   match backend with
   | `OCaml ->
     get_var var_bindings Var.ocamlopt_exe
-    @ List.map (expand_vars var_bindings) (Lazy.force OCaml.Flags.ocaml_link)
+    @ List.map (expand_vars var_bindings)
+        (Lazy.force OCaml.Backend.Flags.ocaml_link)
     @ [build_dir / Scan.libcatala / "ocaml" / "dates_calc.cmx"]
     @ [build_dir / Scan.libcatala / "ocaml" / "catala_runtime.cmx"]
     @ get_var var_bindings Var.ocaml_flags

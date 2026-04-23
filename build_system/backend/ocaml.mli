@@ -15,9 +15,13 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-module Flags : sig
-  val ocaml_link : string list Lazy.t
-  val ocaml_include : string list Lazy.t
-end
+module Backend : sig
+  include Backend.S
 
-module Backend : Backend.S
+  module Flags : sig
+    include module type of Flags
+
+    val ocaml_link : string list Lazy.t
+    val ocaml_include : string list Lazy.t
+  end
+end

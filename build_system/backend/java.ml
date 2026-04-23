@@ -25,12 +25,12 @@ module Backend = struct
 
   let name = "java"
   let module_ext = ".class"
-  let subdir = "java"
+  let subdir = name
   let src_extensions = ["java"]
   let obj_extensions = ["class"]
 
   let runtime_targets ~only_source =
-    [(if only_source then "@runtime-java-src" else "@runtime-java")]
+    [(if only_source then "@runtime-" ^ name ^ "-src" else "@runtime-" ^ name)]
 
   let stdlib_target ext =
     let ext =
@@ -38,15 +38,14 @@ module Backend = struct
       | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "." ^ ext
       | _ -> ext
     in
-    let bdir f = ("java" / "catala" / "stdlib" / f) ^ ext in
+    let bdir f = (name / "catala" / "stdlib" / f) ^ ext in
     !Var.tdir / bdir !Var.dst
 
   let modfile ~is_stdlib same_dir_modules ext modname =
-    let backend = "java" in
     match List.assoc_opt modname same_dir_modules with
     | Some _ when is_stdlib ->
-      (!Var.tdir / backend / "catala" / "stdlib" / String.to_id modname) ^ ext
-    | _ -> Ninja.modfile ~backend same_dir_modules ext modname
+      (!Var.tdir / name / "catala" / "stdlib" / String.to_id modname) ^ ext
+    | _ -> Ninja.modfile ~backend:name same_dir_modules ext modname
 
   module Flags = struct
     let default
@@ -72,35 +71,35 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-java"
-        ~command:[!catala_exe; "java"; !catala_flags; !catala_flags_java;
+        ~command:[!catala_exe; name; !catala_flags; !catala_flags_java;
                   "-o"; !output; "--"; !input]
-        ~description:["<catala>"; "java"; "⇒"; !output];
+        ~description:["<catala>"; name; "⇒"; !output];
       Nj.rule "java-class"
-        ~command:[!javac; "-cp"; File.(Var.(!builddir) / Scan.libcatala / "java")^":" ^ !class_path; !javac_flags; !input]
-        ~description:["<catala>"; "java"; "⇒"; !output];
+        ~command:[!javac; "-cp"; File.(Var.(!builddir) / Scan.libcatala / name)^":" ^ !class_path; !javac_flags; !input]
+        ~description:["<catala>"; name; "⇒"; !output];
     ]
 
   let external_copy item =
     let catala_src = !Var.tdir / !Var.src in
     let java, missing =
-      Ninja.extern_src ~filename:item.Scan.file_name ~backend:"java" ~ext:"java"
+      Ninja.extern_src ~filename:item.Scan.file_name ~backend:name ~ext:"java"
         ~missing:[]
     in
-    Ninja.check_missing ~backend:"java" ~module_def:item.Scan.module_def
-      ~missing ~filename:item.Scan.file_name;
+    Ninja.check_missing ~backend:name ~module_def:item.Scan.module_def ~missing
+      ~filename:item.Scan.file_name;
     List.to_seq
       [
         Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[java]
           ~outputs:
             [
               (if item.is_stdlib then stdlib_target "java"
-               else Ninja.target ~backend:"java" "java");
+               else Ninja.target ~backend:name "java");
             ];
       ]
 
   let runtime_build_statements ~options ~stdbase =
-    let java_base = stdbase / "java" in
-    let java_src = Var.(!runtime) / "java" in
+    let java_base = stdbase / name in
+    let java_src = Var.(!runtime) / name in
     let runtime_orig =
       match
         List.assoc_opt
@@ -110,7 +109,7 @@ module Backend = struct
       | Some r -> lazy (String.concat " " r)
       | None -> Poll.runtime_dir
     in
-    let java_orig_prefix = Lazy.force runtime_orig / "java" in
+    let java_orig_prefix = Lazy.force runtime_orig / name in
     let java_files =
       File.scan_tree
         (fun f ->
@@ -126,17 +125,19 @@ module Backend = struct
       |> List.of_seq
     in
     let java_list_file =
-      let base = options.global.build_dir / Scan.libcatala / "java" in
-      File.with_out_channel ~bin:false (base / "java.files") (fun oc ->
+      let base = options.global.build_dir / Scan.libcatala / name in
+      File.with_out_channel ~bin:false
+        (base / (name ^ ".files"))
+        (fun oc ->
           List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);
-      java_base / "java.files"
+      java_base / (name ^ ".files")
     in
     Nj.build "phony"
       ~inputs:(List.map (fun f -> (java_base / f) -.- "java") java_files)
-      ~outputs:["@runtime-java-src"]
+      ~outputs:["@runtime-" ^ name ^ "-src"]
     :: Nj.build "phony"
          ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~outputs:["@runtime-java"]
+         ~outputs:["@runtime-" ^ name]
     :: Nj.build "java-class" ~inputs:[]
          ~implicit_in:
            (java_list_file :: List.map (fun f -> java_base / f) java_files)
@@ -153,18 +154,17 @@ module Backend = struct
          ~outputs:
            [
              (if is_stdlib then stdlib_target "java"
-              else Ninja.target ~backend:"java" "java");
+              else Ninja.target ~backend:name "java");
            ])
 
   let build_object ~include_dirs ~same_dir_modules ~item _has_scope_tests =
     let modules = List.rev_map Mark.remove item.Scan.used_modules in
     let java_class_path =
       String.concat ":"
-        ((!Var.tdir / "java")
+        ((!Var.tdir / name)
         :: List.map
              (fun d ->
-               (if Filename.is_relative d then !Var.builddir / d else d)
-               / "java")
+               (if Filename.is_relative d then !Var.builddir / d else d) / name)
              include_dirs)
     in
     let module_target =
@@ -175,18 +175,18 @@ module Backend = struct
          ~inputs:
            [
              (if item.is_stdlib then stdlib_target "java"
-              else Ninja.target ~backend:"java" "java");
+              else Ninja.target ~backend:name "java");
            ]
-         ~implicit_in:("@runtime-java" :: List.map module_target modules)
+         ~implicit_in:(("@runtime-" ^ name) :: List.map module_target modules)
          ~outputs:
            [
              (if item.is_stdlib then stdlib_target "class"
-              else Ninja.target ~backend:"java" "class");
+              else Ninja.target ~backend:name "class");
            ]
          ~vars:[Var.class_path, [java_class_path]])
 
   let expose_module ~same_dir_modules:_ ~used_modules:_ = []
 
   let runtime_dir : File.t Lazy.t =
-    lazy File.(Lazy.force Poll.runtime_dir / "java")
+    lazy File.(Lazy.force Poll.runtime_dir / name)
 end
