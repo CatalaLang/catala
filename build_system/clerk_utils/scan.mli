@@ -65,3 +65,12 @@ val target_basename : item -> File.t
 val target_file_name : item -> File.t
 (** Like [target_basename], but returns a relative filename to the build
     directory, without extension *)
+
+val linking_dependencies : item list -> item -> item list
+(** Return a topological order of the item list *)
+
+val linking_tree :
+  (string * string list * item list) Seq.t ->
+  string Mark.pos list ->
+  (string * string list * item) list
+(** Return a topological order of items in a tree *)

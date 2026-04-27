@@ -1,9 +1,25 @@
 (library
  (name runtime_jsoo)
- (modes byte)
- (public_name catala-js.runtime)
- (wrapped false)
+ (public_name catala-js.runtime_jsoo)
+ (modules catala_runtime_jsoo dates_calc_jsoo)
  (preprocess
   (pps js_of_ocaml-ppx))
- (libraries catala.runtime_ocaml js_of_ocaml)
- (modules runtime_jsoo))
+ (wrapped false)
+ (libraries catala.runtime_ocaml js_of_ocaml zarith_stubs_js))
+
+;; that cmi is critical for linking catala programs
+;; so we copy it out of dune's hidden directory for
+;; more convenient access.
+;; See Clerk_rules:runtime_build_statements
+
+(rule
+ (action
+  (copy
+   %{lib:catala-js.runtime_jsoo:dates_calc_jsoo.cmi}
+   dates_calc_jsoo.cmi)))
+
+(rule
+ (action
+  (copy
+   %{lib:catala-js.runtime_jsoo:catala_runtime_jsoo.cmi}
+   catala_runtime_jsoo.cmi)))

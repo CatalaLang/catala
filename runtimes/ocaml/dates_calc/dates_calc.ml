@@ -72,7 +72,7 @@ let period_to_days (p : period) : int =
 let is_leap_year (year : int) : bool =
   year mod 400 = 0 || (year mod 4 = 0 && year mod 100 <> 0)
 
-(** @raise [InvalidDate]*)
+(** @raise [InvalidDate] *)
 let days_in_month ~(month : int) ~(is_leap_year : bool) : int =
   match month with
   | 1 | 3 | 5 | 7 | 8 | 10 | 12 -> 31
@@ -86,7 +86,7 @@ let is_valid_date (d : date) : bool =
     && d.day <= days_in_month ~month:d.month ~is_leap_year:(is_leap_year d.year)
   with InvalidDate -> false
 
-(** @raise [InvalidDate]*)
+(** @raise [InvalidDate] *)
 let make_date ~(year : int) ~(month : int) ~(day : int) : date =
   let d = { year; month; day } in
   if is_valid_date d then d else raise InvalidDate

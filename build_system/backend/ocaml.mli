@@ -15,17 +15,20 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
+module Backend : sig
+  include Backend.S
 
-(** This module scans the system for the location of various required tools and
-    libraries, to be used as default values. (think [./configure])
+  val runtime_ocaml :
+    string ->
+    ocaml_src:string ->
+    dates_base:string ->
+    ocaml_base:string ->
+    Ninja_utils.def list
 
-    This module is sensitive to the CWD at first use. Therefore it's expected
-    that [chdir] has been run beforehand to the project root. *)
+  module Flags : sig
+    include module type of Flags
 
-val ocaml_include_flags : string list Lazy.t
-val ocaml_link_flags : string list Lazy.t
-val ocaml_runtime_dir : File.t Lazy.t
-val c_runtime_dir : File.t Lazy.t
-val python_runtime_dir : File.t Lazy.t
-val java_runtime_dir : File.t Lazy.t
+    val ocaml_link : string list Lazy.t
+    val ocaml_include : string list Lazy.t
+  end
+end

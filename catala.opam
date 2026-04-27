@@ -49,6 +49,7 @@ depends: [
   "json-data-encoding" { >= "1.0.1" }
   "testo-diff"
   "odoc" {with-doc}
+  "ocamlformat-lib" { = "0.28.1" }
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.28.1"}
   "obelisk" {?cataladevmode & cataladevmode}
   "conf-ninja" {post}

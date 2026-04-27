@@ -63,6 +63,17 @@ let error_to_string = function
   | DateError s -> Printf.sprintf "DateError(%S)" s
   | Impossible -> "Impossible"
 
+let error_of_string = function
+  | "AssertionFailed" -> AssertionFailed
+  | "NoValue" -> NoValue
+  | "Conflict" -> Conflict
+  | "DivisionByZero" -> DivisionByZero
+  | "ListEmpty" -> ListEmpty
+  | "NotSameLength" -> NotSameLength
+  | "UncomparableValues" -> UncomparableValues
+  | "Impossible" -> Impossible
+  | date -> DateError date
+
 let error_message = function
   | AssertionFailed -> "an assertion doesn't hold"
   | NoValue -> "no applicable rule to define this variable in this situation"

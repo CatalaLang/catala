@@ -374,10 +374,10 @@ module Commands = struct
 
   let get_output_format options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in
-    fun ?ext f ->
+    fun ?ext ?suffix f ->
       let output_file, with_output =
         File.get_main_out_formatter ~source_file:options.Global.input_src
-          ~output_file ?ext ()
+          ~output_file ?ext ?suffix ()
       in
       Message.debug "Writing to %a" File.format
         (Option.value ~default:"stdout" output_file);

@@ -21,10 +21,34 @@ open Clerk_lib
 module Flags : sig
   val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
   val includes : ?backend:string -> string list -> string list
+  val include_flags : backend:string -> string list -> string list
+
+  val catala_backend_flags :
+    autotest:bool ->
+    use_default_flags:bool ->
+    test_flags:string list ->
+    accepts_closure_conversion:bool ->
+    string list
 
   val default :
     code_coverage:bool -> config:Clerk_cli.config -> (Var.t * string list) list
 end
+
+val copy_to_target :
+  prefix_dir:string ->
+  backend:'a ->
+  sub_dir:string ->
+  install_targets:('a * string) list ->
+  unit
+
+val copy_runtime :
+  prefix_dir:string ->
+  src_extensions:string list ->
+  obj_extensions:string list ->
+  build_dir:string ->
+  sub_dir:string ->
+  include_objects:bool ->
+  unit
 
 module Ninja : sig
   val static_base_rules : Ninja_utils.def list

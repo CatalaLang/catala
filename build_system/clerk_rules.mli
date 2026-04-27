@@ -17,7 +17,7 @@
 
 open Clerk_utils
 
-type backend = OCaml | Python | C | Java | Tests
+type backend = (module Clerk_backends.Backend.S)
 
 val all_backends : backend list
 val backend_from_config : Clerk_config.backend -> backend
@@ -32,12 +32,14 @@ val base_bindings :
 val run_ninja :
   ?include_dir:bool ->
   config:Clerk_cli.config ->
+  ?tests:bool ->
   ?enabled_backends:backend list ->
   quiet:bool ->
   code_coverage:bool ->
   autotest:bool ->
   ?clean_up_env:bool ->
   ?ninja_flags:string list ->
+  ?module_targets:string list ->
   (Format.formatter -> Scan.item list -> (Var.t * string list) list -> 'a) ->
   'a
 (** Scan the source tree, run a ninja process, and send to it the expected build
