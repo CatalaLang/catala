@@ -327,6 +327,7 @@ let rec translate_expr
     (inside_definition_of : Ast.ScopeDef.t Mark.pos option)
     (ctxt : Name_resolution.context)
     (local_vars : Ast.expr Var.t Ident.Map.t)
+    ?(no_wildcard_warning = false)
     (expr : S.expression) : Ast.expr boxed =
   let pos = Name_resolution.(translate_pos (Expression expr) (Mark.get expr)) in
   let emark = Untyped { pos } in
@@ -337,8 +338,9 @@ let rec translate_expr
     | None -> Ident.Map.empty
     | Some s -> (ScopeName.Map.find s ctxt.scopes).var_idmap
   in
-  let rec_helper ?(local_vars = local_vars) e =
-    translate_expr scope inside_definition_of ctxt local_vars e
+  let rec_helper ?(local_vars = local_vars) ?no_wildcard_warning e =
+    translate_expr scope inside_definition_of ctxt local_vars
+      ?no_wildcard_warning e
   in
   let rec detuplify_list opos names = function
     (* Where a list is expected (e.g. after [among]), as syntactic sugar, if a
@@ -413,37 +415,19 @@ let rec translate_expr
   in
   match Mark.remove expr with
   | Paren e -> rec_helper (Mark.set (Pos.join pos (Mark.get e)) e)
-  | Binop
-      ( (S.And, pos_op),
-        ( TestMatchCase (e1_sub, ((constructors, Some binding), pos_pattern)),
-          _pos_e1 ),
-        e2 ) ->
+  | Binop ((S.And, _), (TestMatchCase (e1_sub, pattern), pos_e1), e2) ->
     (* This sugar corresponds to [e is P x && e'] and should desugar to [match e
        with P x -> e' | _ -> false] *)
-    let enum_uid, c_uid =
-      disambiguate_constructor ctxt constructors pos_pattern
-    in
     let cases =
-      EnumConstructor.Map.mapi
-        (fun c_uid' tau ->
-          let tau = Type.unquantify tau in
-          if EnumConstructor.compare c_uid c_uid' <> 0 then
-            let nop_var = Var.make "_" in
-            Expr.make_ghost_abs [nop_var]
-              (Expr.elit (LBool false) emark)
-              [tau] pos_op
-          else
-            let binding_var = Var.make (Mark.remove binding) in
-            let local_vars =
-              Ident.Map.add (Mark.remove binding) binding_var local_vars
-            in
-            let e2 = rec_helper ~local_vars e2 in
-            Expr.make_abs
-              [Mark.add (Mark.get binding) binding_var]
-              e2 [tau] pos_op)
-        (fst (EnumName.Map.find enum_uid ctxt.enums))
+      [
+        ( S.MatchCase { match_case_pattern = pattern; match_case_expr = e2 },
+          Mark.get pattern );
+        ( S.WildCard (S.Literal (S.LBool false), Mark.get pattern),
+          Mark.get pattern );
+      ]
     in
-    Expr.ematch ~e:(rec_helper e1_sub) ~name:enum_uid ~cases emark
+    rec_helper ~no_wildcard_warning:true
+      (S.MatchWith (e1_sub, (cases, pos)), pos_e1)
   | Binop ((((S.And | S.Or | S.Xor), _) as op), e1, e2) ->
     check_formula op e1;
     check_formula op e2;
@@ -836,30 +820,28 @@ let rec translate_expr
     let e1 = rec_helper e1 in
     let cases_d, e_uid =
       disambiguate_match_and_build_expression scope inside_definition_of ctxt
-        local_vars cases
+        local_vars ~no_wildcard_warning cases
     in
     Expr.ematch ~e:e1 ~name:e_uid ~cases:cases_d emark
   | TestMatchCase (e1, pattern) ->
     (match snd (Mark.remove pattern) with
-    | None -> ()
-    | Some binding ->
+    | [] -> ()
+    | binding :: _ ->
       Message.warning ~pos:(Mark.get binding)
-        "This binding will be ignored (remove it to suppress warning).");
-    let enum_uid, c_uid =
-      disambiguate_constructor ctxt
-        (fst (Mark.remove pattern))
-        (Mark.get pattern)
-    in
+        "This binding will be ignored (remove it to suppress this warning).");
     let cases =
-      EnumConstructor.Map.mapi
-        (fun c_uid' tau ->
-          let nop_var = Var.make "_" in
-          Expr.make_ghost_abs [nop_var]
-            (Expr.elit (LBool (EnumConstructor.compare c_uid c_uid' = 0)) emark)
-            [tau] pos)
-        (fst (EnumName.Map.find enum_uid ctxt.enums))
+      [
+        ( S.MatchCase
+            {
+              match_case_pattern = pattern;
+              match_case_expr = S.Literal (S.LBool true), Mark.get pattern;
+            },
+          Mark.get pattern );
+        ( S.WildCard (S.Literal (S.LBool false), Mark.get pattern),
+          Mark.get pattern );
+      ]
     in
-    Expr.ematch ~e:(rec_helper e1) ~name:enum_uid ~cases emark
+    rec_helper ~no_wildcard_warning:true (S.MatchWith (e1, (cases, pos)), pos)
   | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
   | Tuple es -> Expr.etuple (List.map rec_helper es) emark
   | TupleAccess (e, n) ->
@@ -1191,6 +1173,7 @@ and disambiguate_match_and_build_expression
     (inside_definition_of : Ast.ScopeDef.t Mark.pos option)
     (ctxt : Name_resolution.context)
     (local_vars : Ast.expr Var.t Ident.Map.t)
+    ?(no_wildcard_warning = false)
     (cases : S.match_case Mark.pos list) :
     Ast.expr boxed EnumConstructor.Map.t * EnumName.t =
   let create_var local_vars = function
@@ -1210,10 +1193,51 @@ and disambiguate_match_and_build_expression
       EnumConstructor.Map.find c_uid
         (fst (EnumName.Map.find e_uid ctxt.Name_resolution.enums))
     in
-    (* [cell_type] may be quantified in the case of the option type. Here we need to use a specific instance *)
-    Expr.eabs e_binder pos_binder
-      [Type.unquantify cell_type]
-      (Mark.get case_body)
+    let nary_binder_to_tuple_function cell_type =
+      let payload_types =
+        match cell_type with TTuple tl, _ -> tl | t -> [t]
+      in
+      let m = Mark.get case_body in
+      let v = Var.make "payload" in
+      let body =
+        Expr.detuplify_application
+          [Expr.evar v m]
+          payload_types
+          (fun args ->
+            let body =
+              let args = Bindlib.box_list (List.map Mark.remove args) in
+              Bindlib.box_apply2
+                (fun bnd args ->
+                  Mark.remove (Bindlib.msubst bnd (Array.of_list args)))
+                e_binder args
+            in
+            body, m)
+      in
+      Expr.eabs
+        (Bindlib.bind_mvar [| v |] (Expr.Box.lift body))
+        [List.fold_left Pos.join Pos.void pos_binder]
+        [cell_type] m
+    in
+    let arity = List.length pos_binder in
+    match cell_type with
+    | TTuple tl, _ when arity > 1 ->
+      (* Matching a n-uple payload to a n-ary function : we de-tuplify the payload to have a one-argument function as expected by the match construct *)
+      if List.length tl <> arity then
+        Message.error
+          ~pos:(List.fold_left Pos.join Pos.void pos_binder)
+          "This pattern has %d arguments, while %d are expected by \
+           constructor@ %a."
+          arity (List.length tl) EnumConstructor.format c_uid;
+      nary_binder_to_tuple_function cell_type
+    | TForAll _, _ when arity > 1 ->
+      assert (Type.is_universal cell_type);
+      (* Matching a polymorphic payload (ie we are in an option) to a n-ary function: we assume a n-uple and will let the typer validate it *)
+      nary_binder_to_tuple_function
+        ( TTuple (List.map Type.fresh_var pos_binder),
+          List.fold_left Pos.join Pos.void pos_binder )
+    | t ->
+      (* It's allowed to match the tuple into a single variable (TTuple but arity = 1). We will let the type-checker report the error in case of mismatch *)
+      Expr.eabs e_binder pos_binder [t] (Mark.get case_body)
   in
   let bind_match_cases (cases_d, e_uid, curr_index) (case, case_pos) =
     match case with
@@ -1227,7 +1251,7 @@ and disambiguate_match_and_build_expression
         match e_uid with
         | None -> e_uid'
         | Some e_uid ->
-          if e_uid = e_uid' then e_uid
+          if EnumName.equal e_uid e_uid' then e_uid
           else
             Message.error
               ~pos:(Mark.get case.S.match_case_pattern)
@@ -1243,18 +1267,21 @@ and disambiguate_match_and_build_expression
           ~extra_pos:["", Mark.get case.match_case_expr; "", Expr.pos e_case]
           "The constructor %a@ has@ been@ matched@ twice."
           EnumConstructor.format c_uid);
+      let binding = match binding with [] -> ["_", Pos.void] | bnd -> bnd in
       let local_vars, param_var =
-        create_var local_vars (Option.map Mark.remove binding)
+        List.fold_left_map
+          (fun local_vars b -> create_var local_vars (Some (Mark.remove b)))
+          local_vars binding
       in
       let case_body =
         translate_expr scope inside_definition_of ctxt local_vars
           case.S.match_case_expr
       in
-      let e_binder = Expr.bind [| param_var |] case_body in
+      let e_binder = Expr.bind (Array.of_list param_var) case_body in
       let pos_binder =
         match binding with
-        | None -> [Pos.void]
-        | Some binding -> [Mark.get binding]
+        | [] -> [Pos.void]
+        | binding -> List.map Mark.get binding
       in
       let case_expr =
         bind_case_body c_uid e_uid ctxt case_body e_binder pos_binder
@@ -1291,7 +1318,10 @@ and disambiguate_match_and_build_expression
               | Some _ -> None
               | None -> Some c_uid)
         in
-        if EnumConstructor.Map.is_empty missing_constructors then
+        if
+          EnumConstructor.Map.is_empty missing_constructors
+          && not no_wildcard_warning
+        then
           Message.warning ~pos:case_pos
             "Unreachable match case, all constructors of the enumeration@ %a@ \
              are@ already@ specified."

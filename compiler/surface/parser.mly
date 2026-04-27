@@ -505,7 +505,7 @@ let binop ==
 | XOR ; { Xor }
 
 let constructor_binding :=
-| uid = addpos(quident) ; CONTENT ; lid = lident ; {
+| uid = addpos(quident) ; CONTENT ; id = mbinder ; {
   let constr =
     match uid with
     | ([], (id, _)), pos ->
@@ -514,7 +514,7 @@ let constructor_binding :=
         | None -> CConstr ([], (id, pos)), pos)
     | (path, uid), pos -> CConstr (path, uid), pos
   in
-  ([constr], Some lid)
+  ([constr], id)
 }
 | uid = addpos(quident) ; {
   let constr =
@@ -525,7 +525,7 @@ let constructor_binding :=
         | None -> CConstr ([], (id, pos)), pos)
     | (path, uid), pos -> CConstr (path, uid), pos
   in
-  ([constr], None)
+  ([constr], [])
 }
 
 let match_arm :=

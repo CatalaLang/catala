@@ -46,7 +46,7 @@ let rec colors =
   blue :: cyan :: green :: yellow :: red :: magenta :: colors
 
 let keyword (fmt : Format.formatter) (s : string) : unit =
-  pp_color_string Ocolor_types.red fmt s
+  pp_color_string Ocolor_types.hi_magenta fmt s
 
 let base_type (fmt : Format.formatter) (s : string) : unit =
   pp_color_string Ocolor_types.yellow fmt s
@@ -589,7 +589,13 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EAbs { binder; pos = _; tys } ->
         let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
         let expr = exprb bnd_ctx in
-        let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
+        let xs_tau =
+          List.mapi
+            (fun i tau ->
+              ( (if i < Array.length xs then xs.(i) else Var.make "[MISSING ARG]"),
+                tau ))
+            tys
+        in
         Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"
           (Format.pp_print_list ~pp_sep:Format.pp_print_space
              (fun fmt (x, tau) ->

@@ -771,7 +771,8 @@ let rec evaluate_expr : type d r.
         evaluate_expr ctx lang
           (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args)))
       else
-        Message.error ~pos "wrong function call, expected %d arguments, got %d"
+        Message.error ~internal:true ~pos
+          "Bad function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
     | ECustom { obj; targs; tret } ->
@@ -854,9 +855,8 @@ let rec evaluate_expr : type d r.
     match evaluate_expr ctx lang e1 with
     | ETuple es, _ when List.length es = size -> List.nth es index
     | e ->
-      Message.error ~pos:(Expr.pos e)
-        "The expression %a@ was@ expected@ to@ be@ a@ tuple@ of@ size@ %d@ \
-         (should not happen if the term was well-typed)"
+      Message.error ~internal:true ~pos:(Expr.pos e)
+        "The expression %a@ was@ expected@ to@ be@ a@ tuple@ of@ size@ %d"
         (Print.UserFacing.expr lang)
         e size)
   | EInj { e; name; cons } ->
@@ -874,23 +874,20 @@ let rec evaluate_expr : type d r.
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
-        Message.error
+        Message.error ~internal:true
           ~extra_pos:["", Expr.pos e; "", Expr.pos e1]
           "%a" Format.pp_print_text
-          "Error during match: two different enums found (should not happen if \
-           the term was well-typed)";
-      let es_n =
+          "Error during match: two different enums found";
+      let f, tys =
         match EnumConstructor.Map.find_opt cons cases with
-        | Some es_n -> es_n
-        | None ->
-          Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
-            "sum type index error (should not happen if the term was \
-             well-typed)"
+        | Some ((EAbs { tys; _ }, _) as f) -> f, tys
+        | _ ->
+          Message.error ~internal:true ~pos:(Expr.pos e) "Match branch error"
       in
-      let ty =
-        EnumConstructor.Map.find cons (EnumName.Map.find name ctx.ctx_enums)
+      let args =
+        match tys, e1 with _ :: _ :: _, (ETuple args, _) -> args | _, e -> [e]
       in
-      let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
+      let new_e = Mark.add m (EApp { f; args; tys }) in
       evaluate_expr ctx lang new_e
     | _ ->
       Message.error ~pos:(Expr.pos e)
