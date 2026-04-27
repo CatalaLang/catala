@@ -1,24 +1,75 @@
-publiccodeYmlVersion: "0.2"
+publiccodeYmlVersion: "0"
 name: Catala
 url: https://github.com/CatalaLang/catala
 landingURL: https://catala-lang.org
-creationDate: 2020-04-17
+softwareVersion: "1.1.0"
+releaseDate: "2026-01-29"
 logo: https://github.com/CatalaLang.png
+platforms:
+  - linux
+  - macos
+  - windows
+categories:
+  - it-development
 usedBy:
   - Direction Générale des Finances Publiques (DGFiP)
+  - Caisse Nationale d'Allocations Familiales (CNAF)
 fundedBy:
   - name: Institut National de Recherche en Informatique et en Automatique (INRIA)
-    url: https://team.inria.fr/prosecco/
+    uri: https://apollo.inria.fr/
+  - name:  Caisse Nationale d'Allocations Familiales (CNAF)
+    uri: https://lannuaire.service-public.gouv.fr/gouvernement/b1e14803-6c0f-4e1d-9d38-c0a2dc6096a6
 roadmap: "https://www.lemonde.fr/blog/binaire/2022/11/29/pour-un-bureau-de-transformation-du-droit-en-code/"
+developmentStatus: stable
 softwareType: "standalone/other"
 description:
   en:
-    shortDescription: "Domain-specific programming language designed for deriving correct-by-construction implementations from legislative texts"
+    shortDescription: >-
+      Domain-specific programming language designed for deriving
+      correct-by-construction implementations from legislative texts
+    longDescription: >-
+      Catala is a domain-specific programming language adapted for
+      socio-fiscal legislative literate programming. By annotating each
+      line of the legislative text with its meaning in terms of code, one
+      can derive an implementation of complex socio-fiscal mechanisms that
+      enjoys a high level of assurance regarding the code-law
+      faithfulness. The Catala compiler can also produce a
+      lawyer-readable PDF version of the implementation, so that domain
+      experts can review and certify that the code faithfully represents
+      the law. Catala is used in production by the French tax authority
+      (DGFiP) and developed at INRIA.
+    features:
+      - Literate programming adapted for legislative texts
+      - Faithful-by-construction algorithm derivation from law
+      - Lawyer-readable PDF output for review by domain experts
+      - IDE support with VS Code extension and syntax highlighting
+      - Multiple compilation targets
+    documentation: https://book.catala-lang.org/
   fr:
-    shortDescription: "Langage de programmation dédié à l'écriture d'implémentations correctes d'algorithmes dérivés de textes législatifs"
+    shortDescription: >-
+      Langage de programmation dédié à l'écriture d'implémentations
+      correctes d'algorithmes dérivés de textes législatifs
+    longDescription: >-
+      Catala est un langage de programmation dédié à la programmation
+      lettrée législative socio-fiscale. En annotant chaque ligne du
+      texte législatif avec sa signification en termes de code, on peut
+      dériver une implémentation de mécanismes socio-fiscaux complexes
+      avec un haut niveau de garantie quant à la fidélité entre le code
+      et la loi. Le compilateur Catala peut également produire une
+      version PDF lisible par les juristes, afin que les experts du
+      domaine puissent vérifier et certifier que le code représente
+      fidèlement la loi. Catala est utilisé en production par la
+      Direction Générale des Finances Publiques (DGFiP) et développé
+      à l'INRIA.
+    features:
+      - Programmation lettrée adaptée aux textes législatifs
+      - Dérivation d'algorithmes fidèles par construction à partir de la loi
+      - Sortie PDF lisible par les juristes pour relecture
+      - Support IDE avec extension VS Code et coloration syntaxique
+      - Plusieurs cibles de compilation
+    documentation: https://book.catala-lang.org/
 legal:
-  license: apache-2.0
-  authorsFile: https://github.com/CatalaLang/catala/blob/master/CITATION.cff
+  license: Apache-2.0
 maintenance:
   type: internal
   contacts:
@@ -26,3 +77,12 @@ maintenance:
       email: "denis.merigoux@inria.fr"
     - name: "Louis Gesbert"
       email: "louis.gesbert@inria.fr"
+    - name: "Romain Primet"
+      email: "romain.primet@inria.fr"
+    - name: "Vincent Botbol"
+      email: "vincent.botbol@inria.fr"
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - en
+    - fr
