@@ -602,7 +602,8 @@ let backends_per_item (targets : Clerk_config.target list) items =
           (fun it ->
             ( it,
               List.map backend_from_config
-              @@ String.Map.find it.Scan.file_name backends ))
+                (Option.value ~default:[]
+                @@ String.Map.find_opt it.Scan.file_name backends) ))
           items
       in
       dir, sub_dir, items)
