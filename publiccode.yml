@@ -13,9 +13,12 @@ categories:
   - it-development
 usedBy:
   - Direction Générale des Finances Publiques (DGFiP)
+  - Caisse Nationale d'Allocations Familiales (CNAF)
 fundedBy:
   - name: Institut National de Recherche en Informatique et en Automatique (INRIA)
-    uri: https://team.inria.fr/prosecco/
+    uri: https://apollo.inria.fr/
+  - name:  Caisse Nationale d'Allocations Familiales (CNAF)
+    uri: https://lannuaire.service-public.gouv.fr/gouvernement/b1e14803-6c0f-4e1d-9d38-c0a2dc6096a6
 roadmap: "https://www.lemonde.fr/blog/binaire/2022/11/29/pour-un-bureau-de-transformation-du-droit-en-code/"
 developmentStatus: stable
 softwareType: "standalone/other"
@@ -74,6 +77,10 @@ maintenance:
       email: "denis.merigoux@inria.fr"
     - name: "Louis Gesbert"
       email: "louis.gesbert@inria.fr"
+    - name: "Romain Primet"
+      email: "romain.primet@inria.fr"
+    - name: "Vincent Botbol"
+      email: "vincent.botbol@inria.fr"
 localisation:
   localisationReady: true
   availableLanguages:
