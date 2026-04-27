@@ -277,8 +277,8 @@ let build_clerk_target
     |> normalize_backends
   in
   let install_targets, all_modules_deps =
-    Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
-      ~ninja_flags ~quiet ~autotest:false
+    Clerk_rules.run_ninja ~code_coverage:false ~config ~ninja_flags ~quiet
+      ~autotest:false
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
       try
@@ -449,7 +449,7 @@ let build_direct_targets
         direct_targets
     in
     let backends = if autotest then [Clerk_rules.OCaml] else [] in
-    let enabled_backends =
+    let _enabled_backends =
       List.fold_left
         (fun acc t ->
           match File.extension t with
@@ -459,8 +459,7 @@ let build_direct_targets
       |> normalize_backends
     in
     let ninja_targets, exec_targets, var_bindings, link_deps =
-      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ~quiet
-        ~ninja_flags ~autotest
+      Clerk_rules.run_ninja ~code_coverage ~config ~quiet ~ninja_flags ~autotest
       @@ fun nin_ppf items var_bindings ->
       let link_deps = linking_dependencies items in
       let build_dir = config.Cli.options.global.build_dir in
@@ -893,9 +892,8 @@ let run_cmd =
       | _ -> true
     in
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
-    Clerk_rules.run_ninja ~config ~code_coverage:false
-      ~enabled_backends:[enable_backend backend]
-      ~ninja_flags ~autotest:false ~quiet
+    Clerk_rules.run_ninja ~config ~code_coverage:false ~ninja_flags
+      ~autotest:false ~quiet
       (build_test_deps ~config ~backend ~test_only files_or_folders)
     |> fun tests ->
     if prepare_only then Cmd.Exit.ok
@@ -1175,8 +1173,8 @@ let run_clerk_test
     match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
   in
   if backend <> `Interpret then
-    Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
-      ~ninja_flags ~autotest:true ~clean_up_env:true
+    Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~ninja_flags
+      ~autotest:true ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
     |> run_targets ~test:true config backend "" None None
   else
@@ -1347,7 +1345,7 @@ let start_cmd =
         enabled_backends
     in
     Clerk_rules.run_ninja ~include_dir:false ~code_coverage:false ~quiet ~config
-      ~enabled_backends ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
+      ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
         Nj.format_def nin_ppf (Nj.Default (Nj.Default.make default));
         0)
   in
@@ -1495,8 +1493,8 @@ let list_vars_cmd =
 let json_schema_cmd =
   let run config ninja_flags quiet file scope =
     let file = config.Cli.fix_path file in
-    Clerk_rules.run_ninja ~config ~code_coverage:false ~enabled_backends:[OCaml]
-      ~ninja_flags ~autotest:false ~quiet
+    Clerk_rules.run_ninja ~config ~code_coverage:false ~ninja_flags
+      ~autotest:false ~quiet
       (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
     |> fun (items, _link_deps, var_bindings) ->
     let catala_exe = Var.get_var var_bindings Var.catala_exe in

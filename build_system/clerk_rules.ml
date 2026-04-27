@@ -583,6 +583,7 @@ let backends_per_item (targets : Clerk_config.target list) items =
   let backends =
     List.fold_left
       (fun acc (target, backends) ->
+        let acc = String.Map.add target.Scan.file_name backends acc in
         let deps = get_deps target in
         List.fold_left
           (fun acc dep ->
@@ -612,25 +613,15 @@ let backends_per_item (targets : Clerk_config.target list) items =
 let run_ninja
     ?(include_dir = true)
     ~config
-    ?(tests = false)
-    ?(enabled_backends = all_backends)
     ~quiet
+    ?(tests = false)
     ~code_coverage
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
-  let var_bindings =
-    base_bindings ~code_coverage ~config ~enabled_backends ~autotest
-  in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet (fun nin_ppf ->
       let insource = Lazy.force Poll.catala_source_tree_root <> None in
-      let stdlib_dir = Lazy.force Poll.stdlib_dir in
-      let stdlib_tree =
-        Scan.tree stdlib_dir
-        |> Seq.map (fun (f, fl, items) ->
-            f, fl, List.map (fun it -> it, enabled_backends) items)
-      in
       let item_tree = if include_dir then Scan.tree "." else Seq.empty in
       let item_tree =
         item_tree
@@ -685,6 +676,22 @@ let run_ninja
               Some (f, fl, items))
       in
       let item_tree = backends_per_item config.options.targets item_tree in
+      let enabled_backends =
+        List.concat_map
+          (fun target ->
+            List.map backend_from_config target.Clerk_config.backends)
+          config.options.targets
+      in
+      let stdlib_dir = Lazy.force Poll.stdlib_dir in
+      let stdlib_tree =
+        Scan.tree stdlib_dir
+        |> Seq.map (fun (f, fl, items) ->
+            f, fl, List.map (fun it -> it, enabled_backends) items)
+      in
+
+      let var_bindings =
+        base_bindings ~code_coverage ~config ~enabled_backends ~autotest
+      in
       let items =
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
           ~var_bindings stdlib_tree item_tree
