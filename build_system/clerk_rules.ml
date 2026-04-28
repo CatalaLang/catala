@@ -681,6 +681,7 @@ let run_ninja
           (fun target ->
             List.map backend_from_config target.Clerk_config.backends)
           config.options.targets
+        |> List.sort_uniq Stdlib.compare
       in
       let stdlib_dir = Lazy.force Poll.stdlib_dir in
       let stdlib_tree =
