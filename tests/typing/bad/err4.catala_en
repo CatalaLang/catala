@@ -41,9 +41,9 @@ $ catala ocaml
 └─
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     Enum
-│  // Structure
+│  Incompatible types:
+│    got      Enum,
+│    expected Structure
 │
 │ This expression has type Enum:
 ├─➤ tests/typing/bad/err4.catala_en:5.25-38:

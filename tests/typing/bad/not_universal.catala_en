@@ -37,10 +37,10 @@ $ catala typecheck
 └─
 ┌─[ERROR]─ 2/3 ─
 │
-│  Error during typechecking, incompatible types:
-│     <t>
-│  // list of <t>
-│  A type cannot contain itself.
+│  Incompatible types:
+│    got      <t>,
+│    expected list of <t>
+│    A type cannot contain itself.
 │
 ├─➤ tests/typing/bad/not_universal.catala_en:16.10-11:
 │    │

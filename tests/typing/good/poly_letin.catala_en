@@ -14,9 +14,9 @@ declaration foo content money
 $ catala lcalc
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     integer
-│  // money
+│  Incompatible types:
+│    got      integer,
+│    expected money
 │
 │ While typechecking the following expression:
 ├─➤ tests/typing/good/poly_letin.catala_en:9.3-4:

@@ -142,6 +142,7 @@ let unformat (f : Format.formatter -> unit) : string =
       out_funs with
       Format.out_newline = (fun () -> out_funs.out_string " " 0 1);
       Format.out_indent = (fun _ -> ());
+      Format.out_spaces = (fun _ -> out_funs.out_string " " 0 1);
     };
   f ppf;
   Format.pp_print_flush ppf ();
@@ -397,7 +398,8 @@ module Content = struct
               List.exists
                 (function MainMessage _ -> true | _ -> false)
                 content
-              && Some elt = Option.map snd first_pos_elt
+              (* && Some elt = Option.map snd first_pos_elt fixme: this can fail
+                 due to functional comparison *)
             then None, None (* Avoid redundant positions *)
             else Some pos, pos_message
           | Outcome m -> None, Some m

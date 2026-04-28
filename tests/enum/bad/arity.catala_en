@@ -28,9 +28,9 @@ scope S:
 $ catala test-scope S
 ┌─[ERROR]─ 1/2 ─
 │
-│  Error during typechecking, incompatible types:
-│     (integer, integer)
-│  // (integer, integer, <any type>)
+│  Incompatible types:
+│    got      (integer, integer),
+│    expected (integer, integer, <any type>)
 │
 │ While typechecking the following expression:
 ├─➤ tests/enum/bad/arity.catala_en:19.36-41:
@@ -52,9 +52,9 @@ $ catala test-scope S
 └─
 ┌─[ERROR]─ 2/2 ─
 │
-│  Error during typechecking, incompatible types:
-│     (integer, integer, integer)
-│  // (integer, integer)
+│  Incompatible types:
+│    got      (integer, integer, integer),
+│    expected (integer, integer)
 │
 │ While typechecking the following expression:
 ├─➤ tests/enum/bad/arity.catala_en:23.33-38:

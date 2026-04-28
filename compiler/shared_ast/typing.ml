@@ -110,12 +110,11 @@ let unification_error env ~pos ?fmt_pos fmt ty1 ty2 =
       | None -> Some (List.map (fun p -> "", p) pos)
     in
     Message.delayed_error () ~kind:Typing ?extra_pos ?fmt_pos
-      ("Error during typechecking, incompatible types:@\n\
-        @[<v>@{<blue>@<2>%s@} @[<hov>%a@]@,\
-        @{<blue>@<2>%s@} @[<hov>%a@]"
+      ("@[<v 2>Incompatible types:@ @[<h>got@;\
+        <6 0>@]@[<hov>%a@],@ expected @[<hov>%a@]"
       ^^ fmt
       ^^ "@]")
-      "  " Type.format ty1 "//" Type.format ty2;
+      Type.format ty1 Type.format ty2;
     env.printed_errors :=
       List.fold_left
         (fun acc p -> Pos.Map.add p () acc)

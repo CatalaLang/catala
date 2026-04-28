@@ -14,9 +14,9 @@ scope S:
 $ catala Typecheck
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     integer
-│  // Structure
+│  Incompatible types:
+│    got      integer,
+│    expected Structure
 │
 │ This expression has type integer:
 ├─➤ tests/typing/bad/err5.catala_en:8.5-9:

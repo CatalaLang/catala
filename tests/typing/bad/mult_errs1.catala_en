@@ -14,9 +14,9 @@ scope S:
 $ catala Typecheck
 ┌─[ERROR]─ 1/2 ─
 │
-│  Error during typechecking, incompatible types:
-│     decimal
-│  // integer
+│  Incompatible types:
+│    got      decimal,
+│    expected integer
 │
 │ This expression has type decimal:
 ├─➤ tests/typing/bad/mult_errs1.catala_en:6.23-26:
@@ -32,9 +32,9 @@ $ catala Typecheck
 └─
 ┌─[ERROR]─ 2/2 ─
 │
-│  Error during typechecking, incompatible types:
-│     decimal
-│  // integer
+│  Incompatible types:
+│    got      decimal,
+│    expected integer
 │
 │ This expression has type decimal:
 ├─➤ tests/typing/bad/mult_errs1.catala_en:7.23-26:

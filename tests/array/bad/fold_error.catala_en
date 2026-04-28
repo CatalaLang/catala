@@ -14,9 +14,9 @@ scope A:
 $ catala test-scope A
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     integer
-│  // money
+│  Incompatible types:
+│    got      integer,
+│    expected money
 │
 │ While typechecking the following expression:
 ├─➤ tests/array/bad/fold_error.catala_en:10.78-79:

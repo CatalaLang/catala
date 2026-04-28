@@ -12,9 +12,9 @@ scope TestXorWithInt:
 $ catala Typecheck
 ┌─[ERROR]─ 1/2 ─
 │
-│  Error during typechecking, incompatible types:
-│     integer
-│  // bool
+│  Incompatible types:
+│    got      integer,
+│    expected bool
 │
 │ This expression has type integer:
 ├─➤ tests/bool/bad/test_xor_with_int.catala_en:8.30-32:
@@ -31,9 +31,9 @@ $ catala Typecheck
 └─ 'xor' should be a boolean operator
 ┌─[ERROR]─ 2/2 ─
 │
-│  Error during typechecking, incompatible types:
-│     integer
-│  // bool
+│  Incompatible types:
+│    got      integer,
+│    expected bool
 │
 │ This expression has type integer:
 ├─➤ tests/bool/bad/test_xor_with_int.catala_en:8.37-39:

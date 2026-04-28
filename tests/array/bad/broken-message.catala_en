@@ -35,9 +35,9 @@ This was diagnosed to be due to delayed error messages that got skipped.
 $ catala Typecheck --check-invariants
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     money
-│  // list of money
+│  Incompatible types:
+│    got      money,
+│    expected list of money
 │
 │ While typechecking the following expression:
 ├─➤ tests/array/bad/broken-message.catala_en:21.7-8:

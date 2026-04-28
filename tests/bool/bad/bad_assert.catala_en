@@ -14,9 +14,9 @@ scope Foo:
 $ catala test-scope Foo
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     integer
-│  // bool
+│  Incompatible types:
+│    got      integer,
+│    expected bool
 │
 │ While typechecking the following expression:
 ├─➤ tests/bool/bad/bad_assert.catala_en:9.13-14:

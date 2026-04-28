@@ -32,9 +32,9 @@ scope B:
 $ catala test-scope A
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     E
-│  // F
+│  Incompatible types:
+│    got      E,
+│    expected F
 │
 │ While typechecking the following expression:
 ├─➤ tests/enum/bad/quick_pattern_2.catala_en:28.23-24:

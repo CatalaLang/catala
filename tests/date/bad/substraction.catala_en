@@ -10,9 +10,9 @@ scope A:
 $ catala test-scope A
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     duration
-│  // date
+│  Incompatible types:
+│    got      duration,
+│    expected date
 │
 │ While typechecking the following expression:
 ├─➤ tests/date/bad/substraction.catala_en:6.23-43:
