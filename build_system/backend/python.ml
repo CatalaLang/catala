@@ -18,6 +18,26 @@
 open Clerk_utils
 open Catala_utils
 
+let linking_command ~build_dir link_deps item target =
+  (* a "linked" python module is a "Module.py" folder containing the module .py
+     file along with the runtime and all dependencies, plus a __init__.py
+     file *)
+  let open File in
+  let tdir = Filename.remove_extension target in
+  remove tdir;
+  ensure_dir tdir;
+  List.iter
+    (fun it ->
+      let src =
+        let f = Scan.target_file_name it in
+        (build_dir / dirname f / "python" / basename f) ^ ".py"
+      in
+      copy_in ~src ~dir:tdir)
+    (link_deps item);
+  copy_in ~src:(target -.- "py") ~dir:tdir;
+  close_out (open_out (tdir / "__init__.py"));
+  []
+
 module Backend = struct
   open Var
   open File

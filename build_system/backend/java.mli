@@ -15,4 +15,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Clerk_utils
+
+val linking_command :
+  build_dir:string ->
+  var_bindings:(Var.t * string list) list ->
+  ('a -> Scan.item list) ->
+  'a ->
+  string ->
+  string list
+
 module Backend : Backend.S

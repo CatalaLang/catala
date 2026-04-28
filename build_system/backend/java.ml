@@ -20,6 +20,69 @@ open Catala_utils
 open Var
 open File
 
+let linking_command ~build_dir ~var_bindings link_deps item target =
+  let jar_target = target -.- "jar" in
+  let classes =
+    let class_files =
+      target
+      :: List.filter_map
+           (fun it ->
+             if it.Scan.is_stdlib then None
+             else
+               let f = Scan.target_file_name it in
+               Some ((build_dir / dirname f / "java" / basename f) -.- "class"))
+           (link_deps item)
+    in
+    let (h : (string, string list) Hashtbl.t) = Hashtbl.create 5 in
+    (* 'javac' generates one file per inner class. Sadly, we do generate a lot
+       of those. We need to pack those in the jar as well. *)
+    let fetch_inner_classes class_file =
+      let basename = File.(remove_extension (basename class_file)) in
+      let dirname = Filename.dirname class_file in
+      let dir_classes =
+        Hashtbl.find_opt h dirname
+        |> function
+        | Some dir_classes -> dir_classes
+        | None ->
+          let dir_contents = Sys.readdir dirname in
+          let dir_classes =
+            Seq.filter
+              (String.ends_with ~suffix:".class")
+              (Array.to_seq dir_contents)
+            |> List.of_seq
+          in
+          Hashtbl.replace h dirname dir_classes;
+          dir_classes
+      in
+      List.filter_map
+        (fun clazz ->
+          if String.starts_with ~prefix:(basename ^ "$") clazz then
+            Some (dirname / clazz)
+          else None)
+        dir_classes
+    in
+    List.concat_map
+      (fun class_file -> class_file :: fetch_inner_classes class_file)
+      class_files
+  in
+  let java_dir_prefix = build_dir / Scan.libcatala / "java" in
+  let runtime_class_files =
+    File.scan_tree
+      (fun f -> if Filename.check_suffix f ".class" then Some f else None)
+      java_dir_prefix
+    |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
+    |> List.of_seq
+  in
+  get_var var_bindings Var.jar
+  @ ["--create"; "--file"; jar_target]
+  @ List.concat_map
+      (fun clazz -> ["-C"; Filename.dirname clazz; Filename.basename clazz])
+      classes
+  @ List.concat_map
+      (fun clazz ->
+        ["-C"; java_dir_prefix; File.remove_prefix java_dir_prefix clazz])
+      runtime_class_files
+
 module Backend = struct
   module Nj = Ninja_utils
 

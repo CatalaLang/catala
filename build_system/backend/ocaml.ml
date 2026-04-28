@@ -17,6 +17,7 @@
 
 open Clerk_utils
 open Catala_utils
+open Var
 
 module Flags = struct
   let ocaml_include_and_lib : (string list * string list) Lazy.t =
@@ -68,6 +69,26 @@ module Flags = struct
           @ Common.Flags.includes ~backend:"ocaml" include_dirs));
     ]
 end
+
+let linking_command ~build_dir ~var_bindings link_deps item target =
+  let open File in
+  get_var var_bindings Var.ocamlopt_exe
+  @ List.map (expand_vars var_bindings) (Lazy.force Flags.ocaml_link)
+  @ [build_dir / Scan.libcatala / "ocaml" / "dates_calc.cmx"]
+  @ [build_dir / Scan.libcatala / "ocaml" / "catala_runtime.cmx"]
+  @ get_var var_bindings Var.ocaml_flags
+  @ get_var var_bindings Var.ocaml_include
+  @ List.map
+      (fun it ->
+        let f = Scan.target_file_name it in
+        (build_dir / dirname f / "ocaml" / basename f) ^ ".cmx")
+      (link_deps item)
+  @ [
+      target -.- "cmx";
+      File.remove_extension target ^ "+main.cmx";
+      "-o";
+      target -.- "exe";
+    ]
 
 module Backend = struct
   open Var

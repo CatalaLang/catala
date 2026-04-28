@@ -68,37 +68,6 @@ let iter_commands ~build_dir targets f =
       max code (f item target))
     0 targets
 
-let re_var =
-  let open Re in
-  seq [str "${"; group (rep1 (diff any (char '}'))); char '}']
-
-let rec get_var =
-  (* replaces ${var} with its value, recursively *)
-  let re_single_var = Re.(compile (whole_string re_var)) in
-  fun var_bindings v ->
-    let s =
-      try List.assoc v var_bindings
-      with Not_found ->
-        Message.error
-          "Clerk configuration error: variable @{<blue;bold>$%s@} is undefined"
-          (Nj.Var.name v)
-    in
-    let get_var = get_var (List.remove_assoc v var_bindings) in
-    List.concat_map
-      (fun s ->
-        match Re.exec_opt re_single_var s with
-        | Some g -> get_var (Var.make (Re.Group.get g 1))
-        | None -> [expand_vars var_bindings s])
-      s
-
-and expand_vars =
-  let re_var = Re.(compile re_var) in
-  fun var_bindings s ->
-    Re.replace ~all:true re_var
-      ~f:(fun g ->
-        String.concat " " (get_var var_bindings (Var.make (Re.Group.get g 1))))
-      s
-
 let linking_dependencies items =
   let modules =
     List.fold_left
@@ -178,117 +147,16 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
   let open File in
   match backend with
   | `OCaml ->
-    get_var var_bindings Var.ocamlopt_exe
-    @ List.map (expand_vars var_bindings) (Lazy.force OCaml.Flags.ocaml_link)
-    @ [build_dir / Scan.libcatala / "ocaml" / "dates_calc.cmx"]
-    @ [build_dir / Scan.libcatala / "ocaml" / "catala_runtime.cmx"]
-    @ get_var var_bindings Var.ocaml_flags
-    @ get_var var_bindings Var.ocaml_include
-    @ List.map
-        (fun it ->
-          let f = Scan.target_file_name it in
-          (build_dir / dirname f / "ocaml" / basename f) ^ ".cmx")
-        (link_deps item)
-    @ [
-        target -.- "cmx";
-        File.remove_extension target ^ "+main.cmx";
-        "-o";
-        target -.- "exe";
-      ]
+    Clerk_backends.Ocaml.linking_command ~build_dir ~var_bindings link_deps item
+      target
   | `C ->
-    get_var var_bindings Var.cc_exe
-    @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
-    @ [build_dir / Scan.libcatala / "c" / "catala_runtime.o"]
-    @ List.map
-        (fun it ->
-          let f = Scan.target_file_name it in
-          (build_dir / dirname f / "c" / basename f) ^ ".o")
-        (link_deps item)
-    @ ["-lgmp"]
-    @ [target -.- "o"; File.remove_extension target ^ "+main.o"]
-    @ get_var var_bindings Var.c_flags
-    @ get_var var_bindings Var.c_include
-    @ ["-o"; target -.- "exe"]
+    Clerk_backends.C.linking_command ~build_dir ~var_bindings link_deps item
+      target
   | `Python ->
-    (* a "linked" python module is a "Module.py" folder containing the module
-       .py file along with the runtime and all dependencies, plus a __init__.py
-       file *)
-    let tdir = Filename.remove_extension target in
-    remove tdir;
-    ensure_dir tdir;
-    List.iter
-      (fun it ->
-        let src =
-          let f = Scan.target_file_name it in
-          (build_dir / dirname f / "python" / basename f) ^ ".py"
-        in
-        copy_in ~src ~dir:tdir)
-      (link_deps item);
-    copy_in ~src:(target -.- "py") ~dir:tdir;
-    close_out (open_out (tdir / "__init__.py"));
-    []
+    Clerk_backends.Python.linking_command ~build_dir link_deps item target
   | `Java ->
-    let jar_target = target -.- "jar" in
-    let classes =
-      let class_files =
-        target
-        :: List.filter_map
-             (fun it ->
-               if it.Scan.is_stdlib then None
-               else
-                 let f = Scan.target_file_name it in
-                 Some ((build_dir / dirname f / "java" / basename f) -.- "class"))
-             (link_deps item)
-      in
-      let (h : (string, string list) Hashtbl.t) = Hashtbl.create 5 in
-      (* 'javac' generates one file per inner class. Sadly, we do generate a lot
-         of those. We need to pack those in the jar as well. *)
-      let fetch_inner_classes class_file =
-        let basename = File.(remove_extension (basename class_file)) in
-        let dirname = Filename.dirname class_file in
-        let dir_classes =
-          Hashtbl.find_opt h dirname
-          |> function
-          | Some dir_classes -> dir_classes
-          | None ->
-            let dir_contents = Sys.readdir dirname in
-            let dir_classes =
-              Seq.filter
-                (String.ends_with ~suffix:".class")
-                (Array.to_seq dir_contents)
-              |> List.of_seq
-            in
-            Hashtbl.replace h dirname dir_classes;
-            dir_classes
-        in
-        List.filter_map
-          (fun clazz ->
-            if String.starts_with ~prefix:(basename ^ "$") clazz then
-              Some (dirname / clazz)
-            else None)
-          dir_classes
-      in
-      List.concat_map
-        (fun class_file -> class_file :: fetch_inner_classes class_file)
-        class_files
-    in
-    let java_dir_prefix = build_dir / Scan.libcatala / "java" in
-    let runtime_class_files =
-      File.scan_tree
-        (fun f -> if Filename.check_suffix f ".class" then Some f else None)
-        java_dir_prefix
-      |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
-      |> List.of_seq
-    in
-    get_var var_bindings Var.jar
-    @ ["--create"; "--file"; jar_target]
-    @ List.concat_map
-        (fun clazz -> ["-C"; Filename.dirname clazz; Filename.basename clazz])
-        classes
-    @ List.concat_map
-        (fun clazz ->
-          ["-C"; java_dir_prefix; File.remove_prefix java_dir_prefix clazz])
-        runtime_class_files
+    Clerk_backends.Java.linking_command ~build_dir ~var_bindings link_deps item
+      target
   | `Custom rule ->
     let var_bindings =
       ( Var.make "src",
@@ -309,9 +177,9 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
     @@ List.map
          (fun s ->
            if String.length s > 1 && s.[0] = '$' && s.[1] <> '{' then
-             get_var var_bindings
+             Var.get_var var_bindings
                (Var.make (String.sub s 1 (String.length s - 1)))
-           else [expand_vars var_bindings s])
+           else [Var.expand_vars var_bindings s])
          rule.Config.commandline
 
 let target_backend config t =
@@ -915,7 +783,7 @@ let run_artifact config ~backend ~var_bindings ?scope ~test src =
     let build_dir = config.Cli.options.global.build_dir in
     let cmd =
       let base = Filename.basename (File.remove_extension src) in
-      get_var var_bindings Var.python @ ["-m"; base ^ "." ^ base]
+      Var.get_var var_bindings Var.python @ ["-m"; base ^ "." ^ base]
     in
     let pythonpath =
       String.concat ":"
@@ -931,7 +799,7 @@ let run_artifact config ~backend ~var_bindings ?scope ~test src =
   | `Java ->
     let target_main = File.remove_extension (Filename.basename src) in
     let cmd =
-      get_var var_bindings Var.java
+      Var.get_var var_bindings Var.java
       @ ["-cp"; src -.- "jar"; target_main]
       @ (if test then ["--test"] else [])
       @ if Global.options.output_format = JSON then ["--json"] else []
@@ -1045,7 +913,7 @@ let run_targets
            target."
     in
     let catala_flags =
-      get_var var_bindings Var.catala_flags
+      Var.get_var var_bindings Var.catala_flags
       @ (match scope with
         | None -> []
         | Some scope -> [Printf.sprintf "--scope=%s" scope])
@@ -1055,7 +923,7 @@ let run_targets
           [Printf.sprintf "--input=%s" (Yojson.Safe.to_string ~std:true input)])
       @ if whole_program then ["--whole-program"] else []
     in
-    let exec = get_var var_bindings Var.catala_exe in
+    let exec = Var.get_var var_bindings Var.catala_exe in
     iter_commands ~build_dir test_targets
     @@ fun _item target ->
     let cmd = exec @ [cmd; target] @ catala_flags in
@@ -1214,8 +1082,8 @@ let typecheck_cmd =
     with
     | exception Nothing_to_do -> Message.error "Nothing to typecheck."
     | target_items, var_bindings ->
-      let catala_flags = get_var var_bindings Var.catala_flags in
-      let exec = get_var var_bindings Var.catala_exe in
+      let catala_flags = Var.get_var var_bindings Var.catala_flags in
+      let exec = Var.get_var var_bindings Var.catala_exe in
       let ret =
         List.filter_map
           (fun it ->
@@ -1683,8 +1551,8 @@ let json_schema_cmd =
       ~ninja_flags ~autotest:false ~quiet
       (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
     |> fun (items, _link_deps, var_bindings) ->
-    let catala_exe = get_var var_bindings Var.catala_exe in
-    let catala_flags = get_var var_bindings Var.catala_flags in
+    let catala_exe = Var.get_var var_bindings Var.catala_exe in
+    let catala_flags = Var.get_var var_bindings Var.catala_flags in
     match items with
     | [] ->
       Message.error "Found no valid compiled target to extract JSON schema"
@@ -1720,8 +1588,8 @@ let exceptions_cmd =
       Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
         ~enabled_backends:[] ~config
     in
-    let catala_exe = get_var var_bindings Var.catala_exe in
-    let catala_flags = get_var var_bindings Var.catala_flags in
+    let catala_exe = Var.get_var var_bindings Var.catala_exe in
+    let catala_flags = Var.get_var var_bindings Var.catala_flags in
     let cmd =
       catala_exe
       @ ["exceptions"; file; "--scope"; scope; "--variable"; variable]

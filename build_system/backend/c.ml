@@ -17,6 +17,23 @@
 
 open Clerk_utils
 open Catala_utils
+open Var
+
+let linking_command ~build_dir ~var_bindings link_deps item target =
+  let open File in
+  get_var var_bindings Var.cc_exe
+  @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
+  @ [build_dir / Scan.libcatala / "c" / "catala_runtime.o"]
+  @ List.map
+      (fun it ->
+        let f = Scan.target_file_name it in
+        (build_dir / dirname f / "c" / basename f) ^ ".o")
+      (link_deps item)
+  @ ["-lgmp"]
+  @ [target -.- "o"; File.remove_extension target ^ "+main.o"]
+  @ get_var var_bindings Var.c_flags
+  @ get_var var_bindings Var.c_include
+  @ ["-o"; target -.- "exe"]
 
 module Backend = struct
   open Var
