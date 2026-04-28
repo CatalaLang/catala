@@ -25,39 +25,6 @@ module OCaml = Clerk_backends.Ocaml
 
 let lastdirname f = File.(basename (dirname f))
 
-let run_command ?(setenv = []) cmdline =
-  if cmdline = [] then 0
-  else
-    let cmd = List.hd cmdline in
-    let env =
-      let cut s =
-        let i = String.index s '=' in
-        String.sub s 0 i, String.sub s (i + 1) (String.length s - i - 1)
-      in
-      Unix.environment ()
-      |> Array.to_seq
-      |> Seq.map cut
-      |> String.Map.of_seq
-      |> String.Map.add_seq (List.to_seq setenv)
-      |> String.Map.to_seq
-      |> Seq.map (fun (var, value) -> var ^ "=" ^ value)
-      |> Array.of_seq
-    in
-    let npid =
-      Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin
-        Unix.stdout Unix.stderr
-    in
-    let return_code =
-      let rec wait () =
-        match Unix.waitpid [] npid with
-        | _, Unix.WEXITED n -> n
-        | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
-        | exception Unix.Unix_error (Unix.EINTR, _, _) -> wait ()
-      in
-      wait ()
-    in
-    return_code
-
 let iter_commands ~build_dir targets f =
   let multi_targets = match targets with [] | [_] -> false | _ -> true in
   List.fold_left
@@ -630,7 +597,7 @@ let build_direct_targets
       @@ fun (item, backend) target ->
       let cmd = link_cmd ~backend item target in
       Message.debug "Running command: '%s'..." (String.concat " " cmd);
-      run_command cmd
+      Clerk_cli.run_command_line cmd
     in
     if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code);
     ninja_targets
@@ -766,46 +733,11 @@ let setup_report_format ?fix_path verbosity diff_command coverage =
   Clerk_report.set_display_flags ?fix_path ~diff_command ~coverage ()
 
 let run_artifact config ~backend ~var_bindings ?scope ~test src =
-  let open File in
   match backend with
-  | `OCaml ->
-    let cmd = (src -.- "exe") :: Option.to_list scope in
-    Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
-    run_command cmd
-  | `C ->
-    let cmd =
-      (src -.- "exe")
-      :: Option.to_list scope (* NOTE: not handled yet by the backend *)
-    in
-    Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
-    run_command cmd
-  | `Python ->
-    let build_dir = config.Cli.options.global.build_dir in
-    let cmd =
-      let base = Filename.basename (File.remove_extension src) in
-      Var.get_var var_bindings Var.python @ ["-m"; base ^ "." ^ base]
-    in
-    let pythonpath =
-      String.concat ":"
-        [
-          build_dir / Scan.libcatala / "python";
-          File.dirname src;
-          Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH");
-        ]
-    in
-    Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
-      (String.concat " " cmd);
-    run_command ~setenv:["PYTHONPATH", pythonpath] cmd
-  | `Java ->
-    let target_main = File.remove_extension (Filename.basename src) in
-    let cmd =
-      Var.get_var var_bindings Var.java
-      @ ["-cp"; src -.- "jar"; target_main]
-      @ (if test then ["--test"] else [])
-      @ if Global.options.output_format = JSON then ["--json"] else []
-    in
-    Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
-    run_command cmd
+  | `OCaml -> Clerk_backends.Ocaml.run_artifact ?scope src
+  | `C -> Clerk_backends.C.run_artifact ?scope src
+  | `Python -> Clerk_backends.Python.run_artifact config ~var_bindings src
+  | `Java -> Clerk_backends.Java.run_artifact ~var_bindings ~test src
 
 let enable_backend =
   let open Clerk_rules in
@@ -928,7 +860,7 @@ let run_targets
     @@ fun _item target ->
     let cmd = exec @ [cmd; target] @ catala_flags in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
-    run_command cmd
+    Clerk_cli.run_command_line cmd
   | (`C | `OCaml | `Python | `Java) as backend -> (
     let link_cmd =
       linking_command ~build_dir ~backend ~var_bindings link_deps
@@ -937,7 +869,7 @@ let run_targets
     @@ fun item target ->
     let cmd = link_cmd item target in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
-    match run_command cmd with
+    match Clerk_cli.run_command_line cmd with
     | 0 -> run_artifact ~test config ~backend ~var_bindings ?scope target
     | n -> n)
 
@@ -1098,7 +1030,7 @@ let typecheck_cmd =
                 @ [it.Scan.file_name]
               in
               Message.debug "Running command: '%s'..." (String.concat " " cmd);
-              run_command cmd)
+              Clerk_cli.run_command_line cmd)
           target_items
       in
       let ret = List.fold_left max 0 ret in
@@ -1561,7 +1493,7 @@ let json_schema_cmd =
         catala_exe @ ["json-schema"; file_name; "--scope"; scope] @ catala_flags
       in
       Message.debug "Running command: '%s'..." (String.concat " " cmd);
-      run_command cmd
+      Clerk_cli.run_command_line cmd
   in
   let doc =
     "Display the JSON-schema of the input and output JSON objects of the given \
@@ -1596,7 +1528,7 @@ let exceptions_cmd =
       @ catala_flags
     in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
-    run_command cmd
+    Clerk_cli.run_command_line cmd
   in
   let doc =
     "Prints the exception tree for the definitions of a particular variable in \

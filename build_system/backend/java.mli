@@ -25,4 +25,7 @@ val linking_command :
   string ->
   string list
 
+val run_artifact :
+  var_bindings:(Var.t * string list) list -> test:bool -> string -> int
+
 module Backend : Backend.S

@@ -16,8 +16,12 @@
    the License. *)
 
 open Clerk_utils
+open Clerk_lib
 
 val linking_command :
   build_dir:string -> ('a -> Scan.item list) -> 'a -> string -> string list
+
+val run_artifact :
+  Clerk_cli.config -> var_bindings:(Var.t * string list) list -> string -> int
 
 module Backend : Backend.S

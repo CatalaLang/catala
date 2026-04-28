@@ -17,6 +17,7 @@
 
 open Clerk_utils
 open Catala_utils
+open Clerk_lib
 open Var
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
@@ -34,6 +35,15 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   @ get_var var_bindings Var.c_flags
   @ get_var var_bindings Var.c_include
   @ ["-o"; target -.- "exe"]
+
+let run_artifact ?scope src =
+  let open File in
+  let cmd =
+    (src -.- "exe")
+    :: Option.to_list scope (* NOTE: not handled yet by the backend *)
+  in
+  Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
+  Clerk_cli.run_command_line cmd
 
 module Backend = struct
   open Var

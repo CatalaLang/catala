@@ -25,4 +25,6 @@ val linking_command :
   string ->
   string list
 
+val run_artifact : ?scope:string -> string -> int
+
 module Backend : Backend.S

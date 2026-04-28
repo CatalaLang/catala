@@ -17,6 +17,7 @@
 
 open Clerk_utils
 open Catala_utils
+open Clerk_lib
 
 let linking_command ~build_dir link_deps item target =
   (* a "linked" python module is a "Module.py" folder containing the module .py
@@ -37,6 +38,25 @@ let linking_command ~build_dir link_deps item target =
   copy_in ~src:(target -.- "py") ~dir:tdir;
   close_out (open_out (tdir / "__init__.py"));
   []
+
+let run_artifact config ~var_bindings src =
+  let open File in
+  let build_dir = config.Clerk_cli.options.global.build_dir in
+  let cmd =
+    let base = Filename.basename (File.remove_extension src) in
+    Var.get_var var_bindings Var.python @ ["-m"; base ^ "." ^ base]
+  in
+  let pythonpath =
+    String.concat ":"
+      [
+        build_dir / Scan.libcatala / "python";
+        File.dirname src;
+        Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH");
+      ]
+  in
+  Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
+    (String.concat " " cmd);
+  Clerk_cli.run_command_line ~setenv:["PYTHONPATH", pythonpath] cmd
 
 module Backend = struct
   open Var
