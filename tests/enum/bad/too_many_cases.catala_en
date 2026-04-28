@@ -28,7 +28,7 @@ $ catala test-scope A
 │  This case matches a constructor of enumeration E but previous cases were
 │  matching constructors of enumeration F.
 │
-├─➤ tests/enum/bad/too_many_cases.catala_en:21.8-21.13:
+├─➤ tests/enum/bad/too_many_cases.catala_en:21.8-13:
 │    │
 │ 21 │     -- Case4 : true
 │    │        ‾‾‾‾‾

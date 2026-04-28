@@ -16,7 +16,7 @@ $ catala test-scope A
 │
 │  During evaluation: traversing multiple lists of different lengths.
 │
-├─➤ tests/array/bad/map2.catala_en:9.5-9.13:
+├─➤ tests/array/bad/map2.catala_en:9.5-13:
 │   │
 │ 9 │     map each (x,y) among ([1], [2 ; 3])
 │   │     ‾‾‾‾‾‾‾‾

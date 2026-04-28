@@ -39,7 +39,7 @@ $ catala Exceptions -s A -v foo.bar
 ┌─[RESULT]─
 │ Definitions with label "base":
 │
-├─➤ tests/variable_state/good/exceptions_on_state.catala_en:10.3-10.28:
+├─➤ tests/variable_state/good/exceptions_on_state.catala_en:10.3-28:
 │    │
 │ 10 │   label base definition foo state bar equals 0
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -47,7 +47,7 @@ $ catala Exceptions -s A -v foo.bar
 ┌─[RESULT]─
 │ Definitions with label "exception_to_base":
 │
-├─➤ tests/variable_state/good/exceptions_on_state.catala_en:12.3-12.32:
+├─➤ tests/variable_state/good/exceptions_on_state.catala_en:12.3-32:
 │    │
 │ 12 │   exception base definition foo state bar under condition true consequence equals 1
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

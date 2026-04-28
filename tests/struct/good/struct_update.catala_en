@@ -36,7 +36,7 @@ $ catala test-scope S
 │
 │  All fields of Str are rewritten in this replacement.
 │
-├─➤ tests/struct/good/struct_update.catala_en:25.24-25.91:
+├─➤ tests/struct/good/struct_update.catala_en:25.24-91:
 │    │
 │ 25 │   definition s4 equals s3 but replace { -- fld1: 100 -- fld2: $100 -- fld3: |2100-01-01| }
 │    │                        ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

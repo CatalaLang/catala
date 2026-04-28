@@ -19,7 +19,7 @@ $ catala test-scope A
 │  Attribute #[error.message] is not allowed in this context.
 │  It must be put before an assertion or impossible.
 │
-├─➤ tests/assertions/bad/simple.catala_en:6.3-6.37:
+├─➤ tests/assertions/bad/simple.catala_en:6.3-37:
 │   │
 │ 6 │   #[error.message = "Bad attribute"]
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -28,7 +28,7 @@ $ catala test-scope A
 │
 │  Assertion failed: Upper bound for w: 6 ≮ 6
 │
-├─➤ tests/assertions/bad/simple.catala_en:9.3-9.18:
+├─➤ tests/assertions/bad/simple.catala_en:9.3-18:
 │   │
 │ 9 │   assertion w < 6
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -37,7 +37,7 @@ $ catala test-scope A
 │
 │  Assertion failed: 6 ≯ 6
 │
-├─➤ tests/assertions/bad/simple.catala_en:12.3-12.18:
+├─➤ tests/assertions/bad/simple.catala_en:12.3-18:
 │    │
 │ 12 │   assertion w > 6
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

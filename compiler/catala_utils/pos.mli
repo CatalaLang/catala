@@ -84,11 +84,17 @@ val to_string_short : t -> string
 val to_string_shorter : t -> string
 (** Like [to_string_short], but skips directory names and extension *)
 
-val format_loc_text : Format.formatter -> t -> unit
+val format_loc_text :
+  ?pp_file:(Format.formatter -> t -> unit) ->
+  unit ->
+  Format.formatter ->
+  t ->
+  unit
 (** Open the file corresponding to the position and retrieves the text concerned
     by the position *)
 
 val format_loc_text_parts :
+  ?pp_file:(Format.formatter -> t -> unit) ->
   t ->
   (Format.formatter -> unit)
   * (Format.formatter -> unit)

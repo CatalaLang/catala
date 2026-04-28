@@ -19,13 +19,13 @@ $ catala Typecheck
 │  // integer
 │
 │ This expression has type decimal:
-├─➤ tests/typing/bad/mult_errs1.catala_en:6.23-6.26:
+├─➤ tests/typing/bad/mult_errs1.catala_en:6.23-26:
 │   │
 │ 6 │     Structure { -- i: 3.4 -- e: Int content x };
 │   │                       ‾‾‾
 │
 │ Expected type integer coming from expression:
-├─➤ tests/typing/bad/common.catala_en:8.18-8.25:
+├─➤ tests/typing/bad/common.catala_en:8.18-25:
 │   │
 │ 8 │   data i content integer
 │   │                  ‾‾‾‾‾‾‾
@@ -37,13 +37,13 @@ $ catala Typecheck
 │  // integer
 │
 │ This expression has type decimal:
-├─➤ tests/typing/bad/mult_errs1.catala_en:7.23-7.26:
+├─➤ tests/typing/bad/mult_errs1.catala_en:7.23-26:
 │   │
 │ 7 │     Structure { -- i: 4.1 -- e: y };
 │   │                       ‾‾‾
 │
 │ Expected type integer coming from expression:
-├─➤ tests/typing/bad/common.catala_en:8.18-8.25:
+├─➤ tests/typing/bad/common.catala_en:8.18-25:
 │   │
 │ 8 │   data i content integer
 │   │                  ‾‾‾‾‾‾‾

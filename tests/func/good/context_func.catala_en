@@ -24,7 +24,7 @@ $ catala Typecheck --check-invariants
 │  Unused variable: a does not contribute to computing any of scope B
 │  outputs. Did you forget something?
 │
-├─➤ tests/func/good/context_func.catala_en:9.3-9.4:
+├─➤ tests/func/good/context_func.catala_en:9.3-4:
 │   │
 │ 9 │   a scope A
 │   │   ‾
@@ -44,7 +44,7 @@ $ catala Scopelang -s B
 │  Unused variable: a does not contribute to computing any of scope B
 │  outputs. Did you forget something?
 │
-├─➤ tests/func/good/context_func.catala_en:9.3-9.4:
+├─➤ tests/func/good/context_func.catala_en:9.3-4:
 │   │
 │ 9 │   a scope A
 │   │   ‾
@@ -61,7 +61,7 @@ $ catala Dcalc -s A
 │  Unused variable: a does not contribute to computing any of scope B
 │  outputs. Did you forget something?
 │
-├─➤ tests/func/good/context_func.catala_en:9.3-9.4:
+├─➤ tests/func/good/context_func.catala_en:9.3-4:
 │   │
 │ 9 │   a scope A
 │   │   ‾
@@ -83,7 +83,7 @@ $ catala Dcalc -s B
 │  Unused variable: a does not contribute to computing any of scope B
 │  outputs. Did you forget something?
 │
-├─➤ tests/func/good/context_func.catala_en:9.3-9.4:
+├─➤ tests/func/good/context_func.catala_en:9.3-4:
 │   │
 │ 9 │   a scope A
 │   │   ‾

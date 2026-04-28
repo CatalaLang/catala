@@ -19,7 +19,7 @@ $ catala test-scope A
 │
 │  No struct named Fo found
 │
-├─➤ tests/struct/bad/nonexisting_struct.catala_en:13.25-13.27:
+├─➤ tests/struct/bad/nonexisting_struct.catala_en:13.25-27:
 │    │
 │ 13 │   definition y equals x.Fo.f
 │    │                         ‾‾

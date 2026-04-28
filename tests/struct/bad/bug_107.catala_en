@@ -23,14 +23,14 @@ $ catala test-scope A
 │  struct name "S" already defined
 │
 │ First definition:
-├─➤ tests/struct/bad/bug_107.catala_en:4.23-4.24:
+├─➤ tests/struct/bad/bug_107.catala_en:4.23-24:
 │   │
 │ 4 │ declaration structure S:
 │   │                       ‾
 ├─ https://github.com/CatalaLang/catala/issues/107
 │
 │ Second definition:
-├─➤ tests/struct/bad/bug_107.catala_en:8.23-8.24:
+├─➤ tests/struct/bad/bug_107.catala_en:8.23-24:
 │   │
 │ 8 │ declaration structure S:
 │   │                       ‾

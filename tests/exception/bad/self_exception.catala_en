@@ -16,7 +16,7 @@ $ catala test-scope A
 │
 │  Cannot define rule as an exception to itself
 │
-├─➤ tests/exception/bad/self_exception.catala_en:9.13-9.19:
+├─➤ tests/exception/bad/self_exception.catala_en:9.13-19:
 │   │
 │ 9 │   exception base_y
 │   │             ‾‾‾‾‾‾

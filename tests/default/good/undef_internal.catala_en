@@ -26,7 +26,7 @@ $ catala test-scope Test
 │  In scope "A", the variable "y" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/default/good/undef_internal.catala_en:4.12-4.13:
+├─➤ tests/default/good/undef_internal.catala_en:4.12-13:
 │   │
 │ 4 │   internal y content integer
 │   │            ‾
@@ -36,7 +36,7 @@ $ catala test-scope Test
 │  Unused variable: y does not contribute to computing any of scope A
 │  outputs. Did you forget something?
 │
-├─➤ tests/default/good/undef_internal.catala_en:4.12-4.13:
+├─➤ tests/default/good/undef_internal.catala_en:4.12-13:
 │   │
 │ 4 │   internal y content integer
 │   │            ‾

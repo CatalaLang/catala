@@ -322,12 +322,9 @@ let clean_command_line ~build_dir file cl =
 
 let pp_pos ~build_dir ppf (start, stop) =
   assert (start.Lexing.pos_fname = stop.Lexing.pos_fname);
-  Format.fprintf ppf "@{<cyan>%s:%d%a@}"
-    (pfile ~build_dir start.Lexing.pos_fname)
-    start.Lexing.pos_lnum
-    (fun ppf n ->
-      if n = start.Lexing.pos_lnum then () else Format.fprintf ppf "-%d" n)
-    stop.Lexing.pos_lnum
+  let pos_fname = pfile ~build_dir start.Lexing.pos_fname in
+  Format.fprintf ppf "@{<cyan>%a@}" Message.pp_pos
+    (Pos.from_lpos ({ start with pos_fname }, { stop with pos_fname }))
 
 let print_command ~build_dir ppf file cmd =
   Format.fprintf ppf "@,@[<h>$ @{<yellow>%a@}@]"
@@ -370,7 +367,10 @@ let display_scope ~build_dir file ppf scope_test =
   Format.pp_close_box ppf ()
 
 let display_file ~build_dir ppf (t : file) =
-  let pfile f = pfile ~build_dir f in
+  let pp_file ppf f =
+    let f = pfile ~build_dir f in
+    Message.pp_link ~target:(Message.file_url f) ppf "@{<cyan>%s@}" f
+  in
   let print_tests tests =
     let tests =
       match disp_flags.tests with
@@ -422,9 +422,8 @@ let display_file ~build_dir ppf (t : file) =
   if t.successful = t.total then (
     if disp_flags.files = `All then (
       Format.fprintf ppf
-        "@{<green;reverse>__@} @{<cyan>%s@}: @{<green;bold>%d@} / %d tests \
-         passed"
-        (pfile t.name) t.successful t.total;
+        "@{<green;reverse>__@} %a: @{<green;bold>%d@} / %d tests passed" pp_file
+        t.name t.successful t.total;
       if disp_flags.tests = `All then (
         print_tests t.tests;
         print_scopes t.scopes;
@@ -436,7 +435,7 @@ let display_file ~build_dir ppf (t : file) =
       | 0 -> Format.fprintf ppf "@{<red;reverse>__@}"
       | _ -> Format.fprintf ppf "@{<yellow;reverse>__@}"
     in
-    Format.fprintf ppf " @{<cyan>%s@}: " (pfile t.name);
+    Format.fprintf ppf " %a: " pp_file t.name;
     (function
       | 0 -> Format.fprintf ppf "@{<red;bold>0@}"
       | n -> Format.fprintf ppf "@{<yellow;bold>%d@}" n)

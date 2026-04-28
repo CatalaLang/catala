@@ -32,7 +32,7 @@ $ catala Exceptions -s Test -v x
 │  Unused variable: x does not contribute to computing any of scope Test
 │  outputs. Did you forget something?
 │
-├─➤ tests/exception/good/utf8_conditions.catala_fr:9.11-9.12:
+├─➤ tests/exception/good/utf8_conditions.catala_fr:9.11-12:
 │   │
 │ 9 │   interne x contenu décimal
 │   │           ‾
@@ -52,7 +52,7 @@ $ catala Exceptions -s Test -v x
 ├─ Test
 │
 │ under condition:
-├─➤ tests/exception/good/utf8_conditions.catala_fr:14.18-14.46:
+├─➤ tests/exception/good/utf8_conditions.catala_fr:14.18-46:
 │    │
 │ 14 │   sous condition individu.revenu <= 100 000 €
 │    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -69,7 +69,7 @@ $ catala Exceptions -s Test -v x
 ├─ Test
 │
 │ under condition:
-├─➤ tests/exception/good/utf8_conditions.catala_fr:19.18-19.45:
+├─➤ tests/exception/good/utf8_conditions.catala_fr:19.18-45:
 │    │
 │ 19 │   sous condition individu.revenu > 100 000 €
 │    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -86,7 +86,7 @@ $ catala Exceptions -s Test -v x
 ├─ Test
 │
 │ under condition:
-├─➤ tests/exception/good/utf8_conditions.catala_fr:24.18-24.77:
+├─➤ tests/exception/good/utf8_conditions.catala_fr:24.18-77:
 │    │
 │ 24 │   sous condition individu.revenu > 100 000 € et individu.revenu <= 200 000 €
 │    │                  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

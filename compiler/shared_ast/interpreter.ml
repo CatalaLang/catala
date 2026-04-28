@@ -66,7 +66,9 @@ let print_log ppf _lang level entry =
   | Runtime.DecisionTaken rtpos ->
     let pos = Expr.runtime_to_pos rtpos in
     logprintf level PosRecordIfTrueBool
-      "@[<v -2>@{<green>Definition applied@}:@,%a@]@," Pos.format_loc_text pos;
+      "@[<v -2>@{<green>Definition applied@}:@,@{<cyan>%a@}@]@,"
+      (Pos.format_loc_text ~pp_file:Message.pp_pos ())
+      pos;
     level
 
 let handle_eq ctx pos e1 e2 =

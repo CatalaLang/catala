@@ -15,19 +15,19 @@ $ catala test-scope A
 │  // date
 │
 │ While typechecking the following expression:
-├─➤ tests/date/bad/substraction.catala_en:6.23-6.43:
+├─➤ tests/date/bad/substraction.catala_en:6.23-43:
 │   │
 │ 6 │   definition o equals |2024-01-16| - 0 day <= 0 day
 │   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │
 │ Type duration is coming from:
-├─➤ tests/date/bad/substraction.catala_en:6.47-6.52:
+├─➤ tests/date/bad/substraction.catala_en:6.47-52:
 │   │
 │ 6 │   definition o equals |2024-01-16| - 0 day <= 0 day
 │   │                                               ‾‾‾‾‾
 │
 │ Type date is coming from:
-├─➤ tests/date/bad/substraction.catala_en:6.23-6.43:
+├─➤ tests/date/bad/substraction.catala_en:6.23-43:
 │   │
 │ 6 │   definition o equals |2024-01-16| - 0 day <= 0 day
 │   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

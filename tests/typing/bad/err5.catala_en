@@ -19,13 +19,13 @@ $ catala Typecheck
 │  // Structure
 │
 │ This expression has type integer:
-├─➤ tests/typing/bad/err5.catala_en:8.5-8.9:
+├─➤ tests/typing/bad/err5.catala_en:8.5-9:
 │   │
 │ 8 │     1040
 │   │     ‾‾‾‾
 │
 │ Expected type Structure coming from expression:
-├─➤ tests/typing/bad/err5.catala_en:6.5-6.46:
+├─➤ tests/typing/bad/err5.catala_en:6.5-46:
 │   │
 │ 6 │     Structure { -- i: 3 -- e: Int content x };
 │   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

@@ -19,6 +19,33 @@
 
 (**{1 Terminal formatting}*)
 
+type Format.stag += Link of string
+
+let add_link_tags ppf =
+  let start = "\x1b]8;;" in
+  (* OSC(OS command) 8 ;; *)
+  let stop = "\x1b\\" in
+  (* ST(String terminator) *)
+  let funs = Format.pp_get_formatter_stag_functions ppf () in
+  let mark_open_stag = function
+    | Link target -> start ^ target ^ stop
+    | tag -> funs.mark_open_stag tag
+  in
+  let mark_close_stag = function
+    | Link _ -> start ^ stop
+    | tag -> funs.mark_close_stag tag
+  in
+  Format.pp_set_formatter_stag_functions ppf
+    { funs with mark_open_stag; mark_close_stag };
+  ppf
+
+let pp_link ~target ppf fmt =
+  Format.pp_open_stag ppf (Link target);
+  Format.kfprintf (fun ppf -> Format.pp_close_stag ppf ()) ppf fmt
+
+let link ?target () ppf txt =
+  pp_link ~target:(Option.value ~default:txt target) ppf "%s" txt
+
 (* Adds handling of color tags in the formatter *)
 let color_formatter ppf =
   Ocolor_format.prettify_formatter ppf;
@@ -27,7 +54,14 @@ let color_formatter ppf =
 (* Sets handling of tags in the formatter to ignore them (don't print any color
    codes) *)
 let unstyle_formatter ppf =
-  Format.pp_set_mark_tags ppf false;
+  Format.pp_set_mark_tags ppf true;
+  Format.pp_set_formatter_stag_functions ppf
+    {
+      Format.mark_open_stag = (fun _ -> "");
+      mark_close_stag = (fun _ -> "");
+      print_open_stag = ignore;
+      print_close_stag = ignore;
+    };
   ppf
 
 (* SIDE EFFECT AT MODULE LOAD: this turns on handling of tags in
@@ -66,7 +100,18 @@ let formatter_of_out_channel ?(nocolor = false) oc =
     lazy
       (let ppf = Format.formatter_of_out_channel oc in
        if (not nocolor) && has_color_raw ~tty then color_formatter ppf
-       else unstyle_formatter ppf)
+       else if Lazy.force tty then unstyle_formatter ppf
+       else (
+         Format.pp_set_mark_tags ppf false;
+         ppf))
+  in
+  let ppf =
+    lazy
+      (if
+         Global.options.color = Always
+         || (Lazy.force tty && Sys.getenv_opt "TERM" <> Some "dumb")
+       then add_link_tags (Lazy.force ppf)
+       else Lazy.force ppf)
   in
   fun () ->
     let ppf = Lazy.force ppf in
@@ -151,6 +196,25 @@ let pp_marker ?extra_label target ppf =
 
 (** {1 Message content} *)
 
+let bug_report_url = "https://github.com/CatalaLang/catala/issues"
+
+let file_url =
+  let cwd = Sys.getcwd () in
+  fun ?(line = 1) ?(column = 1) file ->
+    Printf.sprintf "file://%s%s%s"
+      (if Filename.is_relative file then Filename.concat cwd file else file)
+      (if line > 1 || column > 1 then Printf.sprintf "#%d" line else "")
+      (if column > 1 then Printf.sprintf ":%d" column else "")
+
+let pp_pos ppf pos =
+  Format.fprintf ppf "%a"
+    (link
+       ~target:
+         (file_url (Pos.get_file pos) ~line:(Pos.get_start_line pos)
+            ~column:(Pos.get_start_column pos))
+       ())
+    (Pos.to_string_short pos)
+
 module Content = struct
   type message = Format.formatter -> unit
   type position = { pos_message : message option; pos : Pos.t }
@@ -169,9 +233,8 @@ module Content = struct
 
   let to_internal_error (content : t) : t =
     let internal_error_prefix ppf =
-      Format.pp_print_string ppf
-        "Internal Error, please report to \
-         https://github.com/CatalaLang/catala/issues."
+      Format.fprintf ppf "Internal Error, please report to @{<blue>%a@}."
+        (link ()) bug_report_url
     in
     prepend_message content internal_error_prefix
 
@@ -195,7 +258,7 @@ module Content = struct
           Option.iter
             (fun msg -> Format.fprintf ppf "@[<hov>%t@]@," msg)
             pos.pos_message;
-          Pos.format_loc_text ppf pos.pos
+          Pos.format_loc_text ~pp_file:pp_pos () ppf pos.pos
         | MainMessage msg ->
           if target = Debug then print_time_marker ppf ();
           Format.fprintf ppf "@[<hov 2>[%t] %t%t@]" (pp_marker target) pp_header
@@ -259,7 +322,7 @@ module Content = struct
             pos.pos_message;
           Format.pp_print_break ppf 0 (-1);
           let pr_head, pr_context, pr_legal =
-            Pos.format_loc_text_parts pos.pos
+            Pos.format_loc_text_parts ~pp_file:pp_pos pos.pos
           in
           Format.pp_open_vbox ppf 2;
           Format.fprintf ppf "@{<blue>@<1>%s@}%t" "├" pr_head;

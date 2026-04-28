@@ -27,7 +27,7 @@ $ catala Typecheck --check-invariants
 │  Unused variable: toto does not contribute to computing any of scope Titi
 │  outputs. Did you forget something?
 │
-├─➤ tests/scope/good/scope_call2.catala_en:13.3-13.7:
+├─➤ tests/scope/good/scope_call2.catala_en:13.3-7:
 │    │
 │ 13 │   toto scope Toto
 │    │   ‾‾‾‾
@@ -47,7 +47,7 @@ $ catala test-scope Titi
 │  Unused variable: toto does not contribute to computing any of scope Titi
 │  outputs. Did you forget something?
 │
-├─➤ tests/scope/good/scope_call2.catala_en:13.3-13.7:
+├─➤ tests/scope/good/scope_call2.catala_en:13.3-7:
 │    │
 │ 13 │   toto scope Toto
 │    │   ‾‾‾‾

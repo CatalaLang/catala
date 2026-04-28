@@ -38,19 +38,19 @@ $ catala dcalc
 │  // list of <any type>
 │
 │ While typechecking the following expression:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-13.37:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-37:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
 │    │                                 ‾‾‾‾
 │
 │ Type St is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-7.30:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-30:
 │   │
 │ 7 │   input ll content list of St
 │   │                            ‾‾
 │
 │ Type list of <any type> is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-55:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
 │    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -68,19 +68,19 @@ $ catala test-scope Test
 │  // list of <any type>
 │
 │ While typechecking the following expression:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-13.37:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-37:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
 │    │                                 ‾‾‾‾
 │
 │ Type St is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-7.30:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-30:
 │   │
 │ 7 │   input ll content list of St
 │   │                            ‾‾
 │
 │ Type list of <any type> is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-55:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
 │    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

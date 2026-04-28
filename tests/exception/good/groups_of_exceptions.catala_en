@@ -90,27 +90,27 @@ $ catala Exceptions -s Foo -v x
 ┌─[RESULT]─
 │ Definitions with label "base":
 │
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:9.3-9.26:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:9.3-26:
 │   │
 │ 9 │   label base definition x under condition
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 ├─ Test
 │
 │ under condition:
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:10.5-10.10:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:10.5-10:
 │    │
 │ 10 │     y = 0
 │    │     ‾‾‾‾‾
 ├─ Test
 │
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:13.3-13.26:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:13.3-26:
 │    │
 │ 13 │   label base definition x under condition
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 ├─ Test
 │
 │ under condition:
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:14.5-14.10:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:14.5-10:
 │    │
 │ 14 │     y = 1
 │    │     ‾‾‾‾‾
@@ -118,27 +118,27 @@ $ catala Exceptions -s Foo -v x
 ┌─[RESULT]─
 │ Definitions with label "intermediate":
 │
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:17.3-17.49:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:17.3-49:
 │    │
 │ 17 │   label intermediate exception base definition x under condition
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 ├─ Test
 │
 │ under condition:
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:18.5-18.10:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:18.5-10:
 │    │
 │ 18 │     y = 2
 │    │     ‾‾‾‾‾
 ├─ Test
 │
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:21.3-21.49:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:21.3-49:
 │    │
 │ 21 │   label intermediate exception base definition x under condition
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 ├─ Test
 │
 │ under condition:
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:22.5-22.10:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:22.5-10:
 │    │
 │ 22 │     y = 3
 │    │     ‾‾‾‾‾
@@ -146,27 +146,27 @@ $ catala Exceptions -s Foo -v x
 ┌─[RESULT]─
 │ Definitions with label "exception_to_intermediate":
 │
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:25.3-25.38:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:25.3-38:
 │    │
 │ 25 │   exception intermediate definition x under condition
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 ├─ Test
 │
 │ under condition:
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:26.5-26.10:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:26.5-10:
 │    │
 │ 26 │     y = 4
 │    │     ‾‾‾‾‾
 ├─ Test
 │
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:29.3-29.38:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:29.3-38:
 │    │
 │ 29 │   exception intermediate definition x under condition
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 ├─ Test
 │
 │ under condition:
-├─➤ tests/exception/good/groups_of_exceptions.catala_en:30.5-30.10:
+├─➤ tests/exception/good/groups_of_exceptions.catala_en:30.5-10:
 │    │
 │ 30 │     y = 5
 │    │     ‾‾‾‾‾

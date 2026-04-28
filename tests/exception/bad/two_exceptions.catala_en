@@ -22,13 +22,13 @@ $ catala test-scope A
 │  Multiple conflicting definitions:
 │  these have the same conditions and will always trigger a conflict at runtime.
 │
-├─➤ tests/exception/bad/two_exceptions.catala_en:12.14-12.15:
+├─➤ tests/exception/bad/two_exceptions.catala_en:12.14-15:
 │    │
 │ 12 │   definition x equals 1
 │    │              ‾
 ├─ Test
 │
-├─➤ tests/exception/bad/two_exceptions.catala_en:15.14-15.15:
+├─➤ tests/exception/bad/two_exceptions.catala_en:15.14-15:
 │    │
 │ 15 │   definition x equals 2
 │    │              ‾
@@ -38,13 +38,13 @@ $ catala test-scope A
 │  During evaluation: conflict between multiple valid consequences for
 │  assigning the same variable.
 │
-├─➤ tests/exception/bad/two_exceptions.catala_en:12.23-12.24:
+├─➤ tests/exception/bad/two_exceptions.catala_en:12.23-24:
 │    │
 │ 12 │   definition x equals 1
 │    │                       ‾
 ├─ Test
 │
-├─➤ tests/exception/bad/two_exceptions.catala_en:15.23-15.24:
+├─➤ tests/exception/bad/two_exceptions.catala_en:15.23-24:
 │    │
 │ 15 │   definition x equals 2
 │    │                       ‾

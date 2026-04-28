@@ -19,19 +19,19 @@ $ catala lcalc
 │  // money
 │
 │ While typechecking the following expression:
-├─➤ tests/typing/good/poly_letin.catala_en:9.3-9.4:
+├─➤ tests/typing/good/poly_letin.catala_en:9.3-4:
 │   │
 │ 9 │   y
 │   │   ‾
 │
 │ Type integer is coming from:
-├─➤ tests/typing/good/poly_letin.catala_en:8.28-8.30:
+├─➤ tests/typing/good/poly_letin.catala_en:8.28-30:
 │   │
 │ 8 │   let y equals identity of 12 in
 │   │                            ‾‾
 │
 │ Type money is coming from:
-├─➤ tests/typing/good/poly_letin.catala_en:6.25-6.30:
+├─➤ tests/typing/good/poly_letin.catala_en:6.25-30:
 │   │
 │ 6 │ declaration foo content money
 │   │                         ‾‾‾‾‾

@@ -19,21 +19,21 @@ $ catala test-scope A
 │  // money
 │
 │ While typechecking the following expression:
-├─➤ tests/array/bad/fold_error.catala_en:10.78-10.79:
+├─➤ tests/array/bad/fold_error.catala_en:10.78-79:
 │    │
 │ 10 │   definition list_high_count equals number of list of m among list such that m >= $7
 │    │                                                                              ‾
 ├─ Article
 │
 │ Type integer is coming from:
-├─➤ tests/array/bad/fold_error.catala_en:5.32-5.39:
+├─➤ tests/array/bad/fold_error.catala_en:5.32-39:
 │   │
 │ 5 │   context list content list of integer
 │   │                                ‾‾‾‾‾‾‾
 ├─ Article
 │
 │ Type money is coming from:
-├─➤ tests/array/bad/fold_error.catala_en:10.83-10.85:
+├─➤ tests/array/bad/fold_error.catala_en:10.83-85:
 │    │
 │ 10 │   definition list_high_count equals number of list of m among list such that m >= $7
 │    │                                                                                   ‾‾
