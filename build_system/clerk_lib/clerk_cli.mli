@@ -68,3 +68,5 @@ type config = {
 val init_term : ?allow_test_flags:bool -> unit -> config Term.t
 (** Reads the supplied command-line flags and configuration file and runs
     globals initialisation routines *)
+
+val run_command_line : ?setenv:(string * string) list -> string list -> int

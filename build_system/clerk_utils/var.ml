@@ -37,23 +37,7 @@ let make, all_vars_ref =
       v),
     all_vars_ref )
 
-let catala_flags_ocaml = make "CATALA_FLAGS_OCAML"
-let catala_flags_c = make "CATALA_FLAGS_C"
-let catala_flags_python = make "CATALA_FLAGS_PYTHON"
-let catala_flags_java = make "CATALA_FLAGS_JAVA"
-let ocamlc_exe = make "OCAMLC_EXE"
-let ocamlopt_exe = make "OCAMLOPT_EXE"
-let ocaml_flags = make "OCAML_FLAGS"
-let ocaml_include = make "OCAML_INCLUDE"
 let runtime = make "CATALA_RUNTIME"
-let cc_exe = make "CC"
-let c_flags = make "CFLAGS"
-let c_include = make "C_INCLUDE_FLAGS"
-let python = make "PYTHON"
-let javac = make "JAVAC"
-let javac_flags = make "JAVAC_FLAGS"
-let jar = make "jar"
-let java = make "JAVA"
 let all_vars = all_vars_ref.contents
 
 (* Definition spreading different rules *)
@@ -73,3 +57,34 @@ let cat_files = make "cat_files" (* Useful on Windows only *)
 (* let scope = make "scope" *)
 let test_id = make "test-id"
 let ( ! ) = Ninja_utils.Var.v
+
+let re_var =
+  let open Re in
+  seq [str "${"; group (rep1 (diff any (char '}'))); char '}']
+
+let rec get_var =
+  (* replaces ${var} with its value, recursively *)
+  let re_single_var = Re.(compile (whole_string re_var)) in
+  fun var_bindings v ->
+    let s =
+      try List.assoc v var_bindings
+      with Not_found ->
+        Message.error
+          "Clerk configuration error: variable @{<blue;bold>$%s@} is undefined"
+          (name v)
+    in
+    let get_var = get_var (List.remove_assoc v var_bindings) in
+    List.concat_map
+      (fun s ->
+        match Re.exec_opt re_single_var s with
+        | Some g -> get_var (make (Re.Group.get g 1))
+        | None -> [expand_vars var_bindings s])
+      s
+
+and expand_vars =
+  let re_var = Re.(compile re_var) in
+  fun var_bindings s ->
+    Re.replace ~all:true re_var
+      ~f:(fun g ->
+        String.concat " " (get_var var_bindings (make (Re.Group.get g 1))))
+      s

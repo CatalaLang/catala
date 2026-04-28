@@ -15,25 +15,23 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Clerk_utils
-open Clerk_lib
+open Catala_utils
 
-module Flags : sig
-  val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
-  val includes : ?backend:string -> string list -> string list
-  val include_flags : backend:string -> string list -> string list
+val extern_src :
+  filename:string ->
+  backend:string ->
+  ext:string ->
+  missing:string list ->
+  string * string list
 
-  val catala_backend_flags :
-    autotest:bool ->
-    use_default_flags:bool ->
-    test_flags:string list ->
-    accepts_closure_conversion:bool ->
-    string list
+val check_missing :
+  backend:string ->
+  module_def:string Mark.pos option ->
+  missing:string list ->
+  filename:string ->
+  unit
 
-  val default :
-    code_coverage:bool -> config:Clerk_cli.config -> (Var.t * string list) list
-end
+val target : ?backend:string -> string -> string
 
-module Ninja : sig
-  val static_base_rules : Ninja_utils.def list
-end
+val modfile :
+  backend:string -> (string * string) list -> string -> string -> string

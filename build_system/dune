@@ -14,13 +14,7 @@
   ocolor
   otoml
   yojson)
- (modules
-  clerk_report
-  clerk_runtest
-  clerk_coverage
-  clerk_poll
-  clerk_rules
-  clerk_driver)
+ (modules clerk_report clerk_runtest clerk_coverage clerk_rules clerk_driver)
  (flags
   (:standard -open Clerk_lib)))
 

@@ -545,3 +545,36 @@ let init_term ?(allow_test_flags = false) () =
     $ debug
     $ whole_program
     $ Cli.Flags.output_format)
+
+let run_command_line ?(setenv = []) cmdline =
+  if cmdline = [] then 0
+  else
+    let cmd = List.hd cmdline in
+    let env =
+      let cut s =
+        let i = String.index s '=' in
+        String.sub s 0 i, String.sub s (i + 1) (String.length s - i - 1)
+      in
+      Unix.environment ()
+      |> Array.to_seq
+      |> Seq.map cut
+      |> String.Map.of_seq
+      |> String.Map.add_seq (List.to_seq setenv)
+      |> String.Map.to_seq
+      |> Seq.map (fun (var, value) -> var ^ "=" ^ value)
+      |> Array.of_seq
+    in
+    let npid =
+      Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin
+        Unix.stdout Unix.stderr
+    in
+    let return_code =
+      let rec wait () =
+        match Unix.waitpid [] npid with
+        | _, Unix.WEXITED n -> n
+        | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
+        | exception Unix.Unix_error (Unix.EINTR, _, _) -> wait ()
+      in
+      wait ()
+    in
+    return_code
