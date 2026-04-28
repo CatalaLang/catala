@@ -37,23 +37,7 @@ let make, all_vars_ref =
       v),
     all_vars_ref )
 
-let catala_flags_ocaml = make "CATALA_FLAGS_OCAML"
-let catala_flags_c = make "CATALA_FLAGS_C"
-let catala_flags_python = make "CATALA_FLAGS_PYTHON"
-let catala_flags_java = make "CATALA_FLAGS_JAVA"
-let ocamlc_exe = make "OCAMLC_EXE"
-let ocamlopt_exe = make "OCAMLOPT_EXE"
-let ocaml_flags = make "OCAML_FLAGS"
-let ocaml_include = make "OCAML_INCLUDE"
 let runtime = make "CATALA_RUNTIME"
-let cc_exe = make "CC"
-let c_flags = make "CFLAGS"
-let c_include = make "C_INCLUDE_FLAGS"
-let python = make "PYTHON"
-let javac = make "JAVAC"
-let javac_flags = make "JAVAC_FLAGS"
-let jar = make "jar"
-let java = make "JAVA"
 let all_vars = all_vars_ref.contents
 
 (* Definition spreading different rules *)

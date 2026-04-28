@@ -18,11 +18,15 @@
 open Clerk_utils
 open Catala_utils
 open Clerk_lib
-open Var
+
+let catala_flags_c = Var.make "CATALA_FLAGS_C"
+let cc_exe = Var.make "CC"
+let c_flags = Var.make "CFLAGS"
+let c_include = Var.make "C_INCLUDE_FLAGS"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
-  get_var var_bindings Var.cc_exe
+  Var.get_var var_bindings cc_exe
   @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
   @ [build_dir / Scan.libcatala / "c" / "catala_runtime.o"]
   @ List.map
@@ -32,8 +36,8 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
       (link_deps item)
   @ ["-lgmp"]
   @ [target -.- "o"; File.remove_extension target ^ "+main.o"]
-  @ get_var var_bindings Var.c_flags
-  @ get_var var_bindings Var.c_include
+  @ Var.get_var var_bindings c_flags
+  @ Var.get_var var_bindings c_include
   @ ["-o"; target -.- "exe"]
 
 let run_artifact ?scope src =
@@ -58,15 +62,15 @@ module Backend = struct
         ~test_flags
         ~include_dirs =
       let open Common.Flags in
-      let catala_flags_c =
+      let catala_flags =
         Common.Flags.catala_backend_flags ~autotest ~use_default_flags
           ~test_flags ~accepts_closure_conversion:false
       in
       let def = def ~variables in
       [
-        def Var.catala_flags_c (lazy catala_flags_c);
-        def Var.cc_exe (lazy ["cc"]);
-        def Var.c_flags
+        def catala_flags_c (lazy catala_flags);
+        def cc_exe (lazy ["cc"]);
+        def c_flags
           (lazy
             [
               "-std=c89";
@@ -79,7 +83,7 @@ module Backend = struct
               "-fPIC";
               "-g";
             ]);
-        def Var.c_include
+        def c_include
           (lazy
             (["-I"; File.(Var.(!builddir) / Scan.libcatala / "c")]
             @ Common.Flags.includes ~backend:"c" include_dirs));

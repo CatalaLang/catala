@@ -19,6 +19,9 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
+let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
+let python = Var.make "PYTHON"
+
 let linking_command ~build_dir link_deps item target =
   (* a "linked" python module is a "Module.py" folder containing the module .py
      file along with the runtime and all dependencies, plus a __init__.py
@@ -44,7 +47,7 @@ let run_artifact config ~var_bindings src =
   let build_dir = config.Clerk_cli.options.global.build_dir in
   let cmd =
     let base = Filename.basename (File.remove_extension src) in
-    Var.get_var var_bindings Var.python @ ["-m"; base ^ "." ^ base]
+    Var.get_var var_bindings python @ ["-m"; base ^ "." ^ base]
   in
   let pythonpath =
     String.concat ":"
@@ -70,14 +73,14 @@ module Backend = struct
         ~use_default_flags
         ~test_flags
         ~include_dirs:_ =
-      let catala_flags_python =
+      let catala_flags =
         Common.Flags.catala_backend_flags ~autotest ~use_default_flags
           ~test_flags ~accepts_closure_conversion:true
       in
       let def = Common.Flags.def ~variables in
       [
-        def Var.catala_flags_python (lazy catala_flags_python);
-        def Var.python (lazy ["python3"]);
+        def catala_flags_python (lazy catala_flags);
+        def python (lazy ["python3"]);
       ]
   end
 

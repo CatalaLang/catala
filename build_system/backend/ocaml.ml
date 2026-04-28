@@ -18,7 +18,12 @@
 open Clerk_utils
 open Catala_utils
 open Clerk_lib
-open Var
+
+let catala_flags_ocaml = Var.make "CATALA_FLAGS_OCAML"
+let ocamlc_exe = Var.make "OCAMLC_EXE"
+let ocamlopt_exe = Var.make "OCAMLOPT_EXE"
+let ocaml_flags = Var.make "OCAML_FLAGS"
+let ocaml_include = Var.make "OCAML_INCLUDE"
 
 module Flags = struct
   let ocaml_include_and_lib : (string list * string list) Lazy.t =
@@ -48,37 +53,37 @@ module Flags = struct
   let ocaml_link : string list Lazy.t =
     lazy (snd (Lazy.force ocaml_include_and_lib))
 
-  let ocaml_include : string list Lazy.t =
+  let ocaml_include_value : string list Lazy.t =
     lazy (fst (Lazy.force ocaml_include_and_lib))
 
   let default ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
       =
     let open Common.Flags in
-    let catala_flags_ocaml =
+    let catala_flags =
       Common.Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true
     in
     let def = def ~variables in
     [
-      def Var.catala_flags_ocaml (lazy catala_flags_ocaml);
-      def Var.ocamlc_exe (lazy ["ocamlc"]);
-      def Var.ocamlopt_exe (lazy ["ocamlopt"]);
-      def Var.ocaml_flags (lazy []);
-      def Var.ocaml_include
+      def catala_flags_ocaml (lazy catala_flags);
+      def ocamlc_exe (lazy ["ocamlc"]);
+      def ocamlopt_exe (lazy ["ocamlopt"]);
+      def ocaml_flags (lazy []);
+      def ocaml_include
         (lazy
-          (Lazy.force ocaml_include
+          (Lazy.force ocaml_include_value
           @ Common.Flags.includes ~backend:"ocaml" include_dirs));
     ]
 end
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
-  get_var var_bindings Var.ocamlopt_exe
-  @ List.map (expand_vars var_bindings) (Lazy.force Flags.ocaml_link)
+  Var.get_var var_bindings ocamlopt_exe
+  @ List.map (Var.expand_vars var_bindings) (Lazy.force Flags.ocaml_link)
   @ [build_dir / Scan.libcatala / "ocaml" / "dates_calc.cmx"]
   @ [build_dir / Scan.libcatala / "ocaml" / "catala_runtime.cmx"]
-  @ get_var var_bindings Var.ocaml_flags
-  @ get_var var_bindings Var.ocaml_include
+  @ Var.get_var var_bindings ocaml_flags
+  @ Var.get_var var_bindings ocaml_include
   @ List.map
       (fun it ->
         let f = Scan.target_file_name it in
@@ -257,7 +262,7 @@ module Backend = struct
           ~vars:
             [
               Var.includes, includes include_dirs;
-              ( Var.ocaml_flags,
+              ( ocaml_flags,
                 [
                   Var.(!ocaml_flags);
                   "-opaque";

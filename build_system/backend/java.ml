@@ -17,10 +17,16 @@
 
 open Clerk_utils
 open Catala_utils
-open Var
 open File
 
+let catala_flags_java = Var.make "CATALA_FLAGS_JAVA"
+let javac = Var.make "JAVAC"
+let javac_flags = Var.make "JAVAC_FLAGS"
+let jar = Var.make "jar"
+let java = Var.make "JAVA"
+
 let linking_command ~build_dir ~var_bindings link_deps item target =
+  let open Var in
   let jar_target = target -.- "jar" in
   let classes =
     let class_files =
@@ -73,7 +79,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
     |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
     |> List.of_seq
   in
-  get_var var_bindings Var.jar
+  get_var var_bindings jar
   @ ["--create"; "--file"; jar_target]
   @ List.concat_map
       (fun clazz -> ["-C"; Filename.dirname clazz; Filename.basename clazz])
@@ -87,7 +93,7 @@ let run_artifact ~var_bindings ~test src =
   let open Clerk_lib in
   let target_main = File.remove_extension (Filename.basename src) in
   let cmd =
-    Var.get_var var_bindings Var.java
+    Var.get_var var_bindings java
     @ ["-cp"; src -.- "jar"; target_main]
     @ (if test then ["--test"] else [])
     @ if Global.options.output_format = JSON then ["--json"] else []
@@ -96,6 +102,7 @@ let run_artifact ~var_bindings ~test src =
   Clerk_cli.run_command_line cmd
 
 module Backend = struct
+  open Var
   module Nj = Ninja_utils
 
   let stdlib_target ext =
@@ -121,17 +128,17 @@ module Backend = struct
         ~use_default_flags
         ~test_flags
         ~include_dirs:_ =
-      let catala_flags_java =
+      let catala_flags =
         Common.Flags.catala_backend_flags ~autotest ~use_default_flags
           ~test_flags ~accepts_closure_conversion:true
       in
       let def = Common.Flags.def ~variables in
       [
-        def Var.catala_flags_java (lazy catala_flags_java);
-        def Var.java (lazy ["java"]);
-        def Var.javac (lazy ["javac"]);
-        def Var.jar (lazy ["jar"]);
-        def Var.javac_flags (lazy ["-implicit:none"]);
+        def catala_flags_java (lazy catala_flags);
+        def java (lazy ["java"]);
+        def javac (lazy ["javac"]);
+        def jar (lazy ["jar"]);
+        def javac_flags (lazy ["-implicit:none"]);
       ]
   end
 
@@ -207,7 +214,7 @@ module Backend = struct
          ~implicit_in:
            (java_list_file :: List.map (fun f -> java_base / f) java_files)
          ~outputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~vars:[Var.javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
+         ~vars:[javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
     :: List.map
          (fun f ->
            Nj.build "copy" ~inputs:[java_src / f] ~outputs:[java_base / f])

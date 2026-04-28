@@ -17,11 +17,6 @@
 
 open Clerk_utils
 
-module Flags : sig
-  val ocaml_link : string list Lazy.t
-  val ocaml_include : string list Lazy.t
-end
-
 val linking_command :
   build_dir:string ->
   var_bindings:(Var.t * string list) list ->
