@@ -17,7 +17,7 @@
 
 open Clerk_utils
 
-type backend = OCaml | Python | C | Java
+type backend = (module Clerk_backends.Backend.S)
 
 val all_backends : backend list
 val backend_from_config : Clerk_config.backend -> backend
