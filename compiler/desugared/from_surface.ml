@@ -1768,8 +1768,10 @@ let process_topdef
         match tys with
         | [(TTuple _, pos)] ->
           Message.error ~pos
-            "Defining arguments of a function as a tuple is not supported, \
-             please name the individual arguments."
+            "This functions has only one argument that is a tuple, which might \
+             be confused with a function having multiple arguments, one per \
+             element of the tuple. Please decompose the tuple into multiple \
+             arguments in this function declaration to avoid the ambiguity."
         | _ -> ()
       in
       let e = Expr.make_abs args body tys (Mark.get def.S.topdef_name) in
