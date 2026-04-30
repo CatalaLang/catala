@@ -459,7 +459,7 @@ module Oper : sig
     code_location -> ('a -> 'b -> 'c) -> 'a array -> 'b array -> 'c array
   (** @raise Runtime.NotSameLength *)
 
-  val o_reduce : ('a -> 'a -> 'a) -> (unit -> 'a) -> 'a array -> 'a
+  val o_reduce : ('a -> 'a -> 'a) -> 'a array -> 'a Optional.t
   val o_concat : 'a array -> 'a array -> 'a array
   val o_filter : ('a -> bool) -> 'a array -> 'a array
   val o_add_int_int : integer -> integer -> integer
@@ -485,6 +485,9 @@ module Oper : sig
   val o_div_mon_rat : code_location -> money -> decimal -> money
   val o_div_dur_dur : code_location -> duration -> duration -> decimal
   val o_fold : ('a -> 'b -> 'a) -> 'a -> 'b array -> 'a
+  val o_find : ('a -> bool) -> 'a array -> 'a Optional.t
+  val o_sort_asc : 'b Value.ty -> ('a -> 'b) -> 'a array -> 'a array
+  val o_sort_desc : 'b Value.ty -> ('a -> 'b) -> 'a array -> 'a array
   val o_toclosureenv : 'a -> Obj.t
   val o_fromclosureenv : Obj.t -> 'a
 end

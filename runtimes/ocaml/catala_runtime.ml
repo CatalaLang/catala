@@ -1112,15 +1112,15 @@ module Oper = struct
   let o_map2 pos f a b =
     try Array.map2 f a b with Invalid_argument _ -> error NotSameLength [pos]
 
-  let o_reduce f dft a =
+  let o_reduce f a =
     let len = Array.length a in
-    if len = 0 then dft ()
+    if len = 0 then Optional.Absent
     else
       let r = ref a.(0) in
       for i = 1 to len - 1 do
         r := f !r a.(i)
       done;
-      !r
+      Optional.Present !r
 
   let o_concat = Array.append
   let o_filter f a = Array.of_list (List.filter f (Array.to_list a))
@@ -1185,6 +1185,9 @@ module Oper = struct
     o_div_int_int pos i1 i2
 
   let o_fold = Array.fold_left
+  let o_find f a = assert false
+  let o_sort_asc t f a = assert false
+  let o_sort_desc t f a = assert false
   let o_toclosureenv = Obj.repr
   let o_fromclosureenv = Obj.obj
 end
