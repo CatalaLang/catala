@@ -307,8 +307,7 @@ let naked_expression ==
       ~pos:pos_n "Tuple indices must be >= 1";
   TupleAccess (e, (n, pos_n))
 }
-| LBRACKET ; l = separated_list(SEMICOLON, expression) ; RBRACKET ;
-  <ArrayLit>
+| LBRACKET ; l = list_body; RBRACKET ; <ArrayLit>
 | struct_or_enum_inject
 | e1 = noattr_expression ;
   OF ;
@@ -472,6 +471,11 @@ let struct_or_enum_inject ==
   RBRACE ; {
   StructLit(c, fields)
 }
+
+let list_body :=
+| { [] }
+| hd = expression ; SEMICOLON ; tl = list_body ; { hd :: tl }
+| e = expression ; { [e] }
 
 let sort_order ==
 | ORDER_ASCENDING ; { `Asc }
