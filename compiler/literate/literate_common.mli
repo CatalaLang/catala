@@ -45,6 +45,15 @@ val run_pandoc : string -> [ `Html | `Latex ] -> string
 (** Runs the [pandoc] on a string to pretty-print markdown features into the
     desired format. *)
 
+val run_pandoc_on_file :
+  Global.file ->
+  Global.file ->
+  Global.backend_lang ->
+  [ `Html | `Latex | `Pdf ] ->
+  unit
+(** Runs the [pandoc] on a file to pretty-print markdown features into the
+    desired format. *)
+
 val check_exceeding_lines : ?max_len:int -> int -> string -> string -> unit
 (** [check_exceeding_lines ~max_len start_line filename content] prints a
     warning message for each lines of [content] exceeding [max_len] characters.
