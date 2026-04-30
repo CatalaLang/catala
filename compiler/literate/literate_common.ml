@@ -99,6 +99,46 @@ let run_pandoc (s : string) (backend : [ `Html | `Latex ]) : string =
   Sys.remove tmp_file_out;
   tmp_file_as_string
 
+let run_pandoc_on_file
+    (file_in : Global.file)
+    (file_out : Global.file)
+    language
+    (backend : [ `Html | `Latex | `Pdf ]) : unit =
+  let pandoc = "pandoc" in
+  let temp_syntax_file = Filename.temp_file "catala_syntax" "xml" in
+  let syntax_definition =
+    let syntaxes = "catala_" ^ Cli.language_code language ^ ".xml" in
+    match Pandoc_highlight.read syntaxes with
+    | None -> []
+    | Some content ->
+      let oc = open_out temp_syntax_file in
+      output_string oc content;
+      close_out oc;
+      ["--syntax-definition"; temp_syntax_file]
+  in
+  let pandoc_args =
+    syntax_definition
+    @ [
+        "-s";
+        "-f";
+        "markdown+multiline_tables+tex_math_dollars+markdown_in_html_blocks+fenced_code_blocks";
+        "--mathjax";
+        "-t";
+        (match backend with
+        | `Html -> "html"
+        | `Latex -> "latex"
+        | `Pdf -> "pdf");
+        "-o";
+        file_out;
+      ]
+  in
+  let cmd =
+    Format.sprintf "%s %s %s" pandoc (String.concat " " pandoc_args) file_in
+  in
+  let return_code = Sys.command cmd in
+  if return_code <> 0 then raise_failed_pandoc cmd return_code;
+  Sys.remove temp_syntax_file
+
 let check_exceeding_lines
     ?(max_len = 80)
     (start_line : int)
