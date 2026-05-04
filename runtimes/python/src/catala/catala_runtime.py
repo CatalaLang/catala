@@ -18,6 +18,7 @@ from functools import reduce
 from enum import Enum, IntEnum, nonmember, auto
 import copy
 import json
+import functools
 
 Alpha = TypeVar('Alpha', bound='Value')
 Beta = TypeVar('Beta', bound='Value')
@@ -235,11 +236,23 @@ class Array[T: Value](Value, tuple):  #type:ignore[misc]
         except ValueError: raise NotSameLength(pos)
         return Array([f(i, j) for i, j in zipped])
 
-    def reduce(self: Array[Alpha], f: Callable[[Alpha, Alpha], Alpha], dft: Callable[[Unit], Alpha]) -> Alpha:
+    def reduce(self: Array[Alpha], f: Callable[[Alpha, Alpha], Alpha]) -> Option[Alpha]:
         if len(self) == 0:
-            return dft(Unit())
+            return Option(None)
         else:
-            return reduce(f, self)
+            return Option(reduce(f, self))
+
+    def find(self: Array[Alpha], f: Callable[[Alpha], Bool]) -> Option[Alpha]:
+        return Option(next((x for x in self if f(x)), None))
+
+    def sort_up(self: Array[Alpha], pos: SourcePosition, f: Callable[[Alpha], Beta]) -> Array[Alpha]:
+        # We could use `return Array(sorted(self, key=f))`, but that would discard the position
+        cmp: Callable [[Beta, Beta], int] = lambda x, y: f(x).compare(f(y), pos)
+        return Array(sorted(self, key=functools.cmp_to_key(cmp)))
+
+    def sort_down(self: Array[Alpha], pos: SourcePosition, f: Callable[[Alpha], Beta]) -> Array[Alpha]:
+        cmp: Callable [[Beta, Beta], int] = lambda x, y: - f(x).compare(f(y), pos)
+        return Array(sorted(self, key=functools.cmp_to_key(cmp)))
 
     def length(self: Array[Alpha]) -> Integer:
         return Integer(len(self))

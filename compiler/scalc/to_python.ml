@@ -86,8 +86,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | HandleExceptions -> Format.pp_print_string fmt "handle_exceptions"
   | ValueFromJson (_ty, str) ->
     Format.fprintf fmt ".from_json(%s" (String.quote str)
-  | ArrayAccess _ -> assert false
-  | ConstructorCheck _ -> failwith "TODO"
+  | ArrayAccess _ | ConstructorCheck _ -> assert false
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
@@ -153,7 +152,8 @@ let python_keywords =
 let op_needs_pos (type a) (op : a Op.t) ty =
   match op with
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
-  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | ValueFromJson _ ->
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Sort _ | Map2
+  | ValueFromJson _ ->
     true
   | Op.Eq | Lt | Lte | Gt | Gte -> (
     match ty with
@@ -283,7 +283,9 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (Pos.get_law_info pos)
   | EAppOp
       {
-        op = ((Length | Map | Map2 | Reduce | Filter | Fold), _) as op;
+        op =
+          ((Length | Map | Map2 | Reduce | Filter | Fold | Find | Sort _), _) as
+          op;
         args;
         _;
       } ->
@@ -292,9 +294,11 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       | Length, [l] -> l, []
       | Map, [f; l] -> l, [f]
       | Map2, [pos; f; l1; l2] -> l1, [pos; f; l2]
-      | Reduce, [f; dft; l] -> l, [f; dft]
+      | Reduce, [f; l] -> l, [f]
       | Filter, [f; l] -> l, [f]
       | Fold, [f; init; l] -> l, [f; init]
+      | Sort _, [pos; f; l] -> l, [pos; f]
+      | Find, [f; l] -> l, [f]
       | _ -> assert false
     in
     Format.fprintf fmt "%a.%a(%a)" (format_expression ctx) base format_op op
@@ -358,6 +362,16 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
       (format_expression ctx) pos
   | EAppOp { op = ArrayAccess n, _; args = [a]; _ } ->
     Format.fprintf fmt "%a[%d]" (format_expression ctx) a n
+  | EAppOp { op = ConstructorCheck (enum, case), _; args = [a]; _ } ->
+    if EnumName.equal enum Expr.option_enum then
+      if EnumConstructor.equal case Expr.none_constr then
+        Format.fprintf fmt "Bool(%a.value is None)" (format_expression ctx) a
+      else
+        Format.fprintf fmt "Bool(%a.value is not None)" (format_expression ctx)
+          a
+    else
+      Format.fprintf fmt "%a.code == %a.Code.%a" (format_expression ctx) a
+        EnumName.format enum EnumConstructor.format case
   | EAppOp
       { op = ((Eq | Lt | Lte | Gt | Gte), _) as op; args = [pos; a1; a2]; _ } ->
     Format.fprintf fmt "%a.%a(@[<hv>%a,@ %a)@]" (format_expression ctx) a1
