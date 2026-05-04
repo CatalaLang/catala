@@ -920,6 +920,7 @@ let lex_law (lexbuf : lexbuf) : token =
         BEGIN_DIRECTIVE
     | Plus '#', Star hspace, Plus any_but_eol, Star hspace, (eol | eof) ->
         L.get_law_heading lexbuf
+    | Plus eol -> LINESKIP
     | _ -> (
         (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
            sub-match at the same point *)

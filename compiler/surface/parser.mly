@@ -69,6 +69,8 @@
   val sum_string: string
 end>
 
+%right LAW_HEADING
+
 (* The token is returned for every line of law text, make them right-associative
    so that we concat them efficiently as much as possible. *)
 %right LAW_TEXT
@@ -978,8 +980,23 @@ let metadata_block :=
 }
 
 let law_heading :=
-| heading = LAW_HEADING ; {
-  Parser_state.new_heading heading $sloc
+| headings = nonempty_list(addpos(LAW_HEADING)) ; {
+  let rec collapse = function
+    | ((title1, id1, arch1, level1), pos1) ::
+      ((title2, id2, arch2, level2), pos2) :: r
+      when level1 = level2 ->
+        let h =
+          title1 ^ " " ^ title2,
+          (match id2 with None -> id1 | some -> some),
+          arch1 || arch2,
+          level1
+        in
+        collapse ((h, Pos.join pos1 pos2) :: r)
+    | h :: r -> h :: collapse r
+    | [] -> []
+  in
+  List.map (fun (h, pos) -> Parser_state.new_heading h pos) (collapse headings)
+  |> List.rev |> List.hd
 }
 
 let law_text :=
@@ -1010,6 +1027,7 @@ let directive :=
 
 let source_file_item :=
 | text = law_text ; { LawText text }
+| LINESKIP ; { LawText "" }
 | BEGIN_CODE ;
   ~ = code ;
   text = END_CODE ; {
