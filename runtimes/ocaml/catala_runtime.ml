@@ -297,6 +297,7 @@ module Value = struct
         -> 'a ty
     | External : (module External with type t = 'a) -> 'a ty
     | Function : 'a ty
+    | Polymorphic : 'a ty
 
   and t = V : 'a ty * 'a -> t
 
@@ -338,11 +339,12 @@ module Value = struct
     | V (External (module E1), v1), V (External (module E2), v2) -> (
       match E1.T with E2.T -> E1.equal pos v1 v2 | _ -> false)
     | V (Function, _), V (Function, _) -> error UncomparableValues [pos]
+    | V (Polymorphic, _), V (Polymorphic, _) -> error UncomparableValues [pos]
     (* The follwing shouldn't happen on well-typed terms *)
     | ( V
           ( ( Unit | Bool | Integer | Money | Decimal | Date | Duration
             | Position | Array _ | Tuple _ | Struct _ | Enum _ | External _
-            | Function ),
+            | Function | Polymorphic ),
             _ ),
         _ ) ->
       false
@@ -411,6 +413,8 @@ module Value = struct
       | E2.T -> E1.compare pos v1 v2
       | _ -> error UncomparableValues [pos])
     | V (Function, _), _ | _, V (Function, _) -> error UncomparableValues [pos]
+    | V (Polymorphic, _), _ | _, V (Polymorphic, _) ->
+      error UncomparableValues [pos]
     (* The follwing shouldn't happen on well-typed terms *)
     | V (Unit, _), _ -> -1
     | _, V (Unit, _) -> 1
@@ -487,6 +491,7 @@ module Value = struct
       Format.fprintf ppf "@[<h><%s:%d.%d-%d-%d@]" pos.filename pos.start_line
         pos.start_column pos.end_line pos.end_column
     | V (Function, _) -> Format.fprintf ppf "<function>"
+    | V (Polymorphic, _) -> Format.fprintf ppf "<poly>"
     | V (External (module E), v) -> Format.pp_print_string ppf (E.print v)
 
   let from_json : type a. a ty -> code_location -> string -> a = function
@@ -517,6 +522,8 @@ module Optional = struct
           | Absent -> 0, "Absent", None
           | Present v -> 1, "Present", Some (Value.embed t v));
       }
+
+  let of_option = function Some x -> Present x | None -> Absent
 end
 
 module type ExternalTypeSpec = sig
@@ -677,7 +684,8 @@ module BufferedJson = struct
     | V (Position, pos) ->
       Printf.bprintf buf {|{"kind": "position", "value":[%s, %d, %d, %d, %d]}|}
         pos.filename pos.start_line pos.start_column pos.end_line pos.end_column
-    | V (Function, _) -> Buffer.add_string buf {|"unembeddable"|}
+    | V ((Function | Polymorphic), _) ->
+      Buffer.add_string buf {|"unembeddable"|}
     | V (External (module E), v) -> Buffer.add_string buf (E.to_json v)
 
   let information buf info = Printf.bprintf buf "[%a]" (list quote) info
@@ -1185,9 +1193,18 @@ module Oper = struct
     o_div_int_int pos i1 i2
 
   let o_fold = Array.fold_left
-  let o_find f a = assert false
-  let o_sort_asc t f a = assert false
-  let o_sort_desc t f a = assert false
+  let o_find f a = Optional.of_option (Array.find_opt f a)
+
+  let o_sort_asc t pos f a =
+    let a = Array.copy a in
+    Array.stable_sort (fun x1 x2 -> compare t pos (f x1) (f x2)) a;
+    a
+
+  let o_sort_desc t pos f a =
+    let a = Array.copy a in
+    Array.stable_sort (fun x1 x2 -> -compare t pos (f x1) (f x2)) a;
+    a
+
   let o_toclosureenv = Obj.repr
   let o_fromclosureenv = Obj.obj
 end

@@ -353,7 +353,6 @@ module Op = struct
     | FromClosureEnv : < polymorphic ; .. > t
     | ArrayAccess : int -> < polymorphic ; .. > t
     | ConstructorCheck :
-        (* ! For future use, not implemented yet *)
         (EnumName.t * EnumConstructor.t)
         -> < polymorphic ; .. > t
     (* * overloaded *)
