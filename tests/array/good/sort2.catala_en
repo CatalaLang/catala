@@ -1,0 +1,79 @@
+Test sorting with various amounts of undefined types and polymorphism.
+
+```catala
+#[test]
+declaration scope Tsort1:
+  output o1 content list of (optional of money, integer)
+  output o2 content list of (optional of money, integer)
+  output o3 content list of (optional of money, integer)
+  output o4 content list of (optional of money, integer)
+  output o5 content list of (optional of money, integer)
+
+scope Tsort1:
+  definition o1 equals
+    sort [(Absent, 4); (Absent, 2); (Absent, 3)] in increasing order
+  definition o2 equals
+    sort all (a, n) among [(Absent, 4); (Absent, 2); (Absent, 3)] in increasing order of a
+  definition o3 equals
+    sort all (a, n) among [(Absent, 4); (Absent, 2); (Absent, 3)] in increasing order of n
+  definition o4 equals
+    sort all (a, n) among [(Absent, 4); (Absent, 2); (Absent, 3)] in increasing order of []
+  definition o5 equals
+    let bla equals
+      sort all (a, n) among [(Absent, 4); (Absent, 2); (Absent, 3)] in increasing order of a
+    in
+    []
+```
+
+
+```catala-test-cli
+$ catala test-scope Tsort1
+┌─[RESULT]─ Tsort1 ─
+│ o1 = []
+│ o2 =
+│   [(Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1)]
+│ o3 =
+│   [
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 2)
+│   ]
+│ o4 =
+│   [
+│     (
+│       Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| },
+│       $1.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| },
+│       $2.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-04-01| -- end: |1999-01-01| },
+│       $3.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-06-01| -- end: |2020-01-10| },
+│       $400.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-01| -- end: |2020-01-10| },
+│       $5.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-02| -- end: |2020-01-10| },
+│       $6.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-12-01| -- end: |2020-01-10| },
+│       $7.00
+│     )
+│   ]
+│ o5 =
+│   [
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-03| }, 2.0);
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-04| }, 1.0);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 4.0);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-12| }, 3.0)
+│   ]
+└─
+```

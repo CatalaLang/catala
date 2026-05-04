@@ -472,7 +472,8 @@ int catala_equal_values (const catala_code_position* pos, const catala_value x1,
       return 0;
     return x1.t.contents.texternal.equal(pos, x1.v, x2.v);
   }
-  case FUNCTION: {
+  case FUNCTION:
+  case POLY: {
     catala_error(catala_uncomparable_values, pos, 1, NULL);
     abort();
   }
@@ -563,7 +564,8 @@ int catala_compare_values (const catala_code_position* pos, const catala_value x
     if (cmp < 0) return -1;
     return x1.t.contents.texternal.compare(pos, x1.v, x2.v);
   }
-  case FUNCTION: {
+  case FUNCTION:
+  case POLY: {
     catala_error(catala_uncomparable_values, pos, 1, NULL);
     abort();
   }
@@ -713,6 +715,8 @@ void catala_print (struct catala_buf buf, const catala_value x) {
     x.t.contents.texternal.print(buf, x.v); return;
   case FUNCTION:
     buf.printf("<function>"); return;
+  case POLY:
+    buf.printf("<poly>"); return;
   }
 }
 void catala_tojson (struct catala_buf buf, const catala_value x) {
@@ -806,6 +810,8 @@ void catala_tojson (struct catala_buf buf, const catala_value x) {
     return;
   case FUNCTION:
     buf.printf("\"<function>\""); return;
+  case POLY:
+    buf.printf("\"<poly>\""); return;
   }
 }
 
@@ -835,6 +841,8 @@ void* catala_fromjson (const catala_type ty, const catala_code_position* pos, co
     }
   case FUNCTION:
     catala_error(catala_impossible, pos, 1, "Functions cannot be read from JSON");
+  case POLY:
+    catala_error(catala_impossible, pos, 1, "Cannot import object of undetermined shape from JSON");
   }
   abort();
 }
@@ -850,6 +858,7 @@ const catala_type catala_type_date = {DATE};
 const catala_type catala_type_duration = {DURATION};
 const catala_type catala_type_position = {POSITION};
 const catala_type catala_type_function = {FUNCTION};
+const catala_type catala_type_poly = {POLY};
 
 const catala_type catala_type_array(const catala_type ty) {
   catala_type ret;
@@ -1306,7 +1315,7 @@ CATALA_BOOL o_lt (const catala_type ty, const catala_code_position* pos,
 }
 
 CATALA_BOOL o_lte (const catala_type ty, const catala_code_position* pos,
-                  const void* x1, const void* x2) {
+                   const void* x1, const void* x2) {
   return CATALA_NEW_BOOL(catala_compare(ty, pos, x1, x2) <= 0);
 }
 
@@ -1316,11 +1325,11 @@ CATALA_BOOL o_gt (const catala_type ty, const catala_code_position* pos,
 }
 
 CATALA_BOOL o_gte (const catala_type ty, const catala_code_position* pos,
-                  const void* x1, const void* x2) {
+                   const void* x1, const void* x2) {
   return CATALA_NEW_BOOL(catala_compare(ty, pos, x1, x2) >= 0);
 }
 
-const CATALA_ARRAY(X) o_filter (catala_closure* cls, const CATALA_ARRAY(X) x)
+const CATALA_ARRAY(X) o_filter (const catala_closure* cls, const CATALA_ARRAY(X) x)
 {
   int i;
   CATALA_BOOL (*f)(const CLOSURE_ENV, const void*) =
@@ -1336,7 +1345,7 @@ const CATALA_ARRAY(X) o_filter (catala_closure* cls, const CATALA_ARRAY(X) x)
   return ret;
 }
 
-const CATALA_ARRAY(Y) o_map (catala_closure* cls, const CATALA_ARRAY(X) x)
+const CATALA_ARRAY(Y) o_map (const catala_closure* cls, const CATALA_ARRAY(X) x)
 {
   int i;
   void* (*f)(const CLOSURE_ENV, const void*) =
@@ -1349,7 +1358,7 @@ const CATALA_ARRAY(Y) o_map (catala_closure* cls, const CATALA_ARRAY(X) x)
   return ret;
 }
 
-const void* o_fold (catala_closure* cls,
+const void* o_fold (const catala_closure* cls,
                     const void* init, const CATALA_ARRAY(X) x)
 {
   int i;
@@ -1361,26 +1370,33 @@ const void* o_fold (catala_closure* cls,
   return acc;
 }
 
-const void* o_reduce (catala_closure* cls,
-                      catala_closure* dft, const CATALA_ARRAY(X) x)
+const CATALA_OPTION(X) o_reduce (const catala_closure* cls, const CATALA_ARRAY(X) x)
 {
   int i;
   const void* acc;
   void* (*f)(const CLOSURE_ENV, const void*, const void*) =
     (void* (*)(const CLOSURE_ENV, const void*, const void*))cls->funcp;
-  if (x->size == 0) {
-    void* (*dft_f)(const CLOSURE_ENV, const void*) =
-      (void* (*)(const CLOSURE_ENV, const void*))dft->funcp;
-    return dft_f(dft->env, &catala_unitval);
-  }
+  if (x->size == 0) return CATALA_NONE;
   acc = x->elements[0];
   for (i=1; i < x->size; i++)
     acc = f (cls->env, acc, x->elements[i]);
-  return acc;
+  return catala_some(acc);
+}
+
+const CATALA_OPTION(X) o_find (const catala_closure* cls, const CATALA_ARRAY(X) x)
+{
+  int i;
+  const void* acc;
+  CATALA_BOOL (*f)(const CLOSURE_ENV, const void*) =
+    (CATALA_BOOL (*)(const CLOSURE_ENV, const void*))cls->funcp;
+  for (i=0; i < x->size; i++)
+    if (f (cls->env, x->elements[i]) == CATALA_TRUE)
+      return catala_some(x->elements[i]);
+  return CATALA_NONE;
 }
 
 const CATALA_ARRAY(Z) o_map2 (const catala_code_position* pos,
-                        catala_closure* cls,
+                        const catala_closure* cls,
                         const CATALA_ARRAY(X) x,
                         const CATALA_ARRAY(Y) y)
 {
@@ -1410,6 +1426,87 @@ const CATALA_ARRAY(Z) o_concat (const CATALA_ARRAY(X) x,
     ret->elements[i] = y->elements[i - x->size];
   return ret;
 }
+
+/* -- Implementation of merge sort -- */
+/* (Catala requires a stable sort, and the libc's qsort() doesn't have this
+   guarantee) */
+
+void catala_merge(const catala_type ty, const catala_code_position* pos,
+           const catala_closure* proj_cls,
+           CATALA_ARRAY(X) arr, int start, int mid, int end, int sign)
+{
+  const void * value;
+  int index;
+  int start2 = mid + 1;
+  void* (*proj)(const CLOSURE_ENV, const void*) =
+    (void* (*)(const CLOSURE_ENV, const void*))proj_cls->funcp;
+  if (sign *
+      catala_compare(ty, pos, proj(proj_cls->env, arr->elements[mid]), proj(proj_cls->env, arr->elements[start2])) <= 0)
+    return;
+  while (start <= mid && start2 <= end)
+    {
+      if (sign *
+          catala_compare(ty, pos, proj(proj_cls->env, arr->elements[start]), proj(proj_cls->env, arr->elements[start2])) <= 0)
+        start++;
+      else
+        {
+          value = arr->elements[start2];
+          index = start2;
+          while (index != start)
+            {
+              arr->elements[index] = arr->elements[index - 1];
+              index--;
+            }
+          arr->elements[start] = value;
+          start++;
+          mid++;
+          start2++;
+        }
+    }
+}
+void catala_mergeSort(const catala_type ty, const catala_code_position* pos,
+               const catala_closure* proj_cls,
+               CATALA_ARRAY(X) arr, int l, int r, int sign)
+{
+  int m;
+  if (l < r)
+    {
+      m = l + (r - l) / 2;
+      catala_mergeSort(ty, pos, proj_cls, arr, l, m, sign);
+      catala_mergeSort(ty, pos, proj_cls, arr, m + 1, r, sign);
+      catala_merge(ty, pos, proj_cls, arr, l, m, r, sign);
+    }
+}
+
+const CATALA_ARRAY(X) o_sort_asc
+  (const catala_type ty, const catala_code_position* pos,
+   const catala_closure* proj_cls,
+   const CATALA_ARRAY(X) arr)
+{
+  int i;
+  catala_array* ret = catala_malloc(sizeof(catala_array));
+  ret->size = arr->size;
+  ret->elements = catala_malloc(arr->size * sizeof(void *));
+  memcpy(ret->elements, arr->elements, arr->size * sizeof(void *));
+  catala_mergeSort(ty, pos, proj_cls, ret, 0, arr->size - 1, 1);
+  return ret;
+}
+
+const CATALA_ARRAY(X) o_sort_desc
+  (const catala_type ty, const catala_code_position* pos,
+   const catala_closure* proj_cls,
+   const CATALA_ARRAY(X) arr)
+{
+  int i;
+  catala_array* ret = catala_malloc(sizeof(catala_array));
+  ret->size = arr->size;
+  ret->elements = catala_malloc(arr->size * sizeof(void *));
+  memcpy(ret->elements, arr->elements, arr->size * sizeof(void *));
+  catala_mergeSort(ty, pos, proj_cls, ret, 0, arr->size - 1, -1);
+  return ret;
+}
+
+/* -- Basic constructors, exceptions handling and init -- */
 
 const catala_option catala_none = {catala_option_none, NULL};
 

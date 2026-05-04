@@ -44,7 +44,8 @@ let rec make_assertions ctx scope_name acc path ty e =
     else
       let pos = Expr.mark_pos m in
       Message.debug "[autotest] Adding assertion %a.%a = %a" ScopeName.format
-        scope_name Expr.format (Expr.unbox path) Expr.format e;
+        scope_name Expr.format (Expr.unbox path) Expr.format
+        (Mark.map_mark Expr.no_attrs e);
       Expr.eassert
         (Expr.eappop ~op:(Op.Eq, pos)
            ~args:[path; Expr.box (Interpreter.delcustom e)]
