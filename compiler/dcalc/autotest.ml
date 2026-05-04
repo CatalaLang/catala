@@ -124,9 +124,10 @@ let program prg =
                     (Expr.with_ty m (TLit TUnit, pos));
                 ]
               | Some expected_result ->
-                make_assertions ctx name []
-                  (Expr.make_var v_result (Mark.get expected_result))
-                  ty expected_result
+                List.rev
+                  (make_assertions ctx name []
+                     (Expr.make_var v_result (Mark.get expected_result))
+                     ty expected_result)
             in
             let asserts_expr =
               Expr.make_multiple_let_in
