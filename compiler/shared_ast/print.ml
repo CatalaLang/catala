@@ -730,7 +730,12 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EErrorOnEmpty e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" literal_op_style "error_empty"
           (rhs exprc) e'
-      | EPos p -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter p)
+      | EPos p ->
+        Message.link () fmt
+          ~target:
+            (Message.file_url (Pos.get_file p) ~line:(Pos.get_start_line p)
+               ~column:(Pos.get_start_column p))
+          ("<" ^ Pos.to_string_shorter p ^ ">")
       | EAssert e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "assert" (rhs exprc) e'
       | EFatalError error ->
