@@ -23,6 +23,7 @@ val op_needs_pos : 'a operator -> naked_typ -> bool
 val renaming : Renaming.t
 
 val format_program :
+  ?package_prefix:string ->
   is_stdlib:bool ->
   class_name:string ->
   File.t option ->

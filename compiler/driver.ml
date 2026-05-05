@@ -1123,7 +1123,7 @@ module Commands = struct
       check_invariants
       autotest
       closure_conversion
-      _package_prefix_opt =
+      package_prefix =
     let options = fix_trace options in
     let optimize =
       (* javac has a limit on bytecode statement per method, without
@@ -1160,7 +1160,8 @@ module Commands = struct
       | None, Stdin _ -> "AnonymousClass"
     in
     let is_stdlib = stdlib = None in
-    Scalc.To_java.format_program ~is_stdlib ~class_name output_file ppf prg
+    Scalc.To_java.format_program ?package_prefix ~is_stdlib ~class_name
+      output_file ppf prg
 
   let java_cmd =
     Cmd.v

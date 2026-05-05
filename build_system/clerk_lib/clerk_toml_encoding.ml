@@ -111,6 +111,7 @@ let obj3 f3 f2 f1 = merge_objs (obj1 f3) (obj2 f2 f1)
 let obj4 f4 f3 f2 f1 = merge_objs (obj2 f4 f3) (obj2 f2 f1)
 let obj5 f5 f4 f3 f2 f1 = merge_objs (obj1 f5) (obj4 f4 f3 f2 f1)
 let obj6 f6 f5 f4 f3 f2 f1 = merge_objs (obj2 f6 f5) (obj4 f4 f3 f2 f1)
+let obj7 f7 f6 f5 f4 f3 f2 f1 = merge_objs (obj3 f7 f6 f5) (obj4 f4 f3 f2 f1)
 let binding_list f = List (Obj (Free f))
 
 let merge_tables l r =
@@ -174,10 +175,17 @@ let conv6 ty =
     (fun ((f, e), ((d, c), (b, a))) -> f, e, d, c, b, a)
     ty
 
+let conv7 ty =
+  conv
+    (fun (g, f, e, d, c, b, a) -> (g, (f, e)), ((d, c), (b, a)))
+    (fun ((g, (f, e)), ((d, c), (b, a))) -> g, f, e, d, c, b, a)
+    ty
+
 let obj3 f3 f2 f1 = conv3 (obj3 f3 f2 f1)
 let obj4 f4 f3 f2 f1 = conv4 (obj4 f4 f3 f2 f1)
 let obj5 f5 f4 f3 f2 f1 = conv5 (obj5 f5 f4 f3 f2 f1)
 let obj6 f6 f5 f4 f3 f2 f1 = conv6 (obj6 f6 f5 f4 f3 f2 f1)
+let obj7 f7 f6 f5 f4 f3 f2 f1 = conv7 (obj7 f7 f6 f5 f4 f3 f2 f1)
 let convt proj inj descr = ConvT { proj; inj; descr }
 
 let convt3 ty =
@@ -331,11 +339,11 @@ let decode_descr (target : target_kind) toml descr =
       match
         List.find_map
           (fun (Case { descr; inj; _ }) ->
-            try inj @@ loop ~first_obj ~scope toml descr
-            with Catala_utils.Message.CompilerError _ -> None)
+            inj @@ loop ~first_obj ~scope toml descr)
           cases
       with
       | None ->
+        Format.eprintf "%s@." (Otoml.Printer.to_string toml);
         error scope
           "@[<v 2>the provided value does not match any of the possible \
            cases:@ %a@]"
@@ -363,20 +371,23 @@ let decode_descr (target : target_kind) toml descr =
       :: loop ~first_obj:false ~scope (TomlTable bindings) descr
     | _, List _ | _, Tup _ | _, Tups _ ->
       error ~found:toml scope "expected @{<bold>an array of values@}"
-    | TomlTable bindings, Obj (Req { name; descr }) -> (
+    | (TomlInlineTable bindings | TomlTable bindings), Obj (Req { name; descr })
+      -> (
       if first_obj then check_obj scope bindings current;
       match List.assoc_opt name bindings with
       | Some b ->
         loop ~scope:{ scope with rev_keys = name :: scope.rev_keys } b descr
       | None -> error scope "the required key @{<yellow>%s@} is missing" name)
-    | TomlTable bindings, Obj (Opt { name; descr }) -> (
+    | (TomlInlineTable bindings | TomlTable bindings), Obj (Opt { name; descr })
+      -> (
       if first_obj then check_obj scope bindings current;
       match List.assoc_opt name bindings with
       | Some b ->
         Some
           (loop ~scope:{ scope with rev_keys = name :: scope.rev_keys } b descr)
       | None -> None)
-    | TomlTable bindings, Obj (Dft { name; descr; default }) -> (
+    | ( (TomlInlineTable bindings | TomlTable bindings),
+        Obj (Dft { name; descr; default }) ) -> (
       if first_obj then check_obj scope bindings current;
       match List.assoc_opt name bindings with
       | Some b ->
@@ -384,6 +395,9 @@ let decode_descr (target : target_kind) toml descr =
       | None -> default)
     | TomlTable bindings, Objs (l, r) ->
       if first_obj then check_obj scope bindings current;
+      loop ~first_obj:false ~scope toml l, loop ~first_obj:false ~scope toml r
+    | TomlInlineTable bindings, Objs (l, r) ->
+      check_obj scope bindings current;
       loop ~first_obj:false ~scope toml l, loop ~first_obj:false ~scope toml r
     | _, Obj _ | _, Objs _ ->
       error ~found:toml scope "expected a @{<bold><key> = <value> table@}"

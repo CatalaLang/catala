@@ -22,6 +22,15 @@ type backend += C | OCaml | Java | Python
 val register_backend : name:string -> backend -> unit
 val registered_backends : unit -> (string * backend) list
 
+type backend_config = ..
+type backend_config += Java_config of { package_prefix : string option }
+
+val register_backend_config :
+  name:string ->
+  backend:backend ->
+  backend_config Clerk_toml_encoding.descr ->
+  unit
+
 type doc_backend = Html | Latex
 
 type global = {
@@ -38,6 +47,7 @@ type target = {
   tmodules : string list;
   ttests : File.t list;
   backends : backend list;
+  backend_configs : (backend * backend_config) list;
   include_sources : bool;
   include_objects : bool;
 }
@@ -70,3 +80,4 @@ type t = config_file
 val default_config : t
 val read : File.t -> t
 val write : File.t -> t -> unit
+val target_encoding : target Clerk_toml_encoding.descr

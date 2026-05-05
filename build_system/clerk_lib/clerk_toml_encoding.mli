@@ -87,6 +87,16 @@ val obj6 :
   'f field ->
   ('a * 'b * 'c * 'd * 'e * 'f) descr
 
+val obj7 :
+  'a field ->
+  'b field ->
+  'c field ->
+  'd field ->
+  'e field ->
+  'f field ->
+  'g field ->
+  ('a * 'b * 'c * 'd * 'e * 'f * 'g) descr
+
 val merge_objs : 'a descr -> 'b descr -> ('a * 'b) descr
 
 (** Union *)
@@ -122,7 +132,7 @@ val string_cases : (string * 'a) list -> 'a case list
     ...
     v}
 
-    N.b., the [project] table could be omitted *)
+    N.b., the [project] table can be omitted *)
 
 (** {b Warning}: describing different toplevel tables using the same name will
     raise an error at runtime when the descriptor gets evaluated. *)
