@@ -1077,27 +1077,45 @@ let check_clerk_targets_tests backend clerk_targets =
         (fun fmt t -> fprintf fmt "@{<cyan>[%s]@}" t.Config.tname))
       fmt ts
   in
-  (if backend = `Interpret then ()
-   else
-     List.filter
-       (fun t -> t.Config.backends |> List.mem enabled_backend |> not)
-       clerk_targets
-     |> function
-     | [] -> ()
-     | t ->
-       Message.error
-         "Backend @{<bold>%s@} is not supported by the following target(s): %a"
-         (string_of_backend backend)
-         pp_target_list t);
-  (* Check that targets have tests *)
-  List.filter (fun t -> t.Config.ttests = []) clerk_targets
-  |> function
-  | [] -> ()
-  | [t] ->
-    Message.error "Target %a has no @{<bold>tests@} attached" pp_target_list [t]
-  | ts ->
-    Message.error "Targets { %a } have no @{<bold>tests@} attached"
-      pp_target_list ts
+  if backend = `Interpret then clerk_targets
+  else
+    let clerk_targets, invalid_targets =
+      List.partition_map
+        (fun t ->
+          (* Retrieve the backends of a target and verify if the target is
+             affected by the command (the target is affected if the enabled
+             backend is supported by the target)*)
+          if List.mem enabled_backend t.Config.backends then Either.Left t
+          else Either.right t)
+        clerk_targets
+    in
+    (match invalid_targets with
+    | [] -> ()
+    | t ->
+      (* Print a friendly warning to specify the user that among the selected
+         target some doesn't support the specified backend. *)
+      Message.warning
+        "@[<v>@[<hv 2>The following targets do not support @{<bold>%s@} and \
+         have been ignored:@ %a@]@,\
+         (this can be configured in %a)@]"
+        (string_of_backend backend)
+        pp_target_list t File.format "clerk.toml");
+    (* Check that targets have tests *)
+    let clerk_targets, no_tests_target =
+      List.partition_map
+        (fun t ->
+          if t.Config.ttests <> [] then Either.Left t else Either.Right t)
+        clerk_targets
+    in
+    (match no_tests_target with
+    | [] -> ()
+    | [t] ->
+      Message.warning "Target %a has no @{<bold>tests@} attached" pp_target_list
+        [t]
+    | ts ->
+      Message.warning "Targets %a have no @{<bold>tests@} attached"
+        pp_target_list ts);
+    clerk_targets
 
 let run_clerk_test
     config
@@ -1120,28 +1138,32 @@ let run_clerk_test
          @{<yellow>interpret@} backend"
     else if reset_test_outputs then
       Message.error
-        "@{<bold>--reset@} can only be supplied with the default \
+        "@{<cyan>--reset@} can only be supplied with the default \
          @{<yellow>interpret@} backend"
     else if report_format = `JUnitXML then
       Message.error
-        "Option @{<bold>--report-format=json@} was specified, but the output \
-         of a test report is only supported with the default \
-         @{<yellow>interpret@} backend at the moment"
+        "Option @{<cyan>--report-format=json@} was specified, but the output \
+         of a test report is only@ supported@ with@ the@ default@ \
+         @{<yellow>interpret@}@ backend@ at@ the@ moment"
     else if report_format = `VSCodeJSON then
       Message.error
-        "Option @{<bold>--report-format=vscode@} was specified, but the output \
-         of a test report is only supported with the default \
-         @{<yellow>interpret@} backend at the moment"
+        "Option @{<cyan>--report-format=vscode@} was specified, but the output \
+         of a test report is@ only@ supported@ with@ the@ default@ \
+         @{<yellow>interpret@}@ backend@ at@ the@ moment"
     else if code_coverage then
       Message.error
-        "Option @{<bold>--code-coverage@} was specified, but the measure of \
-         code coverage is only supported with the default \
-         @{<yellow>interpret@} backend. Please use a backend-specific coverage \
-         tool instead.";
+        "Option @{<cyan>--code-coverage@} was specified, but the measure of \
+         code coverage is only@ supported@ with@ the@ default@ \
+         @{<yellow>interpret@}@ backend.@ Please use a backend-specific \
+         coverage tool instead.";
   let { clerk_targets; others = files_or_folders } =
-    classify_targets config clerk_targets_or_files_or_folders
+    (* Check if the users gave a target in parameter, if not we assume that all
+       targets are involved. *)
+    match clerk_targets_or_files_or_folders with
+    | [] -> { clerk_targets = config.Cli.options.targets; others = [] }
+    | targets -> classify_targets config targets
   in
-  let () = check_clerk_targets_tests backend clerk_targets in
+  let clerk_targets = check_clerk_targets_tests backend clerk_targets in
   let files_or_folders =
     List.concat_map
       (fun t -> List.map File.clean_path t.Config.ttests)
@@ -1157,26 +1179,22 @@ let run_clerk_test
     ]
     |> normalize_backends
   in
+  let files_or_folders =
+    match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
+  in
   if backend <> `Interpret then
-    let files_or_folders =
-      match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
-    in
     Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
       ~ninja_flags ~autotest:true ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
     |> run_targets ~test:true config backend "" None None
   else
     let targets, missing =
-      let fs =
-        if files_or_folders = [] then [Filename.current_dir_name]
-        else files_or_folders
-      in
       List.partition_map
         File.(
           fun f ->
             if File.exists f then Either.Left (build_dir / f)
             else Either.Right f)
-        fs
+        files_or_folders
     in
     if missing <> [] then
       Message.error "@[<hv 2>Could not find files:@ @[<hov>%a@]@]"
@@ -1199,11 +1217,11 @@ let run_clerk_test
       let () =
         if report_format = `JUnitXML then
           Message.error
-            "Options @{<bold>--report-format=xml@} and @{<bold>--reset@} are \
+            "Options @{<cyan>--report-format=xml@} and @{<cyan>--reset@} are \
              incompatible";
         if report_format = `VSCodeJSON then
           Message.error
-            "Options @{<bold>--report-format=json@} and @{<bold>--reset@} are \
+            "Options @{<cyan>--report-format=json@} and @{<cyan>--reset@} are \
              incompatible";
         let ppf = Message.formatter_of_out_channel stdout () in
         match
