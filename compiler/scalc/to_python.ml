@@ -264,12 +264,12 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     Format.fprintf fmt "%a(%a.Code.%a,@ %a)" (format_enum ctx) enum_name
       (format_enum ctx) enum_name EnumConstructor.format cons
       (format_expression ctx) e
-  | EArray es ->
+  | EArray { elts; _ } ->
     Format.fprintf fmt "Array([@[<v>%a@]])"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
-      es
+      elts
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
   | EPosLit ->
     let pos = Mark.get e in

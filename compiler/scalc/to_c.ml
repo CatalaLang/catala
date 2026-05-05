@@ -686,7 +686,11 @@ let rec format_statement
            VarName.format fmt v))
       typ
   | SLocalDef
-      { name = v, _; expr = EArray locs, _; typ = TArray (TLit TPos, _), _ } ->
+      {
+        name = v, _;
+        expr = EArray { elts = locs; _ }, _;
+        typ = TArray (TLit TPos, _), _;
+      } ->
     let len = List.length locs in
     (* Nicer printing for the locations table *)
     Format.fprintf fmt
@@ -706,7 +710,7 @@ let rec format_statement
              Format.pp_print_space fmt ();
              VarName.format fmt v))
         ty
-  | SLocalDef { name = v, _; expr = EArray elts, _; _ } ->
+  | SLocalDef { name = v, _; expr = EArray { elts; _ }, _; _ } ->
     (* We detect array initializations which have special treatment. *)
     let size = List.length elts in
     if size <= 16 then
@@ -1020,7 +1024,7 @@ let format_code_item ctx ~ppc ~pph env = function
   | SVar
       {
         var;
-        expr = EArray locs, _;
+        expr = EArray { elts = locs; _ }, _;
         typ = TArray (TLit TPos, _), _;
         visibility = _;
       } ->

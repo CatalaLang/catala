@@ -20,7 +20,7 @@ public class Period_internal {
 
     public static class Globals {
 
-        public static final CatalaFunction<CatalaArray<CatalaTuple>, CatalaArray<CatalaTuple>> sort_
+        public static final CatalaFunction<CatalaArray<CatalaTuple>, CatalaArray<CatalaTuple>> sort
                 = p -> {
                     CatalaValue[] arr = (CatalaValue[]) p.asArray();
                     CatalaTuple[] sorted = new CatalaTuple[arr.length];
