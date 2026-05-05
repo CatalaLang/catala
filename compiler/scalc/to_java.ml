@@ -113,7 +113,7 @@ let java_keywords =
 let op_needs_pos (type a) (op : a Op.t) ty =
   match op with
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
-  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 ->
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | Sort _ ->
     true
   | Op.Eq | Lt | Lte | Gt | Gte -> (
     match ty with
@@ -186,12 +186,12 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | Reduce -> pp_print_string ppf "reduce"
   | Filter -> pp_print_string ppf "filter"
   | Find -> pp_print_string ppf "find"
-  | Sort `Asc -> pp_print_string ppf "sort_up"
-  | Sort `Desc -> pp_print_string ppf "sort_down"
+  | Sort `Asc -> pp_print_string ppf "sort_asc"
+  | Sort `Desc -> pp_print_string ppf "sort_desc"
   | Fold -> pp_print_string ppf "foldLeft"
   | HandleExceptions -> pp_print_string ppf "CatalaConflict.handleExceptions"
   | ArrayAccess _ -> fprintf ppf "get"
-  | ConstructorCheck _ -> failwith "TODO"
+  | ConstructorCheck _ -> assert false
   | ValueFromJson _ ->
     (* Handled in format_expression call *)
     Message.error ~internal:true "ValueFromJSON incorrectly reached"
@@ -280,9 +280,12 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
 let get_list_and_args_expr (op : Ast.operator Mark.pos) args =
   match Mark.remove op, args with
   | (Filter | Map), [f; l] -> l, [f]
-  | (Fold | Reduce), [f; f_dft; l] -> l, [f; f_dft]
+  | Fold, [f; f_dft; l] -> l, [f; f_dft]
+  | Reduce, [f; l] -> l, [f]
   | Map2, [pos; f; l1; l2] -> l1, [pos; f; l2]
   | Concat, [l1; l2] -> l1, [l2]
+  | Find, [f; l] -> l, [f]
+  | Sort _, [pos; f; l] -> l, [pos; f]
   | _ -> assert false
 
 let fill_struct_bindings
@@ -384,11 +387,11 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EInj { e1 = e; cons; name = enum_name; _ } ->
     fprintf ppf "%a.make%a(%a)" format_enum enum_name EnumConstructor.format
       cons (format_expression ctx) e
-  | EArray es ->
-    fprintf ppf "@[<hv 2>new CatalaArray<>@;<0 -1>(%a)@]"
+  | EArray { elts; ty } ->
+    fprintf ppf "@[<hv 2>new CatalaArray<%a>@;<0 -1>(%a)@]" (format_typ ctx) ty
       (pp_print_list ~pp_sep:pp_comma (fun ppf e ->
            fprintf ppf "%a" (format_expression ctx) e))
-      es
+      elts
   | ELit l -> fprintf ppf "%a" format_lit (Mark.copy e l)
   | EPosLit ->
     let pos = Mark.get e in
@@ -414,17 +417,23 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "%a.fromJSONString(%a ,%s)"
       (format_typ ~wildcard:false ~diamond:false ctx)
       ty (format_expression ctx) (EPosLit, p) encoded_string
-  | EAppOp { op = (HandleExceptions, _) as op; args = [(EArray exprs, _)]; _ }
-    ->
+  | EAppOp
+      {
+        op = (HandleExceptions, _) as op;
+        args = [(EArray { elts = exprs; _ }, _)];
+        _;
+      } ->
     fprintf ppf "@[<hv 2>%a@;<0 -1>(new CatalaArray<>(@ %a@ )@])" format_op op
       (pp_print_list ~pp_sep:pp_comma (fun ppf e -> format_expression ctx ppf e))
       exprs
-  | EAppOp { op = Concat, _; args = [(EArray [], _); e2]; _ } ->
+  | EAppOp { op = Concat, _; args = [(EArray { elts = []; _ }, _); e2]; _ } ->
     (* Do not append to empty list *)
     format_expression ctx ppf e2
   | EAppOp
       {
-        op = ((Map | Filter | Reduce | Fold | Map2 | Concat), _) as op;
+        op =
+          ((Map | Filter | Reduce | Fold | Map2 | Concat | Find | Sort _), _) as
+          op;
         args;
         _;
       } ->
@@ -455,6 +464,20 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "%a.%a(%d)"
       (format_expression_with_paren ctx)
       arg1 format_op op n
+  | EAppOp { op = ConstructorCheck (enum, case), _; args = [arg1]; _ } ->
+    if EnumName.equal enum Expr.option_enum then
+      if EnumConstructor.equal case Expr.none_constr then
+        fprintf ppf "CatalaBool.of(%a.isNone())"
+          (format_expression_with_paren ctx)
+          arg1
+      else
+        fprintf ppf "CatalaBool.of(%a.isSome())"
+          (format_expression_with_paren ctx)
+          arg1
+    else
+      fprintf ppf "%a.kind == %a.%a"
+        (format_expression_with_paren ctx)
+        arg1 format_enum enum EnumConstructor.format case
   | EAppOp { op; args = [arg1]; _ } ->
     fprintf ppf "%a.%a()" (format_expression_with_paren ctx) arg1 format_op op
   | EApp { f = EFunc fname, _; args; _ }

@@ -136,7 +136,12 @@ and translate_struct_literal ctxt expr =
     args_stmts, (A.ETuple new_args, Expr.pos expr), ren_ctx
   | EArray args ->
     let args_stmts, new_args, ren_ctx = translate_expr_list ctxt args in
-    args_stmts, (A.EArray new_args, Expr.pos expr), ren_ctx
+    let ty =
+      match Expr.ty expr with
+      | TArray ty, _ -> ty
+      | _ -> Type.universal (Expr.pos expr)
+    in
+    args_stmts, (A.EArray { elts = new_args; ty }, Expr.pos expr), ren_ctx
   | _ -> invalid_arg "translate_struct_literal"
 
 and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
@@ -176,13 +181,13 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
       {
         op = Op.HandleExceptions, pos;
         tys = [t_arr];
-        args = [(EArray exceptions, _)];
+        args = [((EArray exceptions, _) as arr)];
       } ->
     let stmts, new_exceptions, ren_ctx = translate_expr_list ctxt exceptions in
     let ctxt = { ctxt with ren_ctx } in
     let stmts, excs, ctxt =
       if not ctxt.config.no_struct_literals then
-        stmts, (A.EArray new_exceptions, pos), ctxt
+        stmts, (A.EArray { elts = new_exceptions; ty = Expr.ty arr }, pos), ctxt
       else
         let arr_var_name, ctxt =
           fresh_var ~pos ctxt ("exc_" ^ ctxt.context_name)
@@ -193,7 +198,8 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
                  {
                    name = arr_var_name, pos;
                    typ = t_arr;
-                   expr = A.EArray new_exceptions, pos;
+                   expr =
+                     A.EArray { elts = new_exceptions; ty = Expr.ty arr }, pos;
                  },
                pos )
         in
@@ -655,7 +661,13 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
       assert (_stmts = RevBlock.empty);
       let var_id, ctxt = register_fresh_var ctxt var ~pos in
       ( ctxt,
-        A.SVar { var = var_id; expr = A.EArray locs, pos; typ; visibility }
+        A.SVar
+          {
+            var = var_id;
+            expr = A.EArray { elts = locs; ty = TLit TPos, pos }, pos;
+            typ;
+            visibility;
+          }
         :: rev_items )
     | Topdef (name, topdef_ty, visibility, expr) ->
       (* Toplevel constant def *)
