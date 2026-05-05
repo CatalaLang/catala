@@ -1095,9 +1095,11 @@ let check_clerk_targets_tests backend clerk_targets =
       (* Print a friendly warning to specify the user that among the selected
          target some doesn't support the specified backend. *)
       Message.warning
-        "Backend @{<bold>%s@} is not supported by the following target(s): %a"
+        "@[<v>@[<hv 2>The following targets do not support @{<bold>%s@} and \
+         have been ignored:@ %a@]@,\
+         (this can be configured in %a)@]"
         (string_of_backend backend)
-        pp_target_list t);
+        pp_target_list t File.format "clerk.toml");
     (* Check that targets have tests *)
     let clerk_targets, no_tests_target =
       List.partition_map
@@ -1136,24 +1138,24 @@ let run_clerk_test
          @{<yellow>interpret@} backend"
     else if reset_test_outputs then
       Message.error
-        "@{<bold>--reset@} can only be supplied with the default \
+        "@{<cyan>--reset@} can only be supplied with the default \
          @{<yellow>interpret@} backend"
     else if report_format = `JUnitXML then
       Message.error
-        "Option @{<bold>--report-format=json@} was specified, but the output \
-         of a test report is only supported with the default \
-         @{<yellow>interpret@} backend at the moment"
+        "Option @{<cyan>--report-format=json@} was specified, but the output \
+         of a test report is only@ supported@ with@ the@ default@ \
+         @{<yellow>interpret@}@ backend@ at@ the@ moment"
     else if report_format = `VSCodeJSON then
       Message.error
-        "Option @{<bold>--report-format=vscode@} was specified, but the output \
-         of a test report is only supported with the default \
-         @{<yellow>interpret@} backend at the moment"
+        "Option @{<cyan>--report-format=vscode@} was specified, but the output \
+         of a test report is@ only@ supported@ with@ the@ default@ \
+         @{<yellow>interpret@}@ backend@ at@ the@ moment"
     else if code_coverage then
       Message.error
-        "Option @{<bold>--code-coverage@} was specified, but the measure of \
-         code coverage is only supported with the default \
-         @{<yellow>interpret@} backend. Please use a backend-specific coverage \
-         tool instead.";
+        "Option @{<cyan>--code-coverage@} was specified, but the measure of \
+         code coverage is only@ supported@ with@ the@ default@ \
+         @{<yellow>interpret@}@ backend.@ Please use a backend-specific \
+         coverage tool instead.";
   let { clerk_targets; others = files_or_folders } =
     (* Check if the users gave a target in parameter, if not we assume that all
        targets are involved. *)
@@ -1215,11 +1217,11 @@ let run_clerk_test
       let () =
         if report_format = `JUnitXML then
           Message.error
-            "Options @{<bold>--report-format=xml@} and @{<bold>--reset@} are \
+            "Options @{<cyan>--report-format=xml@} and @{<cyan>--reset@} are \
              incompatible";
         if report_format = `VSCodeJSON then
           Message.error
-            "Options @{<bold>--report-format=json@} and @{<bold>--reset@} are \
+            "Options @{<cyan>--report-format=json@} and @{<cyan>--reset@} are \
              incompatible";
         let ppf = Message.formatter_of_out_channel stdout () in
         match
