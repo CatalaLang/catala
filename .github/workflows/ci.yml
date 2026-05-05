@@ -166,7 +166,7 @@ jobs:
         if: ${{ always() }}
         run: |
           cd ~/catala-examples
-          opam exec -- clerk report --xml _build/clerk_tests/*@test _build/clerk_tests/test-*/*@test >report.junit.xml
+          opam exec -- clerk report --xml _build/clerk_tests/*/*@test _build/clerk_tests/test-*/*/*@test >report.junit.xml
       - name: Test Summary
         uses: test-summary/action@v2
         with:
