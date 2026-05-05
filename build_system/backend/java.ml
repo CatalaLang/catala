@@ -19,6 +19,25 @@ open Clerk_utils
 open Catala_utils
 open File
 
+type Clerk_lib.Clerk_config.backend_config +=
+  | Java_config of { package_prefix : string option }
+
+let java_config =
+  let open Clerk_lib.Clerk_toml_encoding in
+  conv
+    (function
+      | Java_config { package_prefix; _ } -> package_prefix
+      | _ ->
+        Message.error ~internal:true
+          "Unexpected non-java configuration while encoding backend \
+           configuration")
+    (fun package_prefix -> Java_config { package_prefix })
+    (obj1 (opt_field ~name:"package-prefix" string))
+
+let () =
+  Clerk_lib.Clerk_config.(
+    register_backend_config ~name:"java" ~backend:Java java_config)
+
 let catala_flags_java = Var.make "CATALA_FLAGS_JAVA"
 let javac = Var.make "JAVAC"
 let javac_flags = Var.make "JAVAC_FLAGS"

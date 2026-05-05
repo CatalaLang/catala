@@ -33,7 +33,6 @@ let () =
   register_backend ~name:"python" Python
 
 type backend_config = ..
-type backend_config += Java_config of { package_prefix : string option }
 
 let registered_backend_configs : (backend * backend_config) case list ref =
   ref []
@@ -54,18 +53,6 @@ let register_backend_config
   registered_backend_configs :=
     backend_descr_case :: !registered_backend_configs
 
-let java_config : backend_config descr =
-  conv
-    (function
-      | Java_config { package_prefix; _ } -> package_prefix
-      | _ ->
-        Message.error ~internal:true
-          "Unexpected non-java configuration while encoding backend \
-           configuration")
-    (fun package_prefix -> Java_config { package_prefix })
-    (obj1 (opt_field ~name:"package-prefix" string))
-
-let () = register_backend_config ~name:"java" ~backend:Java java_config
 let registered_backends () = !registered_backends
 let registered_backend_configs () = !registered_backend_configs
 

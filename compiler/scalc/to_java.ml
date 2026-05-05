@@ -1304,10 +1304,6 @@ let format_program
     ppf
     (p : Ast.program) : unit =
   Format.pp_open_vbox ppf 0;
-  let stdlib_package =
-    Format.sprintf "package %scatala.stdlib;"
-      (match package_prefix with None -> "" | Some p -> p ^ ".")
-  in
   let header =
     (if Global.options.gen_external then
        [
@@ -1325,7 +1321,7 @@ let format_program
           */";
          "";
        ])
-    @ (if is_stdlib then [stdlib_package; ""]
+    @ (if is_stdlib then ["package catala.stdlib;"; ""]
        else
          match package_prefix with
          | Some p -> [Format.sprintf "package %s;" p; ""]
