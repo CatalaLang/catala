@@ -32,9 +32,8 @@ val base_bindings :
 val run_ninja :
   ?include_dir:bool ->
   config:Clerk_cli.config ->
-  ?tests:bool ->
-  ?enabled_backends:backend list ->
   quiet:bool ->
+  ?tests:bool ->
   code_coverage:bool ->
   autotest:bool ->
   ?clean_up_env:bool ->

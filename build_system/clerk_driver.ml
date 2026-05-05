@@ -102,9 +102,6 @@ let backend_subdir_list =
 let normalize_backends : Clerk_rules.backend list -> Clerk_rules.backend list =
   List.sort_uniq Stdlib.compare
 
-let subdir_backend_list =
-  List.map (fun (bk, dir) -> dir, bk) backend_subdir_list
-
 let backend_subdir bk = List.assoc bk backend_subdir_list
 
 let rule_subdir rule =
@@ -148,28 +145,6 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
                (Var.make (String.sub s 1 (String.length s - 1)))
            else [Var.expand_vars var_bindings s])
          rule.Config.commandline
-
-let target_backend config t =
-  let aux ext =
-    try List.assoc ext extensions_backend
-    with Not_found -> (
-      if ext = "" then Message.error "Target without extension: @{<red>%S@}" t
-      else
-        match
-          List.find_opt
-            (fun rule -> List.mem ext rule.Config.out_exts)
-            config.Config.custom_rules
-        with
-        | Some rule -> Clerk_rules.backend_from_config rule.Config.backend
-        | None ->
-          Message.error
-            "Unhandled extension @{<red;bold>%s@} for target @{<red>%S@}" ext t)
-  in
-  match File.extension t with
-  | "exe" -> (
-    try List.assoc File.(basename (dirname t)) subdir_backend_list
-    with Not_found -> Clerk_rules.OCaml)
-  | ext -> aux ext
 
 let rules_backend = function
   | Clerk_rules.OCaml -> `OCaml
@@ -277,8 +252,8 @@ let build_clerk_target
     |> normalize_backends
   in
   let install_targets, all_modules_deps =
-    Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
-      ~ninja_flags ~quiet ~autotest:false
+    Clerk_rules.run_ninja ~code_coverage:false ~config ~ninja_flags ~quiet
+      ~autotest:false
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
       try
@@ -448,19 +423,8 @@ let build_direct_targets
           else File.(build_dir / t))
         direct_targets
     in
-    let backends = if autotest then [Clerk_rules.OCaml] else [] in
-    let enabled_backends =
-      List.fold_left
-        (fun acc t ->
-          match File.extension t with
-          | "" -> Clerk_rules.OCaml :: acc
-          | _ -> target_backend config.options t :: acc)
-        backends direct_targets
-      |> normalize_backends
-    in
     let ninja_targets, exec_targets, var_bindings, link_deps =
-      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ~quiet
-        ~ninja_flags ~autotest
+      Clerk_rules.run_ninja ~code_coverage ~config ~quiet ~ninja_flags ~autotest
       @@ fun nin_ppf items var_bindings ->
       let link_deps = linking_dependencies items in
       let build_dir = config.Cli.options.global.build_dir in
@@ -893,9 +857,8 @@ let run_cmd =
       | _ -> true
     in
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
-    Clerk_rules.run_ninja ~config ~code_coverage:false
-      ~enabled_backends:[enable_backend backend]
-      ~ninja_flags ~autotest:false ~quiet
+    Clerk_rules.run_ninja ~config ~code_coverage:false ~ninja_flags
+      ~autotest:false ~quiet
       (build_test_deps ~config ~backend ~test_only files_or_folders)
     |> fun tests ->
     if prepare_only then Cmd.Exit.ok
@@ -987,8 +950,8 @@ let typecheck_cmd =
     in
     let exception Nothing_to_do in
     match
-      Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends:[]
-        ~autotest:false ~ninja_flags ~quiet (fun nin_ppf items var_bindings ->
+      Clerk_rules.run_ninja ~code_coverage:false ~config ~autotest:false
+        ~ninja_flags ~quiet (fun nin_ppf items var_bindings ->
           let target_items = retrieve_typecheck_items items files_or_folders in
           if target_items = [] then
             (* Prevents [run_ninja] to fail miserably with an obscure error *)
@@ -1068,30 +1031,46 @@ let check_clerk_targets_tests backend clerk_targets =
         (fun fmt t -> fprintf fmt "@{<cyan>[%s]@}" t.Config.tname))
       fmt ts
   in
-  (if backend = `Interpret then ()
-   else
-     List.filter
-       (fun t ->
-         List.map Clerk_rules.backend_from_config t.Config.backends
-         |> List.mem enabled_backend
-         |> not)
-       clerk_targets
-     |> function
-     | [] -> ()
-     | t ->
-       Message.error
-         "Backend @{<bold>%s@} is not supported by the following target(s): %a"
-         (string_of_backend backend)
-         pp_target_list t);
-  (* Check that targets have tests *)
-  List.filter (fun t -> t.Config.ttests = []) clerk_targets
-  |> function
-  | [] -> ()
-  | [t] ->
-    Message.error "Target %a has no @{<bold>tests@} attached" pp_target_list [t]
-  | ts ->
-    Message.error "Targets { %a } have no @{<bold>tests@} attached"
-      pp_target_list ts
+  if backend = `Interpret then clerk_targets
+  else
+    let clerk_targets, invalid_targets =
+      List.partition_map
+        (fun t ->
+          (* Retrieve the backends of a target and verify if the target is
+             affected by the command (the target is affected if the enabled
+             backend is supported by the target)*)
+          let backends =
+            List.map Clerk_rules.backend_from_config t.Config.backends
+          in
+          if List.mem enabled_backend backends then Either.Left t
+          else Either.right t)
+        clerk_targets
+    in
+    (match invalid_targets with
+    | [] -> ()
+    | t ->
+      (* Print a friendly warning to specify the user that among the selected
+         target some doesn't support the specified backend. *)
+      Message.warning
+        "Backend @{<bold>%s@} is not supported by the following target(s): %a"
+        (string_of_backend backend)
+        pp_target_list t);
+    (* Check that targets have tests *)
+    let clerk_targets, no_tests_target =
+      List.partition_map
+        (fun t ->
+          if t.Config.ttests <> [] then Either.Left t else Either.Right t)
+        clerk_targets
+    in
+    (match no_tests_target with
+    | [] -> ()
+    | [t] ->
+      Message.warning "Target %a has no @{<bold>tests@} attached" pp_target_list
+        [t]
+    | ts ->
+      Message.warning "Targets %a have no @{<bold>tests@} attached"
+        pp_target_list ts);
+    clerk_targets
 
 let run_clerk_test
     config
@@ -1133,9 +1112,13 @@ let run_clerk_test
          @{<yellow>interpret@} backend. Please use a backend-specific coverage \
          tool instead.";
   let { clerk_targets; others = files_or_folders } =
-    classify_targets config clerk_targets_or_files_or_folders
+    (* Check if the users gave a target in parameter, if not we assume that all
+       targets are involved. *)
+    match clerk_targets_or_files_or_folders with
+    | [] -> { clerk_targets = config.Cli.options.targets; others = [] }
+    | targets -> classify_targets config targets
   in
-  let () = check_clerk_targets_tests backend clerk_targets in
+  let clerk_targets = check_clerk_targets_tests backend clerk_targets in
   let files_or_folders =
     List.concat_map
       (fun t -> List.map File.clean_path t.Config.ttests)
@@ -1143,34 +1126,22 @@ let run_clerk_test
     @ List.map config.Cli.fix_path files_or_folders
     |> List.sort_uniq String.compare
   in
-  let enabled_backends =
-    [
-      enable_backend backend
-      (* Clerk_rules.OCaml backend is required as autotest flag is true *);
-      Clerk_rules.OCaml;
-    ]
-    |> normalize_backends
+  let files_or_folders =
+    match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
   in
   if backend <> `Interpret then
-    let files_or_folders =
-      match files_or_folders with [] -> [Filename.current_dir_name] | fs -> fs
-    in
-    Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
-      ~ninja_flags ~autotest:true ~clean_up_env:true
+    Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~ninja_flags
+      ~autotest:true ~clean_up_env:true
       (build_test_deps ~config ~backend files_or_folders)
     |> run_targets ~test:true config backend "" None None
   else
     let targets, missing =
-      let fs =
-        if files_or_folders = [] then [Filename.current_dir_name]
-        else files_or_folders
-      in
       List.partition_map
         File.(
           fun f ->
             if File.exists f then Either.Left (build_dir / f)
             else Either.Right f)
-        fs
+        files_or_folders
     in
     if missing <> [] then
       Message.error "@[<hv 2>Could not find files:@ @[<hov>%a@]@]"
@@ -1179,9 +1150,8 @@ let run_clerk_test
            Format.pp_print_string)
         missing;
     let test_targets =
-      Clerk_rules.run_ninja ~code_coverage ~config ~tests:true ~enabled_backends
-        ~ninja_flags ~autotest:false ~quiet ~clean_up_env:true
-        (fun nin_ppf _items _vars ->
+      Clerk_rules.run_ninja ~code_coverage ~config ~tests:true ~ninja_flags
+        ~autotest:false ~quiet ~clean_up_env:true (fun nin_ppf _items _vars ->
           (* FIXME: remove and warn about files that have no @tests rule *)
           let test_targets = List.map (fun f -> f ^ "@test") targets in
           Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
@@ -1331,7 +1301,7 @@ let start_cmd =
         enabled_backends
     in
     Clerk_rules.run_ninja ~include_dir:false ~code_coverage:false ~quiet ~config
-      ~enabled_backends ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
+      ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
         Nj.format_def nin_ppf (Nj.Default (Nj.Default.make default));
         0)
   in
@@ -1479,8 +1449,8 @@ let list_vars_cmd =
 let json_schema_cmd =
   let run config ninja_flags quiet file scope =
     let file = config.Cli.fix_path file in
-    Clerk_rules.run_ninja ~config ~code_coverage:false ~enabled_backends:[OCaml]
-      ~ninja_flags ~autotest:false ~quiet
+    Clerk_rules.run_ninja ~config ~code_coverage:false ~ninja_flags
+      ~autotest:false ~quiet
       (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
     |> fun (items, _link_deps, var_bindings) ->
     let catala_exe = Var.get_var var_bindings Var.catala_exe in

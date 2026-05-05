@@ -268,12 +268,11 @@ let gen_build_statements_dir
     (dir : string)
     (include_dirs : string list)
     ~(tests : bool)
-    (enabled_backends : backend list)
     (autotest : bool)
-    (items : Scan.item list) : Nj.ninja =
+    (items : (Scan.item * backend list) list) : Nj.ninja =
   let same_dir_modules =
     List.filter_map
-      (fun item ->
+      (fun (item, _) ->
         Option.map
           (fun name -> Mark.remove name, item.Scan.file_name)
           item.Scan.module_def)
@@ -291,7 +290,11 @@ let gen_build_statements_dir
         File.format (File.basename s)
     | None -> String.Map.add s fname seen
   in
-  let _names = List.fold_left check_conflicts String.Map.empty items in
+  let _names =
+    List.fold_left
+      (fun acc (item, _) -> check_conflicts acc item)
+      String.Map.empty items
+  in
   let dir =
     if Filename.is_relative dir (* Detect stdlib modules *) then dir
     else Scan.libcatala
@@ -303,8 +306,9 @@ let gen_build_statements_dir
   @@ Seq.cons (Nj.comment "")
   @@ Seq.cons (Nj.binding Var.tdir [!Var.builddir / dir])
   @@ Seq.flat_map
-       (gen_build_statements ~tests ~is_stdlib include_dirs enabled_backends
-          autotest same_dir_modules)
+       (fun (item, enabled_backends) ->
+         gen_build_statements ~tests ~is_stdlib include_dirs enabled_backends
+           autotest same_dir_modules item)
        (List.to_seq items)
 
 let dir_test_rules dir subdirs items =
@@ -320,7 +324,7 @@ let dir_test_rules dir subdirs items =
     List.rev_append
       (List.rev_map (fun s -> (Var.(!builddir) / s) ^ "@test") subdirs)
       (List.filter_map
-         (fun item ->
+         (fun (item, _) ->
            if
              not
                (item.Scan.has_inline_tests
@@ -364,7 +368,6 @@ let output_ninja_file_item_statements
     nin_ppf
     ~config
     ~tests
-    ~enabled_backends
     ~autotest
     ~is_stdlib
     item_tree
@@ -374,8 +377,7 @@ let output_ninja_file_item_statements
     | Seq.Cons ((dir, subdirs, items), seq) ->
       Nj.format nin_ppf
       @@ gen_build_statements_dir dir ~tests ~is_stdlib
-           config.Clerk_cli.options.global.include_dirs enabled_backends
-           autotest items;
+           config.Clerk_cli.options.global.include_dirs autotest items;
       if (not is_stdlib) && tests then
         Nj.format nin_ppf @@ dir_test_rules dir subdirs items;
       Seq.append (List.to_seq items) (print_and_get_items seq) ()
@@ -399,13 +401,13 @@ let output_ninja_file
   output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings;
   pp (Nj.Comment "\n- Standard library build statements - #");
   Seq.memoize
-  @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~enabled_backends
-       ~autotest ~is_stdlib:true stdlib_tree
+  @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~autotest
+       ~is_stdlib:true stdlib_tree
   @@ Seq.append (fun () ->
       pp (Nj.Comment "\n- Project-specific build statements - #");
       Seq.Nil)
-  @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~enabled_backends
-       ~autotest ~is_stdlib:false project_tree
+  @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~autotest
+       ~is_stdlib:false project_tree
   @@ fun () ->
   pp (Nj.Comment "\n- Global rules and defaults - #\n");
   if tests then
@@ -538,26 +540,88 @@ let with_ninja_process
     wait ();
     callback_ret
 
+let backends_per_item (targets : Clerk_config.target list) items =
+  let modules =
+    Seq.fold_left
+      (fun acc (_dir, _sub_dirs, it_list) ->
+        List.fold_left
+          (fun acc it ->
+            match it.Scan.module_def with
+            | Some m -> String.Map.add (Mark.remove m) it acc
+            | None -> acc)
+          acc it_list)
+      String.Map.empty items
+  in
+  let targets =
+    List.concat_map
+      (fun t ->
+        List.map
+          (fun mname -> String.Map.find mname modules, t.Clerk_config.backends)
+          t.Clerk_config.tmodules)
+      targets
+  in
+  let rem_dups l =
+    let rec aux seen = function
+      | it :: r ->
+        if String.Set.mem it.Scan.file_name seen then aux seen r
+        else it :: aux (String.Set.add it.Scan.file_name seen) r
+      | [] -> []
+    in
+    aux String.Set.empty l
+  in
+  let get_deps item =
+    let rec traverse acc item =
+      List.fold_left
+        (fun acc m ->
+          match String.Map.find_opt (Mark.remove m) modules with
+          | None -> acc
+          | Some it -> traverse (it :: acc) it)
+        acc item.Scan.used_modules
+    in
+    rem_dups (traverse [] item)
+  in
+  let backends =
+    List.fold_left
+      (fun acc (target, backends) ->
+        let acc = String.Map.add target.Scan.file_name backends acc in
+        let deps = get_deps target in
+        List.fold_left
+          (fun acc dep ->
+            match String.Map.find_opt dep.Scan.file_name acc with
+            | None -> String.Map.add dep.Scan.file_name backends acc
+            | Some b ->
+              String.Map.add dep.Scan.file_name
+                (List.sort_uniq Stdlib.compare (backends @ b))
+                acc)
+          acc deps)
+      String.Map.empty targets
+  in
+  Seq.map
+    (fun (dir, sub_dir, items) ->
+      let items =
+        List.map
+          (fun it ->
+            ( it,
+              List.map backend_from_config
+                (Option.value ~default:[]
+                @@ String.Map.find_opt it.Scan.file_name backends) ))
+          items
+      in
+      dir, sub_dir, items)
+    items
+
 let run_ninja
     ?(include_dir = true)
     ~config
-    ?(tests = false)
-    ?(enabled_backends = all_backends)
     ~quiet
+    ?(tests = false)
     ~code_coverage
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
-  let var_bindings =
-    base_bindings ~code_coverage ~config ~enabled_backends ~autotest
-  in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet (fun nin_ppf ->
       let insource = Lazy.force Poll.catala_source_tree_root <> None in
-      let stdlib_dir = Lazy.force Poll.stdlib_dir in
-      let stdlib_tree =
-        Scan.tree stdlib_dir |> Seq.map (fun (f, fl, items) -> f, fl, items)
-      in
       let item_tree = if include_dir then Scan.tree "." else Seq.empty in
       let item_tree =
         item_tree
@@ -611,10 +675,30 @@ let run_ninja
               in
               Some (f, fl, items))
       in
+      let item_tree = backends_per_item config.options.targets item_tree in
+      let enabled_backends =
+        List.concat_map
+          (fun target ->
+            List.map backend_from_config target.Clerk_config.backends)
+          config.options.targets
+        |> List.sort_uniq Stdlib.compare
+      in
+      let stdlib_dir = Lazy.force Poll.stdlib_dir in
+      let stdlib_tree =
+        Scan.tree stdlib_dir
+        |> Seq.map (fun (f, fl, items) ->
+            f, fl, List.map (fun it -> it, enabled_backends) items)
+      in
+
+      let var_bindings =
+        base_bindings ~code_coverage ~config ~enabled_backends ~autotest
+      in
       let items =
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
           ~var_bindings stdlib_tree item_tree
       in
-      let ret = callback nin_ppf (List.of_seq items) var_bindings in
+      let ret =
+        callback nin_ppf (List.map fst (List.of_seq items)) var_bindings
+      in
       Format.pp_print_newline nin_ppf ();
       ret)
