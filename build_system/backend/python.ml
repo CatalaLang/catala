@@ -66,6 +66,12 @@ module Backend = struct
   open File
   module Nj = Ninja_utils
 
+  let name = "python"
+  let module_ext = ".py"
+  let src_extensions = ["py"]
+  let obj_extensions = []
+  let runtime_targets ~only_source:_ = ["@runtime-" ^ name]
+
   module Flags = struct
     let default
         ~variables
@@ -87,35 +93,35 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-python"
-        ~command:[!catala_exe; "python"; !catala_flags; !catala_flags_python;
+        ~command:[!catala_exe; name; !catala_flags; !catala_flags_python;
                   "-o"; !output; "--"; !input]
-        ~description:["<catala>"; "python"; "⇒"; !output];
+        ~description:["<catala>"; name; "⇒"; !output];
     ]
 
   let external_copy item =
     let catala_src = !Var.tdir / !Var.src in
     let py, missing =
-      Ninja.extern_src ~filename:item.Scan.file_name ~backend:"python" ~ext:"py"
+      Ninja.extern_src ~filename:item.Scan.file_name ~backend:name ~ext:"py"
         ~missing:[]
     in
-    Ninja.check_missing ~backend:"python" ~module_def:item.Scan.module_def
-      ~missing ~filename:item.Scan.file_name;
+    Ninja.check_missing ~backend:name ~module_def:item.Scan.module_def ~missing
+      ~filename:item.Scan.file_name;
     List.to_seq
       [
         Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[py]
-          ~outputs:[Ninja.target ~backend:"python" "py"];
+          ~outputs:[Ninja.target ~backend:name "py"];
       ]
 
-  let modfile ~is_stdlib:_ = Ninja.modfile ~backend:"python"
+  let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
 
   let runtime_build_statements ~options:_ ~stdbase =
-    let python_base = stdbase / "python" / "catala_runtime" in
-    let python_src = Var.(!runtime) / "python" / "src" / "catala" in
+    let python_base = stdbase / name / "catala_runtime" in
+    let python_src = Var.(!runtime) / name / "src" / "catala" in
     [
       Nj.build "phony"
         ~inputs:
           [python_base -.- "py"; python_base /../ "dates.py"; Var.(!catala_exe)]
-        ~outputs:["@runtime-python"];
+        ~outputs:["@runtime-" ^ name];
       Nj.build "copy"
         ~inputs:[python_src / "dates.py"]
         ~outputs:[python_base /../ "dates.py"];
@@ -127,7 +133,7 @@ module Backend = struct
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in _has_scope_tests =
     Seq.return
       (Nj.build "catala-python" ?vars ~inputs ~implicit_in
-         ~outputs:[Ninja.target ~backend:"python" "py"])
+         ~outputs:[Ninja.target ~backend:name "py"])
 
   let build_object ~include_dirs:_ ~same_dir_modules:_ ~item:_ _has_scope_tests
       =
@@ -136,5 +142,5 @@ module Backend = struct
   let expose_module ~same_dir_modules:_ ~used_modules:_ = []
 
   let runtime_dir : File.t Lazy.t =
-    lazy File.(Lazy.force Poll.runtime_dir / "python" / "src" / "catala")
+    lazy File.(Lazy.force Poll.runtime_dir / name / "src" / "catala")
 end

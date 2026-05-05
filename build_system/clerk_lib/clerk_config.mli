@@ -20,6 +20,7 @@ type backend = ..
 type backend += C | OCaml | Java | Python
 
 val register_backend : name:string -> backend -> unit
+val registered_backends : unit -> (string * backend) list
 
 type doc_backend = Html | Latex
 
