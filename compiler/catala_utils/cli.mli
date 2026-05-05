@@ -88,6 +88,9 @@ module Flags : sig
 
   val output_format : format_enum Term.t
   (** Exported for clerk usage *)
+
+  val java_package_prefix : string option Term.t
+  (** for the 'java' command *)
 end
 
 (** {2 Command-line application} *)

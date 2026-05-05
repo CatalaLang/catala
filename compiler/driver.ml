@@ -1122,7 +1122,8 @@ module Commands = struct
       _optimize
       check_invariants
       autotest
-      closure_conversion =
+      closure_conversion
+      _package_prefix_opt =
     let options = fix_trace options in
     let optimize =
       (* javac has a limit on bytecode statement per method, without
@@ -1174,7 +1175,8 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest
-        $ Cli.Flags.closure_conversion)
+        $ Cli.Flags.closure_conversion
+        $ Cli.Flags.java_package_prefix)
 
   let c options includes stdlib output optimize check_invariants autotest =
     let options = fix_trace options in

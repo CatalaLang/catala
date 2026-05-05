@@ -647,6 +647,12 @@ module Flags = struct
            schema for a given scope."
 
   let output_format = Global.output_format
+
+  let java_package_prefix =
+    value
+    & opt (some string) None
+    & info ["--package-prefix"] ~docv:"PREFIX" ~docs:Manpage.s_arguments
+        ~doc:"Prefix the generated package name of Java files."
 end
 
 (* Retrieve current version from dune *)
