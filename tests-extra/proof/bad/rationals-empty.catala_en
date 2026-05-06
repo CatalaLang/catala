@@ -15,7 +15,7 @@ $ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterex
 ┌─[WARNING]─
 │
 │  [A.y] This variable might return an empty error:
-─➤ tests-extra/proof/bad/rationals-empty.catala_en:6.10-6.11:
+─➤ tests-extra/proof/bad/rationals-empty.catala_en:6.10-11:
   │
 6 │   output y content boolean
   │          ‾

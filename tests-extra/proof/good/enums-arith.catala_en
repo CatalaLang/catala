@@ -28,7 +28,7 @@ $ catala Typecheck --check-invariants
 │  The constructor "C" of enumeration "T" is never used;
 │  maybe it's unnecessary?
 │
-├─➤ tests-extra/proof/good/enums-arith.catala_en:5.7-5.8:
+├─➤ tests-extra/proof/good/enums-arith.catala_en:5.7-8:
 │   │
 │ 5 │    -- C content boolean
 │   │       ‾
@@ -48,7 +48,7 @@ $ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterex
 │  The constructor "C" of enumeration "T" is never used;
 │  maybe it's unnecessary?
 │
-├─➤ tests-extra/proof/good/enums-arith.catala_en:5.7-5.8:
+├─➤ tests-extra/proof/good/enums-arith.catala_en:5.7-8:
 │   │
 │ 5 │    -- C content boolean
 │   │       ‾

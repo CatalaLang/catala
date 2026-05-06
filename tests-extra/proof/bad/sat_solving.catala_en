@@ -43,7 +43,7 @@ $ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterex
 ┌─[WARNING]─
 │
 │  [A.x10] This variable might return an empty error:
-─➤ tests-extra/proof/bad/sat_solving.catala_en:15.10-15.13:
+─➤ tests-extra/proof/bad/sat_solving.catala_en:15.10-13:
    │
 15 │   output x10 content boolean
    │          ‾‾‾
