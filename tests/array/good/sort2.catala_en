@@ -29,51 +29,10 @@ scope Tsort1:
 ```catala-test-cli
 $ catala test-scope Tsort1
 ┌─[RESULT]─ Tsort1 ─
-│ o1 = []
-│ o2 =
-│   [(Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1)]
-│ o3 =
-│   [
-│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1);
-│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 2)
-│   ]
-│ o4 =
-│   [
-│     (
-│       Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| },
-│       $1.00
-│     );
-│     (
-│       Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| },
-│       $2.00
-│     );
-│     (
-│       Period_en.Period { -- begin: |2020-04-01| -- end: |1999-01-01| },
-│       $3.00
-│     );
-│     (
-│       Period_en.Period { -- begin: |2020-06-01| -- end: |2020-01-10| },
-│       $400.00
-│     );
-│     (
-│       Period_en.Period { -- begin: |2020-11-01| -- end: |2020-01-10| },
-│       $5.00
-│     );
-│     (
-│       Period_en.Period { -- begin: |2020-11-02| -- end: |2020-01-10| },
-│       $6.00
-│     );
-│     (
-│       Period_en.Period { -- begin: |2020-12-01| -- end: |2020-01-10| },
-│       $7.00
-│     )
-│   ]
-│ o5 =
-│   [
-│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-03| }, 2.0);
-│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-04| }, 1.0);
-│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 4.0);
-│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-12| }, 3.0)
-│   ]
+│ o1 = [(Absent, 2); (Absent, 3); (Absent, 4)]
+│ o2 = [(Absent, 4); (Absent, 2); (Absent, 3)]
+│ o3 = [(Absent, 2); (Absent, 3); (Absent, 4)]
+│ o4 = [(Absent, 4); (Absent, 2); (Absent, 3)]
+│ o5 = []
 └─
 ```

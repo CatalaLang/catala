@@ -272,7 +272,7 @@ $ catala typecheck
 │
 │  No scope named Scope0 found
 │
-├─➤ doc/syntax/syntax_en.catala_en:105.14-105.20:
+├─➤ doc/syntax/syntax_en.catala_en:105.14-20:
 │     │
 │ 105 │   sub1 scope Scope0
 │     │              ‾‾‾‾‾‾
@@ -281,7 +281,7 @@ $ catala typecheck
 │
 │  "x": unknown identifier for a variable of scope Scope1
 │
-├─➤ doc/syntax/syntax_en.catala_en:177.14-177.15:
+├─➤ doc/syntax/syntax_en.catala_en:177.14-15:
 │     │
 │ 177 │   definition x equals 0
 │     │              ‾
@@ -290,7 +290,7 @@ $ catala typecheck
 │
 │  "var1": unknown identifier for a variable of scope Scope1
 │
-├─➤ doc/syntax/syntax_en.catala_en:182.14-182.18:
+├─➤ doc/syntax/syntax_en.catala_en:182.14-18:
 │     │
 │ 182 │   definition var1 equals 0
 │     │              ‾‾‾‾
