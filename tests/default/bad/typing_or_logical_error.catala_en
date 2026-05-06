@@ -19,7 +19,7 @@ $ catala test-scope A
 │  Those are valid at this point: ".", "under condition", "equals", "state",
 │  "of".
 │
-├─➤ tests/default/bad/typing_or_logical_error.catala_en:8.30-8.31:
+├─➤ tests/default/bad/typing_or_logical_error.catala_en:8.30-31:
 │   │
 │ 8 │  definition wrong_definition = 1
 │   │                              ‾

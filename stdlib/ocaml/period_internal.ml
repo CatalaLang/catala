@@ -4,7 +4,7 @@ module Dates = Dates_calc
 let cmp = Dates.compare_dates
 
 (* Toplevel def sort *)
-let sort : ((date * date) * 'a) array -> ((date * date) * 'a) array =
+let sort_ : ((date * date) * 'a) array -> ((date * date) * 'a) array =
  fun arr ->
   let ret = Array.copy arr in
   Array.stable_sort (fun ((beg1, _), _) ((beg2, _), _) -> cmp beg1 beg2) ret;
@@ -50,7 +50,7 @@ let split_by_year : integer -> date * date -> (date * date) array =
 let () =
   Catala_runtime.register_module "Period_internal"
     [
-      "sort", Obj.repr sort;
+      "sort_", Obj.repr sort_;
       "split_by_month", Obj.repr split_by_month;
       "split_by_year", Obj.repr split_by_year;
     ]

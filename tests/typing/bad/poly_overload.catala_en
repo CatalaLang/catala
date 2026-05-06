@@ -17,7 +17,7 @@ $ catala typecheck
 │  Comparison cannot be resolved at this point: the type of the operands is
 │  not fully known.
 │
-├─➤ tests/typing/bad/poly_overload.catala_en:6.13-6.19:
+├─➤ tests/typing/bad/poly_overload.catala_en:6.13-19:
 │   │
 │ 6 │   equals if x <= y then x else y
 │   │             ‾‾‾‾‾‾
@@ -26,13 +26,13 @@ $ catala typecheck
 │
 │  In this application of operator +, the type of an operand is unknown
 │
-├─➤ tests/typing/bad/poly_overload.catala_en:9.3-9.17:
+├─➤ tests/typing/bad/poly_overload.catala_en:9.3-17:
 │   │
 │ 9 │   3 + impossible
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │
 │ Undetermined type <any type> coming from expression:
-├─➤ tests/typing/bad/poly_overload.catala_en:9.5-9.6:
+├─➤ tests/typing/bad/poly_overload.catala_en:9.5-6:
 │   │
 │ 9 │   3 + impossible
 │   │     ‾

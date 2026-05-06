@@ -30,14 +30,14 @@ $ catala test-scope A
 ├─ Test
 │
 │ Candidate definition
-├─➤ tests/exception/bad/ambiguous_unlabeled_exception.catala_en:10.14-10.15:
+├─➤ tests/exception/bad/ambiguous_unlabeled_exception.catala_en:10.14-15:
 │    │
 │ 10 │   definition x equals 1
 │    │              ‾
 ├─ Test
 │
 │ Candidate definition
-├─➤ tests/exception/bad/ambiguous_unlabeled_exception.catala_en:8.14-8.15:
+├─➤ tests/exception/bad/ambiguous_unlabeled_exception.catala_en:8.14-15:
 │   │
 │ 8 │   definition x equals 0
 │   │              ‾

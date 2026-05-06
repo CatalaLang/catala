@@ -21,14 +21,14 @@ $ catala Typecheck
 │  This subscope variable is a mandatory input but no definition was provided.
 │
 │ Incriminated subscope:
-├─➤ tests/io/bad/forgot_input.catala_en:9.3-9.4:
+├─➤ tests/io/bad/forgot_input.catala_en:9.3-4:
 │   │
 │ 9 │   a scope A
 │   │   ‾
 ├─ Test
 │
 │ Incriminated variable:
-├─➤ tests/io/bad/forgot_input.catala_en:6.9-6.10:
+├─➤ tests/io/bad/forgot_input.catala_en:6.9-10:
 │   │
 │ 6 │   input x content integer
 │   │         ‾

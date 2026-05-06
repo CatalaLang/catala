@@ -165,7 +165,7 @@ déclaration tri_par_date
   égal à
     soit tuple_associated_list égal à vers_tuple_liste_associée de l dans
     soit sorted_tuple_associated_list égal à
-      Period_internal.sort de tuple_associated_list
+      Period_internal.sort_ de tuple_associated_list
     dans
     depuis_tuple_liste_associée de sorted_tuple_associated_list
 ```

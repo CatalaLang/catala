@@ -13,12 +13,12 @@ $ catala typecheck
 │  Please add parentheses to explicit which of these operators should be
 │  applied first.
 │
-├─➤ tests/arithmetic/bad/logical_prio.catala_en:6.28-6.31:
+├─➤ tests/arithmetic/bad/logical_prio.catala_en:6.28-31:
 │   │
 │ 6 │   definition o equals true and (false and true and true) or false
 │   │                            ‾‾‾
 │
-├─➤ tests/arithmetic/bad/logical_prio.catala_en:6.58-6.60:
+├─➤ tests/arithmetic/bad/logical_prio.catala_en:6.58-60:
 │   │
 │ 6 │   definition o equals true and (false and true and true) or false
 │   │                                                          ‾‾

@@ -17,25 +17,25 @@ $ catala Typecheck
 │  The constructor "Dec" of enumeration "Enum" is never used;
 │  maybe it's unnecessary?
 │
-├─➤ tests/typing/bad/common.catala_en:4.6-4.9:
+├─➤ tests/typing/bad/common.catala_en:4.6-9:
 │   │
 │ 4 │   -- Dec content decimal
 │   │      ‾‾‾
 └─
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     integer
-│  // decimal
+│  Incompatible types:
+│    got      integer,
+│    expected decimal
 │
 │ This expression has type integer:
-├─➤ tests/typing/bad/err3.catala_en:10.23-10.45:
+├─➤ tests/typing/bad/err3.catala_en:10.23-45:
 │    │
 │ 10 │   definition a equals number of (z ++ z) * 2
 │    │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │
 │ Expected type decimal coming from expression:
-├─➤ tests/typing/bad/common.catala_en:15.20-15.27:
+├─➤ tests/typing/bad/common.catala_en:15.20-27:
 │    │
 │ 15 │   output a content decimal
 │    │                    ‾‾‾‾‾‾‾
@@ -52,25 +52,25 @@ $ catala ocaml
 │  The constructor "Dec" of enumeration "Enum" is never used;
 │  maybe it's unnecessary?
 │
-├─➤ tests/typing/bad/common.catala_en:4.6-4.9:
+├─➤ tests/typing/bad/common.catala_en:4.6-9:
 │   │
 │ 4 │   -- Dec content decimal
 │   │      ‾‾‾
 └─
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     integer
-│  // decimal
+│  Incompatible types:
+│    got      integer,
+│    expected decimal
 │
 │ This expression has type integer:
-├─➤ tests/typing/bad/err3.catala_en:10.23-10.45:
+├─➤ tests/typing/bad/err3.catala_en:10.23-45:
 │    │
 │ 10 │   definition a equals number of (z ++ z) * 2
 │    │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │
 │ Expected type decimal coming from expression:
-├─➤ tests/typing/bad/common.catala_en:15.20-15.27:
+├─➤ tests/typing/bad/common.catala_en:15.20-27:
 │    │
 │ 15 │   output a content decimal
 │    │                    ‾‾‾‾‾‾‾

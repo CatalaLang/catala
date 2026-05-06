@@ -143,34 +143,40 @@ let to_string (pos : t) : string =
   let s, e = pos.code_pos in
   Printf.sprintf "in file %s, from %d:%d to %d:%d" s.Lexing.pos_fname
     s.Lexing.pos_lnum
-    (s.Lexing.pos_cnum - s.Lexing.pos_bol)
-    e.Lexing.pos_lnum
-    (e.Lexing.pos_cnum - e.Lexing.pos_bol)
-
-let to_string_short (pos : t) : string =
-  let s, e = pos.code_pos in
-  Printf.sprintf "%s:%d.%d-%d.%d" s.Lexing.pos_fname s.Lexing.pos_lnum
     (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
     e.Lexing.pos_lnum
     (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
 
-let to_string_shorter (pos : t) : string =
-  let s, e = pos.code_pos in
-  let f =
-    if Filename.extension s.Lexing.pos_fname = ".md" then
-      Filename.(
-        remove_extension (remove_extension (basename s.Lexing.pos_fname)))
-    else Filename.(remove_extension (basename s.Lexing.pos_fname))
-  in
-  if s.Lexing.pos_lnum = e.Lexing.pos_lnum then
-    Printf.sprintf "%s:%d.%d-%d" f s.Lexing.pos_lnum
-      (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
-      (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
+let range_to_string { code_pos = s, e; _ } =
+  let open Lexing in
+  if s.pos_lnum = e.pos_lnum then
+    if s.pos_cnum = s.pos_bol then Printf.sprintf "%d" s.pos_lnum
+    else if s.pos_cnum - s.pos_bol = e.pos_cnum - e.pos_bol then
+      Printf.sprintf "%d.%d" s.pos_lnum (e.pos_cnum - e.pos_bol + 1)
+    else
+      Printf.sprintf "%d.%d-%d" s.pos_lnum
+        (s.pos_cnum - s.pos_bol + 1)
+        (e.pos_cnum - e.pos_bol + 1)
+  else if s.pos_cnum = s.pos_bol then
+    Printf.sprintf "%d-%d" s.pos_lnum e.pos_lnum
   else
-    Printf.sprintf "%s:%d.%d-%d.%d" f s.Lexing.pos_lnum
-      (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
-      e.Lexing.pos_lnum
-      (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
+    Printf.sprintf "%d.%d-%d.%d" s.pos_lnum
+      (s.pos_cnum - s.pos_bol + 1)
+      e.pos_lnum
+      (e.pos_cnum - e.pos_bol + 1)
+
+let to_string_short (pos : t) : string =
+  Printf.sprintf "%s:%s" (fst pos.code_pos).Lexing.pos_fname
+    (range_to_string pos)
+
+let to_string_shorter (pos : t) : string =
+  let f = (fst pos.code_pos).Lexing.pos_fname in
+  let f =
+    if Filename.extension f = ".md" then
+      Filename.(remove_extension (remove_extension (basename f)))
+    else Filename.(remove_extension (basename f))
+  in
+  Printf.sprintf "%s:%s" f (range_to_string pos)
 
 let indent_number (s : string) : int =
   try
@@ -191,10 +197,12 @@ let rec pad_fmt n s ppf =
     Format.pp_print_as ppf 1 s;
     pad_fmt (n - 1) s ppf)
 
-let format_loc_text_parts (pos : t) =
+let format_loc_text_parts
+    ?(pp_file = fun ppf pos -> Format.pp_print_string ppf (to_string_short pos))
+    (pos : t) =
   let filename = get_file pos in
   let pr_head ppf =
-    Format.fprintf ppf "@{<blue>─➤ @{<bold>%s:@}@}@," (to_string_short pos)
+    Format.fprintf ppf "@{<blue>─➤ @{<bold>%a:@}@}@," pp_file pos
   in
   let pr_context =
     try
@@ -315,12 +323,12 @@ let format_loc_text_parts (pos : t) =
   in
   pr_head, pr_context, pr_legal
 
-let format_loc_text ppf t =
+let format_loc_text ?pp_file () ppf t =
   if get_file t = "" then (
     if Global.options.debug then
       Format.pp_print_string ppf " (no position information)")
   else
-    let pr_head, pr_context, pr_legal = format_loc_text_parts t in
+    let pr_head, pr_context, pr_legal = format_loc_text_parts ?pp_file t in
     Format.pp_open_vbox ppf 0;
     pr_head ppf;
     pr_context ppf;

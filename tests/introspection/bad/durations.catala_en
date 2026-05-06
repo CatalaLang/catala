@@ -59,7 +59,7 @@ $ catala test-scope S4
 │  During evaluation: ambiguous comparison between durations in different
 │  units (e.g. months vs. days).
 │
-├─➤ tests/introspection/bad/durations.catala_en:33.80-33.82:
+├─➤ tests/introspection/bad/durations.catala_en:33.80-82:
 │    │
 │ 33 │     S content St { -- a: 12 -- b: Present content (3 year + 2 month + 1 day) } >=
 │    │                                                                                ‾‾

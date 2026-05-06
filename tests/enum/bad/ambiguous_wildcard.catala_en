@@ -22,7 +22,7 @@ $ catala test-scope A
 │  Couldn't infer the enumeration name from lonely wildcard (wildcard cannot
 │  be used as single match case).
 │
-├─➤ tests/enum/bad/ambiguous_wildcard.catala_en:15.5-15.21:
+├─➤ tests/enum/bad/ambiguous_wildcard.catala_en:15.5-21:
 │    │
 │ 15 │     -- anything : 31
 │    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

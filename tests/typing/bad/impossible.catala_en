@@ -14,12 +14,12 @@ $ catala typecheck
 │  while they are both specified as "anything".
 │  You may want to give them the same explicit name ("anything of type t")
 │
-├─➤ tests/typing/bad/impossible.catala_en:2.13-2.16:
+├─➤ tests/typing/bad/impossible.catala_en:2.13-16:
 │   │
 │ 2 │ declaration bar content anything depends on x content anything equals x
 │   │             ‾‾‾
 │
-├─➤ tests/typing/bad/impossible.catala_en:2.25-2.33:
+├─➤ tests/typing/bad/impossible.catala_en:2.25-33:
 │   │
 │ 2 │ declaration bar content anything depends on x content anything equals x
 │   │                         ‾‾‾‾‾‾‾‾
@@ -31,12 +31,12 @@ $ catala typecheck
 │  while they are both specified as "anything".
 │  You may want to give them the same explicit name ("anything of type t")
 │
-├─➤ tests/typing/bad/impossible.catala_en:4.13-4.16:
+├─➤ tests/typing/bad/impossible.catala_en:4.13-16:
 │   │
 │ 4 │ declaration foo content anything of type t1 depends on x content anything of type t2 equals x
 │   │             ‾‾‾
 │
-├─➤ tests/typing/bad/impossible.catala_en:4.42-4.44:
+├─➤ tests/typing/bad/impossible.catala_en:4.42-44:
 │   │
 │ 4 │ declaration foo content anything of type t1 depends on x content anything of type t2 equals x
 │   │                                          ‾‾

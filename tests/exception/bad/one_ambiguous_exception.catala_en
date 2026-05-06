@@ -36,14 +36,14 @@ $ catala test-scope A
 ├─ Test
 │
 │ Candidate definition
-├─➤ tests/exception/bad/one_ambiguous_exception.catala_en:16.14-16.15:
+├─➤ tests/exception/bad/one_ambiguous_exception.catala_en:16.14-15:
 │    │
 │ 16 │   definition y equals 4
 │    │              ‾
 ├─ Test
 │
 │ Candidate definition
-├─➤ tests/exception/bad/one_ambiguous_exception.catala_en:14.14-14.15:
+├─➤ tests/exception/bad/one_ambiguous_exception.catala_en:14.14-15:
 │    │
 │ 14 │   definition y equals 2
 │    │              ‾

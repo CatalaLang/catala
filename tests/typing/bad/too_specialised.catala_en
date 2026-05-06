@@ -15,7 +15,7 @@ $ catala typecheck
 │  In this function definition, the type <t> is specified as anything,
 │  but it appears to only work for integer here
 │
-├─➤ tests/typing/bad/too_specialised.catala_en:6.34-6.36:
+├─➤ tests/typing/bad/too_specialised.catala_en:6.34-36:
 │   │
 │ 6 │     in (min, max) initially (-1, -1)
 │   │                                  ‾‾

@@ -20,13 +20,13 @@ $ catala typecheck
 │  ('y').
 │
 │ Argument declared here:
-├─➤ tests/func/bad/param_inconsistency.catala_en:4.42-4.43:
+├─➤ tests/func/bad/param_inconsistency.catala_en:4.42-43:
 │   │
 │ 4 │   internal f1 content decimal depends on x content integer
 │   │                                          ‾
 │
 │ Defined here:
-├─➤ tests/func/bad/param_inconsistency.catala_en:10.20-10.21:
+├─➤ tests/func/bad/param_inconsistency.catala_en:10.20-21:
 │    │
 │ 10 │   definition f1 of y under condition not cond
 │    │                    ‾

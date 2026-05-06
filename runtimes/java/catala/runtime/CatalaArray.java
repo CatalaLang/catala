@@ -2,8 +2,14 @@ package catala.runtime;
 
 import catala.runtime.exception.CatalaError;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<CatalaArray<T>> {
@@ -85,16 +91,16 @@ public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<Cat
         return result;
     }
 
-    public T reduce(CatalaFunction<CatalaTuple, T> reducer, CatalaFunction<CatalaUnit, T> dflt) {
+    public CatalaOption<T> reduce(CatalaFunction<CatalaTuple, T> reducer) {
         if (this.values.length == 0) {
-            return dflt.apply(CatalaUnit.INSTANCE);
+            return CatalaOption.none();
         } else {
             T result = this.values[0];
             for (int i = 1; i < this.values.length; i++) {
                 T elt = this.values[i];
                 result = reducer.apply(new CatalaTuple(result, elt));
             }
-            return result;
+            return CatalaOption.some(result);
         }
     }
 
@@ -102,6 +108,42 @@ public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<Cat
         T[] newArray = Arrays.copyOf(this.values, this.values.length + other.values.length);
         System.arraycopy(other.values, 0, newArray, this.values.length, other.values.length);
         return new CatalaArray<>(newArray);
+    }
+
+    public CatalaOption<T> find(CatalaFunction<T, CatalaBool> f) {
+        for (T elt : this.values) {
+            if (f.apply(elt).asBoolean()) {
+                return CatalaOption.some(elt);
+            }
+        }
+        return CatalaOption.none();
+    }
+
+    private <U extends CatalaValue<?>> CatalaArray<T> sort(CatalaPosition pos, Comparator<U> cmp, CatalaFunction<T, U> f) {
+        SortedMap<U, List<T>> m = new TreeMap<>(cmp);
+        for (T value : this.values) {
+            U k = f.apply(value);
+            List<T> curr = m.get(k);
+            if (curr == null) {
+                List<T> l = new ArrayList<>();
+                l.add(value);
+                m.put(k, l);
+
+            } else {
+                curr.addLast(value);
+            }
+        }
+        return new CatalaArray<>(m.values().stream().flatMap(Collection::stream));
+    }
+
+    public <U extends CatalaValue<?>> CatalaArray<T> sort_asc(CatalaPosition pos, CatalaFunction<T, U> f) {
+        Comparator<U> cmp = (U o1, U o2) -> o1.compareTo(pos, o2);
+        return sort(pos, cmp, f);
+    }
+
+    public <U extends CatalaValue<?>> CatalaArray<T> sort_desc(CatalaPosition pos, CatalaFunction<T, U> f) {
+        Comparator<U> cmp = (U o1, U o2) -> o2.compareTo(pos, o1);
+        return sort(pos, cmp, f);
     }
 
     @Override

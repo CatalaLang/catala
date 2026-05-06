@@ -22,7 +22,7 @@ $ catala scopelang
 │
 │  No plugin registered to handle attribute #[attr.enumdecl]
 │
-├─➤ tests/attributes/good/parser_conflict.catala_en:14.3-14.16:
+├─➤ tests/attributes/good/parser_conflict.catala_en:14.3-16:
 │    │
 │ 14 │ #[attr.enumdecl]
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -31,7 +31,7 @@ $ catala scopelang
 │
 │  No plugin registered to handle attribute #[attr.field]
 │
-├─➤ tests/attributes/good/parser_conflict.catala_en:12.5-12.15:
+├─➤ tests/attributes/good/parser_conflict.catala_en:12.5-15:
 │    │
 │ 12 │   #[attr.field] -- Constr
 │    │     ‾‾‾‾‾‾‾‾‾‾
@@ -40,7 +40,7 @@ $ catala scopelang
 │
 │  Unrecognised attribute "attr_exp"
 │
-├─➤ tests/attributes/good/parser_conflict.catala_en:7.23-7.34:
+├─➤ tests/attributes/good/parser_conflict.catala_en:7.23-34:
 │   │
 │ 7 │   definition x equals #[attr_exp] 33
 │   │                       ‾‾‾‾‾‾‾‾‾‾‾
@@ -49,7 +49,7 @@ $ catala scopelang
 │
 │  Unrecognised attribute "attr_def"
 │
-├─➤ tests/attributes/good/parser_conflict.catala_en:8.3-8.14:
+├─➤ tests/attributes/good/parser_conflict.catala_en:8.3-14:
 │   │
 │ 8 │   #[attr_def]
 │   │   ‾‾‾‾‾‾‾‾‾‾‾
@@ -58,7 +58,7 @@ $ catala scopelang
 │
 │  The enumeration "E" is never used; maybe it's unnecessary?
 │
-├─➤ tests/attributes/good/parser_conflict.catala_en:11.25-11.26:
+├─➤ tests/attributes/good/parser_conflict.catala_en:11.25-26:
 │    │
 │ 11 │ declaration enumeration E:
 │    │                         ‾
@@ -67,7 +67,7 @@ $ catala scopelang
 │
 │  The enumeration "F" is never used; maybe it's unnecessary?
 │
-├─➤ tests/attributes/good/parser_conflict.catala_en:15.25-15.26:
+├─➤ tests/attributes/good/parser_conflict.catala_en:15.25-26:
 │    │
 │ 15 │ declaration enumeration F:
 │    │                         ‾

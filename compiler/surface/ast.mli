@@ -101,9 +101,23 @@ type binop =
   | Gte of op_kind
   | Eq
   | Neq
-  | Concat
+  | ListConcat
+  | ListMember
+  | ListExists
+  | ListForall
+  | ListFind
+  | ListMap
+  | ListFilter
+  | ListMax  (** 2nd argument is the default *)
+  | ListMin  (** 2nd argument is the default *)
+  | ListSort of [ `Asc | `Desc ]
 
-type unop = Not | Minus of op_kind
+type unop =
+  | Not
+  | Minus of op_kind
+  | ListSum of primitive_typ Mark.pos (* deprecated *)
+
+type ternop = ListArgMin | ListArgMax | ListFold
 
 type builtin_expression =
   | Impossible
@@ -112,7 +126,7 @@ type builtin_expression =
   | ToDecimal
   | ToMoney
   | Round
-  | External of typ
+  | External of typ  (** Payload is in the attribute [#[json=""]] *)
 
 type literal_date = {
   literal_date_day : int;
@@ -135,27 +149,6 @@ type literal =
   | LMoneyAmount of money_amount
   | LDate of literal_date
 
-type collection_op =
-  | Member of { element : expression }
-  | Exists of { predicate : lident Mark.pos list * expression }
-  | Forall of { predicate : lident Mark.pos list * expression }
-  | Map of { f : lident Mark.pos list * expression }
-  | Filter of { f : lident Mark.pos list * expression }
-  | AggregateSum of { typ : primitive_typ }
-  (* it would be nice to remove the need for specifying the and here like for
-     extremums, but we need an additionl overload for "neutral element for
-     addition across types" *)
-  | AggregateExtremum of { max : bool; default : expression option }
-  | AggregateArgExtremum of {
-      max : bool;
-      default : expression option;
-      f : lident Mark.pos list * expression;
-    }
-  | Fold of {
-      f : lident Mark.pos list * lident Mark.pos list * expression;
-      init : expression;
-    }
-
 and explicit_match_case = {
   match_case_pattern : match_case_pattern Mark.pos;
   match_case_expr : expression;
@@ -169,9 +162,9 @@ and naked_expression =
   | Paren of expression
   | MatchWith of expression * match_cases Mark.pos
   | IfThenElse of expression * expression * expression
-  | Binop of binop Mark.pos * expression * expression
   | Unop of unop Mark.pos * expression
-  | CollectionOp of collection_op Mark.pos * expression
+  | Binop of binop Mark.pos * expression * expression
+  | Ternop of ternop Mark.pos * expression * expression * expression
   | TestMatchCase of expression * match_case_pattern Mark.pos
   | FunCall of expression * expression list
   | ScopeCall of
@@ -191,6 +184,9 @@ and naked_expression =
       (** Dotted is for both struct field projection and sub-scope variables *)
   | TupleAccess of expression * int Mark.pos
   | Assert of expression * expression * Pos.t
+  | Lambda of lident Mark.pos list * expression
+  | ListZip of lident Mark.pos list * naked_expression
+      (** turns a (syntactic) n-uple of lists into a single list of n-uples *)
 
 type exception_to =
   | NotAnException

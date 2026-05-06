@@ -62,7 +62,7 @@ void mergeSort(CATALA_ARRAY(CATALA_TUPLE(CATALA_TUPLE(CATALA_DATE; CATALA_DATE),
 }
 
 CATALA_ARRAY(CATALA_TUPLE(CATALA_TUPLE(CATALA_DATE; CATALA_DATE), void *))
-  PeriodInternal__sort(const CATALA_ARRAY(CATALA_TUPLE(CATALA_TUPLE(CATALA_DATE; CATALA_DATE), void *)) p)
+  PeriodInternal__sort_(const CATALA_ARRAY(CATALA_TUPLE(CATALA_TUPLE(CATALA_DATE; CATALA_DATE), void *)) p)
 {
   int i;
   catala_array *ret = catala_malloc(sizeof(catala_array));

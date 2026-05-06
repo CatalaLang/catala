@@ -164,7 +164,7 @@ declaration sort_by_date
   equals
     let tuple_associated_list equals to_tuple_associated_list of l in
     let sorted_tuple_associated_list equals
-      Period_internal.sort of tuple_associated_list
+      Period_internal.sort_ of tuple_associated_list
     in
     of_tuple_associated_list of sorted_tuple_associated_list
 ```

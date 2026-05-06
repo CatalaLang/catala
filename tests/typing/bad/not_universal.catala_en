@@ -25,29 +25,29 @@ $ catala typecheck
 │  while they are both specified as "anything".
 │  You may want to give them the same explicit name ("anything of type t")
 │
-├─➤ tests/typing/bad/not_universal.catala_en:2.13-2.21:
+├─➤ tests/typing/bad/not_universal.catala_en:2.13-21:
 │   │
 │ 2 │ declaration identity content anything of type t
 │   │             ‾‾‾‾‾‾‾‾
 │
-├─➤ tests/typing/bad/not_universal.catala_en:2.47-2.48:
+├─➤ tests/typing/bad/not_universal.catala_en:2.47-48:
 │   │
 │ 2 │ declaration identity content anything of type t
 │   │                                               ‾
 └─
 ┌─[ERROR]─ 2/3 ─
 │
-│  Error during typechecking, incompatible types:
-│     <t>
-│  // list of <t>
-│  A type cannot contain itself.
+│  Incompatible types:
+│    got      <t>,
+│    expected list of <t>
+│    A type cannot contain itself.
 │
-├─➤ tests/typing/bad/not_universal.catala_en:16.10-16.11:
+├─➤ tests/typing/bad/not_universal.catala_en:16.10-11:
 │    │
 │ 16 │   equals x
 │    │          ‾
 │
-├─➤ tests/typing/bad/not_universal.catala_en:14.54-14.55:
+├─➤ tests/typing/bad/not_universal.catala_en:14.54-55:
 │    │
 │ 14 │ declaration rectype content list of anything of type t
 │    │                                                      ‾
@@ -57,7 +57,7 @@ $ catala typecheck
 │  In this function definition, the type <t> is specified as anything,
 │  but it appears to only work for list of <t> here
 │
-├─➤ tests/typing/bad/not_universal.catala_en:14.29-14.55:
+├─➤ tests/typing/bad/not_universal.catala_en:14.29-55:
 │    │
 │ 14 │ declaration rectype content list of anything of type t
 │    │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

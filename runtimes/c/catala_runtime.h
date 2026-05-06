@@ -201,7 +201,8 @@ enum catala_type_kind {
   STRUCT,
   ENUM,
   EXTERNAL,
-  FUNCTION
+  FUNCTION,
+  POLY
 };
 
 struct catala_label_type;
@@ -269,6 +270,7 @@ extern const catala_type catala_type_date;
 extern const catala_type catala_type_duration;
 extern const catala_type catala_type_position;
 extern const catala_type catala_type_function;
+extern const catala_type catala_type_poly;
 const catala_type catala_type_array(const catala_type);
 const catala_type catala_type_tuple(int size, ...);
 const catala_type catala_type_struct(catala_type* ret,
@@ -401,20 +403,27 @@ CATALA_BOOL o_gt (const catala_type ty, const catala_code_position* pos,
                   const void* x1, const void* x2);
 
 CATALA_BOOL o_gte (const catala_type ty, const catala_code_position* pos,
-                  const void* x1, const void* x2);
+                   const void* x1, const void* x2);
 
-const CATALA_ARRAY(X) o_filter (catala_closure* cls, const CATALA_ARRAY(X) x);
+const CATALA_ARRAY(X) o_filter (const catala_closure* cls, const CATALA_ARRAY(X) x);
 
-const CATALA_ARRAY(Y) o_map (catala_closure* cls, const CATALA_ARRAY(X) x);
+const CATALA_ARRAY(Y) o_map (const catala_closure* cls, const CATALA_ARRAY(X) x);
 
-const void* o_fold (catala_closure* cls,
+const void* o_fold (const catala_closure* cls,
                     const void* init, const CATALA_ARRAY(X) x);
 
-const void* o_reduce (catala_closure* cls,
-                      catala_closure* dft, const CATALA_ARRAY(X) x);
+const CATALA_OPTION(X) o_reduce (const catala_closure* cls, const CATALA_ARRAY(X) x);
+
+const CATALA_OPTION(X) o_find (const catala_closure* cls, const CATALA_ARRAY(X) x);
+
+const CATALA_ARRAY(X) o_sort_asc (const catala_type ty, const catala_code_position* pos,
+                                  const catala_closure* cls, const CATALA_ARRAY(X) x);
+
+const CATALA_ARRAY(X) o_sort_desc (const catala_type ty, const catala_code_position* pos,
+                                   const catala_closure* cls, const CATALA_ARRAY(X) x);
 
 const CATALA_ARRAY(Z) o_map2 (const catala_code_position* pos,
-                        catala_closure* cls,
+                        const catala_closure* cls,
                         const CATALA_ARRAY(X) x,
                         const CATALA_ARRAY(Y) y);
 

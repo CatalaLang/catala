@@ -30,7 +30,7 @@ let rec get_vars e =
       str.fields VarName.Set.empty
   | EStructFieldAccess { e1; _ } | ETupleAccess { e1; _ } | EInj { e1; _ } ->
     get_vars e1
-  | ETuple el | EArray el | EAppOp { args = el; _ } ->
+  | ETuple el | EArray { elts = el; _ } | EAppOp { args = el; _ } ->
     List.fold_left
       (fun acc e -> VarName.Set.union acc (get_vars e))
       VarName.Set.empty el
@@ -53,7 +53,8 @@ let rec subst_expr v e within_expr =
   | ETuple el -> ETuple (List.map (subst_expr v e) el), m
   | ETupleAccess ta -> ETupleAccess { ta with e1 = subst_expr v e ta.e1 }, m
   | EInj i -> EInj { i with e1 = subst_expr v e i.e1 }, m
-  | EArray el -> EArray (List.map (subst_expr v e) el), m
+  | EArray arr ->
+    EArray { arr with elts = List.map (subst_expr v e) arr.elts }, m
   | EApp app ->
     ( EApp
         {

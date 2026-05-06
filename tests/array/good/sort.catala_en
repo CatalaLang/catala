@@ -1,0 +1,397 @@
+```catala
+  declaration l1 content list of (Period, integer) equals
+     []
+  declaration l2 content list of (Period, integer) equals
+     [ (Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1) ]
+  declaration l3 content list of (Period, integer) equals
+      [
+        (Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1);
+        (Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 2)
+      ]
+  declaration l4 content list of (Period, money) equals
+      [
+        (Period { -- begin: |2020-12-01| -- end: |2020-01-10| }, $7);
+        (Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, $2);
+        (Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, $1);
+        (Period { -- begin: |2020-04-01| -- end: |1999-01-01| }, $3);
+        (Period { -- begin: |2020-06-01| -- end: |2020-01-10| }, $400);
+        (Period { -- begin: |2020-11-01| -- end: |2020-01-10| }, $5);
+        (Period { -- begin: |2020-11-02| -- end: |2020-01-10| }, $6)
+      ]
+  declaration l5 content list of (Period, decimal) equals
+      [
+        (Period { -- begin: |2020-01-01| -- end: |2020-01-04| }, 1.0);
+        (Period { -- begin: |2020-02-01| -- end: |2020-01-12| }, 3.0);
+        (Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 4.0);
+        (Period { -- begin: |2020-01-01| -- end: |2020-01-03| }, 2.0)
+      ]
+
+#[test]
+declaration scope Tsort1:
+  output o1 content list of (Period, integer)
+  output o2 content list of (Period, integer)
+  output o3 content list of (Period, integer)
+  output o4 content list of (Period, money)
+  output o5 content list of (Period, decimal)
+
+scope Tsort1:
+  definition o1 equals
+    sort l1 in increasing order
+  definition o2 equals
+    sort l2 in increasing order
+  definition o3 equals
+    sort l3 in increasing order
+  definition o4 equals
+    sort l4 in increasing order
+  definition o5 equals
+    sort l5 in increasing order
+```
+
+
+```catala-test-cli
+$ catala test-scope Tsort1
+┌─[RESULT]─ Tsort1 ─
+│ o1 = []
+│ o2 =
+│   [(Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1)]
+│ o3 =
+│   [
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 2)
+│   ]
+│ o4 =
+│   [
+│     (
+│       Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| },
+│       $1.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| },
+│       $2.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-04-01| -- end: |1999-01-01| },
+│       $3.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-06-01| -- end: |2020-01-10| },
+│       $400.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-01| -- end: |2020-01-10| },
+│       $5.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-02| -- end: |2020-01-10| },
+│       $6.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-12-01| -- end: |2020-01-10| },
+│       $7.00
+│     )
+│   ]
+│ o5 =
+│   [
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-03| }, 2.0);
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-04| }, 1.0);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 4.0);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-12| }, 3.0)
+│   ]
+└─
+```
+
+```catala
+#[test]
+declaration scope Tsort2:
+  output o1 content list of (Period, integer)
+  output o2 content list of (Period, integer)
+  output o3 content list of (Period, integer)
+  output o4 content list of (Period, money)
+  output o5 content list of (Period, decimal)
+
+scope Tsort2:
+  definition o1 equals
+    sort l1 in decreasing order
+  definition o2 equals
+    sort l2 in decreasing order
+  definition o3 equals
+    sort l3 in decreasing order
+  definition o4 equals
+    sort l4 in decreasing order
+  definition o5 equals
+    sort l5 in decreasing order
+```
+
+```catala-test-cli
+$ catala test-scope Tsort2
+┌─[RESULT]─ Tsort2 ─
+│ o1 = []
+│ o2 =
+│   [(Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1)]
+│ o3 =
+│   [
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 2);
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1)
+│   ]
+│ o4 =
+│   [
+│     (
+│       Period_en.Period { -- begin: |2020-12-01| -- end: |2020-01-10| },
+│       $7.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-02| -- end: |2020-01-10| },
+│       $6.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-01| -- end: |2020-01-10| },
+│       $5.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-06-01| -- end: |2020-01-10| },
+│       $400.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-04-01| -- end: |1999-01-01| },
+│       $3.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| },
+│       $2.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| },
+│       $1.00
+│     )
+│   ]
+│ o5 =
+│   [
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-12| }, 3.0);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 4.0);
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-04| }, 1.0);
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-03| }, 2.0)
+│   ]
+└─
+```
+
+```catala
+#[test]
+declaration scope Tsort3:
+  output o1 content list of (Period, integer)
+  output o2 content list of (Period, integer)
+  output o3 content list of (Period, integer)
+  output o4 content list of (Period, money)
+  output o5 content list of (Period, decimal)
+
+scope Tsort3:
+  definition o1 equals
+    sort all x among l1 in decreasing order of x.1.end
+  definition o2 equals
+    sort all x among l2 in decreasing order of x.1.end
+  definition o3 equals
+    sort all x among l3 in decreasing order of x.1.end
+  definition o4 equals
+    sort all x among l4 in decreasing order of x.1.end
+  definition o5 equals
+    sort all x among l5 in decreasing order of x.1.end
+```
+
+```catala-test-cli
+$ catala test-scope Tsort3
+┌─[RESULT]─ Tsort3 ─
+│ o1 = []
+│ o2 =
+│   [(Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1)]
+│ o3 =
+│   [
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 2)
+│   ]
+│ o4 =
+│   [
+│     (
+│       Period_en.Period { -- begin: |2020-12-01| -- end: |2020-01-10| },
+│       $7.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| },
+│       $2.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| },
+│       $1.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-06-01| -- end: |2020-01-10| },
+│       $400.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-01| -- end: |2020-01-10| },
+│       $5.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-02| -- end: |2020-01-10| },
+│       $6.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-04-01| -- end: |1999-01-01| },
+│       $3.00
+│     )
+│   ]
+│ o5 =
+│   [
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-12| }, 3.0);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 4.0);
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-04| }, 1.0);
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-03| }, 2.0)
+│   ]
+└─
+```
+
+```catala
+#[test]
+declaration scope Tsort4:
+  output o1 content list of (Period, integer)
+  output o2 content list of (Period, integer)
+  output o3 content list of (Period, integer)
+  output o4 content list of (Period, money)
+  output o5 content list of (Period, decimal)
+
+scope Tsort4:
+  definition o1 equals
+    sort all (p, x) among l1 in increasing order of x
+  definition o2 equals
+    sort all (p, x) among l2 in increasing order of x
+  definition o3 equals
+    sort all (p, x) among l3 in increasing order of x
+  definition o4 equals
+    sort all (p, x) among l4 in increasing order of x
+  definition o5 equals
+    sort all (p, x) among l5 in increasing order of x
+```
+
+```catala-test-cli
+$ catala test-scope Tsort4
+┌─[RESULT]─ Tsort4 ─
+│ o1 = []
+│ o2 =
+│   [(Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1)]
+│ o3 =
+│   [
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 2)
+│   ]
+│ o4 =
+│   [
+│     (
+│       Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| },
+│       $1.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| },
+│       $2.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-04-01| -- end: |1999-01-01| },
+│       $3.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-01| -- end: |2020-01-10| },
+│       $5.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-02| -- end: |2020-01-10| },
+│       $6.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-12-01| -- end: |2020-01-10| },
+│       $7.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-06-01| -- end: |2020-01-10| },
+│       $400.00
+│     )
+│   ]
+│ o5 =
+│   [
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-04| }, 1.0);
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-03| }, 2.0);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-12| }, 3.0);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 4.0)
+│   ]
+└─
+```
+
+```catala
+#[test]
+declaration scope Tsort5:
+  output o1 content list of (Period, integer)
+  output o2 content list of (Period, integer)
+  output o3 content list of (Period, integer)
+  output o4 content list of (Period, money)
+  output o5 content list of (Period, decimal)
+
+scope Tsort5:
+  definition o1 equals
+    sort all (p, x) among l1 in increasing order of p.begin and then x
+  definition o2 equals
+    sort all (p, x) among l2 in increasing order of p.begin and then x
+  definition o3 equals
+    sort all (p, x) among l3 in increasing order of p.begin and then x
+  definition o4 equals
+    sort all (p, x) among l4 in increasing order of p.begin and then x
+  definition o5 equals
+    sort all (p, x) among l5 in increasing order of p.begin and then x
+```
+
+```catala-test-cli
+$ catala test-scope Tsort5
+┌─[RESULT]─ Tsort5 ─
+│ o1 = []
+│ o2 =
+│   [(Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1)]
+│ o3 =
+│   [
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| }, 1);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 2)
+│   ]
+│ o4 =
+│   [
+│     (
+│       Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-10| },
+│       $1.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| },
+│       $2.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-04-01| -- end: |1999-01-01| },
+│       $3.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-06-01| -- end: |2020-01-10| },
+│       $400.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-01| -- end: |2020-01-10| },
+│       $5.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-11-02| -- end: |2020-01-10| },
+│       $6.00
+│     );
+│     (
+│       Period_en.Period { -- begin: |2020-12-01| -- end: |2020-01-10| },
+│       $7.00
+│     )
+│   ]
+│ o5 =
+│   [
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-04| }, 1.0);
+│     (Period_en.Period { -- begin: |2020-01-01| -- end: |2020-01-03| }, 2.0);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-12| }, 3.0);
+│     (Period_en.Period { -- begin: |2020-02-01| -- end: |2020-01-10| }, 4.0)
+│   ]
+└─
+```

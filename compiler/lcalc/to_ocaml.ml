@@ -85,7 +85,8 @@ let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
 let op_needs_pos (type a) (op : a Op.t) ty =
   match op with
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
-  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | ValueFromJson _ ->
+  | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Sort _ | Map2
+  | ValueFromJson _ ->
     true
   | Eq -> (
     (* Z and Q support OCaml polymorphic equality *)
@@ -250,9 +251,7 @@ let rec format_rtyp ppf ty =
   | TClosureEnv -> Format.fprintf ppf "Value.Function"
   | TDefault ((_, pos) as ty) ->
     format_rtyp ppf (TOption (TTuple [ty; TLit TPos, pos], pos), pos)
-  | TError | TVar _ | TForAll _ ->
-    Message.error ~internal:true "Cannot compute runtime info on type %a"
-      Print.typ ty
+  | TError | TVar _ | TForAll _ -> Format.fprintf ppf "Value.Polymorphic"
 
 let format_embedding (ppf : Format.formatter) (ty : typ) : unit =
   Format.fprintf ppf "Value.embed (%a)" format_rtyp ty
@@ -317,7 +316,7 @@ let rec needs_parens ?context (e : 'm expr) : bool =
   match Mark.remove e with
   | EApp { f = EAbs { binder; _ }, _; _ } -> (
     match context with
-    | Some ((EInj _ | EArray _ | EApp _), _) -> true
+    | Some ((EInj _ | EArray _ | EApp _ | EAppOp _), _) -> true
     | _ ->
       let _, body = Bindlib.unmbind binder in
       needs_parens ?context body)
@@ -555,6 +554,13 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
         match op, args with
         | (Eq | Lt | Lte | Gt | Gte), ([_; a1; _] | a1 :: _) ->
           Format.fprintf ppf "(%a)@ " format_rtyp (Expr.ty a1)
+        | Sort _, ([_; a1; _] | a1 :: _) ->
+          let cmp_ty =
+            match Expr.ty a1 with
+            | TArrow (_, tret), _ -> tret
+            | _ -> assert false
+          in
+          Format.fprintf ppf "(%a)@ " format_rtyp cmp_ty
         | _ -> ())
       (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens)
       args
@@ -662,7 +668,7 @@ let format_ctx
         "@,include CatalaType with type t := t@;<1 -2>end@]@,@,")
   in
   let format_abstract_decl name =
-    Format.fprintf ppml "@[<v 2>module %a = Value.ExternalType(struct@,type t"
+    Format.fprintf ppml "@[<v 2>module %a = Value.ExternalType(struct"
       format_to_module_name (`Aname name);
     Format.fprintf ppml "@,type t = ..";
     Format.fprintf ppml "@,let name = \"%a\"" AbstractType.format_original name;
@@ -675,6 +681,7 @@ let format_ctx
     Format.fprintf ppml "@,let print t = \"<%a>\"" AbstractType.format_original
       name;
     Format.fprintf ppml "@,let to_json t = Printf.sprintf \"%%S\" (to_string t)";
+    Format.fprintf ppml "@,let from_json pos t = assert false";
     Format.fprintf ppml "@;<1 -2>end)@]@,@,";
     if TypeIdent.(Set.mem (Abstract name) ctx.ctx_public_types) then
       Format.fprintf ppi "@[<hv 2>module %a :@ Value.CatalaType@]@,@,"

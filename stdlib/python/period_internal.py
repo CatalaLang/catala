@@ -1,7 +1,7 @@
 from catala_runtime import *
 from enum import Enum
 
-def sort(p:Array[CatalaTuple[CatalaTuple[Date, Date], Alpha]]) -> Array[CatalaTuple[CatalaTuple[Date, Date], Alpha]]:
+def sort_(p:Array[CatalaTuple[CatalaTuple[Date, Date], Alpha]]) -> Array[CatalaTuple[CatalaTuple[Date, Date], Alpha]]:
     return Array(sorted(p, key=(lambda p: p[0][0])))
 
 one_day = Duration((0,0,1))

@@ -35,13 +35,13 @@ $ catala test-scope S
 │  During evaluation: conflict between multiple valid consequences for
 │  assigning the same variable.
 │
-├─➤ tests/func/bad/bad_func.catala_en:14.65-14.70:
+├─➤ tests/func/bad/bad_func.catala_en:14.65-70:
 │    │
 │ 14 │   definition f of x under condition (x >= x) consequence equals x + x
 │    │                                                                 ‾‾‾‾‾
 ├─ Article
 │
-├─➤ tests/func/bad/bad_func.catala_en:15.62-15.67:
+├─➤ tests/func/bad/bad_func.catala_en:15.62-67:
 │    │
 │ 15 │   definition f of x under condition not b consequence equals x * x
 │    │                                                              ‾‾‾‾‾

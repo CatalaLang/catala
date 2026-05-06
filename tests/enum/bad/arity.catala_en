@@ -28,48 +28,48 @@ scope S:
 $ catala test-scope S
 ┌─[ERROR]─ 1/2 ─
 │
-│  Error during typechecking, incompatible types:
-│     (integer, integer)
-│  // (integer, integer, <any type>)
+│  Incompatible types:
+│    got      (integer, integer),
+│    expected (integer, integer, <any type>)
 │
 │ While typechecking the following expression:
-├─➤ tests/enum/bad/arity.catala_en:19.36-19.41:
+├─➤ tests/enum/bad/arity.catala_en:19.36-41:
 │    │
 │ 19 │      -- Present content (a, b, c): a + b
 │    │                                    ‾‾‾‾‾
 │
 │ Type (integer, integer) is coming from:
-├─➤ tests/enum/bad/arity.catala_en:17.28-17.36:
+├─➤ tests/enum/bad/arity.catala_en:17.28-36:
 │    │
 │ 17 │     (match Present content (12, 13) with pattern
 │    │                            ‾‾‾‾‾‾‾‾
 │
 │ Type (integer, integer, <any type>) is coming from:
-├─➤ tests/enum/bad/arity.catala_en:19.26-19.33:
+├─➤ tests/enum/bad/arity.catala_en:19.26-33:
 │    │
 │ 19 │      -- Present content (a, b, c): a + b
 │    │                          ‾‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 2/2 ─
 │
-│  Error during typechecking, incompatible types:
-│     (integer, integer, integer)
-│  // (integer, integer)
+│  Incompatible types:
+│    got      (integer, integer, integer),
+│    expected (integer, integer)
 │
 │ While typechecking the following expression:
-├─➤ tests/enum/bad/arity.catala_en:23.33-23.38:
+├─➤ tests/enum/bad/arity.catala_en:23.33-38:
 │    │
 │ 23 │      -- Present content (a, b): a + b
 │    │                                 ‾‾‾‾‾
 │
 │ Type (integer, integer, integer) is coming from:
-├─➤ tests/enum/bad/arity.catala_en:21.28-21.40:
+├─➤ tests/enum/bad/arity.catala_en:21.28-40:
 │    │
 │ 21 │     (match Present content (12, 13, 14) with pattern
 │    │                            ‾‾‾‾‾‾‾‾‾‾‾‾
 │
 │ Type (integer, integer) is coming from:
-├─➤ tests/enum/bad/arity.catala_en:23.26-23.30:
+├─➤ tests/enum/bad/arity.catala_en:23.26-30:
 │    │
 │ 23 │      -- Present content (a, b): a + b
 │    │                          ‾‾‾‾
@@ -94,7 +94,7 @@ $ catala test-scope S
 │
 │  This pattern has 3 arguments, while 2 are expected by constructor Two.
 │
-├─➤ tests/enum/bad/arity.catala_en:86.21-86.28:
+├─➤ tests/enum/bad/arity.catala_en:86.21-28:
 │    │
 │ 86 │     -- Two content (a, x, y): integer of a + x
 │    │                     ‾‾‾‾‾‾‾
