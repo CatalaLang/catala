@@ -19,6 +19,7 @@ module S = Set.Make (String)
 module M = Map.Make (String)
 
 type _ descr =
+  | Unit : unit descr
   | Lazy : 'a descr Lazy.t -> 'a descr
   | String : string descr
   | Bool : bool descr
@@ -59,6 +60,7 @@ and _ table_descr =
 
 type 'a t = 'a table_descr
 
+let empty = Unit
 let string = String
 let bool = Bool
 let list d = List d
@@ -80,7 +82,7 @@ let merge_objs l r =
   let rec check_name_clash : type a. S.t -> a descr -> S.t =
    fun acc -> function
      | Lazy v -> check_name_clash acc (Lazy.force v)
-     | String | Bool | Tup _ | Tups _ | List _ | Union _ -> acc
+     | Unit | String | Bool | Tup _ | Tups _ | List _ | Union _ -> acc
      | Conv { descr; _ } -> check_name_clash acc descr
      | Objs (l, r) ->
        let l = check_name_clash S.empty l in
@@ -338,27 +340,23 @@ let decode_descr (target : target_kind) toml descr =
       ?first_obj:bool -> scope:scope -> Otoml.t -> a descr -> a =
    fun ?(first_obj = true) ~scope toml (descr as current) ->
     match toml, descr with
-    | _, Lazy f -> loop ~first_obj ~scope toml (Lazy.force f)
     | _, Union { cases } -> (
       match
         List.find_map
           (fun (Case { descr; inj; _ }) ->
-            inj @@ loop ~first_obj ~scope toml descr)
+            try inj @@ loop ~first_obj ~scope toml descr
+            with Message.CompilerError _ -> None)
           cases
       with
       | None ->
         error scope
-          "@[<v 2>the provided value does not match any of the possible \
+          "@[<v 2>the provided value (%a) does not match any of the possible \
            cases:@ %a@]"
+          pp_toml_type toml
           (pp_print_list ~pp_sep:pp_print_cut (fun fmt s ->
                fprintf fmt "- %s" s))
           (List.map (fun (Case case) -> case.name) cases)
       | Some x -> x)
-    | TomlString s, String -> s
-    | _, String -> error ~found:toml scope "expected @{<bold>a string@}"
-    | TomlBoolean b, Bool -> b
-    | _, Bool ->
-      error ~found:toml scope "expected @{<bold>true@} or @<bold>false@}"
     | TomlArray l, List descr -> List.map (fun x -> loop ~scope x descr) l
     | toml, Conv { inj; descr; _ } -> inj (loop ~scope toml descr)
     | TomlArray [x], Tup d -> loop ~scope x d
@@ -402,6 +400,13 @@ let decode_descr (target : target_kind) toml descr =
     | TomlInlineTable bindings, Objs (l, r) ->
       check_obj scope bindings current;
       loop ~first_obj:false ~scope toml l, loop ~first_obj:false ~scope toml r
+    | _, Unit -> ()
+    | _, Lazy f -> loop ~first_obj ~scope toml (Lazy.force f)
+    | TomlString s, String -> s
+    | _, String -> error ~found:toml scope "expected @{<bold>a string@}"
+    | TomlBoolean b, Bool -> b
+    | _, Bool ->
+      error ~found:toml scope "expected @{<bold>true@} or @<bold>false@}"
     | _, Obj _ | _, Objs _ ->
       error ~found:toml scope "expected a @{<bold><key> = <value> table@}"
   in
@@ -534,6 +539,7 @@ let rec encode_descr : type a. a -> a descr -> Otoml.t =
   | Lazy x -> encode_descr v (Lazy.force x)
   | String -> TomlString v
   | Bool -> TomlBoolean v
+  | Unit -> TomlInlineTable []
   | List descr -> TomlArray (List.map (fun v -> encode_descr v descr) v)
   | Union { cases } -> (
     List.find_map

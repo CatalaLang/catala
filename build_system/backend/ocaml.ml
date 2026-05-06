@@ -18,6 +18,9 @@
 open Clerk_utils
 open Catala_utils
 open Clerk_lib
+module Bk = Backend
+
+type Clerk_config.backend += OCaml
 
 let backend_name = "ocaml"
 let catala_flags_ocaml = Var.make "CATALA_FLAGS_OCAML"
@@ -112,6 +115,21 @@ module Backend = struct
   let module_ext = "@" ^ name ^ "-module"
   let src_extensions = ["ml"; "mli"]
   let obj_extensions = ["cmi"; "cmo"; "cmx"; "o"; "cmxs"]
+
+  let backend_descr =
+    let open Clerk_lib.Clerk_toml_encoding in
+    conv
+      (function
+        | OCaml -> ()
+        | _ ->
+          Message.error ~internal:true
+            "Unexpected non-OCaml configuration while encoding backend \
+             configuration")
+      (fun () -> OCaml)
+      empty
+
+  let default_config = OCaml
+  let matches = function OCaml -> true | _ -> false
 
   let runtime_targets ~only_source =
     [(if only_source then "@runtime-" ^ name ^ "-src" else "@runtime-" ^ name)]
@@ -332,3 +350,5 @@ module Backend = struct
         ~outputs:[Ninja.target ~backend:name module_ext];
     ]
 end
+
+let () = Bk.register_backend ~backend:(module Backend)

@@ -17,17 +17,12 @@
 open Catala_utils
 
 type backend = ..
-type backend += C | OCaml | Java | Python
 
-val register_backend : name:string -> backend -> unit
-val registered_backends : unit -> (string * backend) list
-
-type backend_config = ..
-
-val register_backend_config :
+val register_backend_descr :
   name:string ->
-  backend:backend ->
-  backend_config Clerk_toml_encoding.descr ->
+  default:backend ->
+  matches:(backend -> bool) ->
+  backend_descr:backend Clerk_toml_encoding.descr ->
   unit
 
 type doc_backend = Html | Latex
@@ -46,7 +41,6 @@ type target = {
   tmodules : string list;
   ttests : File.t list;
   backends : backend list;
-  backend_configs : (backend * backend_config) list;
   include_sources : bool;
   include_objects : bool;
 }

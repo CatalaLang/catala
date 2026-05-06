@@ -140,20 +140,6 @@ module type S = sig
       in the _opam directory that can be queried from Poll library. *)
 end
 
-let registered_backends = ref []
-
-let register_backend ~(backend : (module S)) =
-  let module B = (val backend) in
-  Clerk_lib.Clerk_config.register_backend_descr ~name:B.name
-    ~default:B.default_config ~matches:B.matches ~backend_descr:B.backend_descr;
-  registered_backends := backend :: !registered_backends
-
-let registered_backends () = !registered_backends
-
-let backend_from_config backend_config =
-  List.find_opt
-    (fun (module B : S) -> B.matches backend_config)
-    (registered_backends ())
-  |> function
-  | Some s -> s
-  | None -> Message.error "Backend was not properly registered"
+val register_backend : backend:(module S) -> unit
+val registered_backends : unit -> (module S) list
+val backend_from_config : backend -> (module S)

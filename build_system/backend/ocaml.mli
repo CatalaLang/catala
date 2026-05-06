@@ -17,6 +17,8 @@
 
 open Clerk_utils
 
+type Clerk_lib.Clerk_config.backend += OCaml
+
 val linking_command :
   build_dir:string ->
   var_bindings:(Var.t * string list) list ->

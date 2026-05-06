@@ -21,7 +21,7 @@ module Nj = Ninja_utils
 module Cli = Clerk_cli
 module Var = Clerk_utils.Var
 module Config = Clerk_config
-module OCaml = Clerk_backends.Ocaml
+open Clerk_backends
 
 let lastdirname f = File.(basename (dirname f))
 
@@ -63,51 +63,16 @@ let linking_dependencies items =
     in
     rem_dups (traverse [] item)
 
-let all_backends_with_config :
-    (Clerk_config.backend * (module Clerk_backends.Backend.S)) list =
-  [
-    Clerk_config.OCaml, (module Clerk_backends.Ocaml.Backend);
-    Clerk_config.C, (module Clerk_backends.C.Backend);
-    Clerk_config.Python, (module Clerk_backends.Python.Backend);
-    Clerk_config.Java, (module Clerk_backends.Java.Backend);
-  ]
+let backend_src_extensions (module B : Clerk_backends.Backend.S) =
+  B.src_extensions
 
-let backend_src_extensions =
-  List.map
-    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.src_extensions)
-    all_backends_with_config
+let backend_extensions (module B : Clerk_backends.Backend.S) =
+  B.src_extensions @ B.obj_extensions
 
-let backend_obj_extensions =
-  List.map
-    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.obj_extensions)
-    all_backends_with_config
+let backend_subdir (module B : Clerk_backends.Backend.S) = B.name
 
-let backend_extensions =
-  List.map
-    (fun (bk, exts) -> bk, exts @ List.assoc bk backend_obj_extensions)
-    backend_src_extensions
-
-let extensions_backend =
-  ("cmxa", Clerk_config.OCaml)
-  :: List.flatten
-       (List.map
-          (fun (bk, exts) -> List.map (fun e -> e, bk) exts)
-          backend_extensions)
-
-let backend_subdir_list =
-  List.map
-    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.name)
-    all_backends_with_config
-
-let normalize_backends backends =
-  List.sort_uniq Stdlib.compare backends
-  |> List.map Clerk_rules.backend_from_config
-
-let subdir_backend_list =
-  List.map (fun (bk, dir) -> dir, bk) backend_subdir_list
-
-let backend_subdir bk = List.assoc bk backend_subdir_list
-let rule_subdir rule = backend_subdir rule.Config.backend
+let rule_subdir rule =
+  backend_subdir (Backend.backend_from_config rule.Config.backend)
 
 let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
   let open File in
@@ -148,10 +113,18 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
            else [Var.expand_vars var_bindings s])
          rule.Config.commandline
 
-let target_backend config t =
+let direct_target_backend config t =
   let aux ext =
-    try List.assoc ext extensions_backend
-    with Not_found -> (
+    match
+      List.find_map
+        (fun ((module B : Backend.S) as bk) ->
+          if List.mem ext (backend_extensions bk) then
+            Some (B.default_config, bk)
+          else None)
+        (Backend.registered_backends ())
+    with
+    | Some x -> x
+    | None -> (
       if ext = "" then Message.error "Target without extension: @{<red>%S@}" t
       else
         match
@@ -159,37 +132,32 @@ let target_backend config t =
             (fun rule -> List.mem ext rule.Config.out_exts)
             config.Config.custom_rules
         with
-        | Some rule -> rule.Config.backend
+        | Some rule ->
+          rule.Config.backend, Backend.backend_from_config rule.Config.backend
         | None ->
           Message.error
             "Unhandled extension @{<red;bold>%s@} for target @{<red>%S@}" ext t)
   in
   match File.extension t with
   | "exe" -> (
-    try List.assoc File.(basename (dirname t)) subdir_backend_list
-    with Not_found -> Clerk_config.OCaml)
+    let lastdirname = lastdirname t in
+    match
+      List.find_map
+        (fun ((module B : Backend.S) as bk) ->
+          if lastdirname = backend_subdir bk then Some (B.default_config, bk)
+          else None)
+        (Backend.registered_backends ())
+    with
+    | Some x -> x
+    | None -> Ocaml.Backend.default_config, (module Ocaml.Backend : Backend.S))
   | ext -> aux ext
 
 let config_backend = function
-  | Clerk_config.OCaml -> `OCaml
-  | Clerk_config.C -> `C
-  | Clerk_config.Python -> `Python
-  | Clerk_config.Java -> `Java
+  | Ocaml.OCaml -> `OCaml
+  | C.C -> `C
+  | Python.Python -> `Python
+  | Java.Java _ -> `Java
   | _ -> invalid_arg __FUNCTION__
-
-let string_of_config_backend = function
-  | Clerk_config.OCaml -> "ocaml"
-  | Clerk_config.C -> "c"
-  | Clerk_config.Python -> "python"
-  | Clerk_config.Java -> "java"
-  | backend ->
-    let backends = Clerk_config.registered_backends () in
-    let backend_name =
-      List.find_map
-        (fun (name, bckd) -> if backend = bckd then Some name else None)
-        backends
-    in
-    Option.value ~default:"" backend_name
 
 let string_of_backend = function
   | `OCaml -> "ocaml"
@@ -222,10 +190,7 @@ let make_target ~build_dir ~backend item =
 
 let backend_runtime_targets ?(only_source = false) enabled_backends =
   List.concat_map
-    (fun bk ->
-      let (module B : Clerk_backends.Backend.S) =
-        Clerk_rules.backend_from_config bk
-      in
+    (fun (_bk, (module B : Clerk_backends.Backend.S)) ->
       B.runtime_targets ~only_source)
     enabled_backends
 
@@ -273,6 +238,15 @@ let raw_cmd : int Cmd.t =
       $ Cli.targets
       $ Cli.ninja_flags)
 
+let normalize_backends backends =
+  List.sort_uniq
+    (fun (_, (module B : Backend.S)) (_, (module B' : Backend.S)) ->
+      String.compare B.name B'.name)
+    backends
+  |> function [] -> [Ocaml.OCaml, (module Ocaml.Backend : Backend.S)] | x -> x
+
+let populate_backends = List.map (fun bk -> bk, Backend.backend_from_config bk)
+
 let build_clerk_target
     ~(config : Cli.config)
     ~ninja_flags
@@ -284,12 +258,13 @@ let build_clerk_target
   let local_runtime_dir bk =
     File.(build_dir / Scan.libcatala / backend_subdir bk)
   in
-  let backends = target.backends in
-  let enabled_backends = normalize_backends backends in
-  let install_targets, all_modules_deps =
+  let backends = populate_backends target.backends in
+  let backends = normalize_backends backends in
+  let enabled_backends = backends in
+  let install_targets, all_modules_deps, var_bindings =
     Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
       ~ninja_flags ~quiet ~autotest:false
-    @@ fun nin_ppf items _var_bindings ->
+    @@ fun nin_ppf items var_bindings ->
     let find_module_item module_name =
       try
         List.find
@@ -319,7 +294,7 @@ let build_clerk_target
     in
     let all_target_files =
       List.concat_map
-        (fun bk ->
+        (fun (bk_config, bk) ->
           List.concat_map
             (fun module_item ->
               let open File in
@@ -336,11 +311,12 @@ let build_clerk_target
                   / Scan.target_basename module_item
               in
               let extensions =
-                if target.include_objects then List.assoc bk backend_extensions
-                else List.assoc bk backend_src_extensions
+                if target.include_objects then backend_extensions bk
+                else backend_src_extensions bk
               in
               List.map
-                (fun ext -> (module_item, target, bk), base -.- ext)
+                (fun ext ->
+                  (module_item, target, (bk_config, bk)), base -.- ext)
                 extensions)
             all_modules_deps)
         backends
@@ -349,7 +325,7 @@ let build_clerk_target
     in
     let all_targets =
       List.fold_left
-        (fun acc ((item, tg, backend), _) ->
+        (fun acc ((item, tg, (bk_config, backend)), _) ->
           let open File in
           let targets =
             let f =
@@ -359,21 +335,23 @@ let build_clerk_target
               let backend_subdir =
                 build_dir / dirname f / backend_subdir backend
               in
-              if backend = Clerk_config.Java && item.is_stdlib then
+              let is_java =
+                match bk_config with Java.Java _ -> true | _ -> false
+              in
+              if is_java && item.is_stdlib then
                 backend_subdir / "catala" / "stdlib" / basename f
               else backend_subdir / basename f
             in
             let exts =
-              if tg.Config.include_objects then
-                List.assoc backend backend_extensions
-              else List.assoc backend backend_src_extensions
+              if tg.Config.include_objects then backend_extensions backend
+              else backend_src_extensions backend
             in
             List.map File.(fun ext -> tf -.- ext) exts
           in
           targets @ acc)
-        (backend_runtime_targets
-           ~only_source:(not target.Config.include_objects)
-           backends)
+        (* also build stdlib/runtime objects to populate the catala runtime's
+           jar *)
+        (backend_runtime_targets ~only_source:false backends)
         all_target_files
       |> List.rev
     in
@@ -384,46 +362,49 @@ let build_clerk_target
         all_target_files
     in
     Nj.format_def nin_ppf (Nj.Default (Nj.Default.make all_targets));
-    install_targets, all_modules_deps
+    install_targets, all_modules_deps, var_bindings
   in
   let open File in
-  let prefix_dir = target_dir / target.tname in
   List.iter
-    (fun (bk, src) ->
-      let dir = prefix_dir / backend_subdir bk in
+    (fun ((_bk_conf, bk), src) ->
+      let dir = target_dir / backend_subdir bk / target.tname in
       ensure_dir dir;
       copy_in ~dir ~src)
     install_targets;
-  target.Config.backends
-  |> List.iter (fun bk ->
-      let dir = prefix_dir / backend_subdir bk in
+  List.iter
+    (fun (bk_config, ((module B : Backend.S) as bk)) ->
+      let dir = target_dir / backend_subdir bk / target.tname in
       let extensions =
-        if target.include_objects then List.assoc bk backend_extensions
-        else List.assoc bk backend_src_extensions
+        if target.include_objects then backend_extensions bk
+        else backend_src_extensions bk
       in
-      match bk with
-      | Clerk_config.Java ->
-        List.iter
-          (fun subdir ->
-            copy_dir ()
-              ~filter:(fun f ->
-                Filename.check_suffix f ".java"
-                || (target.include_objects && Filename.check_suffix f ".class"))
-              ~src:(local_runtime_dir bk / subdir)
-              ~dst:(dir / subdir))
-          ["catala"; "org"]
-      | bk ->
+      match bk_config with
+      | Java.Java _ ->
+        let cmd =
+          Java.libcatala_jar_command ~no_stdlib:false ~build_dir ~var_bindings
+            ~target_dir:(target_dir / backend_subdir bk)
+        in
+        Message.debug "Running command: '%s'..." (String.concat " " cmd);
+        let exit_code = Clerk_cli.run_command_line cmd in
+        if exit_code <> 0 then raise (Catala_utils.Cli.Exit_with exit_code)
+      | _ ->
         List.iter
           (fun ext ->
             let src = (local_runtime_dir bk / "catala_runtime") -.- ext in
             if File.exists src then copy_in ~dir ~src)
-          extensions);
-  if target.Config.include_sources then
-    all_modules_deps
-    |> List.map (fun it -> it.Scan.file_name)
-    |> List.sort_uniq compare
-    |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src);
-  target, prefix_dir
+          extensions)
+    backends;
+  ( target,
+    List.map
+      (fun (_bk_config, ((module B : Backend.S) as bk)) ->
+        let prefix_dir = target_dir / backend_subdir bk / target.tname in
+        if target.Config.include_sources then
+          all_modules_deps
+          |> List.map (fun it -> it.Scan.file_name)
+          |> List.sort_uniq compare
+          |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src);
+        prefix_dir)
+      backends )
 
 type targets = { clerk_targets : Config.target list; others : string list }
 
@@ -457,13 +438,14 @@ let build_direct_targets
           else File.(build_dir / t))
         direct_targets
     in
-    let backends = if autotest then [Clerk_config.OCaml] else [] in
-    let enabled_backends =
+    let ocaml_backend = Ocaml.OCaml, (module Ocaml.Backend : Backend.S) in
+    let backends = if autotest then [ocaml_backend] else [] in
+    let enabled_backends : (Config.backend * (module Backend.S)) list =
       List.fold_left
         (fun acc t ->
           match File.extension t with
-          | "" -> Clerk_config.OCaml :: acc
-          | _ -> target_backend config.options t :: acc)
+          | "" -> ocaml_backend :: acc
+          | _ -> direct_target_backend config.options t :: acc)
         backends direct_targets
       |> normalize_backends
     in
@@ -491,7 +473,14 @@ let build_direct_targets
           (fun t ->
             let ext = File.extension t in
             let is_module = ext = "" in
-            match List.assoc_opt ext extensions_backend, ext with
+            match
+              ( List.find_map
+                  (fun (_, bk) ->
+                    if List.mem ext (backend_extensions bk) then Some bk
+                    else None)
+                  enabled_backends,
+                ext )
+            with
             | Some bk, _ -> Left (ensure_target_dir (backend_subdir bk) t)
             | None, ("catala_en" | "catala_fr" | "catala_pl") -> Left t
             | None, ("exe" | "jar") ->
@@ -675,9 +664,10 @@ let build_cmd : int Cmd.t =
         "@[<v 4>Build successful. The targets can be found in the following \
          files:@,\
          %a%t%a@]"
-        (Format.pp_print_list (fun ppf (t, f) ->
+        (Format.pp_print_list (fun ppf (t, files) ->
              Format.fprintf ppf "@{<cyan>[%s]@} → @{<cyan>%s@}" t.Config.tname
-               (make_relative_to ~dir:original_cwd f)))
+               (List.map (make_relative_to ~dir:original_cwd) files
+               |> String.concat " ")))
         clerk_targets_result
         (fun fmt ->
           if clerk_targets_result <> [] && direct_targets <> [] then
@@ -749,10 +739,12 @@ let run_artifact config ~backend ~var_bindings ?scope ~test src =
   | `Java -> Clerk_backends.Java.run_artifact ~var_bindings ~test src
 
 let backend_to_config = function
-  | `Interpret | `OCaml -> Clerk_config.OCaml
-  | `C -> Clerk_config.C
-  | `Python -> Clerk_config.Python
-  | `Java -> Clerk_config.Java
+  | `Interpret | `OCaml -> Ocaml.Backend.default_config
+  | `C -> C.Backend.default_config
+  | `Python -> Python.Backend.default_config
+  | `Java -> Java.Backend.default_config
+
+let backend_name (module B : Backend.S) = B.name
 
 let retrieve_target_items ?(test_only = true) items files_or_folders =
   let open File in
@@ -798,7 +790,10 @@ let build_test_deps
     List.map (fun it -> it, make_target ~build_dir ~backend it) target_items
   in
   let link_deps = linking_dependencies items in
-  let runtime_targets = backend_runtime_targets [backend_to_config backend] in
+  let runtime_targets =
+    backend_runtime_targets
+      (normalize_backends (populate_backends [backend_to_config backend]))
+  in
   let ninja_targets =
     let backend =
       match backend with
@@ -901,7 +896,8 @@ let run_cmd =
     in
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     let enabled_backends =
-      [Clerk_rules.backend_from_config (backend_to_config backend)]
+      let backend = backend_to_config backend in
+      [backend, Backend.backend_from_config backend]
     in
     Clerk_rules.run_ninja ~config ~code_coverage:false ~enabled_backends
       ~ninja_flags ~autotest:false ~quiet
@@ -1175,8 +1171,9 @@ let run_clerk_test
     [
       backend_to_config backend
       (* Clerk_rules.OCaml backend is required as autotest flag is true *);
-      Clerk_config.OCaml;
+      Ocaml.OCaml;
     ]
+    |> populate_backends
     |> normalize_backends
   in
   let files_or_folders =
@@ -1339,11 +1336,12 @@ let start_cmd =
     let enabled_backends =
       let open Clerk_config in
       List.concat_map (fun target -> target.backends) targets
+      |> populate_backends
       |> normalize_backends
     in
     let default =
       List.fold_left
-        (fun default_rules (module B : Clerk_backends.Backend.S) ->
+        (fun default_rules (_, (module B : Clerk_backends.Backend.S)) ->
           let rule_stdlib_fr = Format.sprintf "Stdlib_fr@%s-module" B.name in
           let rule_stdlib_en = Format.sprintf "Stdlib_en@%s-module" B.name in
           let runtime_rule = Format.sprintf "@runtime-%s" B.name in
@@ -1401,15 +1399,15 @@ let ci_cmd =
       (fun t ->
         let _ = build_clerk_target ~quiet ~config ~ninja_flags:[] t in
         List.iter
-          (fun bk ->
+          (fun bk_config ->
+            let bk = Backend.backend_from_config bk_config in
             stop_on_failure
             @@ fun () ->
             Message.debug
               "Running @{<yellow>%s@} backend tests for @{<cyan>[%s]@} target"
-              t.tname
-              (string_of_config_backend bk);
-            run_clerk_test config quiet [t.tname] (config_backend bk) false
-              verbosity report_format code_coverage diff_command [])
+              t.tname (backend_name bk);
+            run_clerk_test config quiet [t.tname] (config_backend bk_config)
+              false verbosity report_format code_coverage diff_command [])
           t.backends)
       targets;
     raise (Catala_utils.Cli.Exit_with 0)
@@ -1478,7 +1476,8 @@ let list_vars_cmd =
   let run config =
     let var_bindings =
       Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
-        ~enabled_backends:Clerk_rules.all_backends ~config
+        ~enabled_backends:(Backend.registered_backends ())
+        ~config
     in
     Format.eprintf "Defined variables:@.";
     Format.open_vbox 0;
@@ -1500,7 +1499,7 @@ let json_schema_cmd =
   let run config ninja_flags quiet file scope =
     let file = config.Cli.fix_path file in
     Clerk_rules.run_ninja ~config ~code_coverage:false
-      ~enabled_backends:[(module Clerk_backends.Ocaml.Backend)]
+      ~enabled_backends:[Ocaml.OCaml, (module Clerk_backends.Ocaml.Backend)]
       ~ninja_flags ~autotest:false ~quiet
       (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
     |> fun (items, _link_deps, var_bindings) ->

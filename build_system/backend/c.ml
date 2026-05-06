@@ -18,7 +18,11 @@
 open Clerk_utils
 open Catala_utils
 open Clerk_lib
+module Bk = Backend
 
+type Clerk_config.backend += C
+
+let backend_name = "c"
 let catala_flags_c = Var.make "CATALA_FLAGS_C"
 let cc_exe = Var.make "CC"
 let c_flags = Var.make "CFLAGS"
@@ -54,10 +58,25 @@ module Backend = struct
   open File
   module Nj = Ninja_utils
 
-  let name = "c"
+  let name = backend_name
   let module_ext = "@" ^ name ^ "-module"
   let src_extensions = ["c"; "h"]
   let obj_extensions = ["o"]
+
+  let backend_descr =
+    let open Clerk_lib.Clerk_toml_encoding in
+    conv
+      (function
+        | C -> ()
+        | _ ->
+          Message.error ~internal:true
+            "Unexpected non-C configuration while encoding backend \
+             configuration")
+      (fun () -> C)
+      empty
+
+  let default_config = C
+  let matches = function C -> true | _ -> false
 
   let runtime_targets ~only_source =
     [(if only_source then "@runtime-" ^ name ^ "-src" else "@runtime-" ^ name)]
@@ -231,3 +250,5 @@ module Backend = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
 end
+
+let () = Bk.register_backend ~backend:(module Backend)

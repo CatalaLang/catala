@@ -18,6 +18,8 @@
 open Clerk_utils
 open Clerk_lib
 
+type Clerk_lib.Clerk_config.backend += Python
+
 val linking_command :
   build_dir:string -> ('a -> Scan.item list) -> 'a -> string -> string list
 (** [linking_command] is a that returns a list of parameter that represents a

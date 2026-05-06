@@ -52,6 +52,7 @@ let output = make "out"
 let src = make "src"
 let dst = make "dst"
 let class_path = make "class_path"
+let package_prefix = make "package_prefix"
 let cat_files = make "cat_files" (* Useful on Windows only *)
 
 (* let scope = make "scope" *)

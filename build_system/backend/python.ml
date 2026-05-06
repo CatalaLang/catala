@@ -18,7 +18,11 @@
 open Clerk_utils
 open Catala_utils
 open Clerk_lib
+module Bk = Backend
 
+type Clerk_config.backend += Python
+
+let backend_name = "python"
 let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
 let python = Var.make "PYTHON"
 
@@ -71,6 +75,21 @@ module Backend = struct
   let src_extensions = ["py"]
   let obj_extensions = []
   let runtime_targets ~only_source:_ = ["@runtime-" ^ name]
+
+  let backend_descr =
+    let open Clerk_lib.Clerk_toml_encoding in
+    conv
+      (function
+        | Python -> ()
+        | _ ->
+          Message.error ~internal:true
+            "Unexpected non-python configuration while encoding backend \
+             configuration")
+      (fun () -> Python)
+      empty
+
+  let default_config = Python
+  let matches = function Python -> true | _ -> false
 
   module Flags = struct
     let default
@@ -144,3 +163,5 @@ module Backend = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name / "src" / "catala")
 end
+
+let () = Bk.register_backend ~backend:(module Backend)

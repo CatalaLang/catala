@@ -17,32 +17,40 @@
 
 open Clerk_utils
 open Catala_utils
+open Clerk_lib
 open File
+module Bk = Backend
 
-type Clerk_lib.Clerk_config.backend_config +=
-  | Java_config of { package_prefix : string option }
+type Clerk_config.backend += Java of { package_prefix : string option }
 
-let java_config =
-  let open Clerk_lib.Clerk_toml_encoding in
-  conv
-    (function
-      | Java_config { package_prefix; _ } -> package_prefix
-      | _ ->
-        Message.error ~internal:true
-          "Unexpected non-java configuration while encoding backend \
-           configuration")
-    (fun package_prefix -> Java_config { package_prefix })
-    (obj1 (opt_field ~name:"package-prefix" string))
-
-let () =
-  Clerk_lib.Clerk_config.(
-    register_backend_config ~name:"java" ~backend:Java java_config)
-
+let backend_name = "java"
 let catala_flags_java = Var.make "CATALA_FLAGS_JAVA"
 let javac = Var.make "JAVAC"
 let javac_flags = Var.make "JAVAC_FLAGS"
-let jar = Var.make "jar"
+let jar = Var.make "JAR"
 let java = Var.make "JAVA"
+
+let libcatala_jar_command ~no_stdlib ~build_dir ~var_bindings ~target_dir =
+  let target_jar = File.(target_dir / "catala-runtime.jar") in
+  let java_dir_prefix = build_dir / Scan.libcatala / "java" in
+  let runtime_class_files =
+    File.scan_tree
+      (fun f ->
+        if Filename.check_suffix f ".class" || Filename.check_suffix f ".java"
+        then Some f
+        else None)
+      java_dir_prefix
+    |> (if no_stdlib then Seq.filter (fun (dir, _, _) -> dir <> "stdlib")
+        else Fun.id)
+    |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
+    |> List.of_seq
+  in
+  Var.get_var var_bindings jar
+  @ ["--create"; "--file"; target_jar]
+  @ List.concat_map
+      (fun clazz ->
+        ["-C"; java_dir_prefix; File.remove_prefix java_dir_prefix clazz])
+      runtime_class_files
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open Var in
@@ -124,10 +132,25 @@ module Backend = struct
   open Var
   module Nj = Ninja_utils
 
-  let name = "java"
+  let name = backend_name
   let module_ext = ".class"
   let src_extensions = ["java"]
   let obj_extensions = ["class"]
+
+  let backend_descr =
+    let open Clerk_lib.Clerk_toml_encoding in
+    conv
+      (function
+        | Java { package_prefix; _ } -> package_prefix
+        | _ ->
+          Message.error ~internal:true
+            "Unexpected non-java configuration while encoding backend \
+             configuration")
+      (fun package_prefix -> Java { package_prefix })
+      (obj1 (opt_field ~name:"package-prefix" string))
+
+  let default_config = Java { package_prefix = None }
+  let matches = function Java _ -> true | _ -> false
 
   let runtime_targets ~only_source =
     [(if only_source then "@runtime-" ^ name ^ "-src" else "@runtime-" ^ name)]
@@ -171,7 +194,7 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-java"
-        ~command:[!catala_exe; name; !catala_flags; !catala_flags_java;
+        ~command:[!catala_exe; name; !catala_flags; !catala_flags_java; !package_prefix;
                   "-o"; !output; "--"; !input]
         ~description:["<catala>"; name; "⇒"; !output];
       Nj.rule "java-class"
@@ -290,3 +313,5 @@ module Backend = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
 end
+
+let () = Bk.register_backend ~backend:(module Backend)

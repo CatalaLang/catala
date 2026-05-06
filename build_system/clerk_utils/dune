@@ -3,7 +3,6 @@
  (public_name catala.clerk_utils)
  (libraries
   ninja_utils
-  catala.clerk_lib
   catala.catala_utils
   catala.surface
-  otoml))
+))

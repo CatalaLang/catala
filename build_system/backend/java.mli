@@ -17,6 +17,16 @@
 
 open Clerk_utils
 
+type Clerk_lib.Clerk_config.backend +=
+  | Java of { package_prefix : string option }
+
+val libcatala_jar_command :
+  no_stdlib:bool ->
+  build_dir:string ->
+  var_bindings:(Var.t * string list) list ->
+  target_dir:string ->
+  string list
+
 val linking_command :
   build_dir:string ->
   var_bindings:(Var.t * string list) list ->

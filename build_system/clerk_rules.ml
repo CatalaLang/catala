@@ -20,28 +20,9 @@ open Clerk_utils
 module Backend_common = Clerk_backends.Common
 module Nj = Ninja_utils
 
-(**{1 Building rules}*)
-
 type backend = (module Clerk_backends.Backend.S)
 
-let all_backends : backend list =
-  [
-    (module Clerk_backends.Ocaml.Backend);
-    (module Clerk_backends.C.Backend);
-    (module Clerk_backends.Java.Backend);
-    (module Clerk_backends.Python.Backend);
-  ]
-
-let backend_from_config = function
-  | Clerk_config.OCaml ->
-    (module Clerk_backends.Ocaml.Backend : Clerk_backends.Backend.S)
-  | Clerk_config.Python ->
-    (module Clerk_backends.Python.Backend : Clerk_backends.Backend.S)
-  | Clerk_config.C ->
-    (module Clerk_backends.C.Backend : Clerk_backends.Backend.S)
-  | Clerk_config.Java ->
-    (module Clerk_backends.Java.Backend : Clerk_backends.Backend.S)
-  | _ -> invalid_arg __FUNCTION__
+(**{1 Building rules}*)
 
 let base_bindings ~code_coverage ~autotest ~enabled_backends ~config =
   let options = config.Clerk_cli.options in
@@ -87,7 +68,8 @@ let static_base_rules ~tests enabled_backends =
 let gen_build_statements
     (include_dirs : string list)
     ~(tests : bool)
-    (enabled_backends : (module Clerk_backends.Backend.S) list)
+    (enabled_backends :
+      (Clerk_config.backend * (module Clerk_backends.Backend.S)) list)
     (autotest : bool)
     (same_dir_modules : (string * File.t) list)
     ~is_stdlib
@@ -128,7 +110,7 @@ let gen_build_statements
     | None -> []
     | Some _ ->
       List.concat_map
-        (fun (module Backend : Clerk_backends.Backend.S) ->
+        (fun (_, (module Backend : Clerk_backends.Backend.S)) ->
           Backend.expose_module ~same_dir_modules ~used_modules:modules)
         enabled_backends
   in
@@ -136,7 +118,7 @@ let gen_build_statements
   let backend_sources =
     if item.extrnal then
       List.map
-        (fun (module Backend : Clerk_backends.Backend.S) ->
+        (fun (_, (module Backend : Clerk_backends.Backend.S)) ->
           Backend.external_copy item)
         enabled_backends
     else
@@ -153,13 +135,22 @@ let gen_build_statements
         else None
       in
       List.map
-        (fun (module Backend : Clerk_backends.Backend.S) ->
-          Backend.catala ?vars ~is_stdlib ~inputs ~implicit_in has_scope_tests)
+        (fun (bk, (module Backend : Clerk_backends.Backend.S)) ->
+          match bk with
+          | Clerk_backends.Java.Java { package_prefix = Some prefix }
+            when not is_stdlib ->
+            let vars =
+              let prefix = Var.package_prefix, ["--package-prefix"; prefix] in
+              match vars with None -> [prefix] | Some bdgs -> prefix :: bdgs
+            in
+            Backend.catala ~vars ~is_stdlib ~inputs ~implicit_in has_scope_tests
+          | _ ->
+            Backend.catala ?vars ~is_stdlib ~inputs ~implicit_in has_scope_tests)
         enabled_backends
   in
   let backend_objects =
     List.map
-      (fun (module Backend : Clerk_backends.Backend.S) ->
+      (fun (_, (module Backend : Clerk_backends.Backend.S)) ->
         Backend.build_object ~include_dirs ~same_dir_modules ~item
           has_scope_tests)
       enabled_backends
@@ -179,7 +170,7 @@ let gen_build_statements
       let modname = Mark.remove m in
       let backends_module =
         List.map
-          (fun (module Backend : Clerk_backends.Backend.S) ->
+          (fun (_, (module Backend : Clerk_backends.Backend.S)) ->
             Nj.build "phony"
               ~outputs:[Format.sprintf "%s@%s-module" modname Backend.name]
               ~inputs:
@@ -227,7 +218,8 @@ let gen_build_statements_dir
     (dir : string)
     (include_dirs : string list)
     ~(tests : bool)
-    (enabled_backends : (module Clerk_backends.Backend.S) list)
+    (enabled_backends :
+      (Clerk_config.backend * (module Clerk_backends.Backend.S)) list)
     (autotest : bool)
     (items : Scan.item list) : Nj.ninja =
   let same_dir_modules =
@@ -358,16 +350,18 @@ let output_ninja_file
     Nj.format_def nin_ppf nj;
     Format.pp_print_cut nin_ppf ()
   in
+  let full_backends = enabled_backends in
+  let enabled_backends = List.map snd full_backends in
   output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings;
   pp (Nj.Comment "\n- Standard library build statements - #");
   Seq.memoize
-  @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~enabled_backends
-       ~autotest ~is_stdlib:true stdlib_tree
+  @@ output_ninja_file_item_statements nin_ppf ~config ~tests
+       ~enabled_backends:full_backends ~autotest ~is_stdlib:true stdlib_tree
   @@ Seq.append (fun () ->
       pp (Nj.Comment "\n- Project-specific build statements - #");
       Seq.Nil)
-  @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~enabled_backends
-       ~autotest ~is_stdlib:false project_tree
+  @@ output_ninja_file_item_statements nin_ppf ~config ~tests
+       ~enabled_backends:full_backends ~autotest ~is_stdlib:false project_tree
   @@ fun () ->
   pp (Nj.Comment "\n- Global rules and defaults - #\n");
   if tests then
@@ -504,15 +498,25 @@ let run_ninja
     ?(include_dir = true)
     ~config
     ?(tests = false)
-    ?(enabled_backends = all_backends)
+    ?enabled_backends
     ~quiet
     ~code_coverage
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
+  let enabled_backends =
+    Option.value
+      ~default:
+        (Clerk_backends.Backend.registered_backends ()
+        |> List.map (fun ((module B : Clerk_backends.Backend.S) as bk) ->
+            B.default_config, bk))
+      enabled_backends
+  in
   let var_bindings =
-    base_bindings ~code_coverage ~config ~enabled_backends ~autotest
+    base_bindings ~code_coverage ~config
+      ~enabled_backends:(List.map snd enabled_backends)
+      ~autotest
   in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet (fun nin_ppf ->
       let insource = Lazy.force Poll.catala_source_tree_root <> None in

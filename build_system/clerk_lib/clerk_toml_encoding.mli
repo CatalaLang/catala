@@ -37,6 +37,7 @@ val encode : 'a -> 'a t -> Otoml.t
 
 (** Basic constructors *)
 
+val empty : unit descr
 val string : string descr
 val bool : bool descr
 val pair : 'a descr -> 'b descr -> ('a * 'b) descr

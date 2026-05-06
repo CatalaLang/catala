@@ -19,42 +19,34 @@ open Otoml
 open Clerk_toml_encoding
 
 type backend = ..
-type backend += C | OCaml | Java | Python
 
-let registered_backends = ref []
+let registered_backends_descr = ref []
 
-let register_backend ~name backend =
-  registered_backends := (name, backend) :: !registered_backends
-
-let () =
-  register_backend ~name:"c" C;
-  register_backend ~name:"ocaml" OCaml;
-  register_backend ~name:"java" Java;
-  register_backend ~name:"python" Python
-
-type backend_config = ..
-
-let registered_backend_configs : (backend * backend_config) case list ref =
-  ref []
-
-let register_backend_config
-    ~name
-    ~backend
-    (backend_config_descr : backend_config descr) =
-  let backend_descr : backend descr =
-    conv (fun _ -> name) (fun _ -> backend) string
+let register_backend_descr ~name ~default ~matches ~backend_descr =
+  let default_config_descr : 'a case =
+    case ~info:"default backend"
+      ~proj:(fun _ -> None)
+      ~inj:(fun name' -> if name = name' then Some default else None)
+      string
   in
-  let backend_descr_case : (backend * backend_config) case =
-    case ~info:(name ^ " configuration")
-      ~proj:(fun x -> Some x)
-      ~inj:(fun y -> Some y)
-      (pair backend_descr backend_config_descr)
+  let backend_with_config_descr : 'a case =
+    case ~info:"configured backend"
+      ~proj:(fun backend_and_config ->
+        if matches backend_and_config then Some (name, backend_and_config)
+        else None)
+      ~inj:(fun (name', backend_and_config) ->
+        if String.(equal (lowercase_ascii name) (lowercase_ascii name')) then
+          Some backend_and_config
+        else None)
+      (pair string backend_descr)
   in
-  registered_backend_configs :=
-    backend_descr_case :: !registered_backend_configs
+  let backend_case : 'a case =
+    case ~info:(name ^ " backend") ~proj:Option.some ~inj:Option.some
+      (union [default_config_descr; backend_with_config_descr])
+  in
+  registered_backends_descr := backend_case :: !registered_backends_descr
 
-let registered_backends () = !registered_backends
-let registered_backend_configs () = !registered_backend_configs
+let registered_backends_descr () = !registered_backends_descr
 
 type doc_backend = Html | Latex
 
@@ -72,7 +64,6 @@ type target = {
   tmodules : string list;
   ttests : File.t list;
   backends : backend list;
-  backend_configs : (backend * backend_config) list;
   include_sources : bool;
   include_objects : bool;
 }
@@ -161,47 +152,17 @@ let project_encoding =
 
 let target_encoding =
   conv
-    (fun {
-           tname;
-           tmodules;
-           ttests;
-           backends;
-           backend_configs;
-           include_sources;
-           include_objects;
-         } ->
-      ( tname,
-        tmodules,
-        ttests,
-        backends,
-        backend_configs,
-        include_sources,
-        include_objects ))
-    (fun ( tname,
-           tmodules,
-           ttests,
-           backends,
-           backend_configs,
-           include_sources,
-           include_objects )
+    (fun { tname; tmodules; ttests; backends; include_sources; include_objects }
+       -> tname, tmodules, ttests, backends, include_sources, include_objects)
+    (fun (tname, tmodules, ttests, backends, include_sources, include_objects)
        ->
-      {
-        tname;
-        tmodules;
-        ttests;
-        backends;
-        backend_configs;
-        include_sources;
-        include_objects;
-      })
-  @@ obj7
+      { tname; tmodules; ttests; backends; include_sources; include_objects })
+  @@ obj6
        (req_field ~name:"name" @@ string)
        (req_field ~name:"modules" @@ list string)
        (dft_field ~name:"tests" ~default:[] @@ list string)
-       (dft_field ~name:"backends" ~default:[OCaml]
-       @@ list (union (string_cases (registered_backends ()))))
-       (dft_field ~name:"backend_configs" ~default:[]
-          (delayed (lazy (list (union (registered_backend_configs ()))))))
+       (dft_field ~name:"backends" ~default:[]
+          (delayed (lazy (list (union (registered_backends_descr ()))))))
        (dft_field ~name:"include_sources" ~default:false @@ bool)
        (dft_field ~name:"include_objects" ~default:false @@ bool)
 
@@ -226,7 +187,7 @@ let custom_rule_encoding =
       { backend; in_exts; out_exts; commandline })
   @@ obj4
        (req_field ~name:"backend"
-       @@ union (string_cases (registered_backends ())))
+       @@ delayed (lazy (union (registered_backends_descr ()))))
        (req_field ~name:"in_exts" @@ list string)
        (req_field ~name:"out_exts" @@ list string)
        (req_field ~name:"commandline" @@ list string)

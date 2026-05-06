@@ -19,9 +19,6 @@ open Clerk_utils
 
 type backend = (module Clerk_backends.Backend.S)
 
-val all_backends : backend list
-val backend_from_config : Clerk_config.backend -> backend
-
 val base_bindings :
   code_coverage:bool ->
   autotest:bool ->
@@ -33,7 +30,7 @@ val run_ninja :
   ?include_dir:bool ->
   config:Clerk_cli.config ->
   ?tests:bool ->
-  ?enabled_backends:backend list ->
+  ?enabled_backends:(Clerk_config.backend * backend) list ->
   quiet:bool ->
   code_coverage:bool ->
   autotest:bool ->
