@@ -41,6 +41,7 @@ val string : string descr
 val bool : bool descr
 val pair : 'a descr -> 'b descr -> ('a * 'b) descr
 val list : 'a descr -> 'a list descr
+val delayed : 'a descr Lazy.t -> 'a descr
 val binding_list : 'a descr -> (string * 'a) list descr
 
 (** Object's Field constructors *)

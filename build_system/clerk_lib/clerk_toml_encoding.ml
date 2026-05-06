@@ -19,6 +19,7 @@ module S = Set.Make (String)
 module M = Map.Make (String)
 
 type _ descr =
+  | Lazy : 'a descr Lazy.t -> 'a descr
   | String : string descr
   | Bool : bool descr
   | List : 'a descr -> 'a list descr
@@ -61,6 +62,7 @@ type 'a t = 'a table_descr
 let string = String
 let bool = Bool
 let list d = List d
+let delayed f = Lazy f
 
 (* TODO: also provide tuples constructors *)
 let pair a b = Tups (Tup a, Tup b)
@@ -77,6 +79,7 @@ let merge_objs l r =
   in
   let rec check_name_clash : type a. S.t -> a descr -> S.t =
    fun acc -> function
+     | Lazy v -> check_name_clash acc (Lazy.force v)
      | String | Bool | Tup _ | Tups _ | List _ | Union _ -> acc
      | Conv { descr; _ } -> check_name_clash acc descr
      | Objs (l, r) ->
@@ -335,6 +338,7 @@ let decode_descr (target : target_kind) toml descr =
       ?first_obj:bool -> scope:scope -> Otoml.t -> a descr -> a =
    fun ?(first_obj = true) ~scope toml (descr as current) ->
     match toml, descr with
+    | _, Lazy f -> loop ~first_obj ~scope toml (Lazy.force f)
     | _, Union { cases } -> (
       match
         List.find_map
@@ -343,7 +347,6 @@ let decode_descr (target : target_kind) toml descr =
           cases
       with
       | None ->
-        Format.eprintf "%s@." (Otoml.Printer.to_string toml);
         error scope
           "@[<v 2>the provided value does not match any of the possible \
            cases:@ %a@]"
@@ -528,6 +531,7 @@ let decode (toml : Otoml.t) (descr : _ table_descr) : 'a =
 
 let rec encode_descr : type a. a -> a descr -> Otoml.t =
  fun v -> function
+  | Lazy x -> encode_descr v (Lazy.force x)
   | String -> TomlString v
   | Bool -> TomlBoolean v
   | List descr -> TomlArray (List.map (fun v -> encode_descr v descr) v)

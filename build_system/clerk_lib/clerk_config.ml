@@ -201,7 +201,7 @@ let target_encoding =
        (dft_field ~name:"backends" ~default:[OCaml]
        @@ list (union (string_cases (registered_backends ()))))
        (dft_field ~name:"backend_configs" ~default:[]
-          (list (union (registered_backend_configs ()))))
+          (delayed (lazy (list (union (registered_backend_configs ()))))))
        (dft_field ~name:"include_sources" ~default:false @@ bool)
        (dft_field ~name:"include_objects" ~default:false @@ bool)
 

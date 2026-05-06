@@ -23,7 +23,6 @@ val register_backend : name:string -> backend -> unit
 val registered_backends : unit -> (string * backend) list
 
 type backend_config = ..
-type backend_config += Java_config of { package_prefix : string option }
 
 val register_backend_config :
   name:string ->
