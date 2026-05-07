@@ -320,17 +320,29 @@ nombre de lst
 ```catala-fr-code
 maximum de lst
   ou si liste vide alors -1
-```, [Extremum\ (optionnel: défaut)],
+```, [Recherche d'extremum\ (optionnel: défaut)],
+```catala-fr-code
+contenu de x parmi lst
+  tel que x.chp1 = 0
+```, [Recherche par critère],
 ```catala-fr-code
 contenu de x parmi lst
   tel que x * x est minimum
   ou si liste vide alors -1
-```, [Élément selon extremum\ (optionnel: défaut)],
+```, [Extremum selon critère\ (optionnel: défaut)],
+```catala-fr-code
+trie lst par ordre dé·croissant
+```, [Tri],
+```catala-fr-code
+trie tout x parmi lst
+  par ordre dé·croissant de x.chp2
+  puis -x.chp1 ...
+```, [Tri selon critère\ \ (optionnel: sous-critère)],
 ```catala-fr-code
 combine tout x parmi lst
   dans acc initialement 0
   avec acc + x
-```, [Accumulation]
+```, [Fold (boucle avec accumulation)]
 )
 
 #cheat-sheet.layout(

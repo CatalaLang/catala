@@ -24,7 +24,7 @@ syn match Include "^\s*>\s*Include:.*$"
 syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 syn match cc_id contained "\<\([A-ZÉÈÀÂÙÎÔÊŒÇ][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 syn match Keyword contained "\<\(zakres\|zalezy\s\+od\|deklaracja\|kolekcja\|typu\|opcjonalny\|struktura\|enumeracja\|kontekst\|wejście\|wyjście\|wewnętrzny\|zasada\|pod\s\+warunkuem\|czas\|konsekwencja\|spelnione\|wynosi\|asercja\|definicja\|stan\|etykieta\|wyjątek\|cokolwiek\)\>"
-syn match Statement contained "\<\(pasuje\|ze\s\+wzorem\|staloprzecinkowa\|przez\|malejacy\|rosnacy\|rozna\|wraz z\|mamy\|w\|takich ze\|istnieje\|dla\|wszystkie\|z\|jezeli\|wtedy\|inaczej\|poczatkowy\)\>"
+syn match Statement contained "\<\(pasuje\|ze\s\+wzorem\|staloprzecinkowa\|przez\|malejacy\|rosnacy\|rozna\|wraz z\|mamy\|w\|takich ze\|istnieje\|dla\|wszystkie\|z\|jezeli\|wtedy\|inaczej\|sort\|in\s\+\(in\|de\)creasing\s\+order\|and\s\+then\|poczatkowy\)\>"
 syn keyword Conditional contained if then else
 syn match Comment contained "#.*$"
 syn match Number contained "|[0-9]\+-[0-9]\+-[0-9]\+|"

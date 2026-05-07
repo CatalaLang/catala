@@ -251,8 +251,18 @@ declaration x content integer equals
   in
   let x equals
     content of x among lst
+      such that x.fld1 = 0
+  in
+  let x equals
+    content of x among lst
       such that x * x is minimum
       or if list empty then -1
+  in
+  let x equals
+    sort lst in decreasing order
+  in
+  let x equals
+    sort all x among lst in increasing order of x.fld2 and then -x.fld1
   in
   let x equals
     combine all x among lst

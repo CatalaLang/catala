@@ -252,8 +252,18 @@ déclaration x contenu entier égal à
   dans
   soit x égal à
     contenu de x parmi lst
+      tel que x.chp1 = 0
+  dans
+  soit x égal à
+    contenu de x parmi lst
       tel que x * x est minimum
       ou si liste vide alors -1
+  dans
+  soit x égal à
+    trie lst par ordre décroissant
+  dans
+  soit x égal à
+    trie tout x parmi lst par ordre croissant de x.chp2 puis -x.chp1
   dans
   soit x égal à
     combine tout x parmi lst
