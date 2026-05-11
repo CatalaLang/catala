@@ -353,7 +353,6 @@ module Op = struct
     | FromClosureEnv : < polymorphic ; .. > t
     | ArrayAccess : int -> < polymorphic ; .. > t
     | ConstructorCheck :
-        (* ! For future use, not implemented yet *)
         (EnumName.t * EnumConstructor.t)
         -> < polymorphic ; .. > t
     (* * overloaded *)
@@ -385,10 +384,12 @@ module Op = struct
     | Lte : < polymorphic ; .. > t
     | Gt : < polymorphic ; .. > t
     | Gte : < polymorphic ; .. > t
-    | Map : < polymorphic ; .. > t
-    | Map2 : < polymorphic ; .. > t
     | Concat : < polymorphic ; .. > t
+    | Map : < polymorphic ; .. > t
     | Filter : < polymorphic ; .. > t
+    | Find : < polymorphic ; .. > t
+    | Reduce : < polymorphic ; .. > t
+    | Sort : [ `Asc | `Desc ] -> < polymorphic ; .. > t
     (* * overloaded *)
     | Add : < overloaded ; .. > t
     | Add_int_int : < resolved ; .. > t
@@ -418,7 +419,7 @@ module Op = struct
     | Div_dur_dur : < resolved ; .. > t
     (* ternary *)
     (* * polymorphic *)
-    | Reduce : < polymorphic ; .. > t
+    | Map2 : < polymorphic ; .. > t
     | Fold : < polymorphic ; .. > t
     | HandleExceptions : < polymorphic ; .. > t
 end

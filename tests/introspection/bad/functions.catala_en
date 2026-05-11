@@ -16,7 +16,7 @@ $ catala test-scope S1
 │
 │  During evaluation: attempting to compare values with uncomparable types.
 │
-├─➤ tests/introspection/bad/functions.catala_en:10.25-10.26:
+├─➤ tests/introspection/bad/functions.catala_en:10.25-26:
 │    │
 │ 10 │   definition o equals f = f
 │    │                         ‾
@@ -44,7 +44,7 @@ $ catala test-scope S2
 │
 │  During evaluation: attempting to compare values with uncomparable types.
 │
-├─➤ tests/introspection/bad/functions.catala_en:38.27-38.28:
+├─➤ tests/introspection/bad/functions.catala_en:38.27-28:
 │    │
 │ 38 │   definition o equals foo < foo
 │    │                           ‾
@@ -86,7 +86,7 @@ $ catala test-scope S3b
 │
 │  During evaluation: attempting to compare values with uncomparable types.
 │
-├─➤ tests/introspection/bad/functions.catala_en:73.50-73.52:
+├─➤ tests/introspection/bad/functions.catala_en:73.50-52:
 │    │
 │ 73 │   definition o equals F content St { -- f: foo } >= F content St { -- f: foo }
 │    │                                                  ‾‾

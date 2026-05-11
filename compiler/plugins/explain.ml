@@ -1269,6 +1269,9 @@ let expr_to_dot_label0 : type a.
           | Map2 -> xlang () ~en:"on_every_pair" ~fr:"pour_chaque_paire"
           | Reduce -> xlang () ~en:"reduce" ~fr:"réunion"
           | Filter -> xlang () ~en:"filter" ~fr:"filtre"
+          | Find -> xlang () ~en:"find" ~fr:"cherche"
+          | Sort `Asc -> xlang () ~en:"sort_increasing" ~fr:"tri_croissant"
+          | Sort `Desc -> xlang () ~en:"sort_decreasing" ~fr:"tri_décroissant"
           | Fold -> xlang () ~en:"fold" ~fr:"combinaison"
           | ArrayAccess n ->
             xlang ()

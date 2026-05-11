@@ -33,27 +33,27 @@ scope Test:
 $ catala dcalc
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     St
-│  // list of <any type>
+│  Incompatible types:
+│    got      St,
+│    expected list of <any type>
 │
 │ While typechecking the following expression:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-13.37:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-37:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
 │    │                                 ‾‾‾‾
 │
 │ Type St is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-7.30:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-30:
 │   │
 │ 7 │   input ll content list of St
 │   │                            ‾‾
 │
 │ Type list of <any type> is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-24:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
-│    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│    │                 ‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```
@@ -63,27 +63,27 @@ $ catala dcalc
 $ catala test-scope Test
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     St
-│  // list of <any type>
+│  Incompatible types:
+│    got      St,
+│    expected list of <any type>
 │
 │ While typechecking the following expression:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-13.37:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.33-37:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
 │    │                                 ‾‾‾‾
 │
 │ Type St is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-7.30:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:7.28-30:
 │   │
 │ 7 │   input ll content list of St
 │   │                            ‾‾
 │
 │ Type list of <any type> is coming from:
-├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-13.55:
+├─➤ tests/array/bad/type_error_in_filter.catala_en:13.17-24:
 │    │
 │ 13 │     with acc ++ list of x among in_n such that x.x > 2
-│    │                 ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│    │                 ‾‾‾‾‾‾‾
 └─
 #return code 123#
 ```

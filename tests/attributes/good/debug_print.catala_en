@@ -48,10 +48,10 @@ $ catala interpret -s A --debug
   Duration_en MonthYear_en Period_internal Period_en Money_internal Money_en
   Integer_en Decimal_internal Decimal_en Stdlib_en
 [DEBUG] Starting interpretation...
-[DEBUG] 0 (at tests/attributes/good/debug_print.catala_en:9.38-9.47)
-[DEBUG] value of x = 0 (at tests/attributes/good/debug_print.catala_en:10.57-10.64)
-[DEBUG] 2 (at tests/attributes/good/debug_print.catala_en:11.42-11.43)
-[DEBUG] 10. (at tests/attributes/good/debug_print.catala_en:12.70-12.76)
+[DEBUG] 0 (at tests/attributes/good/debug_print.catala_en:9.38-47)
+[DEBUG] value of x = 0 (at tests/attributes/good/debug_print.catala_en:10.57-64)
+[DEBUG] 2 (at tests/attributes/good/debug_print.catala_en:11.42-43)
+[DEBUG] 10. (at tests/attributes/good/debug_print.catala_en:12.70-76)
 [DEBUG] End of interpretation
 ┌─[RESULT]─ A ─
 │ w = 0

@@ -249,6 +249,9 @@ let operator_to_string : type a. a Op.t -> string =
   | Reduce -> "reduce"
   | Concat -> "++"
   | Filter -> "filter"
+  | Find -> "find"
+  | Sort `Asc -> "sort_increasing"
+  | Sort `Desc -> "sort_decreasing"
   | Add -> "+"
   | Add_int_int -> "+!"
   | Add_rat_rat -> "+."
@@ -313,6 +316,9 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Reduce -> "reduce"
   | Concat -> "++"
   | Filter -> "filter"
+  | Find -> "find"
+  | Sort `Asc -> "sort_up"
+  | Sort `Desc -> "sort_down"
   | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Add
     ->
     "+"
@@ -416,8 +422,9 @@ module Precedence = struct
       | Div | Div_int_int | Div_rat_rat | Div_mon_int | Div_mon_rat
       | Div_mon_mon | Div_dur_dur ->
         Op Div
-      | HandleExceptions | Map | Map2 | Concat | Filter | Reduce | Fold
-      | ToClosureEnv | FromClosureEnv | ArrayAccess _ | ConstructorCheck _ ->
+      | HandleExceptions | Map | Map2 | Concat | Filter | Find | Reduce | Fold
+      | Sort _ | ToClosureEnv | FromClosureEnv | ArrayAccess _
+      | ConstructorCheck _ ->
         App
       | ValueFromJson _ -> Contained)
     | EApp _ -> App
@@ -531,7 +538,7 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EVar v -> var fmt v
       | EExternal { name } -> external_ref fmt name
       | ETuple es ->
-        Format.fprintf fmt "@[<hov 2>%a%a%a@]"
+        Format.fprintf fmt "@[<hov 1>%a%a%a@]"
           (pp_color_string (List.hd colors))
           "("
           (Format.pp_print_list
@@ -723,7 +730,12 @@ module ExprGen (C : EXPR_PARAM) = struct
       | EErrorOnEmpty e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" literal_op_style "error_empty"
           (rhs exprc) e'
-      | EPos p -> Format.fprintf fmt "<%s>" (Pos.to_string_shorter p)
+      | EPos p ->
+        Message.link () fmt
+          ~target:
+            (Message.file_url (Pos.get_file p) ~line:(Pos.get_start_line p)
+               ~column:(Pos.get_start_column p))
+          ("<" ^ Pos.to_string_shorter p ^ ">")
       | EAssert e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "assert" (rhs exprc) e'
       | EFatalError error ->

@@ -19,7 +19,7 @@ $ catala test-scope A
 │  During evaluation: no applicable rule to define this variable in this
 │  situation.
 │
-├─➤ tests/default/bad/empty_with_rules.catala_en:5.10-5.11:
+├─➤ tests/default/bad/empty_with_rules.catala_en:5.10-11:
 │   │
 │ 5 │   output x content integer
 │   │          ‾

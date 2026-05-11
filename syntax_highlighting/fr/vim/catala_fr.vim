@@ -24,7 +24,7 @@ syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôê
 syn match cc_id contained "\<\([A-ZÉÈÀÂÙÎÔÊŒÇ][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn match Keyword contained "\<\(contexte\|entrée\|résultat\|interne\|champ\s\+d'application\|liste\s\+de\|optionnel\s\+de\|structure\|donnée\|énumération\|définition\|déclaration\|si\s\+et\s\+seulement\s\+si\|dépend\s\+de\|inclus\|contenu\|type\|optionnel\|règle\|sous\s\+condition\|condition\|conséquence\|rempli\|égal\s\+à\|assertion\|état\|étiquette\|exception\|n'importe\s\+quel\|liste\s+vide\)\>"
-syn match Statement contained "\<\(selon\|sous\s\+forme\|mais\s\+en\s\+remplaçant\|fixé\|par\|inférieur\|supérieur\|varie\|avec\|on\s\+a\|soit\|dans\|tel\s\+que\|existe\|pour\|tout\|de\|initial\|parmi\|est\s+maximum\|est\s+minimum\|combine\|transforme\s+chaque\|en\|initialement\|impossible\)\>"
+syn match Statement contained "\<\(selon\|sous\s\+forme\|mais\s\+en\s\+remplaçant\|fixé\|par\|inférieur\|supérieur\|varie\|avec\|on\s\+a\|soit\|dans\|tel\s\+que\|existe\|pour\|tout\|de\|initial\|parmi\|est\s+maximum\|est\s+minimum\|combine\|transforme\s+chaque\|en\|initialement\|trie\|par\s\+ordre\s\+\(dé\)\?croissant\|puis\|impossible\)\>"
 syn keyword Conditional contained si alors sinon
 syn match Comment contained "#.*$"
 syn match Number contained "|[0-9]\+-[0-9]\+-[0-9]\+|"

@@ -188,6 +188,18 @@ module R = Re.Pcre
 #ifndef MR_THAT
   #define MR_THAT MS_THAT
 #endif
+#ifndef MR_SORT
+  #define MR_SORT MS_SORT
+#endif
+#ifndef MR_ORDER_ASCENDING
+  #define MR_ORDER_ASCENDING MS_ORDER_ASCENDING
+#endif
+#ifndef MR_ORDER_DESCENDING
+  #define MR_ORDER_DESCENDING MS_ORDER_DESCENDING
+#endif
+#ifndef MR_AND_THEN
+  #define MR_AND_THEN MS_AND_THEN
+#endif
 #ifndef MR_AND
   #define MR_AND MS_AND
 #endif
@@ -310,6 +322,10 @@ let token_list : (string * token) list =
     (MS_TO, TO);
     (MS_SUCH, SUCH);
     (MS_THAT, THAT);
+    (MS_SORT, SORT);
+    (MS_ORDER_ASCENDING, ORDER_ASCENDING);
+    (MS_ORDER_DESCENDING, ORDER_DESCENDING);
+    (MS_AND_THEN, AND_THEN);
     (MS_AND, AND);
     (MS_OR, OR);
     (MS_XOR, XOR);
@@ -611,6 +627,18 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_THAT ->
       L.update_acc lexbuf;
       THAT
+  | MR_SORT ->
+    L.update_acc lexbuf;
+    SORT
+  | MR_ORDER_ASCENDING ->
+    L.update_acc lexbuf;
+    ORDER_ASCENDING
+  | MR_ORDER_DESCENDING ->
+    L.update_acc lexbuf;
+    ORDER_DESCENDING
+  | MR_AND_THEN ->
+    L.update_acc lexbuf;
+    AND_THEN
   | MR_AND ->
       L.update_acc lexbuf;
       AND
@@ -892,6 +920,7 @@ let lex_law (lexbuf : lexbuf) : token =
         BEGIN_DIRECTIVE
     | Plus '#', Star hspace, Plus any_but_eol, Star hspace, (eol | eof) ->
         L.get_law_heading lexbuf
+    | Plus eol -> LINESKIP
     | _ -> (
         (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
            sub-match at the same point *)

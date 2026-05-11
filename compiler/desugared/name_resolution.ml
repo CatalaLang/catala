@@ -269,8 +269,8 @@ let translate_attr ~context = function
           Some (JsonPayload s)
         | _ ->
           Message.warning ~pos
-            "Attribute @{<magenta>#[json]@} must be attached to the \
-             @{<cyan>external@} keyword and contain a string";
+            "Attribute @{<magenta>#[json]@} must be attached to an external \
+             type name and contain a string";
           None)
       | ps ->
         Message.warning ~pos:ppos

@@ -31,7 +31,7 @@ $ catala test-scope A
 │  Syntax error at "x": unexpected token.
 │  Those are valid at this point: "all".
 │
-├─➤ tests/parsing/bad/unrecoverable_error.catala_en:10.13-10.14:
+├─➤ tests/parsing/bad/unrecoverable_error.catala_en:10.13-14:
 │    │
 │ 10 │     combine x among [ 1 ; 2 ; 3 ] in acc initially 0 with
 │    │             ‾
@@ -44,7 +44,7 @@ $ catala test-scope A
 │  » expected some declaration or scope use inside this code block.
 │  Those are valid at this point: "scope", "declaration".
 │
-├─➤ tests/parsing/bad/unrecoverable_error.catala_en:24.1-24.5:
+├─➤ tests/parsing/bad/unrecoverable_error.catala_en:24:
 │    │
 │ 24 │ some invalid catala code
 │    │ ‾‾‾‾

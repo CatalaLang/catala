@@ -16,8 +16,6 @@
 
 type t = string
 
-let format ppf t = Format.fprintf ppf "\"@{<cyan>%s@}\"" t
-
 (** Run finaliser [f] unconditionally after running [k ()], propagating any
     raised exception. *)
 let finally f k =
@@ -88,6 +86,11 @@ let make_absolute p =
     (* Absolute, but without drive letter *)
     String.sub (Sys.getcwd ()) 0 2 ^ p
   else p
+
+let format ppf t =
+  Format.fprintf ppf "\"@{<cyan>%a@}\""
+    (Message.link ~target:(Message.file_url t) ())
+    t
 
 let remove_prefix prefix f0 =
   let prefix = make_absolute prefix in

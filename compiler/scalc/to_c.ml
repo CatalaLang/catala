@@ -73,7 +73,7 @@ let op_needs_pos (type a) (op : a Op.t) _ty =
   match op with
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
   | Div_dur_dur | Add_dat_dur _ | Sub_dat_dur _ | Map2 | Eq | Lt | Lte | Gt
-  | Gte | ValueFromJson _ ->
+  | Gte | Sort _ | ValueFromJson _ ->
     true
   | _ -> false
 
@@ -201,8 +201,9 @@ let rec format_rtyp ppf ty =
   | TAbstract name ->
     Format.fprintf ppf "catala_type__%s()" (AbstractType.base name)
   | TArrow _ -> Format.fprintf ppf "catala_type_function"
-  | TError | TDefault _ | TVar _ | TForAll _ ->
-    Message.error "Cannot compute comparison on type %a" Print.typ ty
+  | TDefault ((_, pos) as ty) ->
+    format_rtyp ppf (TOption (TTuple [ty; TLit TPos, pos], pos), pos)
+  | TError | TVar _ | TForAll _ -> Format.fprintf ppf "catala_type_poly"
   | TClosureEnv -> assert false (* Should only appear in closure types *)
 
 let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
@@ -519,12 +520,23 @@ let rec format_expression
     Format.fprintf fmt "((catala_closure *)%a)" format_expression arg
   | EAppOp { op = FromClosureEnv, _; args = [arg]; _ } ->
     Format.fprintf fmt "((CATALA_TUPLE(_))%a)" format_expression arg
+  | EAppOp { op = ConstructorCheck (enum, constr), _; args = [arg]; _ } ->
+    if EnumName.equal enum Expr.option_enum then
+      Format.fprintf fmt "catala_new_bool((%a)->code == %s)" format_expression
+        arg
+        (if EnumConstructor.equal constr Expr.none_constr then
+           "catala_option_none"
+         else "catala_option_some")
+    else
+      Format.fprintf fmt "catala_new_bool((%a)->code == %s)" format_expression
+        arg
+        (EnumConstructor.to_string constr)
   | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op format_expression arg1
       format_expression arg2
   | EAppOp
       {
-        op = ((Reduce | Fold), _) as op;
+        op = (Fold, _) as op;
         args = [fct; base; arr];
         tys = [(TArrow (_, rty), _); _; _];
       } ->
@@ -533,6 +545,36 @@ let rec format_expression
       (format_typ ~const:true ctx.decl_ctx ignore)
       rty format_op op format_expression fct format_expression base
       format_expression arr
+  | EAppOp
+      {
+        op = (Find, _) as op;
+        args = [fct; arr];
+        tys = [(TArrow ([ty], _), _); _];
+      } ->
+    (* Operators with a polymorphic return type need a cast *)
+    Format.fprintf fmt "((%a)%a(%a,@ %a))"
+      (format_typ ~const:true ctx.decl_ctx ignore)
+      (TOption ty, Pos.void) format_op op format_expression fct
+      format_expression arr
+  | EAppOp
+      {
+        op = (Reduce, _) as op;
+        args = [fct; arr];
+        tys = [(TArrow (_, rty), _); _];
+      } ->
+    (* Operators with a polymorphic return type need a cast *)
+    Format.fprintf fmt "((%a)%a(%a,@ %a))"
+      (format_typ ~const:true ctx.decl_ctx ignore)
+      (TOption rty, Pos.void) format_op op format_expression fct
+      format_expression arr
+  | EAppOp
+      {
+        op = (Sort _, _) as op;
+        args = [pos; fct; arr];
+        tys = [_; (TArrow (_, rty), _); _];
+      } ->
+    Format.fprintf fmt "%a(%a,@ %a,@ %a,@ %a)" format_op op format_rtyp rty
+      format_expression pos format_expression fct format_expression arr
   | EAppOp
       { op = ((Add_dat_dur rounding | Sub_dat_dur rounding) as op), _; args; _ }
     ->
@@ -644,7 +686,11 @@ let rec format_statement
            VarName.format fmt v))
       typ
   | SLocalDef
-      { name = v, _; expr = EArray locs, _; typ = TArray (TLit TPos, _), _ } ->
+      {
+        name = v, _;
+        expr = EArray { elts = locs; _ }, _;
+        typ = TArray (TLit TPos, _), _;
+      } ->
     let len = List.length locs in
     (* Nicer printing for the locations table *)
     Format.fprintf fmt
@@ -664,7 +710,7 @@ let rec format_statement
              Format.pp_print_space fmt ();
              VarName.format fmt v))
         ty
-  | SLocalDef { name = v, _; expr = EArray elts, _; _ } ->
+  | SLocalDef { name = v, _; expr = EArray { elts; _ }, _; _ } ->
     (* We detect array initializations which have special treatment. *)
     let size = List.length elts in
     if size <= 16 then
@@ -978,7 +1024,7 @@ let format_code_item ctx ~ppc ~pph env = function
   | SVar
       {
         var;
-        expr = EArray locs, _;
+        expr = EArray { elts = locs; _ }, _;
         typ = TArray (TLit TPos, _), _;
         visibility = _;
       } ->

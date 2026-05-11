@@ -20,14 +20,14 @@ $ catala Typecheck
 │  Variable a is not a declared output of scope A.
 │
 │ a is used here as an output
-├─➤ tests/io/bad/using_non_output.catala_en:14.13-14.16:
+├─➤ tests/io/bad/using_non_output.catala_en:14.13-16:
 │    │
 │ 14 │   assertion a.a = 0
 │    │             ‾‾‾
 ├─ Test
 │
 │ Scope A is declared here
-├─➤ tests/io/bad/using_non_output.catala_en:4.19-4.20:
+├─➤ tests/io/bad/using_non_output.catala_en:4.19-20:
 │   │
 │ 4 │ declaration scope A:
 │   │                   ‾

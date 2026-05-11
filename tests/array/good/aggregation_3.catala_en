@@ -57,46 +57,49 @@ let scope S (x: integer|internal|output) =
   assert map (λ (i: integer) → i + 2)
            filter (λ (i: integer) → i > 2) [1; 2; 3]
          = [5];
-  assert reduce
-           (λ (sum1: integer) (sum2: integer) → sum1 + sum2)
-           (λ () → 0)
-           [1; 2; 3]
+  assert match
+           ((λ (sum1: integer) (sum2: integer) → sum1 + sum2)
+            reduce [1; 2; 3])
+         with
+         | Absent → 0
+         | Present x → x
          = 6;
-  assert reduce
-           (λ (sum1: integer) (sum2: integer) → sum1 + sum2)
-           (λ () → 0)
-           map (λ (i: integer) → i + 2) [1; 2; 3]
+  assert match
+           ((λ (sum1: integer) (sum2: integer) → sum1 + sum2)
+            reduce map (λ (i: integer) → i + 2) [1; 2; 3])
+         with
+         | Absent → 0
+         | Present x → x
          = 12;
   assert Integer_en.sum [1; 2; 3] = 6;
   assert Integer_en.sum map (λ (i: integer) → i + 2) [1; 2; 3] = 12;
   assert length [1; 2; 3] = 3;
   assert length filter (λ (i: integer) → i ≥ 2) [1; 2; 3] = 2;
-  assert reduce
-           (λ (max1: integer) (max2: integer) →
-            if max1 > max2 then max1 else max2)
-           (λ () → 10)
-           [1; 2; 3]
+  assert match
+           ((λ (x: integer) (y: integer) → if x > y then x else y)
+            reduce [1; 2; 3])
+         with
+         | Absent → 10
+         | Present x → x
          = 3;
-  assert reduce
-           (λ (max1: decimal) (max2: decimal) →
-            if max1 > max2 then max1 else max2)
-           (λ () → 10.)
-           map (λ (i: integer) → to_rat i) [1; 2; 3]
+  assert match
+           ((λ (x: decimal) (y: decimal) → if x > y then x else y)
+            reduce map (λ (i: integer) → to_rat i) [1; 2; 3])
+         with
+         | Absent → 10.
+         | Present x → x
          = 3.;
-  assert (let weights : list of (integer, decimal) =
-            map (λ (i: integer) →
-                 (i, let i1 : integer = i in
-                     to_rat ((2 - i1) * (2 - i1))))
-              [1; 2; 3]
-          in
-          reduce
+  assert match
+           (let weighted : list of (integer, decimal) =
+              map (λ (i: integer) → (i, to_rat ((2 - i) * (2 - i))))
+                [1; 2; 3]
+            in
             (λ (x1: (integer, decimal)) (x2: (integer, decimal)) →
              if x1.1 < x2.1 then x1 else x2)
-            (λ () →
-             let i : integer = 42 in
-             (i, let i1 : integer = i in
-                 to_rat ((2 - i1) * (2 - i1))))
-            weights).0
+            reduce weighted)
+         with
+         | Absent → 42
+         | Present result → result.0
          = 2
 ```
 

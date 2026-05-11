@@ -43,11 +43,15 @@ let name : type a. a t -> string = function
   | Or -> "o_or"
   | Xor -> "o_xor"
   | Eq -> "o_eq"
-  | Map -> "o_map"
-  | Map2 -> "o_map2"
   | Concat -> "o_concat"
+  | Map -> "o_map"
   | Filter -> "o_filter"
+  | Find -> "o_find"
   | Reduce -> "o_reduce"
+  | Sort `Asc -> "o_sort_asc"
+  | Sort `Desc -> "o_sort_desc"
+  | Map2 -> "o_map2"
+  | Fold -> "o_fold"
   | Add -> "o_add"
   | Add_int_int -> "o_add_int_int"
   | Add_rat_rat -> "o_add_rat_rat"
@@ -88,7 +92,6 @@ let name : type a. a t -> string = function
   | Lte -> "o_lte"
   | Gt -> "o_gt"
   | Gte -> "o_gte"
-  | Fold -> "o_fold"
   | HandleExceptions -> "handle_exceptions"
   | ToClosureEnv -> "o_toclosureenv"
   | FromClosureEnv -> "o_fromclosureenv"
@@ -157,11 +160,13 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Or, Or
   | Xor, Xor
   | Eq, Eq
-  | Map, Map
-  | Map2, Map2
   | Concat, Concat
+  | Map, Map
   | Filter, Filter
+  | Find, Find
   | Reduce, Reduce
+  | Map2, Map2
+  | Fold, Fold
   | Add, Add
   | Add_int_int, Add_int_int
   | Add_rat_rat, Add_rat_rat
@@ -190,7 +195,6 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Lte, Lte
   | Gt, Gt
   | Gte, Gte
-  | Fold, Fold
   | HandleExceptions, HandleExceptions
   | FromClosureEnv, FromClosureEnv | ToClosureEnv, ToClosureEnv -> 0
   | ArrayAccess n1, ArrayAccess n2 -> compare n1 n2
@@ -199,6 +203,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
     (match Type.compare ty1 ty2 with
      | 0 -> String.compare j1 j2
      | n -> n)
+  | Sort o1, Sort o2 -> (match o1, o2 with `Asc, `Asc | `Desc, `Desc -> 0 | `Desc, `Asc -> -1 | `Asc, `Desc -> 1)
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
   | Log _, _ -> -1 | _, Log _ -> 1
@@ -223,11 +228,14 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Or, _ -> -1 | _, Or -> 1
   | Xor, _ -> -1 | _, Xor -> 1
   | Eq, _ -> -1 | _, Eq -> 1
-  | Map, _ -> -1 | _, Map -> 1
-  | Map2, _ -> -1 | _, Map2 -> 1
   | Concat, _ -> -1 | _, Concat -> 1
+  | Map, _ -> -1 | _, Map -> 1
   | Filter, _ -> -1 | _, Filter -> 1
+  | Find, _ -> -1 | _, Find -> 1
   | Reduce, _ -> -1 | _, Reduce -> 1
+  | Sort _, _ -> -1 | _, Sort _ -> 1
+  | Map2, _ -> -1 | _, Map2 -> 1
+  | Fold, _ -> -1 | _, Fold -> 1
   | Add, _ -> -1 | _, Add -> 1
   | Add_int_int, _ -> -1 | _, Add_int_int -> 1
   | Add_rat_rat, _ -> -1 | _, Add_rat_rat -> 1
@@ -263,8 +271,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | ToClosureEnv, _ -> -1 | _, ToClosureEnv -> 1
   | ArrayAccess _, _ -> -1 | _, ArrayAccess _ -> 1
   | ConstructorCheck _, _ -> -1 | _, ConstructorCheck _  -> 1
-  | ValueFromJson _, _ -> -1 | _, ValueFromJson _ -> 1
-  | Fold, _  | _, Fold -> .
+  | ValueFromJson _, _ | _, ValueFromJson _ -> .
 
 let equal t1 t2 = compare t1 t2 = 0
 
@@ -281,9 +288,9 @@ let kind_dispatch : type a.
      ?(resolved = fun _ -> assert false) op ->
   match op with
   | ((Not | And | Or | Xor | ValueFromJson _), _) as op -> monomorphic op
-  | ( ( Log _ | Length | Eq | Map | Map2 | Concat | Filter | Reduce | Fold | Lt
-      | Lte | Gt | Gte | HandleExceptions | FromClosureEnv | ToClosureEnv
-      | ArrayAccess _ | ConstructorCheck _ ),
+  | ( ( Log _ | Length | Eq | Concat | Map | Filter | Find | Reduce | Sort _
+      | Map2 | Fold | Lt | Lte | Gt | Gte | HandleExceptions | FromClosureEnv
+      | ToClosureEnv | ArrayAccess _ | ConstructorCheck _ ),
       _ ) as op ->
     polymorphic op
   | ((Minus | ToInt | ToRat | ToMoney | Round | Add | Sub | Mult | Div), _) as
@@ -311,14 +318,14 @@ type 'a no_overloads =
 let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
   match t with
   | ( ( Not | And | Or | Xor | HandleExceptions | Log _ | Length | Eq | Lt | Gt
-      | Lte | Gte | Map | Map2 | Concat | Filter | Reduce | Fold | Minus_int
-      | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToInt_mon | ToRat_int
-      | ToRat_mon | ToMoney_rat | ToMoney_int | Round_rat | Round_mon
-      | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
-      | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _
-      | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int | Mult_mon_rat
-      | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int
-      | Div_mon_rat | Div_dur_dur | FromClosureEnv | ToClosureEnv
+      | Lte | Gte | Concat | Map | Filter | Find | Reduce | Sort _ | Map2 | Fold
+      | Minus_int | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToInt_mon
+      | ToRat_int | ToRat_mon | ToMoney_rat | ToMoney_int | Round_rat
+      | Round_mon | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
+      | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
+      | Sub_dat_dur _ | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int
+      | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon
+      | Div_mon_int | Div_mon_rat | Div_dur_dur | FromClosureEnv | ToClosureEnv
       | ArrayAccess _ | ConstructorCheck _ | ValueFromJson _ ),
       _ ) as op ->
     op
@@ -495,9 +502,9 @@ let is_pure : type a. a t -> bool = function
   | ConstructorCheck _ | Minus | Minus_int | Minus_rat | Minus_mon | Minus_dur
   | ToInt | ToInt_mon | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney
   | ToMoney_rat | ToMoney_int | Round | Round_rat | Round_mon | And | Or | Xor
-  | Map | Concat | Filter | Add_int_int | Add_rat_rat | Add_mon_mon
-  | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
-  | Sub_dur_dur | Mult | Mult_int_int | Mult_rat_rat | Mult_mon_int
-  | Mult_mon_rat | Mult_dur_int | Reduce | Fold | HandleExceptions
+  | Concat | Map | Filter | Find | Reduce | Sort _ | Fold | Add_int_int
+  | Add_rat_rat | Add_mon_mon | Add_dur_dur | Sub_int_int | Sub_rat_rat
+  | Sub_mon_mon | Sub_dat_dat | Sub_dur_dur | Mult | Mult_int_int | Mult_rat_rat
+  | Mult_mon_int | Mult_mon_rat | Mult_dur_int | HandleExceptions
   | ValueFromJson _ ->
     true

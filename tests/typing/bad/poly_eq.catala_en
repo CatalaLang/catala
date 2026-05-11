@@ -19,7 +19,7 @@ $ catala typecheck
 │  Comparison cannot be resolved at this point: the type of the operands is
 │  not fully known.
 │
-├─➤ tests/typing/bad/poly_eq.catala_en:11.12-11.24:
+├─➤ tests/typing/bad/poly_eq.catala_en:11.12-24:
 │    │
 │ 11 │         if elt = needle then Present content elt
 │    │            ‾‾‾‾‾‾‾‾‾‾‾‾

@@ -65,7 +65,7 @@ $ catala test-scope S2
 │  Unused variable: x does not contribute to computing any of scope S2
 │  outputs. Did you forget something?
 │
-├─➤ tests/name_resolution/good/let_in.catala_en:52.4-52.5:
+├─➤ tests/name_resolution/good/let_in.catala_en:52.4-5:
 │    │
 │ 52 │    x scope S
 │    │    ‾

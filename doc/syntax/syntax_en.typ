@@ -311,17 +311,29 @@ number of lst
 ```catala-en-code
 maximum of lst
   or if list empty then -1
-```, [Extremum\ (optional default)],
+```, [Extremum search\ (optional default)],
+```catala-en-code
+content of x among lst
+  such that x.fld1 = ...
+```, [Search by criterion],
 ```catala-en-code
 content of x among lst
   such that x * x is minimum
   or if list empty then -1
-```, [Arg-extremum\ \ (optional default)],
+```, [Arg-extremum search\ \ (optional default)],
+```catala-en-code
+sort lst in in·decreasing order
+```, [Sorting],
+```catala-en-code
+sort all x among lst
+  in in·decreasing order of x.fld2
+  and then -x.fld1 ...
+```, [Sorting on criteria\ \ (optional sub-criteria)],
 ```catala-en-code
 combine all x among lst
   in acc initially 0
   with acc + x
-```, [Folding]
+```, [Fold (loop and accumulate)]
 )
 
 #cheat-sheet.layout(

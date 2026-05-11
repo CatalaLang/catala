@@ -62,12 +62,12 @@ $ catala interpret -s Test
 │  During evaluation: conflict between multiple valid consequences for
 │  assigning the same variable.
 │
-├─➤ tests/exception/bad/multi_same_result.catala_en:30.22-30.25:
+├─➤ tests/exception/bad/multi_same_result.catala_en:30.22-25:
 │    │
 │ 30 │   consequence equals 30% # <- this line
 │    │                      ‾‾‾
 │
-├─➤ tests/exception/bad/multi_same_result.catala_en:34.22-34.25:
+├─➤ tests/exception/bad/multi_same_result.catala_en:34.22-25:
 │    │
 │ 34 │   consequence equals 40% # <- and this one conflict when case = 6
 │    │                      ‾‾‾
@@ -82,12 +82,12 @@ $ catala interpret --lcalc -s Test
 │  During evaluation: conflict between multiple valid consequences for
 │  assigning the same variable.
 │
-├─➤ tests/exception/bad/multi_same_result.catala_en:30.22-30.25:
+├─➤ tests/exception/bad/multi_same_result.catala_en:30.22-25:
 │    │
 │ 30 │   consequence equals 30% # <- this line
 │    │                      ‾‾‾
 │
-├─➤ tests/exception/bad/multi_same_result.catala_en:34.22-34.25:
+├─➤ tests/exception/bad/multi_same_result.catala_en:34.22-25:
 │    │
 │ 34 │   consequence equals 40% # <- and this one conflict when case = 6
 │    │                      ‾‾‾
@@ -102,12 +102,12 @@ $ catala interpret --lcalc -s Test -O
 │  During evaluation: conflict between multiple valid consequences for
 │  assigning the same variable.
 │
-├─➤ tests/exception/bad/multi_same_result.catala_en:30.22-30.25:
+├─➤ tests/exception/bad/multi_same_result.catala_en:30.22-25:
 │    │
 │ 30 │   consequence equals 30% # <- this line
 │    │                      ‾‾‾
 │
-├─➤ tests/exception/bad/multi_same_result.catala_en:34.22-34.25:
+├─➤ tests/exception/bad/multi_same_result.catala_en:34.22-25:
 │    │
 │ 34 │   consequence equals 40% # <- and this one conflict when case = 6
 │    │                      ‾‾‾

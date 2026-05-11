@@ -78,13 +78,13 @@ let scope S2Use (s2_use_in: S2Use_in): S2Use =
        dummy = result.dummy;
        cfun2 = (closure_o__2, to_closure_env (result));
      },
-      let result : S2 =
-        s2 { S2_in cfun2_in = (closure_o, to_closure_env ()); }
-      in
-      { S2
-        dummy = result.dummy;
-        cfun2 = (closure_o__1, to_closure_env (result));
-      })
+     let result : S2 =
+       s2 { S2_in cfun2_in = (closure_o, to_closure_env ()); }
+     in
+     { S2
+       dummy = result.dummy;
+       cfun2 = (closure_o__1, to_closure_env (result));
+     })
   in
   return { S2Use o = o; }
 ```

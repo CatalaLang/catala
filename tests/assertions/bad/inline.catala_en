@@ -22,7 +22,7 @@ $ catala test-scope A
 │  Attribute #[error.message] is not allowed in this context.
 │  It must be put before an assertion or impossible.
 │
-├─➤ tests/assertions/bad/inline.catala_en:14.5-14.52:
+├─➤ tests/assertions/bad/inline.catala_en:14.5-52:
 │    │
 │ 14 │     #[error.message = "Attribute not allowed here"]
 │    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -31,7 +31,7 @@ $ catala test-scope A
 │
 │  Assertion failed: ☹: 3 ≮ 0
 │
-├─➤ tests/assertions/bad/inline.catala_en:9.5-9.20:
+├─➤ tests/assertions/bad/inline.catala_en:9.5-20:
 │   │
 │ 9 │     assertion a < 0 in
 │   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -40,7 +40,7 @@ $ catala test-scope A
 │
 │  Assertion failed: 6 ≠ -6
 │
-├─➤ tests/assertions/bad/inline.catala_en:11.5-11.21:
+├─➤ tests/assertions/bad/inline.catala_en:11.5-21:
 │    │
 │ 11 │     assertion b = -6 in
 │    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -49,7 +49,7 @@ $ catala test-scope A
 │
 │  Assertion failed: Check that a is more than -6: 6 > -6
 │
-├─➤ tests/assertions/bad/inline.catala_en:13.5-13.27:
+├─➤ tests/assertions/bad/inline.catala_en:13.5-27:
 │    │
 │ 13 │     assertion not (b > -6) in
 │    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

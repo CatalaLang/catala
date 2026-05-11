@@ -47,7 +47,7 @@ $ catala test-scope Ge
 │  During evaluation: ambiguous comparison between durations in different
 │  units (e.g. months vs. days).
 │
-├─➤ tests/date/bad/uncomparable_duration.catala_en:40.31-40.33:
+├─➤ tests/date/bad/uncomparable_duration.catala_en:40.31-33:
 │    │
 │ 40 │   definition d equals 1 month >= 2 day
 │    │                               ‾‾
@@ -63,7 +63,7 @@ $ catala test-scope Gt
 │  During evaluation: ambiguous comparison between durations in different
 │  units (e.g. months vs. days).
 │
-├─➤ tests/date/bad/uncomparable_duration.catala_en:30.31-30.32:
+├─➤ tests/date/bad/uncomparable_duration.catala_en:30.31-32:
 │    │
 │ 30 │   definition d equals 1 month > 2 day
 │    │                               ‾
@@ -79,7 +79,7 @@ $ catala test-scope Le
 │  During evaluation: ambiguous comparison between durations in different
 │  units (e.g. months vs. days).
 │
-├─➤ tests/date/bad/uncomparable_duration.catala_en:20.31-20.33:
+├─➤ tests/date/bad/uncomparable_duration.catala_en:20.31-33:
 │    │
 │ 20 │   definition d equals 1 month <= 2 day
 │    │                               ‾‾
@@ -95,7 +95,7 @@ $ catala test-scope Lt
 │  During evaluation: ambiguous comparison between durations in different
 │  units (e.g. months vs. days).
 │
-├─➤ tests/date/bad/uncomparable_duration.catala_en:10.31-10.32:
+├─➤ tests/date/bad/uncomparable_duration.catala_en:10.31-32:
 │    │
 │ 10 │   definition d equals 1 month < 2 day
 │    │                               ‾

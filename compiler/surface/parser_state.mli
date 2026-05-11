@@ -22,14 +22,14 @@
     for these purposes we maintain a little bit of state and contained
     side-effects. *)
 
+open Catala_utils
+
 type t
 
 val with_state : (Sedlexing.lexbuf -> 'a) -> Sedlexing.lexbuf -> 'a
 (** Mandatory wrapper around parser calls *)
 
 val new_heading :
-  string * string option * bool * int ->
-  Lexing.position * Lexing.position ->
-  Ast.law_heading
+  string * string option * bool * int -> Pos.t -> Ast.law_heading
 
 val get_current_heading : unit -> string list

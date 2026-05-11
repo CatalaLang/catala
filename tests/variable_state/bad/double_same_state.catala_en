@@ -18,14 +18,14 @@ $ catala Typecheck
 │  ambiguous. Please change the name of either states.
 │
 │ First instance of state "bar":
-├─➤ tests/variable_state/bad/double_same_state.catala_en:6.11-6.14:
+├─➤ tests/variable_state/bad/double_same_state.catala_en:6.11-14:
 │   │
 │ 6 │     state bar
 │   │           ‾‾‾
 ├─ Test
 │
 │ Second instance of state "bar":
-├─➤ tests/variable_state/bad/double_same_state.catala_en:7.11-7.14:
+├─➤ tests/variable_state/bad/double_same_state.catala_en:7.11-14:
 │   │
 │ 7 │     state bar
 │   │           ‾‾‾
@@ -34,7 +34,7 @@ $ catala Typecheck
 │
 │  "foo": unknown identifier for a variable of scope A
 │
-├─➤ tests/variable_state/bad/double_same_state.catala_en:10.14-10.17:
+├─➤ tests/variable_state/bad/double_same_state.catala_en:10.14-17:
 │    │
 │ 10 │   definition foo state bar equals 2
 │    │              ‾‾‾

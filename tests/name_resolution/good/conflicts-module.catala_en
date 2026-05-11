@@ -262,16 +262,17 @@ let loc : code_location array =
      law_headings=[]}|]
 
 (* Toplevel def closure_scoppe *)
-let closure_scoppe__2 : Obj.t(*closure env*) -> bool -> integer -> bool =
-  fun (_: Obj.t(*closure env*)) (acc: bool) (x: integer) ->
-    acc && (x > (integer_of_int 2))
+let closure_scoppe__2 : Obj.t(*closure env*) -> integer -> bool =
+  fun (_: Obj.t(*closure env*)) (x: integer) ->
+    o_not (x > (integer_of_int 2))
 
 (* Scope Closure_scøppe *)
 let closure_scoppe : Closure_scoppe_in.t -> Closure_scoppe.t = fun _ ->
   let scoppe: bool =
     if
-      o_fold (closure_scoppe__2 (o_toclosureenv ())) true
-        ([|(integer_of_int 5); (integer_of_int 6); (integer_of_int 7)|])
+      match (o_find (closure_scoppe__2, (o_toclosureenv ()))
+               ([|(integer_of_int 5); (integer_of_int 6);
+                  (integer_of_int 7)|])) with Absent -> true | _ -> false
     then (let x, _ = (true, (loc.(1))) in x)
     else (let x, _ = (false, (loc.(0))) in x)
   in

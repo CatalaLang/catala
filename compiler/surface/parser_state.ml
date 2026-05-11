@@ -42,7 +42,7 @@ let with_state f lexbuf =
     ret
   | [] -> assert false
 
-let new_heading heading lpos =
+let new_heading heading pos =
   let state = get_state () in
   let title, id, is_archive, precedence = heading in
   let upper_headings =
@@ -51,7 +51,7 @@ let new_heading heading lpos =
       state.current_heading
   in
   let pos =
-    Pos.overwrite_law_info (Pos.from_lpos lpos)
+    Pos.overwrite_law_info pos
       (List.map (fun h -> Mark.remove h.Ast.law_heading_name) upper_headings)
   in
   let heading =

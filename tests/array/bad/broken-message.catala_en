@@ -35,26 +35,26 @@ This was diagnosed to be due to delayed error messages that got skipped.
 $ catala Typecheck --check-invariants
 ┌─[ERROR]─
 │
-│  Error during typechecking, incompatible types:
-│     money
-│  // list of money
+│  Incompatible types:
+│    got      money,
+│    expected list of money
 │
 │ While typechecking the following expression:
-├─➤ tests/array/bad/broken-message.catala_en:21.7-21.8:
+├─➤ tests/array/bad/broken-message.catala_en:21.7-8:
 │    │
 │ 21 │       x ++ acc
 │    │       ‾
 ├─ Article
 │
 │ Type money is coming from:
-├─➤ tests/array/bad/broken-message.catala_en:5.28-5.33:
+├─➤ tests/array/bad/broken-message.catala_en:5.28-33:
 │   │
 │ 5 │   output x content list of money
 │   │                            ‾‾‾‾‾
 ├─ Article
 │
 │ Type list of money is coming from:
-├─➤ tests/array/bad/broken-message.catala_en:21.9-21.11:
+├─➤ tests/array/bad/broken-message.catala_en:21.9-11:
 │    │
 │ 21 │       x ++ acc
 │    │         ‾‾

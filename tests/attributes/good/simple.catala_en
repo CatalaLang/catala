@@ -49,7 +49,7 @@ $ catala scopelang
 │
 │  Unrecognised attribute "a"
 │
-├─➤ tests/attributes/good/simple.catala_en:16.3-16.19:
+├─➤ tests/attributes/good/simple.catala_en:16.3-19:
 │    │
 │ 16 │   #[passthrough.a]
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -59,7 +59,7 @@ $ catala scopelang
 │
 │  No plugin registered to handle attribute #[attr.unit]
 │
-├─➤ tests/attributes/good/simple.catala_en:15.5-15.26:
+├─➤ tests/attributes/good/simple.catala_en:15.5-26:
 │    │
 │ 15 │   #[passthrough.attr.unit]
 │    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -69,7 +69,7 @@ $ catala scopelang
 │
 │  No plugin registered to handle attribute #[attr.multi]
 │
-├─➤ tests/attributes/good/simple.catala_en:19.5-19.27:
+├─➤ tests/attributes/good/simple.catala_en:19.5-27:
 │    │
 │ 19 │   #[passthrough.attr.multi = "string"]
 │    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -79,7 +79,7 @@ $ catala scopelang
 │
 │  No plugin registered to handle attribute #[attr.expr]
 │
-├─➤ tests/attributes/good/simple.catala_en:18.5-18.26:
+├─➤ tests/attributes/good/simple.catala_en:18.5-26:
 │    │
 │ 18 │   #[passthrough.attr.expr = false]
 │    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -90,7 +90,7 @@ $ catala scopelang
 │  In scope "S", the variable "x" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/attributes/good/simple.catala_en:14.10-14.11:
+├─➤ tests/attributes/good/simple.catala_en:14.10-11:
 │    │
 │ 14 │   output x content money
 │    │          ‾
@@ -101,7 +101,7 @@ $ catala scopelang
 │  In scope "S", the variable "o" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/attributes/good/simple.catala_en:17.10-17.11:
+├─➤ tests/attributes/good/simple.catala_en:17.10-11:
 │    │
 │ 17 │   output o content money
 │    │          ‾
@@ -112,7 +112,7 @@ $ catala scopelang
 │  In scope "S", the variable "o2" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/attributes/good/simple.catala_en:20.10-20.12:
+├─➤ tests/attributes/good/simple.catala_en:20.10-12:
 │    │
 │ 20 │   output o2 content (money, #[passthrough.attr.typ] integer)
 │    │          ‾‾
@@ -123,7 +123,7 @@ $ catala scopelang
 │  In scope "S2", the variable "x" is declared but never defined;
 │  did you forget something?
 │
-├─➤ tests/attributes/good/simple.catala_en:24.10-24.11:
+├─➤ tests/attributes/good/simple.catala_en:24.10-11:
 │    │
 │ 24 │   output x content integer
 │    │          ‾
@@ -133,7 +133,7 @@ $ catala scopelang
 │
 │  The structure "Str" is never used; maybe it's unnecessary?
 │
-├─➤ tests/attributes/good/simple.catala_en:26.23-26.26:
+├─➤ tests/attributes/good/simple.catala_en:26.23-26:
 │    │
 │ 26 │ declaration structure Str:
 │    │                       ‾‾‾
@@ -143,7 +143,7 @@ $ catala scopelang
 │
 │  The enumeration "Enu" is never used; maybe it's unnecessary?
 │
-├─➤ tests/attributes/good/simple.catala_en:39.25-39.28:
+├─➤ tests/attributes/good/simple.catala_en:39.25-28:
 │    │
 │ 39 │ declaration enumeration Enu:
 │    │                         ‾‾‾

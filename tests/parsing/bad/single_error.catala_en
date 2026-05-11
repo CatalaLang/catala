@@ -16,7 +16,7 @@ $ catala test-scope A
 │  unexpected token.
 │  Those are valid at this point: "content", "condition", "scope".
 │
-├─➤ tests/parsing/bad/single_error.catala_en:5.12-5.20:
+├─➤ tests/parsing/bad/single_error.catala_en:5.12-20:
 │   │
 │ 5 │   output i contents decimal
 │   │            ‾‾‾‾‾‾‾‾

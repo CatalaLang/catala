@@ -40,10 +40,10 @@ $ catala test-scope B
 │
 │  During evaluation: the list was empty.
 │
-├─➤ tests/array/bad/omit_empty.catala_en:33.7-33.14:
+├─➤ tests/array/bad/omit_empty.catala_en:33.26-29:
 │    │
 │ 33 │      (content of m among a.y such that m.income + $5 is minimum)
-│    │       ‾‾‾‾‾‾‾
+│    │                          ‾‾‾
 └─ Article
 #return code 123#
 ```

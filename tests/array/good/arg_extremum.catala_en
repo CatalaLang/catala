@@ -5,7 +5,7 @@ declaration structure S:
   data id content integer
   data income content money
 
-#[test] declaration scope A:
+declaration scope A:
    context output x content list of S
 
 scope A:
@@ -18,14 +18,21 @@ scope A:
 #[test] declaration scope B:
    a scope A
    output argmax content S
+   output argmax2 content S
    output argmin content S
+   output argmin2 content S
 
 scope B:
    definition argmax equals
      (content of m among a.x such that m.income * 2.0 is maximum
       or if list empty then S { -- id: -1 --income: $0 })
+   definition argmax2 equals
+     (content of m among a.x such that m is maximum)
    definition argmin equals
      (content of m among a.x such that m.income + $5 is minimum
+      or if list empty then S { -- id: -1 --income: $20 })
+   definition argmin2 equals
+     (content of m among [] such that m.income + $5 is minimum
       or if list empty then S { -- id: -1 --income: $20 })
 ```
 
@@ -42,21 +49,12 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-cli
-$ catala test-scope A
-┌─[RESULT]─ A ─
-│ x =
-│   [
-│     S { -- id: 0 -- income: $0.00 }; S { -- id: 1 -- income: $9.00 };
-│     S { -- id: 2 -- income: $5.20 }
-│   ]
-└─
-```
-
-```catala-test-cli
 $ catala test-scope B
 ┌─[RESULT]─ B ─
 │ argmax = S { -- id: 1 -- income: $9.00 }
+│ argmax2 = S { -- id: 2 -- income: $5.20 }
 │ argmin = S { -- id: 0 -- income: $0.00 }
+│ argmin2 = S { -- id: -1 -- income: $20.00 }
 └─
 ```
 

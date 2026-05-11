@@ -38,7 +38,7 @@ $ catala test-scope Dec
 │  During evaluation: a value is being used as denominator in a division and
 │  it computed to zero.
 │
-├─➤ tests/arithmetic/bad/division_by_zero.catala_en:20.29-20.32:
+├─➤ tests/arithmetic/bad/division_by_zero.catala_en:20.29-32:
 │    │
 │ 20 │   definition i equals 1.0 / 0.0
 │    │                             ‾‾‾
@@ -54,7 +54,7 @@ $ catala test-scope Int
 │  During evaluation: a value is being used as denominator in a division and
 │  it computed to zero.
 │
-├─➤ tests/arithmetic/bad/division_by_zero.catala_en:10.27-10.28:
+├─➤ tests/arithmetic/bad/division_by_zero.catala_en:10.27-28:
 │    │
 │ 10 │   definition i equals 1 / 0
 │    │                           ‾
@@ -70,7 +70,7 @@ $ catala test-scope Money
 │  During evaluation: a value is being used as denominator in a division and
 │  it computed to zero.
 │
-├─➤ tests/arithmetic/bad/division_by_zero.catala_en:30.31-30.35:
+├─➤ tests/arithmetic/bad/division_by_zero.catala_en:30.31-35:
 │    │
 │ 30 │   definition i equals $10.0 / $0.0
 │    │                               ‾‾‾‾

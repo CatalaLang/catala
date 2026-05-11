@@ -57,6 +57,9 @@
          ~pos (String.concat "." path)
      | _ -> ());
     x
+
+  let detuplify_collection names (coll, pos) =
+    Ast.ListZip(names, coll), pos
 %}
 
 %parameter<Localisation: sig
@@ -65,6 +68,8 @@
   val lex_builtin_constr: string -> Ast.builtin_constr option
   val sum_string: string
 end>
+
+%right LAW_HEADING
 
 (* The token is returned for every line of law text, make them right-associative
    so that we concat them efficiently as much as possible. *)
@@ -82,11 +87,11 @@ end>
 %nonassoc GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
 %left PLUS MINUS PLUSPLUS
 %left MULT DIV
-%right apply OF CONTAINS WITH BUT_REPLACE OR_IF_LIST_EMPTY WILDCARD
+%right apply OF CONTAINS WITH BUT_REPLACE OR_IF_LIST_EMPTY WILDCARD AND_THEN
 %right WITH_V
 %right COMMA
 %right unop_expr
-%right CONTENT
+%right CONTENT IS
 %nonassoc UIDENT
 %left DOT
 
@@ -260,7 +265,7 @@ let qlident :=
 }
 | id = lident ; { [], id }
 
-let mbinder ==
+let mbinder :=
 | id = attr(lident) ; { [id] }
 | LPAREN ; ids = separated_nonempty_list(COMMA,attr(lident)) ; RPAREN ; <>
 
@@ -304,8 +309,7 @@ let naked_expression ==
       ~pos:pos_n "Tuple indices must be >= 1";
   TupleAccess (e, (n, pos_n))
 }
-| LBRACKET ; l = separated_list(SEMICOLON, expression) ; RBRACKET ;
-  <ArrayLit>
+| LBRACKET ; l = list_body; RBRACKET ; <ArrayLit>
 | struct_or_enum_inject
 | e1 = noattr_expression ;
   OF ;
@@ -331,26 +335,44 @@ let naked_expression ==
 | coll = noattr_expression ;
   pos = pos(CONTAINS) ;
   element = expression ; {
-  CollectionOp ((Member { element }, pos), coll)
+  Binop ((ListMember, pos), coll, element)
 } %prec apply
 | pos = pos(SUM) ; typ = addpos(primitive_typ) ;
   OF ; coll = expression ; {
-  CollectionOp ((AggregateSum { typ = Mark.remove typ }, pos), coll)
+  Unop ((ListSum typ, pos), coll)
 } %prec apply
 | pos = pos(MAP_EACH) ; i = mbinder ;
   AMONG ; coll = expression ;
   TO ; f = expression ; {
-  CollectionOp ((Map {f = i, f}, pos), coll)
+  Binop ((ListMap, pos), (Lambda(i, f), get_pos $loc), detuplify_collection i coll)
 } %prec top_expr
 | pos = pos(COMBINE) ; ALL ; i = mbinder ; AMONG ; coll = expression ;
   IN ; acc = mbinder ; INITIALLY ; init = expression ;
   WITH_V ; f = expression ; {
-  CollectionOp ((Fold {f = acc, i, f; init = init}, pos), coll)
+  Ternop ((ListFold, pos),
+          (Lambda (acc, (Lambda(i, f), get_pos $loc)), get_pos $sloc),
+          init,
+          detuplify_collection i coll)
 } %prec top_expr
+| pos = pos(SORT) ; coll = expression ; order = sort_order ; {
+  (* let order = Option.value ~default:`Asc order in *)
+  Binop ((ListSort order, pos),
+         (Lambda (["x", pos], (Ident ([], ("x", pos), None), pos)), pos),
+         detuplify_collection ["x", pos] coll)
+}
+| pos = pos(SORT) ; ALL; i = mbinder ; AMONG ; coll = expression ; order = sort_order ; OF ; crit = ordering_criteria ; {
+  let crit = match crit with
+    | [c] -> c
+    | cl -> Tuple cl, get_pos $loc(crit)
+  in
+  Binop ((ListSort order, pos),
+         (Lambda (i, crit), get_pos $loc(crit)),
+         detuplify_collection i coll)
+}
 | maxp = addpos(minmax) ;
   OF ; coll = expression ; default = opt_or_if_empty ; {
   let max, pos = maxp in
-  CollectionOp ((AggregateExtremum { max; default }, pos), coll)
+  Binop (((if max then ListMax else ListMin), pos), coll, default)
 }
 | op = addpos(unop) ; e = expression ; {
   Unop (op, e)
@@ -362,13 +384,13 @@ let naked_expression ==
 }
 | pos = pos(EXISTS) ; i = mbinder ;
   AMONG ; coll = expression ;
-  SUCH ; THAT ; predicate = expression ; {
-  CollectionOp ((Exists {predicate = i, predicate}, pos), coll)
+  SUCH ; THAT ; f = expression ; {
+  Binop ((ListExists, pos), (Lambda(i, f), get_pos $loc), detuplify_collection i coll)
 } %prec let_expr
 | pos = pos(FOR) ; ALL ; i = mbinder ;
   AMONG ; coll = expression ;
-  WE_HAVE ; predicate = expression ; {
-  CollectionOp ((Forall {predicate = i, predicate}, pos), coll)
+  WE_HAVE ; f = expression ; {
+  Binop ((ListForall, pos), (Lambda(i, f), get_pos $loc), detuplify_collection i coll)
 } %prec let_expr
 | MATCH ; e = expression ;
   WITH ;
@@ -388,29 +410,47 @@ let naked_expression ==
 | pos = pos(LIST); ids = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ; {
-  CollectionOp ((Filter {f = ids, f}, pos), coll)
+  Binop ((ListFilter, pos),
+         (Lambda (ids, f), get_pos $sloc),
+         detuplify_collection ids coll)
 } %prec top_expr
 | pos = pos(MAP_EACH) ; i = mbinder ;
   AMONG ; coll = expression ;
   psuch = pos(SUCH) ; THAT ; ffilt = expression ;
   TO ; fmap = expression ; {
-  CollectionOp ((Map {f = i, fmap}, pos), (CollectionOp ((Filter {f = i, ffilt}, psuch), coll), get_pos $loc))
+  Binop ((ListMap, pos),
+         (Lambda (i, fmap), get_pos $sloc),
+         (Binop ((ListFilter, psuch),
+                 (Lambda (i, ffilt), get_pos $sloc),
+                 detuplify_collection i coll), get_pos $sloc))
 } %prec top_expr
 | pos = pos(CONTENT); OF; ids = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ;
-  IS ; max = minmax ;
-  default = opt_or_if_empty; {
-  CollectionOp ((AggregateArgExtremum { max; default; f = ids, f }, pos), coll)
+  minmax_default = minmax_default ; {
+  match minmax_default with
+  | None ->
+      Binop ((ListFind, pos), (Lambda (ids, f), Mark.get f), coll)
+  | Some (max, default) ->
+      Ternop (((if max then ListArgMax else ListArgMin), pos),
+              (Lambda (ids, f), get_pos $loc),
+              detuplify_collection ids coll,
+              default)
 }
 | p1 = pos(ASSERTION) ; check = expression ; IN ; next = expression ; {
   let pos = Pos.join p1 (Mark.get check) in
   Assert (check, next, pos)
 } %prec let_expr
 
+let minmax_default ==
+| IS; max = minmax; default = opt_or_if_empty; <Some>
+| {None} %prec top_expr
+
 let opt_or_if_empty ==
-| OR_IF_LIST_EMPTY ; THEN ; default = expression ; <Some> %prec apply
-| { None } %prec apply
+| OR_IF_LIST_EMPTY ; THEN ; default = expression ; {
+  Tuple [default], Mark.get default
+} %prec apply
+| { Tuple [], get_pos $sloc } %prec apply
 
 let struct_content_field :=
 | field = lident ; COLON ; e = expression ; <>
@@ -433,6 +473,21 @@ let struct_or_enum_inject ==
   RBRACE ; {
   StructLit(c, fields)
 }
+
+let list_body :=
+| { [] }
+| hd = expression ; SEMICOLON ; tl = list_body ; { hd :: tl }
+| e = expression ; { [e] }
+
+let sort_order ==
+| ORDER_ASCENDING ; { `Asc }
+| ORDER_DESCENDING ; { `Desc }
+
+let ordering_criteria :=
+| e1 = expression ; AND_THEN ; e2 = ordering_criteria ; {
+  e1 :: e2
+}
+| e = expression ; { [e] } %prec apply
 
 let num_literal ==
 | d = INT_LITERAL ; <Int>
@@ -493,7 +548,7 @@ let binop ==
 | k = DIV ; <Div>
 | k = PLUS ; <Add>
 | k = MINUS ; <Sub>
-| PLUSPLUS ; { Concat }
+| PLUSPLUS ; { ListConcat }
 | k = LESSER ; <Lt>
 | k = LESSER_EQUAL ; <Lte>
 | k = GREATER ; <Gt>
@@ -925,8 +980,23 @@ let metadata_block :=
 }
 
 let law_heading :=
-| heading = LAW_HEADING ; {
-  Parser_state.new_heading heading $sloc
+| headings = nonempty_list(addpos(LAW_HEADING)) ; {
+  let rec collapse = function
+    | ((title1, id1, arch1, level1), pos1) ::
+      ((title2, id2, arch2, level2), pos2) :: r
+      when level1 = level2 ->
+        let h =
+          title1 ^ " " ^ title2,
+          (match id2 with None -> id1 | some -> some),
+          arch1 || arch2,
+          level1
+        in
+        collapse ((h, Pos.join pos1 pos2) :: r)
+    | h :: r -> h :: collapse r
+    | [] -> []
+  in
+  List.map (fun (h, pos) -> Parser_state.new_heading h pos) (collapse headings)
+  |> List.rev |> List.hd
 }
 
 let law_text :=
@@ -957,6 +1027,7 @@ let directive :=
 
 let source_file_item :=
 | text = law_text ; { LawText text }
+| LINESKIP ; { LawText "" }
 | BEGIN_CODE ;
   ~ = code ;
   text = END_CODE ; {

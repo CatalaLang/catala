@@ -27,7 +27,7 @@ $ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterex
 ┌─[WARNING]─
 │
 │  [Foo.x] This variable might return an empty error:
-─➤ tests-extra/proof/bad/assert-empty.catala_en:4.11-4.12:
+─➤ tests-extra/proof/bad/assert-empty.catala_en:4.11-12:
   │
 4 │    output x content integer
   │           ‾

@@ -24,7 +24,7 @@ $ catala test-scope A
 │  Unreachable match case, all constructors of the enumeration E are already
 │  specified.
 │
-├─➤ tests/enum/bad/useless_wildcard.catala_en:17.5-17.21:
+├─➤ tests/enum/bad/useless_wildcard.catala_en:17.5-21:
 │    │
 │ 17 │     -- anything : 31
 │    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

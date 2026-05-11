@@ -104,7 +104,7 @@ module MakeBackendIO (B : Backend) = struct
            %a@]"
           ScopeName.format vc.vc_scope
           (Bindlib.name_of (Mark.remove vc.vc_variable))
-          Pos.format_loc_text (Mark.get vc.vc_variable)
+          (Pos.format_loc_text ()) (Mark.get vc.vc_variable)
       | Conditions.NoOverlappingExceptions ->
         Format.asprintf
           "@[<v>@{<yellow>[%a.%s]@} At least two exceptions overlap for this \
@@ -112,7 +112,7 @@ module MakeBackendIO (B : Backend) = struct
            %a@]"
           ScopeName.format vc.vc_scope
           (Bindlib.name_of (Mark.remove vc.vc_variable))
-          Pos.format_loc_text (Mark.get vc.vc_variable)
+          (Pos.format_loc_text ()) (Mark.get vc.vc_variable)
     in
     let counterexample : string option =
       if Globals.disable_counterexamples () then
@@ -144,7 +144,7 @@ module MakeBackendIO (B : Backend) = struct
       (vc : Conditions.verification_condition * vc_encoding_result) : bool =
     let vc, z3_vc = vc in
 
-    Message.debug "@[<v>For this variable:@,%a@,@]" Pos.format_loc_text
+    Message.debug "@[<v>For this variable:@,%a@,@]" (Pos.format_loc_text ())
       (Expr.pos vc.Conditions.vc_guard);
     Message.debug
       "@[<v>This verification condition was generated for @{<yellow>%s@}:@,\

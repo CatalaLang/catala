@@ -14,7 +14,7 @@ $ catala test-scope S
 │
 │  During evaluation: |0031-02-2023| is not a valid date.
 │
-├─➤ tests/date/bad/lib_exn.catala_en:7.23-7.45:
+├─➤ tests/date/bad/lib_exn.catala_en:7.23-45:
 │   │
 │ 7 │   definition a equals Date.of_year_month_day of (31, 2, 2023)
 │   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

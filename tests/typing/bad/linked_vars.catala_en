@@ -42,36 +42,36 @@ $ catala typecheck
 │  while they are both specified as "anything".
 │  You may want to give them the same explicit name ("anything of type t")
 │
-├─➤ tests/typing/bad/linked_vars.catala_en:2.13-2.22:
+├─➤ tests/typing/bad/linked_vars.catala_en:2.13-22:
 │   │
 │ 2 │ declaration many_vars content (list of anything of type a,
 │   │             ‾‾‾‾‾‾‾‾‾
 │
-├─➤ tests/typing/bad/linked_vars.catala_en:4.57-4.58:
+├─➤ tests/typing/bad/linked_vars.catala_en:4.57-58:
 │   │
 │ 4 │                                list of anything of type c,
 │   │                                                         ‾
 └─
 ┌─[ERROR]─ 2/2 ─
 │
-│  Error during typechecking, incompatible types:
-│     date
-│  // integer
+│  Incompatible types:
+│    got      date,
+│    expected integer
 │
 │ While typechecking the following expression:
-├─➤ tests/typing/bad/linked_vars.catala_en:26.3-26.23:
+├─➤ tests/typing/bad/linked_vars.catala_en:26.3-23:
 │    │
 │ 26 │   vs.3 ++ vs.4 ++ vs.2
 │    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 │
 │ Type date is coming from:
-├─➤ tests/typing/bad/linked_vars.catala_en:24.33-24.37:
+├─➤ tests/typing/bad/linked_vars.catala_en:24.33-37:
 │    │
 │ 24 │ declaration foo content list of date equals
 │    │                                 ‾‾‾‾
 │
 │ Type integer is coming from:
-├─➤ tests/typing/bad/linked_vars.catala_en:25.31-25.32:
+├─➤ tests/typing/bad/linked_vars.catala_en:25.31-32:
 │    │
 │ 25 │   let vs equals many_vars2 of 0 in
 │    │                               ‾

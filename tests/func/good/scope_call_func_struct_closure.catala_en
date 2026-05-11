@@ -150,7 +150,7 @@ let scope foo (foo_in: Foo_in): Foo =
            }
          in
          { Result r = f.y; q = f.x1; },
-        <scope_call_func_struct_closure:18.12-13>)
+       <scope_call_func_struct_closure:18.12-13>)
   in
   let set z : integer =
     let code_and_env : ((closure_env, integer) → integer, closure_env) =

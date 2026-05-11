@@ -24,13 +24,13 @@ $ catala test-scope S
 │
 │  Field flx1 does not belong to structure Str
 │
-├─➤ tests/struct/bad/struct_update.catala_en:17.54-17.58:
+├─➤ tests/struct/bad/struct_update.catala_en:17.54-58:
 │    │
 │ 17 │   definition s1 equals s0 but replace { --fld1: 0 -- flx1: 99 }
 │    │                                                      ‾‾‾‾
 │
 │ Declaration of structure Str
-├─➤ tests/struct/bad/struct_update.catala_en:2.23-2.26:
+├─➤ tests/struct/bad/struct_update.catala_en:2.23-26:
 │   │
 │ 2 │ declaration structure Str:
 │   │                       ‾‾‾

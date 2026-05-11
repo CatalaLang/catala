@@ -11,7 +11,7 @@ declaration to_tuple
   depends on p content integer
   equals p
 
-declaration sort
+declaration sort_
   content list of (integer, anything of type t)
   depends on p content list of (integer, anything of type t)
   equals impossible
@@ -20,7 +20,7 @@ declaration sort_by_date
   content list of (integer, anything of type t)
   depends on l content list of (integer, anything of type t)
   equals
-    sort of (to_tuple_associated_list of l)
+    sort_ of (to_tuple_associated_list of l)
 ```
 
 ```catala-test-cli

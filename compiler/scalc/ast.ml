@@ -53,7 +53,7 @@ and naked_expr =
       name : EnumName.t;
       expr_typ : typ;
     }
-  | EArray of expr list
+  | EArray of { elts : expr list; ty : typ }
   | ELit of lit
   | EPosLit
   | EApp of { f : expr; args : expr list; typ : typ; poly : bool }

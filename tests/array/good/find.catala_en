@@ -1,0 +1,53 @@
+```catala
+declaration lst content list of (money, decimal) equals [
+  ($124, 114.2);
+  ($128, 118.2);
+  ($12, 1.2);
+  ($125, 115.2);
+  ($126, 116.2);
+  ($127, 117.2);
+  ($120, 110.2);
+  ($121, 111.2);
+  ($122, 112.2);
+  ($129, 119.8);
+  ($129, 119.3);
+  ($129, 119.9);
+  ($123, 113.2);
+]
+```
+
+```catala-metadata
+#[test]
+declaration scope S:
+  output o1 content optional of (money, decimal)
+  output o2 content optional of (money, decimal)
+  output o3 content optional of (money, decimal)
+  output o4 content optional of (money, decimal)
+  output o5 content optional of (money, decimal)
+  output o6 content optional of (money, decimal)
+  output o7 content optional of (money, decimal)
+```
+
+```catala
+scope S:
+  definition o1 equals content of x among lst such that x.1 <= $121
+  definition o2 equals content of (m, d) among [] such that m > $0
+  definition o3 equals content of x among lst such that x = ($129, 119.3)
+  definition o4 equals content of x among lst such that x >= ($129, 119.81)
+  definition o5 equals content of (m, d) among lst such that m = $129
+  definition o6 equals content of (m, d) among lst such that d < 1.0
+  definition o7 equals content of (m, d) among lst such that m / (d * $1) < 1.08
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[RESULT]─ S ─
+│ o1 = Present content ($12.00, 1.2)
+│ o2 = Absent
+│ o3 = Present content ($129.00, 119.3)
+│ o4 = Present content ($129.00, 119.9)
+│ o5 = Present content ($129.00, 119.8)
+│ o6 = Absent
+│ o7 = Present content ($129.00, 119.8)
+└─
+```

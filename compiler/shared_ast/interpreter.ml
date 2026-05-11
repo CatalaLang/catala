@@ -66,7 +66,9 @@ let print_log ppf _lang level entry =
   | Runtime.DecisionTaken rtpos ->
     let pos = Expr.runtime_to_pos rtpos in
     logprintf level PosRecordIfTrueBool
-      "@[<v -2>@{<green>Definition applied@}:@,%a@]@," Pos.format_loc_text pos;
+      "@[<v -2>@{<green>Definition applied@}:@,@{<cyan>%a@}@]@,"
+      (Pos.format_loc_text ~pp_file:Message.pp_pos ())
+      pos;
     level
 
 let handle_eq ctx pos e1 e2 =
@@ -110,6 +112,12 @@ let eval_application evaluate_expr f args =
     Message.error ~internal:true
       "Trying to apply non-function passed as operator argument"
 
+let get_bool ~pos = function
+  | ELit (LBool b), _ -> b
+  | _ ->
+    Message.error ~internal:true ~pos "%a" Format.pp_print_text
+      "This predicate evaluated to something else than a boolean"
+
 (* Call-by-value: the arguments are expected to be already evaluated here *)
 let rec evaluate_operator
     ctx
@@ -126,7 +134,7 @@ let rec evaluate_operator
     @@ match args with _ :: denom :: _ -> Expr.pos denom | _ -> opos
   in
   let err () =
-    Message.error
+    Message.error ~internal:true
       ~extra_pos:
         ([
            ( Format.asprintf "Operator (value %a):"
@@ -141,8 +149,7 @@ let rec evaluate_operator
                   arg,
                 Expr.pos arg ))
             args)
-      "Operator %a applied to the wrong@ arguments@ (should not happen if the \
-       term was well-typed)"
+      "Operator %a applied to the wrong@ arguments"
       (Print.operator ~debug:true)
       op
   in
@@ -198,35 +205,66 @@ let rec evaluate_operator
            es1 es2)
     with Invalid_argument _ ->
       raise Runtime.(Error (NotSameLength, [Expr.pos_to_runtime opos], None)))
-  | Reduce, [_; default; (EArray [], _)] ->
-    Mark.remove
-      (eval_application evaluate_expr default
-         [ELit LUnit, Expr.with_ty m (TLit TUnit, pos)])
-  | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
-    Mark.remove
-      (List.fold_left
-         (fun acc x -> eval_application evaluate_expr f [acc; x])
-         x0 xn)
+  | Reduce, [_; (EArray [], m)] ->
+    EInj
+      {
+        name = Expr.option_enum;
+        cons = Expr.none_constr;
+        e = ELit LUnit, Expr.with_ty m (TLit TUnit, pos);
+      }
+  | Reduce, [f; (EArray (x0 :: xn), _)] ->
+    EInj
+      {
+        name = Expr.option_enum;
+        cons = Expr.some_constr;
+        e =
+          List.fold_left
+            (fun acc x -> eval_application evaluate_expr f [acc; x])
+            x0 xn;
+      }
   | Concat, [(EArray es1, _); (EArray es2, _)] -> EArray (es1 @ es2)
   | Filter, [f; (EArray es, _)] ->
     EArray
       (List.filter
          (fun e' ->
-           match eval_application evaluate_expr f [e'] with
-           | ELit (LBool b), _ -> b
-           | _ ->
-             Message.error
-               ~pos:(Expr.pos (List.nth args 0))
-               "%a" Format.pp_print_text
-               "This predicate evaluated to something else than a boolean \
-                (should not happen if the term was well-typed)")
+           eval_application evaluate_expr f [e']
+           |> get_bool ~pos:(Expr.pos (List.nth args 0)))
          es)
   | Fold, [f; init; (EArray es, _)] ->
     Mark.remove
       (List.fold_left
          (fun acc e' -> eval_application evaluate_expr f [acc; e'])
          init es)
-  | (Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce), _ ->
+  | Find, [f; (EArray es, _)] -> (
+    match
+      List.find_opt
+        (fun e ->
+          eval_application evaluate_expr f [e] |> get_bool ~pos:(Expr.pos f))
+        es
+    with
+    | None ->
+      EInj
+        {
+          name = Expr.option_enum;
+          cons = Expr.none_constr;
+          e = ELit LUnit, Expr.with_ty m (TLit TUnit, pos);
+        }
+    | Some e -> EInj { name = Expr.option_enum; cons = Expr.some_constr; e })
+  | Sort updown, [f; (EArray es, _)] ->
+    let weighted =
+      List.map (fun e -> e, eval_application evaluate_expr f [e]) es
+    in
+    let sorted =
+      List.stable_sort
+        (fun (_, w1) (_, w2) ->
+          (match updown with `Asc -> 1 | `Desc -> -1)
+          * handle_compare ctx opos w1 w2)
+        weighted
+    in
+    EArray (List.map fst sorted)
+  | ( ( Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce
+      | Find | Sort _ ),
+      _ ) ->
     err ()
   | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
   | And, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
@@ -639,9 +677,8 @@ let rec handle_assert : type d r.
         partially_evaluated_assertion_failure_expr);
     Mark.add m (ELit LUnit)
   | _ ->
-    Message.error ~pos:(Expr.pos pred) "%a" Format.pp_print_text
-      "Expected a boolean literal for the result of this assertion (should not \
-       happen if the term was well-typed)"
+    Message.error ~internal:true ~pos:(Expr.pos pred) "%a" Format.pp_print_text
+      "Expected a boolean literal for the result of this assertion"
 
 and partially_evaluate_expr_for_assertion_failure_message : type d r.
     eval_expr:
@@ -727,9 +764,8 @@ let rec evaluate_expr : type d r.
   @@
   match Mark.remove e with
   | EVar _ ->
-    Message.error ~pos "%a" Format.pp_print_text
-      "free variable found at evaluation (should not happen if term was \
-       well-typed)"
+    Message.error ~internal:true ~pos "%a" Format.pp_print_text
+      "free variable found at evaluation"
   | EExternal { name } ->
     let path =
       match Mark.remove name with
@@ -797,8 +833,7 @@ let rec evaluate_expr : type d r.
       runtime_to_val ctx m tret o
     | _ ->
       Message.error ~pos ~internal:true "%a%a" Format.pp_print_text
-        "function has not been reduced to a lambda at evaluation (should not \
-         happen if the term was well-typed"
+        "function has not been reduced to a lambda at evaluation"
         (fun ppf e ->
           if Global.options.debug then Format.fprintf ppf ":@ %a" Expr.format e
           else ())
@@ -830,24 +865,21 @@ let rec evaluate_expr : type d r.
     match Mark.remove e with
     | EStruct { fields = es; name } -> (
       if not (StructName.equal s name) then
-        Message.error
+        Message.error ~internal:true
           ~extra_pos:["", pos; "", Expr.pos e]
           "%a" Format.pp_print_text
-          "Error during struct access: not the same structs (should not happen \
-           if the term was well-typed)";
+          "Error during struct access: not the same structs";
       match StructField.Map.find_opt field es with
       | Some e' -> e'
       | None ->
-        Message.error ~pos:(Expr.pos e)
-          "Invalid field access %a@ in@ struct@ %a@ (should not happen if the \
-           term was well-typed). Fields: %a"
+        Message.error ~pos:(Expr.pos e) ~internal:true
+          "Invalid field access %a@ in@ struct@ %a.@ Fields: %a"
           StructField.format field StructName.format s
           (fun ppf -> StructField.Map.format_keys ppf)
           es)
     | _ ->
-      Message.error ~pos:(Expr.pos e)
-        "The expression %a@ should@ be@ a@ struct@ %a@ but@ is@ not@ (should \
-         not happen if the term was well-typed)"
+      Message.error ~pos:(Expr.pos e) ~internal:true
+        "The expression %a@ should@ be@ a@ struct@ %a@ but@ is@ not@ one"
         (Print.UserFacing.expr lang)
         e StructName.format s)
   | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx lang) es))
@@ -890,9 +922,9 @@ let rec evaluate_expr : type d r.
       let new_e = Mark.add m (EApp { f; args; tys }) in
       evaluate_expr ctx lang new_e
     | _ ->
-      Message.error ~pos:(Expr.pos e)
-        "Expected a term having a sum type as an argument to a match (should \
-         not happen if the term was well-typed")
+      Message.error ~pos:(Expr.pos e) ~internal:true
+        "Expected a term having a sum type as an argument to a match, got@ %a"
+        Expr.format e)
   | EIfThenElse
       {
         cond = EAppOp { op = Not, _; args = [pred]; _ }, _;
@@ -910,9 +942,9 @@ let rec evaluate_expr : type d r.
     | ELit (LBool true) -> evaluate_expr ctx lang etrue
     | ELit (LBool false) -> evaluate_expr ctx lang efalse
     | _ ->
-      Message.error ~pos:(Expr.pos cond) "%a" Format.pp_print_text
-        "Expected a boolean literal for the result of this condition (should \
-         not happen if the term was well-typed)")
+      Message.error ~pos:(Expr.pos cond) ~internal:true "%a"
+        Format.pp_print_text
+        "Expected a boolean literal for the result of this condition")
   | EArray es ->
     let es = List.map (evaluate_expr ctx lang) es in
     Mark.add m (EArray es)
@@ -940,9 +972,9 @@ let rec evaluate_expr : type d r.
       | ELit (LBool true) -> evaluate_expr ctx lang cons
       | ELit (LBool false) -> Mark.copy e EEmpty
       | _ ->
-        Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
+        Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
           "Default justification has not been reduced to a boolean at \
-           evaluation (should not happen if the term was well-typed)")
+           evaluation")
     | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
     | _ ->
       let poslist =

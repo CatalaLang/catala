@@ -3,7 +3,7 @@
 ```catala-metadata
 # Periods used here are a pair (date, date) instead of the Period structure,
 # which is dependent on the localisation.
-declaration sort
+declaration sort_
   content list of ((date, date), anything of type t)
   depends on p content list of ((date, date), anything of type t)
 

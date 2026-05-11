@@ -63,12 +63,12 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
       es Print.punctuation ")"
-  | EArray es ->
+  | EArray { elts; _ } ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "["
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
          (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
-      es Print.punctuation "]"
+      elts Print.punctuation "]"
   | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
       Print.punctuation "\"" StructField.format field Print.punctuation "\""

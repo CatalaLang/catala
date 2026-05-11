@@ -24,7 +24,7 @@ $ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterex
 ┌─[WARNING]─
 │
 │  [A.y] At least two exceptions overlap for this variable:
-─➤ tests-extra/proof/bad/enums_unit-overlap.catala_en:10.10-10.11:
+─➤ tests-extra/proof/bad/enums_unit-overlap.catala_en:10.10-11:
    │
 10 │   output y content integer
    │          ‾

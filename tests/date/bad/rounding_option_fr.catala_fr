@@ -17,7 +17,7 @@ $ catala test-scope Test
 │  During evaluation: ambiguous date computation with no rounding mode
 │  specified.
 │
-├─➤ tests/date/bad/rounding_option_fr.catala_fr:10.36-10.37:
+├─➤ tests/date/bad/rounding_option_fr.catala_fr:10.36-37:
 │    │
 │ 10 │   définition ambiguité égal à bday + 18 an <= today 
 │    │                                    ‾

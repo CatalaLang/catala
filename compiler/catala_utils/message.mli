@@ -106,6 +106,22 @@ val pad : int -> string -> Format.formatter -> unit
 (** Prints the given character the given number of times (assuming it is of
     width 1) *)
 
+val pp_link :
+  target:string ->
+  Format.formatter ->
+  ('a, Format.formatter, unit, unit) format4 ->
+  'a
+
+val link : ?target:string -> unit -> Format.formatter -> string -> unit
+(** Prints an hyperlink to the given target, if on a tty. The target defaults to
+    the text *)
+
+val pp_pos : Format.formatter -> Pos.t -> unit
+(** Prints the given position with style and, if possible, an hyperlink *)
+
+val file_url : ?line:int -> ?column:int -> string -> string
+(** Helper to build file targets for hyperlinks *)
+
 (* {1 More general color-enabled formatting helpers}*)
 
 val std_ppf : unit -> Format.formatter

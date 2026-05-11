@@ -19,13 +19,13 @@ $ catala Typecheck --check-invariants
 │  These definitions have identical justifications and consequences;
 │  is it a mistake?
 │
-├─➤ tests/exception/good/double_definition.catala_en:9.3-9.15:
+├─➤ tests/exception/good/double_definition.catala_en:9.3-15:
 │   │
 │ 9 │   definition x equals 1
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
 ├─ Foo
 │
-├─➤ tests/exception/good/double_definition.catala_en:8.3-8.15:
+├─➤ tests/exception/good/double_definition.catala_en:8.3-15:
 │   │
 │ 8 │   definition x equals 1
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
@@ -45,13 +45,13 @@ $ catala Scopelang -s Foo
 │  These definitions have identical justifications and consequences;
 │  is it a mistake?
 │
-├─➤ tests/exception/good/double_definition.catala_en:9.3-9.15:
+├─➤ tests/exception/good/double_definition.catala_en:9.3-15:
 │   │
 │ 9 │   definition x equals 1
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
 ├─ Foo
 │
-├─➤ tests/exception/good/double_definition.catala_en:8.3-8.15:
+├─➤ tests/exception/good/double_definition.catala_en:8.3-15:
 │   │
 │ 8 │   definition x equals 1
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
@@ -74,13 +74,13 @@ $ catala Dcalc -s Foo
 │  These definitions have identical justifications and consequences;
 │  is it a mistake?
 │
-├─➤ tests/exception/good/double_definition.catala_en:9.3-9.15:
+├─➤ tests/exception/good/double_definition.catala_en:9.3-15:
 │   │
 │ 9 │   definition x equals 1
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾
 ├─ Foo
 │
-├─➤ tests/exception/good/double_definition.catala_en:8.3-8.15:
+├─➤ tests/exception/good/double_definition.catala_en:8.3-15:
 │   │
 │ 8 │   definition x equals 1
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾

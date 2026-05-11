@@ -37,14 +37,14 @@ $ catala test-scope A
 │
 │  Field "field20" does not belong to structure "S".
 │
-├─➤ tests/default/bad/verbose_errors.catala_en:31.22-31.46:
+├─➤ tests/default/bad/verbose_errors.catala_en:31.22-46:
 │    │
 │ 31 │  definition o equals wrong_definition.field20
 │    │                      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 ├─ Article
 │
 │ Structure definition
-├─➤ tests/default/bad/verbose_errors.catala_en:4.23-4.24:
+├─➤ tests/default/bad/verbose_errors.catala_en:4.23-24:
 │   │
 │ 4 │ declaration structure S:
 │   │                       ‾

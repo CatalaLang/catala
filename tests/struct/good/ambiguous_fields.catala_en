@@ -24,7 +24,7 @@ $ catala Typecheck --check-invariants
 │
 │  The structure "Bar" is never used; maybe it's unnecessary?
 │
-├─➤ tests/struct/good/ambiguous_fields.catala_en:7.23-7.26:
+├─➤ tests/struct/good/ambiguous_fields.catala_en:7.23-26:
 │   │
 │ 7 │ declaration structure Bar:
 │   │                       ‾‾‾
@@ -43,7 +43,7 @@ $ catala test-scope A
 │
 │  The structure "Bar" is never used; maybe it's unnecessary?
 │
-├─➤ tests/struct/good/ambiguous_fields.catala_en:7.23-7.26:
+├─➤ tests/struct/good/ambiguous_fields.catala_en:7.23-26:
 │   │
 │ 7 │ declaration structure Bar:
 │   │                       ‾‾‾
