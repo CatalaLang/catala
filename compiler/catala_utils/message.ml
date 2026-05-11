@@ -108,8 +108,8 @@ let formatter_of_out_channel ?(nocolor = false) oc =
   let ppf =
     lazy
       (if
-         Global.options.color = Always
-         || (Lazy.force tty && Sys.getenv_opt "TERM" <> Some "dumb")
+         (Global.options.color = Always || Lazy.force tty)
+         && Sys.getenv_opt "TERM" <> Some "dumb"
        then add_link_tags (Lazy.force ppf)
        else Lazy.force ppf)
   in
