@@ -163,8 +163,8 @@ codes={\catcode`\$=3\catcode`\^=7}
 \[\star\star\star\]
 \clearpage
 |latex}
-    (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
-    (match language with Fr -> "\\setmainfont{Marianne}" | _ -> "")
+    (match language with `Fr -> "french" | `En -> "english" | `Pl -> "polish")
+    (match language with `Fr -> "\\setmainfont{Marianne}" | _ -> "")
     (* for France, we use the official font of the French state design system
        https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography *)
     (call_pygmentize ["-f"; "latex"; "-S"; "default"])
@@ -174,7 +174,7 @@ codes={\catcode`\$=3\catcode`\^=7}
     (pre_latexify (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat
-       ((match language with Fr -> " ;" | En -> ";" | Pl -> ";") ^ "\n")
+       ((match language with `Fr -> " ;" | `En -> ";" | `Pl -> ";") ^ "\n")
        (List.map
           (fun filename ->
             let mtime = (Unix.stat filename).Unix.st_mtime in
@@ -274,7 +274,7 @@ let rec law_structure_to_latex
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
   | A.ModuleDef (id, extern) ->
     (match language with
-    | Fr ->
+    | `Fr ->
       Format.fprintf fmt "\n\\textbf{Ceci définit le module %s \\texttt{%s}}"
         (if extern then "externe" else "catala")
     | _ ->
@@ -283,7 +283,7 @@ let rec law_structure_to_latex
       (pre_latexify (Mark.remove id))
   | A.ModuleUse (id, alias) -> (
     (match language with
-    | Fr ->
+    | `Fr ->
       Format.fprintf fmt "\n\\textbf{Ce qui suit utilise le module \\texttt{%s}"
     | _ ->
       Format.fprintf fmt
@@ -293,7 +293,7 @@ let rec law_structure_to_latex
     | None -> Format.fprintf fmt "}"
     | Some al ->
       (match language with
-      | Fr -> Format.fprintf fmt " sous le nom \\texttt{%s}}"
+      | `Fr -> Format.fprintf fmt " sous le nom \\texttt{%s}}"
       | _ -> Format.fprintf fmt " under the name \\texttt{%s}}")
         (pre_latexify (Mark.remove al)))
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
@@ -307,9 +307,9 @@ let rec law_structure_to_latex
   | A.CodeBlock (_, c, true) when not print_only_law ->
     let metadata_title =
       match language with
-      | Fr -> "Métadonnées"
-      | En -> "Metadata"
-      | Pl -> "Metadane"
+      | `Fr -> "Métadonnées"
+      | `En -> "Metadata"
+      | `Pl -> "Metadane"
     in
     let start_line = Pos.get_start_line (Mark.get c) + 1 in
     let filename = Pos.get_file (Mark.get c) in

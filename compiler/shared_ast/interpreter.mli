@@ -25,7 +25,6 @@ val evaluate_operator :
   ((((_, _, yes) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator Mark.pos ->
   'm mark ->
-  Global.backend_lang ->
   ('a, 'm) gexpr list ->
   ('a, 'm) gexpr
 (** Evaluates the result of applying the given operator to the given arguments,

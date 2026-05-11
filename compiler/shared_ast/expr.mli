@@ -582,4 +582,7 @@ end
 
 val embed_value : decl_ctx -> ('a, 'm) gexpr -> Catala_runtime.Value.t
 (** Create a runtime-compatible typed value embedding from an expression that
-    encodes a value. (NOTE TODO: functions not implemented yet!) *)
+    encodes a value. (NOTE TODO: functions not implemented yet!)
+
+    If the [ctx] is unspecified, the embedded value will be suitable **only for
+    printing**: enum constructors will have incorrect indexing. *)

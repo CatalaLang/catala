@@ -736,7 +736,7 @@ module Commands = struct
              ((List.map (fun ((var, _), result) ppf ->
                    Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
                      (if options.Global.debug then Print.expr ~debug:false ()
-                      else Print.UserFacing.value language)
+                      else fun ppf -> Print.UserFacing.value ppf)
                      result))
                 sorted_results)
          | [], JSON ->

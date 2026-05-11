@@ -203,7 +203,7 @@ let rec optimize_expr : type a b c.
            feed the expression to the interpreter that will print the beautiful
            right error message *)
         let (_ : _ gexpr) =
-          Interpreter.evaluate_expr ctx.decl_ctx Global.En
+          Interpreter.evaluate_expr ctx.decl_ctx `En
             (* Default language to English, no errors should be raised normally
                so we don't care *)
             e

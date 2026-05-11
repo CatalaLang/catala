@@ -255,6 +255,129 @@ let equal_periods pos p1 p2 =
   Dates_calc.period_to_ymds p1 = Dates_calc.period_to_ymds p2
   || compare_periods pos p1 p2 = 0
 
+(* -- Printing helpers -- *)
+
+module Print = struct
+  type lang = [ `En | `Fr | `Pl ]
+
+  let lang = ref `En
+  let max_prec_digits = ref 10
+  let set_lang l = lang := l
+  let get_lang () = !lang
+  let set_precision n = max_prec_digits := n
+  let get_precision () = !max_prec_digits
+
+  (* Refs:
+     https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Grouping_of_digits
+     https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Conventions_concernant_les_nombres#Pour_un_comptage_ou_une_mesure *)
+  let bigsep () =
+    match !lang with `En -> ",", 3 | `Fr -> " ", 3 | `Pl -> ",", 3
+
+  let decsep () = match !lang with `En -> "." | `Fr -> "," | `Pl -> "."
+  let unit ppf () = Format.pp_print_string ppf "()"
+
+  let bool ppf b =
+    let s =
+      match !lang, b with
+      | `En, true -> "true"
+      | `En, false -> "false"
+      | `Fr, true -> "vrai"
+      | `Fr, false -> "faux"
+      | `Pl, true -> "prawda"
+      | `Pl, false -> "falsz"
+    in
+    Format.pp_print_string ppf s
+
+  let integer ppf n =
+    let sep, nsep = bigsep () in
+    let nsep = Z.pow (Z.of_int 10) nsep in
+    if Z.sign n < 0 then Format.pp_print_char ppf '-';
+    let rec aux n =
+      let a, b = Z.div_rem n nsep in
+      if Z.equal a Z.zero then Z.pp_print ppf b
+      else (
+        aux a;
+        Format.fprintf ppf "%s%03d" sep (Z.to_int b))
+    in
+    aux (Z.abs n)
+
+  let money ppf n =
+    let num = Z.abs n in
+    let units, cents = Z.div_rem num (Z.of_int 100) in
+    if Z.sign n < 0 then Format.pp_print_char ppf '-';
+    (match !lang with `En -> Format.pp_print_string ppf "$" | `Fr | `Pl -> ());
+    integer ppf units;
+    Format.pp_print_string ppf (decsep ());
+    Format.fprintf ppf "%02d" (Z.to_int (Z.abs cents));
+    match !lang with
+    | `En -> ()
+    | `Fr -> Format.pp_print_string ppf " €"
+    | `Pl -> Format.pp_print_string ppf " PLN"
+
+  let decimal ppf r =
+    let den = Q.den r in
+    let num = Z.abs (Q.num r) in
+    let int_part, rem = Z.div_rem num den in
+    let rem = Z.abs rem in
+    (* Printing the integer part *)
+    if Q.sign r < 0 then Format.pp_print_char ppf '-';
+    integer ppf int_part;
+    (* Printing the decimals *)
+    let bigsep, nsep = bigsep () in
+    let rec aux ndigit rem_digits rem =
+      let n, rem = Z.div_rem (Z.mul rem (Z.of_int 10)) den in
+      let rem_digits, stop =
+        match rem_digits with
+        | None ->
+          if Z.equal n Z.zero then None, false
+          else
+            let r = !max_prec_digits in
+            Some (r - 1), r <= 1
+        | Some r -> Some (r - 1), r <= 1
+      in
+      if ndigit mod nsep = 0 then
+        Format.pp_print_string ppf (if ndigit = 0 then decsep () else bigsep);
+      Format.pp_print_int ppf (Z.to_int n);
+      if Z.gt rem Z.zero then
+        if stop then Format.pp_print_as ppf 1 "…"
+        else aux (ndigit + 1) rem_digits rem
+    in
+    let rec ndigits n =
+      if Z.equal n Z.zero then 0 else 1 + ndigits (Z.div n (Z.of_int 10))
+    in
+    aux 0
+      (if Z.equal int_part Z.zero then None
+       else Some (!max_prec_digits - ndigits int_part))
+      rem
+  (* It would be nice to print ratios as % but that's impossible to guess.
+     Trying would lead to inconsistencies where some comparable numbers are in %
+     and some others not, adding confusion. *)
+
+  let date ppf d =
+    let y, m, d = date_to_years_months_days d in
+    Format.fprintf ppf "|%04d-%02d-%02d|" y m d
+
+  let duration ppf dr =
+    let y, m, d = duration_to_years_months_days dr in
+    let rec filter0 = function
+      | (0, _) :: (_ :: _ as r) -> filter0 r
+      | x :: r -> x :: List.filter (fun (n, _) -> n <> 0) r
+      | [] -> []
+    in
+    let splur n s = if abs n > 1 then n, s ^ "s" else n, s in
+    Format.pp_print_char ppf '[';
+    (match !lang with
+      | `En -> [splur y "year"; splur m "month"; splur d "day"]
+      | `Fr -> [splur y "an"; m, "mois"; splur d "jour"]
+      | `Pl -> [y, "rok"; m, "miesiac"; d, "dzien"])
+    |> filter0
+    |> Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.pp_print_string ppf ", ")
+         (fun ppf (n, s) -> Format.fprintf ppf "%d %s" n s)
+         ppf;
+    Format.pp_print_char ppf ']'
+end
+
 (* -- Runtime types and embedding -- *)
 
 module Value = struct
@@ -457,38 +580,38 @@ module Value = struct
     | t -> compare pos (V (t, x1)) (V (t, x2))
 
   let rec format ppf = function
-    | V (Unit, ()) -> Format.fprintf ppf "()"
-    | V (Bool, x) -> Format.fprintf ppf "%b" x
-    | V (Money, x) -> Format.fprintf ppf "%s€" (money_to_string x)
-    | V (Integer, x) -> Format.fprintf ppf "%s" (Z.to_string x)
-    | V (Decimal, x) ->
-      Format.fprintf ppf "%s" (decimal_to_string ~max_prec_digits:10 x)
-    | V (Date, x) -> Format.fprintf ppf "|%s|" (date_to_string x)
-    | V (Duration, x) -> Format.fprintf ppf "%s" (duration_to_string x)
+    | V (Unit, x) -> Print.unit ppf x
+    | V (Bool, x) -> Print.bool ppf x
+    | V (Money, x) -> Print.money ppf x
+    | V (Integer, x) -> Print.integer ppf x
+    | V (Decimal, x) -> Print.decimal ppf x
+    | V (Date, x) -> Print.date ppf x
+    | V (Duration, x) -> Print.duration ppf x
     | V (Enum en, v) -> (
       match en.constr v with
       | _, name, None -> Format.fprintf ppf "%s" name
-      | _, name, Some v -> Format.fprintf ppf "%s(%a)" name format v)
+      | _, name, Some v -> Format.fprintf ppf "%s content %a" name format v)
     | V (Struct str, v) ->
-      Format.fprintf ppf "@[<hv 2>%s {@ %a@;<1 -2>}@]" str.name
+      Format.fprintf ppf "@[<v 2>%s {@ %a@;<1 -2>}@]" str.name
         (Format.pp_print_list ~pp_sep:Format.pp_print_space
            (fun fmt (name, value) ->
              Format.fprintf fmt "-- %s: %a" name format value))
         (str.fields v)
+    | V (Array _, [||]) -> Format.pp_print_string ppf "[]"
     | V (Array t, v) ->
-      Format.fprintf ppf "@[<hv 2>[@ %a@;<1 -2>]@]"
+      Format.fprintf ppf "@[<v 2>[@,%a@;<0 -2>]@]"
         (Format.pp_print_seq
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
            (fun ppf v -> format ppf (t v)))
         (Array.to_seq v)
     | V (Tuple destr, v) ->
-      Format.fprintf ppf "@[<hv 2>(@ %a@;<1 -2>)@]"
+      Format.fprintf ppf "@[<h 1>(%a)@]"
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
            format)
         (destr v)
     | V (Position, pos) ->
-      Format.fprintf ppf "@[<h>%s:%d.%d-%d-%d@]" pos.filename pos.start_line
+      Format.fprintf ppf "<%s:%d.%d-%d-%d>" pos.filename pos.start_line
         pos.start_column pos.end_line pos.end_column
     | V (Function, _) -> Format.fprintf ppf "<function>"
     | V (Polymorphic, _) -> Format.fprintf ppf "<poly>"
@@ -539,9 +662,6 @@ module type ExternalTypeSpec = sig
   (** Standard [compare] function: must return -1, 0 or 1 depending on whether
       the left-hand side is respectively smaller, equal or greater than the
       right-hand side *)
-
-  (* val to_expr : t -> string (** Must output a valid OCaml expression that
-     encodes the given value *) *)
 
   val print : t -> string
   (** User-directed printing of the value *)
