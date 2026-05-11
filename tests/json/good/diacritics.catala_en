@@ -1,0 +1,129 @@
+```catala-metadata
+declaration enumeration DümmyÉnum:
+  -- Â
+  -- Ö
+
+declaration structure MŷStruçtûre:
+  data mŷfìéld content integer
+  data mŷøtherfìéld content DümmyÉnum
+
+declaration enumeration MŷÉnum:
+  -- MÿÇase content MŷStruçtûre
+
+declaration scope MŷScøpè:
+  input înpût content MŷÉnum
+  output rèsult_enum content MŷÉnum
+  output rèsult_struct content MŷStruçtûre
+  output rèsult_int content integer
+
+scope MŷScøpè:
+  definition rèsult_enum equals înpût
+  definition rèsult_struct equals
+    match înpût with pattern -- MÿÇase content struct : struct
+  definition rèsult_int equals
+    match înpût with pattern -- MÿÇase content struct : struct.mŷfìéld
+```
+
+```catala-test-cli
+$ catala json-schema --scope MŷScøpè --disable-warnings
+[
+  {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scope MŷScøpè input",
+    "description": "Input structure of scope MŷScøpè",
+    "$ref": "#/definitions/MŷScøpè_in",
+    "definitions": {
+      "DümmyÉnum": { "type": "string", "enum": [ "Â", "Ö" ] },
+      "MŷScøpè_in": {
+        "type": "object",
+        "properties": { "înpût": { "$ref": "#/definitions/MŷÉnum" } },
+        "required": [ "înpût" ],
+        "additionalProperties": false
+      },
+      "MŷStruçtûre": {
+        "type": "object",
+        "properties": {
+          "mŷfìéld": { "$ref": "#/definitions/integer" },
+          "mŷøtherfìéld": { "$ref": "#/definitions/DümmyÉnum" }
+        },
+        "required": [ "mŷøtherfìéld", "mŷfìéld" ],
+        "additionalProperties": false
+      },
+      "MŷÉnum": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "MÿÇase": { "$ref": "#/definitions/MŷStruçtûre" }
+            },
+            "required": [ "MÿÇase" ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "integer": {
+        "title": "Catala Integer",
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": -9007199254740992.0,
+            "maximum": 9007199254740992.0
+          },
+          { "type": "string" }
+        ]
+      }
+    }
+  },
+  {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scope MŷScøpè output",
+    "description": "Output structure of scope MŷScøpè",
+    "$ref": "#/definitions/MŷScøpè",
+    "definitions": {
+      "DümmyÉnum": { "type": "string", "enum": [ "Â", "Ö" ] },
+      "MŷScøpè": {
+        "type": "object",
+        "properties": {
+          "rèsult_enum": { "$ref": "#/definitions/MŷÉnum" },
+          "rèsult_struct": { "$ref": "#/definitions/MŷStruçtûre" },
+          "rèsult_int": { "$ref": "#/definitions/integer" }
+        },
+        "required": [ "rèsult_int", "rèsult_struct", "rèsult_enum" ],
+        "additionalProperties": false
+      },
+      "MŷStruçtûre": {
+        "type": "object",
+        "properties": {
+          "mŷfìéld": { "$ref": "#/definitions/integer" },
+          "mŷøtherfìéld": { "$ref": "#/definitions/DümmyÉnum" }
+        },
+        "required": [ "mŷøtherfìéld", "mŷfìéld" ],
+        "additionalProperties": false
+      },
+      "MŷÉnum": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "MÿÇase": { "$ref": "#/definitions/MŷStruçtûre" }
+            },
+            "required": [ "MÿÇase" ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "integer": {
+        "title": "Catala Integer",
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": -9007199254740992.0,
+            "maximum": 9007199254740992.0
+          },
+          { "type": "string" }
+        ]
+      }
+    }
+  }
+]
+```

@@ -1,0 +1,48 @@
+```catala-metadata
+declaration enumeration DümmyÉnum:
+  -- Â
+  -- Ä
+
+declaration scope MŷScøpè:
+  input înpût content DümmyÉnum
+  output rèsult content DümmyÉnum
+
+scope MŷScøpè:
+  definition rèsult equals înpût
+```
+
+```catala-test-cli
+$ catala json-schema --scope MŷScøpè --disable-warnings
+[
+  {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scope MŷScøpè input",
+    "description": "Input structure of scope MŷScøpè",
+    "$ref": "#/definitions/MŷScøpè_in",
+    "definitions": {
+      "DümmyÉnum": { "type": "string", "enum": [ "Â", "Ä" ] },
+      "MŷScøpè_in": {
+        "type": "object",
+        "properties": { "înpût": { "$ref": "#/definitions/DümmyÉnum" } },
+        "required": [ "înpût" ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scope MŷScøpè output",
+    "description": "Output structure of scope MŷScøpè",
+    "$ref": "#/definitions/MŷScøpè",
+    "definitions": {
+      "DümmyÉnum": { "type": "string", "enum": [ "Â", "Ä" ] },
+      "MŷScøpè": {
+        "type": "object",
+        "properties": { "rèsult": { "$ref": "#/definitions/DümmyÉnum" } },
+        "required": [ "rèsult" ],
+        "additionalProperties": false
+      }
+    }
+  }
+]
+```
