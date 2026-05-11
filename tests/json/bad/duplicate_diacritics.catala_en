@@ -13,36 +13,10 @@ scope MŷScøpè:
 
 ```catala-test-cli
 $ catala json-schema --scope MŷScøpè --disable-warnings
-[
-  {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Scope MŷScøpè input",
-    "description": "Input structure of scope MŷScøpè",
-    "$ref": "#/definitions/MŷScøpè_in",
-    "definitions": {
-      "DümmyÉnum": { "type": "string", "enum": [ "Â", "Ä" ] },
-      "MŷScøpè_in": {
-        "type": "object",
-        "properties": { "înpût": { "$ref": "#/definitions/DümmyÉnum" } },
-        "required": [ "înpût" ],
-        "additionalProperties": false
-      }
-    }
-  },
-  {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Scope MŷScøpè output",
-    "description": "Output structure of scope MŷScøpè",
-    "$ref": "#/definitions/MŷScøpè",
-    "definitions": {
-      "DümmyÉnum": { "type": "string", "enum": [ "Â", "Ä" ] },
-      "MŷScøpè": {
-        "type": "object",
-        "properties": { "rèsult": { "$ref": "#/definitions/DümmyÉnum" } },
-        "required": [ "rèsult" ],
-        "additionalProperties": false
-      }
-    }
-  }
-]
+┌─[ERROR]─
+│
+│  Cannot generate JSON encoder due to name clashing between 'Ä' and 'Â': these values would be normalized to the same JSON name 'A'
+│
+└─
+#return code 123#
 ```

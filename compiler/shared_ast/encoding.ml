@@ -20,6 +20,28 @@ module Runtime = Catala_runtime
 module Val = Runtime.Value
 open Json_encoding
 
+let check_duplicate_normalized_names conv_f names =
+  let rec loop vis_map = function
+    | [] -> ()
+    | v :: t ->
+      let s = conv_f v in
+      let s' = String.to_id s in
+      let new_vis_map =
+        String.Map.update s'
+          (function
+            | None -> Some s
+            | Some prev_s ->
+              Message.error
+                "Cannot generate JSON encoder due to name clashing between \
+                 '%s' and '%s': these values would be normalized to the same \
+                 JSON name '%s'"
+                s prev_s s')
+          vis_map
+      in
+      loop new_vis_map t
+  in
+  loop String.Map.empty names |> ignore
+
 let bool_encoding : Val.t encoding =
   conv
     (function
@@ -327,27 +349,28 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
   let open Val in
   let struc = StructName.Map.find sname ctx.ctx_structs in
   let bdgs = StructField.Map.bindings struc in
+  check_duplicate_normalized_names StructField.to_string (List.map fst bdgs);
   let is_input_scope_struct =
     ScopeName.Map.exists
       (fun _ { in_struct_name; _ } -> StructName.equal sname in_struct_name)
       ctx.ctx_scopes
   in
+  let struct_name_s = String.to_id (StructName.to_string sname) in
   let rename_field f =
     let field_s = StructField.to_string f in
     if
       is_input_scope_struct
       && String.ends_with ~suffix:"_in" field_s
       && String.length field_s > 3
-    then String.sub field_s 0 (String.length field_s - 3), field_s
-    else field_s, field_s
+    then
+      String.to_id (String.sub field_s 0 (String.length field_s - 3)), field_s
+    else String.to_id field_s, field_s
   in
   let empty_struct_enc =
     conv
       (fun _ -> ())
       (fun () ->
-        V
-          ( Struct { name = StructName.to_string sname; fields = (fun _ -> []) },
-            () ))
+        V (Struct { name = struct_name_s; fields = (fun _ -> []) }, ()))
       empty
   in
   let add_req_field (encoding : t encoding) (sf, typ) : t encoding =
@@ -420,7 +443,7 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
         | _ -> assert false)
       bconv
   in
-  def (Format.asprintf "%a" StructName.format_shortpath sname)
+  def (String.to_id (Format.asprintf "%a" StructName.format_shortpath sname))
   @@ List.fold_left
        (fun e (sf, typ) ->
          match Mark.remove typ with
@@ -432,16 +455,20 @@ and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
   let open Val in
   let enum = EnumName.Map.find ename ctx.ctx_enums in
   let bdgs = EnumConstructor.Map.bindings enum in
-  let ename_s = EnumName.to_string ename in
+  check_duplicate_normalized_names EnumConstructor.to_string (List.map fst bdgs);
+  let ename_s = String.to_id (EnumName.to_string ename) in
+  let constr_to_string cstr = String.to_id (EnumConstructor.to_string cstr) in
   let make_constructor_case idx (cstr, typ) : t case =
-    let cstr_s = EnumConstructor.to_string cstr in
+    let cstr_s = constr_to_string cstr in
     match Mark.remove typ with
     | TLit TUnit ->
       case (constant cstr_s)
         (function
-          | V (Enum enc, rval) ->
-            let _, cstr_s', _ = enc.constr rval in
-            if cstr_s = cstr_s' then Some () else None
+          | V (Enum { name; constr }, rval) ->
+            let _, cstr_s', _ = constr rval in
+            if ename_s = String.to_id name && cstr_s = String.to_id cstr_s' then
+              Some ()
+            else None
           | v ->
             Message.error ~internal:true
               "Unexpected runtime value %a instead of enum while encoding to  \
@@ -451,29 +478,39 @@ and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
           V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, None)))
     | _ ->
       case
-        (obj1 (req (EnumConstructor.to_string cstr) (generate_encoder ctx typ)))
+        (obj1 (req cstr_s (generate_encoder ctx typ)))
         (function
           | V (Enum { name; constr }, rval) ->
             let _, cstr_s', v = constr rval in
-            if name = ename_s && cstr_s = cstr_s' then v else None
+            if ename_s = String.to_id name && cstr_s = String.to_id cstr_s' then
+              v
+            else None
           | _ -> None)
         (fun v ->
-          V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, Some v)))
+          V
+            ( Enum { name = ename_s; constr = Fun.id },
+              (idx, EnumConstructor.to_string cstr, Some v) ))
   in
   let enc =
+    let union = List.mapi make_constructor_case bdgs |> union in
     if List.for_all (fun (_, typ) -> Mark.remove typ = TLit TUnit) bdgs then
       (* This simplifies the JSON schema *)
-      string_enum
-        (List.mapi
-           (fun idx (cstr, _) ->
-             let cstr_s = EnumConstructor.to_string cstr in
-             ( cstr_s,
-               V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, None))
-             ))
-           bdgs)
-    else List.mapi make_constructor_case bdgs |> union
+      let schema =
+        let specs = Json_schema.string_specs in
+        let enum =
+          List.map
+            (fun (s, _) ->
+              Json_repr.(repr_to_any (module Ezjsonm))
+                (`String (constr_to_string s)))
+            bdgs
+        in
+        Json_schema.(
+          update { (element (String specs)) with enum = Some enum } any)
+      in
+      conv Fun.id Fun.id ~schema union
+    else union
   in
-  def (Format.asprintf "%a" EnumName.format_shortpath ename) enc
+  def (String.to_id (Format.asprintf "%a" EnumName.format_shortpath ename)) enc
 
 let make_encoding (ctx : decl_ctx) (typ : typ) = generate_encoder ctx typ
 
@@ -558,7 +595,8 @@ let rec convert_to_dcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
     let cons, typ_v =
       let enum = EnumName.Map.find ename ctx.ctx_enums in
       EnumConstructor.Map.bindings enum
-      |> List.find (fun (cstr', _) -> EnumConstructor.to_string cstr' = cstr)
+      |> List.find (fun (cstr', _) ->
+          String.to_id (EnumConstructor.to_string cstr') = String.to_id cstr)
     in
     let e = match v with None -> Expr.elit LUnit mark | Some v -> f typ_v v in
     Expr.einj ~name:ename ~cons ~e mark
@@ -633,7 +671,8 @@ let rec convert_to_lcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
     let cons, typ_v =
       let enum = EnumName.Map.find ename ctx.ctx_enums in
       EnumConstructor.Map.bindings enum
-      |> List.find (fun (cstr', _) -> EnumConstructor.to_string cstr' = cstr)
+      |> List.find (fun (cstr', _) ->
+          String.to_id (EnumConstructor.to_string cstr') = String.to_id cstr)
     in
     let e = match v with None -> Expr.elit LUnit mark | Some v -> f typ_v v in
     Expr.einj ~name:ename ~cons ~e mark

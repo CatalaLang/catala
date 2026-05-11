@@ -25,41 +25,60 @@ scope MŷScøpè:
 ```
 
 ```catala-test-cli
+$ catala test-scope MŷScøpè --input {"input":{"MyCase":{"myfield":3,"myotherfield":"A"}}} -F json --disable-warnings
+{
+  "result_enum": { "MyCase": { "myfield": 3.0, "myotherfield": "A" } },
+  "result_struct": { "myfield": 3.0, "myotherfield": "A" },
+  "result_int": 3.0
+}
+```
+
+```catala-test-cli
+$ catala test-scope MŷScøpè --input {"input":{"MyCase":{"myfield":3,"myotherfield":"A"}}} -F human --disable-warnings
+┌─[RESULT]─ MŷScøpè ─
+│ rèsult_enum =
+│   MÿÇase content MŷStruçtûre { -- mŷfìéld: 3 -- mŷøtherfìéld: Â }
+│ rèsult_int = 3
+│ rèsult_struct = MŷStruçtûre { -- mŷfìéld: 3 -- mŷøtherfìéld: Â }
+└─
+```
+
+```catala-test-cli
 $ catala json-schema --scope MŷScøpè --disable-warnings
 [
   {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Scope MŷScøpè input",
     "description": "Input structure of scope MŷScøpè",
-    "$ref": "#/definitions/MŷScøpè_in",
+    "$ref": "#/definitions/MyScope_in",
     "definitions": {
-      "DümmyÉnum": { "type": "string", "enum": [ "Â", "Ö" ] },
-      "MŷScøpè_in": {
-        "type": "object",
-        "properties": { "înpût": { "$ref": "#/definitions/MŷÉnum" } },
-        "required": [ "înpût" ],
-        "additionalProperties": false
-      },
-      "MŷStruçtûre": {
-        "type": "object",
-        "properties": {
-          "mŷfìéld": { "$ref": "#/definitions/integer" },
-          "mŷøtherfìéld": { "$ref": "#/definitions/DümmyÉnum" }
-        },
-        "required": [ "mŷøtherfìéld", "mŷfìéld" ],
-        "additionalProperties": false
-      },
-      "MŷÉnum": {
+      "DummyEnum": { "type": "string", "enum": [ "A", "O" ] },
+      "MyEnum": {
         "oneOf": [
           {
             "type": "object",
             "properties": {
-              "MÿÇase": { "$ref": "#/definitions/MŷStruçtûre" }
+              "MyCase": { "$ref": "#/definitions/MyStructure" }
             },
-            "required": [ "MÿÇase" ],
+            "required": [ "MyCase" ],
             "additionalProperties": false
           }
         ]
+      },
+      "MyScope_in": {
+        "type": "object",
+        "properties": { "input": { "$ref": "#/definitions/MyEnum" } },
+        "required": [ "input" ],
+        "additionalProperties": false
+      },
+      "MyStructure": {
+        "type": "object",
+        "properties": {
+          "myfield": { "$ref": "#/definitions/integer" },
+          "myotherfield": { "$ref": "#/definitions/DummyEnum" }
+        },
+        "required": [ "myotherfield", "myfield" ],
+        "additionalProperties": false
       },
       "integer": {
         "title": "Catala Integer",
@@ -78,39 +97,39 @@ $ catala json-schema --scope MŷScøpè --disable-warnings
     "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Scope MŷScøpè output",
     "description": "Output structure of scope MŷScøpè",
-    "$ref": "#/definitions/MŷScøpè",
+    "$ref": "#/definitions/MyScope",
     "definitions": {
-      "DümmyÉnum": { "type": "string", "enum": [ "Â", "Ö" ] },
-      "MŷScøpè": {
-        "type": "object",
-        "properties": {
-          "rèsult_enum": { "$ref": "#/definitions/MŷÉnum" },
-          "rèsult_struct": { "$ref": "#/definitions/MŷStruçtûre" },
-          "rèsult_int": { "$ref": "#/definitions/integer" }
-        },
-        "required": [ "rèsult_int", "rèsult_struct", "rèsult_enum" ],
-        "additionalProperties": false
-      },
-      "MŷStruçtûre": {
-        "type": "object",
-        "properties": {
-          "mŷfìéld": { "$ref": "#/definitions/integer" },
-          "mŷøtherfìéld": { "$ref": "#/definitions/DümmyÉnum" }
-        },
-        "required": [ "mŷøtherfìéld", "mŷfìéld" ],
-        "additionalProperties": false
-      },
-      "MŷÉnum": {
+      "DummyEnum": { "type": "string", "enum": [ "A", "O" ] },
+      "MyEnum": {
         "oneOf": [
           {
             "type": "object",
             "properties": {
-              "MÿÇase": { "$ref": "#/definitions/MŷStruçtûre" }
+              "MyCase": { "$ref": "#/definitions/MyStructure" }
             },
-            "required": [ "MÿÇase" ],
+            "required": [ "MyCase" ],
             "additionalProperties": false
           }
         ]
+      },
+      "MyScope": {
+        "type": "object",
+        "properties": {
+          "result_enum": { "$ref": "#/definitions/MyEnum" },
+          "result_struct": { "$ref": "#/definitions/MyStructure" },
+          "result_int": { "$ref": "#/definitions/integer" }
+        },
+        "required": [ "result_int", "result_struct", "result_enum" ],
+        "additionalProperties": false
+      },
+      "MyStructure": {
+        "type": "object",
+        "properties": {
+          "myfield": { "$ref": "#/definitions/integer" },
+          "myotherfield": { "$ref": "#/definitions/DummyEnum" }
+        },
+        "required": [ "myotherfield", "myfield" ],
+        "additionalProperties": false
       },
       "integer": {
         "title": "Catala Integer",
