@@ -533,8 +533,7 @@ let run_ninja
                       match Scan.get_lang it.Scan.file_name with
                       | Some lg ->
                         let lg =
-                          if Global.has_localised_stdlib lg then lg
-                          else Global.En
+                          if Global.has_localised_stdlib lg then lg else `En
                         in
                         ("Stdlib_" ^ Cli.language_code lg, Pos.from_file f)
                         :: it.Scan.used_modules

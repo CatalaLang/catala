@@ -381,7 +381,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
               e
             in
             let e =
-              Interpreter.evaluate_operator ctx eval (op, opos) m Global.En
+              Interpreter.evaluate_operator ctx eval (op, opos) m `En
                 (* Default language to English but this should not raise any
                    error messages so we don't care. *)
                 args
@@ -1220,7 +1220,7 @@ let expr_to_dot_label0 : type a.
     unit =
  fun lang ctx env ->
   let xlang ~en ?(pl = en) ~fr () =
-    match lang with Global.Fr -> fr | Global.En -> en | Global.Pl -> pl
+    match lang with `Fr -> fr | `En -> en | `Pl -> pl
   in
   let rec aux_value : type a t. Format.formatter -> (a, t) gexpr -> unit =
    fun ppf e -> Print.UserFacing.value ~fallback lang ppf e

@@ -110,7 +110,7 @@ let rec lazy_eval :
           renv := env;
           e
         in
-        ( Interpreter.evaluate_operator ctx eval op m Global.En
+        ( Interpreter.evaluate_operator ctx eval op m `En
             (* Default language to English but this should not raise any error
                messages so we don't care. *)
             args,

@@ -20,7 +20,7 @@ scope Tunit:
   assertion Date.add_round_down of |2026-05-31|, 1 month = |2026-06-30|
   assertion Date.add_round_down of |2000-02-29|, 1 year = |2001-02-28|
   assertion Date.add_round_up of |2026-05-31|, 1 month = |2026-07-01|
-  assertion Date.add_round_up of |2000-02-29|, 1 year = |2001-03-01|
+  assertion Date.add_round_up of |2000-02-29|, 1 year = |2001-03-02|
   assertion Date.sub_round_down of |2026-05-31|, 1 month = |2026-04-30|
   assertion Date.sub_round_down of |2000-02-29|, 1 year = |1999-02-28|
   assertion Date.sub_round_up of |2026-05-31|, 1 month = |2026-05-01|

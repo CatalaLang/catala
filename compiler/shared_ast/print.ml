@@ -1039,193 +1039,101 @@ let rec skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = function
   | e -> e
 
 module UserFacing = struct
-  (* Refs:
-     https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Grouping_of_digits
-     https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Conventions_concernant_les_nombres#Pour_un_comptage_ou_une_mesure *)
-  let bigsep (lang : Global.backend_lang) =
-    match lang with En -> ",", 3 | Fr -> " ", 3 | Pl -> ",", 3
+  module V = Catala_runtime.Value
 
-  let decsep (lang : Global.backend_lang) =
-    match lang with En -> "." | Fr -> "," | Pl -> "."
+  exception Not_a_value
 
-  let unit (_lang : Global.backend_lang) ppf () =
-    Format.pp_print_string ppf "()"
+  (* this is a dumbed-down version of [Expr.embed_value] that doesn't require a
+     context but won't document indexes of variant constructors correctly ; we
+     go with it since those aren't necessary for printing, and [Expr] depends on
+     [Print]. *)
+  let rec embed_value : type a. (a, 'm) gexpr -> Catala_runtime.Value.t =
+   fun e ->
+    match Mark.remove e with
+    | ELit LUnit -> V.V (Unit, ())
+    | ELit (LBool v) -> V.V (Bool, v)
+    | ELit (LInt v) -> V.V (Integer, v)
+    | ELit (LMoney v) -> V.V (Money, v)
+    | ELit (LRat v) -> V.V (Decimal, v)
+    | ELit (LDate v) -> V.V (Date, v)
+    | ELit (LDuration v) -> V.V (Duration, v)
+    | EPos v ->
+      V.V
+        ( Position,
+          {
+            Catala_runtime.filename = Pos.get_file v;
+            start_line = Pos.get_start_line v;
+            start_column = Pos.get_start_column v;
+            end_line = Pos.get_end_line v;
+            end_column = Pos.get_end_column v;
+            law_headings = Pos.get_law_info v;
+          } )
+    | EArray el -> V.V (Array embed_value, Array.of_list el)
+    | ETuple [(EAbs { tys = (TClosureEnv, _) :: _; _ }, _); _] ->
+      (* Closure *)
+      V.V (Function, ignore)
+    | ETuple el -> V.V (Tuple (List.map embed_value), el)
+    | EStruct { name; fields } ->
+      V.V
+        ( Struct
+            {
+              name = StructName.canonical_str None name;
+              fields =
+                List.map (fun (name, e) ->
+                    StructField.to_string name, embed_value e);
+            },
+          StructField.Map.bindings fields )
+    | EInj { name; cons; e = payload } ->
+      V.V
+        ( Enum
+            {
+              name = EnumName.canonical_str None name;
+              constr =
+                (fun (index, cons, payload) ->
+                  ( index,
+                    EnumConstructor.to_string cons,
+                    match payload with
+                    | ELit LUnit, _ -> None
+                    | e -> Some (embed_value e) ));
+            },
+          (-1 (* this is fake *), cons, payload) )
+    | EAbs _ -> V.V (Function, ignore (* fake *))
+    | ECustom { obj; targs = []; tret = TAbstract tid, _ } -> (
+      try
+        let ext =
+          Catala_runtime.lookup_type
+            ( Uid.Module.to_string
+                (Option.get (Uid.Path.last_member (AbstractType.path tid))),
+              AbstractType.base tid )
+        in
+        let module E = (val ext) in
+        V.V (E.rtype, Obj.obj obj)
+      with Failure _ -> V.V (Function, obj))
+    | ECustom { obj; _ } -> V.V (Function, obj)
+    | _ -> raise Not_a_value
 
-  let bool (lang : Global.backend_lang) ppf b =
-    let s =
-      match lang, b with
-      | En, true -> "true"
-      | En, false -> "false"
-      | Fr, true -> "vrai"
-      | Fr, false -> "faux"
-      | Pl, true -> "prawda"
-      | Pl, false -> "falsz"
-    in
-    Format.pp_print_string ppf s
+  let lit ppf lit : unit =
+    with_color Catala_runtime.Value.format Ocolor_types.yellow ppf
+      (embed_value (ELit lit, Untyped { pos = Pos.void }))
 
-  let integer (lang : Global.backend_lang) ppf n =
-    let sep, nsep = bigsep lang in
-    let nsep = Z.pow (Z.of_int 10) nsep in
-    if Z.sign n < 0 then Format.pp_print_char ppf '-';
-    let rec aux n =
-      let a, b = Z.div_rem n nsep in
-      if Z.equal a Z.zero then Z.pp_print ppf b
-      else (
-        aux a;
-        Format.fprintf ppf "%s%03d" sep (Z.to_int b))
-    in
-    aux (Z.abs n)
-
-  let money (lang : Global.backend_lang) ppf n =
-    let num = Z.abs n in
-    let units, cents = Z.div_rem num (Z.of_int 100) in
-    if Z.sign n < 0 then Format.pp_print_char ppf '-';
-    (match lang with En -> Format.pp_print_string ppf "$" | Fr | Pl -> ());
-    integer lang ppf units;
-    Format.pp_print_string ppf (decsep lang);
-    Format.fprintf ppf "%02d" (Z.to_int (Z.abs cents));
-    match lang with
-    | En -> ()
-    | Fr -> Format.pp_print_string ppf " €"
-    | Pl -> Format.pp_print_string ppf " PLN"
-
-  let decimal (lang : Global.backend_lang) ppf r =
-    let den = Q.den r in
-    let num = Z.abs (Q.num r) in
-    let int_part, rem = Z.div_rem num den in
-    let rem = Z.abs rem in
-    (* Printing the integer part *)
-    if Q.sign r < 0 then Format.pp_print_char ppf '-';
-    integer lang ppf int_part;
-    (* Printing the decimals *)
-    let bigsep, nsep = bigsep lang in
-    let rec aux ndigit rem_digits rem =
-      let n, rem = Z.div_rem (Z.mul rem (Z.of_int 10)) den in
-      let rem_digits, stop =
-        match rem_digits with
-        | None ->
-          if Z.equal n Z.zero then None, false
-          else
-            let r = Global.options.max_prec_digits in
-            Some (r - 1), r <= 1
-        | Some r -> Some (r - 1), r <= 1
-      in
-      if ndigit mod nsep = 0 then
-        Format.pp_print_string ppf (if ndigit = 0 then decsep lang else bigsep);
-      Format.pp_print_int ppf (Z.to_int n);
-      if Z.gt rem Z.zero then
-        if stop then Format.pp_print_as ppf 1 "…"
-        else aux (ndigit + 1) rem_digits rem
-    in
-    let rec ndigits n =
-      if Z.equal n Z.zero then 0 else 1 + ndigits (Z.div n (Z.of_int 10))
-    in
-    aux 0
-      (if Z.equal int_part Z.zero then None
-       else Some (Global.options.max_prec_digits - ndigits int_part))
-      rem
-  (* It would be nice to print ratios as % but that's impossible to guess.
-     Trying would lead to inconsistencies where some comparable numbers are in %
-     and some others not, adding confusion. *)
-
-  let date (_lang : Global.backend_lang) ppf d =
-    let y, m, d = Catala_runtime.date_to_years_months_days d in
-    Format.fprintf ppf "|%04d-%02d-%02d|" y m d
-
-  let duration (lang : Global.backend_lang) ppf dr =
-    let y, m, d = Catala_runtime.duration_to_years_months_days dr in
-    let rec filter0 = function
-      | (0, _) :: (_ :: _ as r) -> filter0 r
-      | x :: r -> x :: List.filter (fun (n, _) -> n <> 0) r
-      | [] -> []
-    in
-    let splur n s = if abs n > 1 then n, s ^ "s" else n, s in
-    Format.pp_print_char ppf '[';
-    (match lang with
-      | En -> [splur y "year"; splur m "month"; splur d "day"]
-      | Fr -> [splur y "an"; m, "mois"; splur d "jour"]
-      | Pl -> [y, "rok"; m, "miesiac"; d, "dzien"])
-    |> filter0
-    |> Format.pp_print_list
-         ~pp_sep:(fun ppf () -> Format.pp_print_string ppf ", ")
-         (fun ppf (n, s) -> Format.fprintf ppf "%d %s" n s)
-         ppf;
-    Format.pp_print_char ppf ']'
-
-  let lit_raw (lang : Global.backend_lang) ppf lit : unit =
-    match lit with
-    | LUnit -> unit lang ppf ()
-    | LBool b -> bool lang ppf b
-    | LInt i -> integer lang ppf i
-    | LRat r -> decimal lang ppf r
-    | LMoney e -> money lang ppf e
-    | LDate d -> date lang ppf d
-    | LDuration dr -> duration lang ppf dr
-
-  let lit_to_string (lang : Global.backend_lang) lit =
-    let buf = Buffer.create 32 in
-    let ppf = Format.formatter_of_buffer buf in
-    lit_raw lang ppf lit;
-    Format.pp_print_flush ppf ();
-    Buffer.contents buf
-
-  let lit (lang : Global.backend_lang) ppf lit : unit =
-    with_color (lit_raw lang) Ocolor_types.yellow ppf lit
-
-  let rec value : type a.
+  let value : type a.
       ?fallback:(Format.formatter -> (a, 't) gexpr -> unit) ->
-      Global.backend_lang ->
       Format.formatter ->
       (a, 't) gexpr ->
       unit =
-   fun ?(fallback = fun _ _ -> invalid_arg "UserPrint.value: not a value") lang
-       ppf e ->
+   fun ?(fallback = fun _ _ -> invalid_arg "UserPrint.value: not a value") ppf
+       e ->
     match Mark.remove e with
-    | ELit l -> lit lang ppf l
-    | EArray l ->
-      Format.fprintf ppf "@[<hv 2>[@,@[<hov>%a@]@;<0 -2>]@]"
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
-           (value ~fallback lang))
-        l
-    | ETuple [(EAbs { tys = (TClosureEnv, _) :: _; _ }, _); _] ->
-      Format.pp_print_string ppf "<function>"
-    | ETuple l ->
-      Format.fprintf ppf "@[<hv 2>(@,@[<hov>%a@]@;<0 -2>)@]"
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-           (value ~fallback lang))
-        l
-    | EStruct { name; fields } ->
-      Format.fprintf ppf "@[<hv 2>%a {@ %a@;<1 -2>}@]" StructName.format name
-        (StructField.Map.format_bindings ~pp_sep:Format.pp_print_space
-           (fun ppf pp_fld e ->
-             Format.fprintf ppf "@[<hov 2>-- %t:@ %a@]" pp_fld
-               (value ~fallback lang) e))
-        fields
-    | EInj { name = _; cons; e = ELit LUnit, _ } ->
-      Format.fprintf ppf "@[<hov 2>%a@]" EnumConstructor.format cons
-    | EInj { name = _; cons; e } ->
-      Format.fprintf ppf "@[<hov 2>%a %a@ %a@]" EnumConstructor.format cons
-        keyword
-        (match lang with En -> "content" | Fr -> "contenu" | Pl -> "typu")
-        (value ~fallback lang) e
     | EEmpty -> Format.pp_print_string ppf "ø"
-    | ECustom { targs = []; _ } -> expr () ppf e
-    | ECustom _ | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
-    | EPos pos -> Format.fprintf ppf "<%s>" (Pos.to_string_shorter pos)
-    | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
-    | EStructAccess _ | EAssert _ | EFatalError _ | EFatalError_pos _
-    | EDefault _ | EPureDefault _ | EErrorOnEmpty _ | ELocation _ | EScopeCall _
-    | EDStructAmend _ | EDStructAccess _ | EBad ->
-      fallback ppf e
+    | ELit l -> lit ppf l
+    | _ -> (
+      try Catala_runtime.Value.format ppf (embed_value e)
+      with Not_a_value -> fallback ppf e)
 
-  let expr : type a.
-      Global.backend_lang -> Format.formatter -> (a, 't) gexpr -> unit =
-   fun lang ->
+  let expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
     let rec aux_value : type a t. Format.formatter -> (a, t) gexpr -> unit =
-     fun ppf e -> value ~fallback lang ppf e
+     fun ppf e -> value ~fallback ppf e
     and fallback : type a t. Format.formatter -> (a, t) gexpr -> unit =
      fun ppf e ->
       let module E = ExprGen (struct
@@ -1240,7 +1148,7 @@ module UserFacing = struct
 
         let operator o = operator ~debug:false o
         let var = var
-        let lit = lit lang
+        let lit = lit
         let pre_map = skip_wrappers
       end) in
       E.expr ppf e

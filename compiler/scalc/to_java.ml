@@ -888,7 +888,10 @@ let format_tests ctx ppf (closures, tests) =
        pp_open_vbox ppf 2;
        fprintf ppf "try {@\n";
        fprintf ppf "CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
-         (match Global.options.language with Some Fr -> "FR" | _ -> "EN");
+         (match Global.options.language with
+         | Some `Fr -> "FR"
+         | Some `Pl -> "EN"
+         | _ -> "EN");
        fprintf ppf "%a@\nCatalaGlobals.displayResult(args, \"%a\", %s);"
          (format_block ~toplevel:true ctx)
          block ScopeName.format_original scope_name (VarName.to_string var);

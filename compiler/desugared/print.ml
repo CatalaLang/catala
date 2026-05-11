@@ -38,7 +38,7 @@ let render_condition_lines lang width fmt_outer e =
     (Format.pp_get_formatter_stag_functions fmt_outer ());
   Format.pp_set_tags inner true;
   Format.pp_set_margin inner (max 20 width);
-  Print.UserFacing.expr lang inner e;
+  Print.UserFacing.expr inner e;
   Format.pp_print_flush inner ();
   String.split_on_char '\n' (Buffer.contents buf)
 
@@ -100,7 +100,7 @@ let rec print_exception_node
     children
 
 let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
-  let lang = Option.value Global.options.language ~default:Global.En in
+  let lang = Option.value Global.options.language ~default:`En in
   let margin = Format.pp_get_margin fmt () in
   Format.pp_open_vbox fmt 0;
   print_exception_node fmt lang margin "" 0 t;
@@ -108,7 +108,7 @@ let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
 
 let format_exception_forest ~is_condition fmt trees =
   Format.pp_open_vbox fmt 0;
-  let lang = Option.value Global.options.language ~default:Global.En in
+  let lang = Option.value Global.options.language ~default:`En in
   let margin = Format.pp_get_margin fmt () in
   if is_condition then (
     Format.fprintf fmt "@{<yellow>(default: false)@}";
@@ -147,7 +147,7 @@ let rec exception_tree_to_json (t : exception_tree) : Yojson.Safe.t =
   let rules =
     RuleName.Map.bindings vertex.Dependency.ExceptionVertex.rules
     |> List.map (fun (_rule_name, (rule_pos, just_expr_opt)) ->
-        let lang = Option.value Global.options.language ~default:Global.En in
+        let lang = Option.value Global.options.language ~default:`En in
         `Assoc
           (("pos", pos_to_json rule_pos)
           ::
@@ -157,7 +157,7 @@ let rec exception_tree_to_json (t : exception_tree) : Yojson.Safe.t =
             [
               "condition_pos", pos_to_json (Expr.pos e);
               ( "condition_text",
-                `String (Format.asprintf "%a" (Print.UserFacing.expr lang) e) );
+                `String (Format.asprintf "%a" Print.UserFacing.expr e) );
             ])))
   in
   `Assoc

@@ -1176,7 +1176,7 @@ let rec embed_value : type a.
   | ECustom { obj; targs = []; tret = TAbstract tid, _ } ->
     let module E = (val Type.lookup_external tid) in
     V.V (E.rtype, Obj.obj obj)
-  | ECustom { obj; _ } -> V.V (Function, Obj.obj obj)
+  | ECustom { obj; _ } -> V.V (Function, obj)
   | _ -> invalid_arg "embed_value"
 
 let rec distribute_negation pos e =

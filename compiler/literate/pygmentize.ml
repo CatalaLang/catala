@@ -20,9 +20,9 @@ open Literate_common
 let lang_of_ext s =
   if String.starts_with ~prefix:"catala_" s then
     match s with
-    | "catala_en" -> Some Global.En
-    | "catala_fr" -> Some Global.Fr
-    | "catala_pl" -> Some Global.Pl
+    | "catala_en" -> Some `En
+    | "catala_fr" -> Some `Fr
+    | "catala_pl" -> Some `Pl
     | _ -> failwith "Unknown Catala dialect"
   else None
 

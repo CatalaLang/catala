@@ -322,6 +322,22 @@ val log_decision_taken : code_location -> bool -> bool
 
 (** {3 Pretty printers} *)
 
+(** This module is for setting options and internals, use [Value.format] to
+    print values *)
+module Print : sig
+  type lang = [ `En | `Fr | `Pl ]
+
+  val set_lang : [ `En | `Fr | `Pl ] -> unit
+  (** Sets the language to be used for the output of values *)
+
+  val get_lang : unit -> [ `En | `Fr | `Pl ]
+
+  val set_precision : int -> unit
+  (** Sets the maximum number of decimal numbers to print *)
+
+  val get_precision : unit -> int
+end
+
 (** {4 Conversions to JSON} *)
 module Json : sig
   (* val io_input: io_input -> string *)
