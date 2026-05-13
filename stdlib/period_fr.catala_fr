@@ -159,6 +159,9 @@ déclaration trouve_période
 ## Trie la liste de périodes en fonction de la date de début.
 ## Si deux périodes commencent le même jour, leur ordre dans la liste est
 ## préservé
+## **Déprécié:** utilisez la nouvelle construction `trie` à la place. Cette
+## fonction est équivalente à `trie tout (p, x) parmi lst par ordre croissant
+## de p.début`. Elle sera retirée dans la prochaîne version de Catala.
 déclaration tri_par_date
   contenu liste de (Période, n'importe quel de type t)
   dépend de l contenu liste de (Période, n'importe quel de type t)

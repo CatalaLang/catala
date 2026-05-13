@@ -39,6 +39,29 @@ scope Section121SinglePerson:
 
 ```catala-test-cli
 $ catala lcalc --closure-conversion
+┌─[WARNING]─
+│
+│  Deprecated: the construction 'sum <type> of' is deprecated and will be
+│  removed in the next release.
+│  Use the function 'Duration.sum of' instead
+│
+├─➤ tests/array/good/aggregation_4.catala_en:25.5-31.65:
+│    │
+│ 25 │     sum duration of
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 26 │       map each period among periods to
+│    │       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 27 │         if date_of_sale_or_exchange <= period.begin + 5 year then
+│    │         ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 28 │           period.end - period.begin
+│    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 29 │         else (if date_of_sale_or_exchange >= period.end + 5 year then
+│    │         ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 30 │           0 day
+│    │           ‾‾‾‾‾
+│ 31 │         else ((period.end + 5 year) - date_of_sale_or_exchange))
+│    │         ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
 
 type Period = { begin: date; end: date; }
 

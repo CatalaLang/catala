@@ -275,6 +275,16 @@ let translate_unop ((op, op_pos) : S.unop Mark.pos) pos arg : Ast.expr boxed =
         Message.error ~pos "It is impossible to sum values of type %a together."
           SurfacePrint.format_primitive_typ t
     in
+    Message.warning ~pos
+      "@[<v>@[<hov>@{<yellow>Deprecated:@} the construction @{<cyan>'sum \
+       <type> of'@}@ is@ deprecated@ and@ will@ be@ removed@ in@ the@ next@ \
+       release.@]@ Use the function @{<cyan>'%s.sum of'@} instead@]"
+      (match Mark.remove pty with
+      | S.Integer -> "Integer"
+      | S.Decimal -> "Decimal"
+      | S.Money -> "Money"
+      | S.Duration -> "Duration"
+      | _ -> assert false);
     let op_f =
       (* fun x1 x2 -> op x1 x2 *)
       (* we're not allowed pass the operator directly as argument, it must

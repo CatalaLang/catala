@@ -39,6 +39,28 @@ scope S:
 
 ```catala-test-cli
 $ catala Typecheck --check-invariants
+┌─[WARNING]─
+│
+│  Deprecated: the construction 'sum <type> of' is deprecated and will be
+│  removed in the next release.
+│  Use the function 'Integer.sum of' instead
+│
+├─➤ tests/array/good/aggregation_3.catala_en:17.15-39:
+│    │
+│ 17 │     assertion sum integer of [1; 2; 3] = 6
+│    │               ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[WARNING]─
+│
+│  Deprecated: the construction 'sum <type> of' is deprecated and will be
+│  removed in the next release.
+│  Use the function 'Integer.sum of' instead
+│
+├─➤ tests/array/good/aggregation_3.catala_en:18.15-69:
+│    │
+│ 18 │     assertion sum integer of (map each i among [1; 2; 3] to (i + 2)) = 12
+│    │               ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
 ┌─[RESULT]─
 │ All invariant checks passed
 └─
@@ -49,6 +71,28 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-cli
 $ catala scopelang -s S
+┌─[WARNING]─
+│
+│  Deprecated: the construction 'sum <type> of' is deprecated and will be
+│  removed in the next release.
+│  Use the function 'Integer.sum of' instead
+│
+├─➤ tests/array/good/aggregation_3.catala_en:17.15-39:
+│    │
+│ 17 │     assertion sum integer of [1; 2; 3] = 6
+│    │               ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[WARNING]─
+│
+│  Deprecated: the construction 'sum <type> of' is deprecated and will be
+│  removed in the next release.
+│  Use the function 'Integer.sum of' instead
+│
+├─➤ tests/array/good/aggregation_3.catala_en:18.15-69:
+│    │
+│ 18 │     assertion sum integer of (map each i among [1; 2; 3] to (i + 2)) = 12
+│    │               ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
 #[test]
 let scope S (x: integer|internal|output) =
   let x : integer = error_empty ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩;
@@ -105,6 +149,28 @@ let scope S (x: integer|internal|output) =
 
 ```catala-test-cli
 $ catala test-scope S
+┌─[WARNING]─
+│
+│  Deprecated: the construction 'sum <type> of' is deprecated and will be
+│  removed in the next release.
+│  Use the function 'Integer.sum of' instead
+│
+├─➤ tests/array/good/aggregation_3.catala_en:17.15-39:
+│    │
+│ 17 │     assertion sum integer of [1; 2; 3] = 6
+│    │               ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[WARNING]─
+│
+│  Deprecated: the construction 'sum <type> of' is deprecated and will be
+│  removed in the next release.
+│  Use the function 'Integer.sum of' instead
+│
+├─➤ tests/array/good/aggregation_3.catala_en:18.15-69:
+│    │
+│ 18 │     assertion sum integer of (map each i among [1; 2; 3] to (i + 2)) = 12
+│    │               ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
 ┌─[RESULT]─ S ─
 │ x = 0
 └─
