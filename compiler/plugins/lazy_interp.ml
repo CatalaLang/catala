@@ -110,11 +110,8 @@ let rec lazy_eval :
           renv := env;
           e
         in
-        ( Interpreter.evaluate_operator ctx eval op m `En
-            (* Default language to English but this should not raise any error
-               messages so we don't care. *)
-            args,
-          !renv ) (* fixme: this forwards eempty *)
+        Interpreter.evaluate_operator ctx eval op m args, !renv
+      (* fixme: this forwards eempty *)
   | EApp { f; args; tys }, m -> (
     if
       (not llevel.eval_default)

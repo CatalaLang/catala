@@ -31,7 +31,7 @@ let conditions_of_vertex (v : Dependency.ExceptionVertex.t) : Ast.expr list =
    columns. The stag functions from [fmt_outer] are forwarded so that color tags
    in the expression printer produce the same ANSI sequences as the outer
    formatter; this preserves syntax highlighting in the condition text. *)
-let render_condition_lines lang width fmt_outer e =
+let render_condition_lines width fmt_outer e =
   let buf = Buffer.create 80 in
   let inner = Format.formatter_of_buffer buf in
   Format.pp_set_formatter_stag_functions inner
@@ -66,7 +66,7 @@ let rec print_exception_node
   let cond_width = max 20 (margin - prefix_width - 3) in
   List.iter
     (fun e ->
-      let lines = render_condition_lines lang cond_width fmt e in
+      let lines = render_condition_lines cond_width fmt e in
       Format.pp_print_cut fmt ();
       if has_children then Format.fprintf fmt "@{<blue>%s│@} [" prefix
       else (
@@ -147,7 +147,6 @@ let rec exception_tree_to_json (t : exception_tree) : Yojson.Safe.t =
   let rules =
     RuleName.Map.bindings vertex.Dependency.ExceptionVertex.rules
     |> List.map (fun (_rule_name, (rule_pos, just_expr_opt)) ->
-        let lang = Option.value Global.options.language ~default:`En in
         `Assoc
           (("pos", pos_to_json rule_pos)
           ::

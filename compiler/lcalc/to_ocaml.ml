@@ -840,7 +840,7 @@ let commands = if commands = [] then test_scopes else commands
   List.iter
     (fun (scope, e) ->
       Format.fprintf fmt
-        "@[<v 2>let () =@ set_catala_lang `%s; if Stdlib.List.mem %S commands \
+        "@[<v 2>let () =@ Print.set_lang `%s; if Stdlib.List.mem %S commands \
          then (@ @[<hv>@[<hov 2>let result =@ @[<hv>%a@]@]@,\
          in@,\
          @[<v 2>Format.eprintf \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \

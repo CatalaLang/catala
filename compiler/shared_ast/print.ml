@@ -1129,6 +1129,7 @@ module UserFacing = struct
     | EEmpty -> Format.pp_print_string ppf "ø"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | ELit l -> lit ppf l
+    | EPos p -> Message.pp_pos ppf p
     | _ -> (
       try Catala_runtime.Value.format ppf (embed_value e)
       with Not_a_value -> fallback ppf e)

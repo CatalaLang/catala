@@ -258,6 +258,32 @@ end
 module Commands = struct
   open Cmdliner
 
+  let global_options =
+    let setup options =
+      let lang, options =
+        match Global.options.language with
+        | Some lang -> Some lang, options
+        | None -> (
+          match
+            Cli.file_lang (Global.input_src_file options.Global.input_src)
+          with
+          | lang -> Some lang, Global.enforce_options ~language:(Some lang) ()
+          | exception Failure _ -> None, options)
+      in
+      Option.iter Catala_runtime.Print.set_lang lang;
+      options
+    in
+    Term.(const setup $ Cli.Flags.Global.options)
+
+  let get_lang () =
+    match Global.options.language with
+    | Some lang -> lang
+    | None ->
+      Format.kasprintf failwith
+        "Could not infer language variant from the extension of \
+         @{<yellow>%s@}, and @{<bold>--language@} was not specified"
+        (Global.input_src_file Global.(options.input_src))
+
   let fix_trace options =
     if options.Global.trace <> None then (
       Message.warning "%a" Format.pp_print_text
@@ -407,16 +433,14 @@ module Commands = struct
          ~doc:
            "Generates a Makefile-compatible list of the file dependencies of a \
             Catala program.")
-      Term.(const makefile $ Cli.Flags.Global.options $ Cli.Flags.output)
+      Term.(const makefile $ global_options $ Cli.Flags.output)
 
   let html options output print_only_law wrap_weaved_output =
     let prg = Passes.surface options in
     Message.debug "Weaving literate program into HTML";
     get_output_format options ~ext:"html" output
     @@ fun output_file fmt ->
-    let language =
-      Cli.file_lang (Global.input_src_file options.Global.input_src)
-    in
+    let language = get_lang () in
     let weave_output = Literate.Html.ast_to_html language ~print_only_law in
     Message.debug "Writing to %s" (Option.value ~default:"stdout" output_file);
     if wrap_weaved_output then
@@ -431,7 +455,7 @@ module Commands = struct
            "Weaves an HTML literate programming output of the Catala program.")
       Term.(
         const html
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.output
         $ Cli.Flags.print_only_law
         $ Cli.Flags.wrap_weaved_output)
@@ -446,9 +470,7 @@ module Commands = struct
     Message.debug "Weaving literate program into LaTeX";
     get_output_format options ~ext:"tex" output
     @@ fun _output_file fmt ->
-    let language =
-      Cli.file_lang (Global.input_src_file options.Global.input_src)
-    in
+    let language = get_lang () in
     let weave_output = Literate.Latex.ast_to_latex language ~print_only_law in
     let weave fmt =
       weave_output fmt prg;
@@ -474,7 +496,7 @@ module Commands = struct
            "Weaves a LaTeX literate programming output of the Catala program.")
       Term.(
         const latex
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.output
         $ Cli.Flags.print_only_law
         $ Cli.Flags.wrap_weaved_output
@@ -513,7 +535,7 @@ module Commands = struct
             JSON output.")
       Term.(
         const exceptions
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.ex_scope
@@ -571,7 +593,7 @@ module Commands = struct
             (which type uses which type), in JSON format.")
       Term.(
         const dependency_graph
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir)
 
@@ -601,7 +623,7 @@ module Commands = struct
             restrict the output to a particular scope.")
       Term.(
         const scopelang
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
@@ -638,7 +660,7 @@ module Commands = struct
          ~doc:"Parses and typechecks a Catala program, without interpreting it.")
       Term.(
         const typecheck
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.check_invariants
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
@@ -692,7 +714,7 @@ module Commands = struct
       Term.(
         const f
         $ Cli.Flags.no_typing
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
@@ -715,9 +737,6 @@ module Commands = struct
         List.sort
           (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
           results
-      in
-      let language =
-        Cli.file_lang (Global.input_src_file options.Global.input_src)
       in
       (if quiet then begin
          (* Caution: this output is parsed by Clerk *)
@@ -876,7 +895,7 @@ module Commands = struct
       Term.(
         const f
         $ Cli.Flags.no_typing
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
@@ -968,7 +987,7 @@ module Commands = struct
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.no_typing
         $ Cli.Flags.code_coverage
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.optimize
@@ -1006,7 +1025,7 @@ module Commands = struct
          ~doc:"Generates an OCaml translation of the Catala program.")
       Term.(
         const ocaml
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
@@ -1061,7 +1080,7 @@ module Commands = struct
             restrict the output to a particular scope.")
       Term.(
         const scalc
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
@@ -1105,7 +1124,7 @@ module Commands = struct
          ~doc:"Generates a Python translation of the Catala program.")
       Term.(
         const python
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
@@ -1138,13 +1157,6 @@ module Commands = struct
         ~lift_pos:(Some Scalc.To_java.op_needs_pos)
     in
     Message.debug "Compiling program into Java...";
-    let () =
-      match options.Global.input_src with
-      | FileName (file : File.t) | Contents (_, (file : File.t)) ->
-        let language = Some (Cli.file_lang file) in
-        ignore @@ Global.enforce_options ~language ()
-      | _ -> ()
-    in
     get_output_format options output
       ~ext:(if Global.options.gen_external then "template.java" else "java")
     @@ fun output_file ppf ->
@@ -1167,7 +1179,7 @@ module Commands = struct
          ~doc:"Generates a Java translation of the Catala program.")
       Term.(
         const java
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
@@ -1198,7 +1210,7 @@ module Commands = struct
          ~doc:"Generates an C translation of the Catala program.")
       Term.(
         const c
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
@@ -1227,7 +1239,7 @@ module Commands = struct
                   mod_use_alias = name, Pos.void;
                 })
               (file :: extra_files);
-          program_lang = Cli.file_lang file;
+          program_lang = get_lang ();
         }
     in
     let mod_uses, modules =
@@ -1292,7 +1304,7 @@ module Commands = struct
             NOTE: the files specified are also included in the returned list.")
       Term.(
         const depends
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.prefix
@@ -1311,7 +1323,7 @@ module Commands = struct
             assert false
             (* Not really a catala command, this is handled preemptively at
                startup *))
-        $ Cli.Flags.Global.options)
+        $ global_options)
 
   let json_schema_cmd =
     let f options includes stdlib ex_scope =
@@ -1351,7 +1363,7 @@ module Commands = struct
             elements: first one being the input, the second one the output.")
       Term.(
         const f
-        $ Cli.Flags.Global.options
+        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.ex_scope)
