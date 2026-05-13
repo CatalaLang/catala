@@ -106,6 +106,11 @@ let () =
    to the Catala code if we add #line directives everywhere in the generated
    code. *)
 
+let z2 = Z.of_int 2
+let z10 = Z.of_int 10
+let z100 = Z.of_int 100
+let q100 = Q.of_int 100
+
 let round (q : Q.t) : Z.t =
   (* The mathematical formula is [round(q) = sgn(q) * floor(abs(q) + 0.5)].
      However, Zarith's [Q.to_bigint] does not floor. Instead, it rounds towards
@@ -117,29 +122,29 @@ let round (q : Q.t) : Z.t =
   let abs = Q.abs q in
   let n = Q.num abs in
   let d = Q.den abs in
-  let abs_round = Z.(fdiv ((of_int 2 * n) + d) (of_int 2 * d)) in
+  let abs_round = Z.(fdiv ((z2 * n) + d) (z2 * d)) in
   Z.(of_int sgn * abs_round)
 
 let money_of_cents_string (cents : string) : money = Z.of_string cents
-let money_of_units_int (units : int) : money = Z.(of_int units * of_int 100)
+let money_of_units_int (units : int) : money = Z.(of_int units * z100)
 let money_of_cents_integer (cents : integer) : money = cents
 let money_to_float (m : money) : float = Z.to_float m /. 100.
 
 let money_of_decimal (d : decimal) : money =
   (* Turn units to cents then round to nearest cent *)
-  round Q.(d * of_int 100)
+  round Q.(d * q100)
 
-let money_of_integer (i : integer) : money = Z.(i * of_int 100)
+let money_of_integer (i : integer) : money = Z.(i * z100)
 
 let money_to_string (m : money) : string =
-  Format.asprintf "%.2f" Q.(to_float (of_bigint m / of_int 100))
+  Format.asprintf "%.2f" Q.(to_float (of_bigint m / q100))
 
 let money_to_cents m = m
 
 let money_round (m : money) : money =
   (* Turn cents to units then round to nearest unit, and convert back *)
-  let units = Q.(of_bigint m / of_int 100) in
-  Z.(round units * of_int 100)
+  let units = Q.(of_bigint m / q100) in
+  Z.(round units * z100)
 
 let decimal_of_string (d : string) : decimal = Q.of_string d
 let decimal_to_float (d : decimal) : float = Q.to_float d
@@ -169,7 +174,7 @@ let decimal_to_string ~(max_prec_digits : int) (i : decimal) : string =
     !n <> Z.zero
     && List.length !digits - leading_zeroes !digits < max_prec_digits
   do
-    n := Z.mul !n (Z.of_int 10);
+    n := Z.mul !n z10;
     digits := Z.ediv !n d :: !digits;
     n := Z.erem !n d
   done;
@@ -184,10 +189,7 @@ let decimal_to_string ~(max_prec_digits : int) (i : decimal) : string =
      else "")
 
 let decimal_round (q : decimal) : decimal = Q.of_bigint (round q)
-
-let decimal_of_money (m : money) : decimal =
-  Q.div (Q.of_bigint m) (Q.of_int 100)
-
+let decimal_of_money (m : money) : decimal = Q.div (Q.of_bigint m) q100
 let integer_of_string (s : string) : integer = Z.of_string s
 let integer_to_string (i : integer) : string = Z.to_string i
 let integer_to_int (i : integer) : int = Z.to_int i
@@ -261,11 +263,11 @@ module Print = struct
   type lang = [ `En | `Fr | `Pl ]
 
   let lang = ref `En
-  let max_prec_digits = ref 10
+  let max_decimals = ref 6
   let set_lang l = lang := l
   let get_lang () = !lang
-  let set_precision n = max_prec_digits := n
-  let get_precision () = !max_prec_digits
+  let set_precision n = max_decimals := n
+  let get_precision () = !max_decimals
 
   (* Refs:
      https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Grouping_of_digits
@@ -290,7 +292,7 @@ module Print = struct
 
   let integer ppf n =
     let sep, nsep = bigsep () in
-    let nsep = Z.pow (Z.of_int 10) nsep in
+    let nsep = Z.pow z10 nsep in
     if Z.sign n < 0 then Format.pp_print_char ppf '-';
     let rec aux n =
       let a, b = Z.div_rem n nsep in
@@ -303,7 +305,7 @@ module Print = struct
 
   let money ppf n =
     let num = Z.abs n in
-    let units, cents = Z.div_rem num (Z.of_int 100) in
+    let units, cents = Z.div_rem num z100 in
     if Z.sign n < 0 then Format.pp_print_char ppf '-';
     (match !lang with `En -> Format.pp_print_string ppf "$" | `Fr | `Pl -> ());
     integer ppf units;
@@ -324,31 +326,16 @@ module Print = struct
     integer ppf int_part;
     (* Printing the decimals *)
     let bigsep, nsep = bigsep () in
-    let rec aux ndigit rem_digits rem =
-      let n, rem = Z.div_rem (Z.mul rem (Z.of_int 10)) den in
-      let rem_digits, stop =
-        match rem_digits with
-        | None ->
-          if Z.equal n Z.zero then None, false
-          else
-            let r = !max_prec_digits in
-            Some (r - 1), r <= 1
-        | Some r -> Some (r - 1), r <= 1
-      in
+    let rec aux ndigit rem =
+      let n, rem = Z.div_rem (Z.mul rem z10) den in
       if ndigit mod nsep = 0 then
         Format.pp_print_string ppf (if ndigit = 0 then decsep () else bigsep);
       Format.pp_print_int ppf (Z.to_int n);
       if Z.gt rem Z.zero then
-        if stop then Format.pp_print_as ppf 1 "…"
-        else aux (ndigit + 1) rem_digits rem
+        if ndigit + 1 >= !max_decimals then Format.pp_print_as ppf 1 "…"
+        else aux (ndigit + 1) rem
     in
-    let rec ndigits n =
-      if Z.equal n Z.zero then 0 else 1 + ndigits (Z.div n (Z.of_int 10))
-    in
-    aux 0
-      (if Z.equal int_part Z.zero then None
-       else Some (!max_prec_digits - ndigits int_part))
-      rem
+    aux 0 rem
   (* It would be nice to print ratios as % but that's impossible to guess.
      Trying would lead to inconsistencies where some comparable numbers are in %
      and some others not, adding confusion. *)
@@ -579,43 +566,57 @@ module Value = struct
     | Position -> Stdlib.compare x1 x2
     | t -> compare pos (V (t, x1)) (V (t, x2))
 
-  let rec format ppf = function
-    | V (Unit, x) -> Print.unit ppf x
-    | V (Bool, x) -> Print.bool ppf x
-    | V (Money, x) -> Print.money ppf x
-    | V (Integer, x) -> Print.integer ppf x
-    | V (Decimal, x) -> Print.decimal ppf x
-    | V (Date, x) -> Print.date ppf x
-    | V (Duration, x) -> Print.duration ppf x
-    | V (Enum en, v) -> (
-      match en.constr v with
-      | _, name, None -> Format.fprintf ppf "%s" name
-      | _, name, Some v -> Format.fprintf ppf "%s content %a" name format v)
-    | V (Struct str, v) ->
-      Format.fprintf ppf "@[<v 2>%s {@ %a@;<1 -2>}@]" str.name
-        (Format.pp_print_list ~pp_sep:Format.pp_print_space
-           (fun fmt (name, value) ->
-             Format.fprintf fmt "-- %s: %a" name format value))
-        (str.fields v)
-    | V (Array _, [||]) -> Format.pp_print_string ppf "[]"
-    | V (Array t, v) ->
-      Format.fprintf ppf "@[<v 2>[@,%a@;<0 -2>]@]"
-        (Format.pp_print_seq
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
-           (fun ppf v -> format ppf (t v)))
-        (Array.to_seq v)
-    | V (Tuple destr, v) ->
-      Format.fprintf ppf "@[<h 1>(%a)@]"
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-           format)
-        (destr v)
-    | V (Position, pos) ->
-      Format.fprintf ppf "<%s:%d.%d-%d-%d>" pos.filename pos.start_line
-        pos.start_column pos.end_line pos.end_column
-    | V (Function, _) -> Format.fprintf ppf "<function>"
-    | V (Polymorphic, _) -> Format.fprintf ppf "<poly>"
-    | V (External (module E), v) -> Format.pp_print_string ppf (E.print v)
+  let format ppf v =
+    (* Format performs indentation, but also alignment, which we want to disable here
+       to be similar to the other backend printers. Hence the manual indentation
+       printing within a single vbox *)
+    let rec aux indent ppf =
+      let nl n ppf = Format.fprintf ppf "@,%*s" (indent + n) "" in
+      function
+      | V (Unit, x) -> Print.unit ppf x
+      | V (Bool, x) -> Print.bool ppf x
+      | V (Money, x) -> Print.money ppf x
+      | V (Integer, x) -> Print.integer ppf x
+      | V (Decimal, x) -> Print.decimal ppf x
+      | V (Date, x) -> Print.date ppf x
+      | V (Duration, x) -> Print.duration ppf x
+      | V (Enum en, v) -> (
+        match en.constr v with
+        | _, name, None -> Format.fprintf ppf "%s" name
+        | _, name, Some v ->
+          Format.fprintf ppf "%s content %a" name (aux (indent + 2)) v)
+      | V (Struct str, v) ->
+        Format.fprintf ppf "%s {" str.name;
+        let fields = str.fields v in
+        List.iter
+          (fun (name, v) ->
+            Format.fprintf ppf "%t-- %s: %a" (nl 2) name (aux (indent + 2)) v)
+          fields;
+        if fields <> [] then nl 0 ppf;
+        Format.fprintf ppf "}"
+      | V (Array t, v) ->
+        Format.pp_print_char ppf '[';
+        Array.iter
+          (fun v -> Format.fprintf ppf "%t%a;" (nl 2) (aux (indent + 2)) (t v))
+          v;
+        if Array.length v > 0 then nl 0 ppf;
+        Format.pp_print_string ppf "]"
+      | V (Tuple destr, v) ->
+        Format.fprintf ppf "(%a)"
+          (Format.pp_print_list
+             ~pp_sep:(fun ppf () -> Format.fprintf ppf ", ")
+             (aux (indent + 1)))
+          (destr v)
+      | V (Position, pos) ->
+        Format.fprintf ppf "%s:%d.%d-%d-%d" pos.filename pos.start_line
+          pos.start_column pos.end_line pos.end_column
+      | V (Function, _) -> Format.fprintf ppf "<function>"
+      | V (Polymorphic, _) -> Format.fprintf ppf "<poly>"
+      | V (External (module E), v) -> Format.pp_print_string ppf (E.print v)
+    in
+    Format.pp_open_vbox ppf 0;
+    aux 0 ppf v;
+    Format.pp_close_box ppf ()
 
   let from_json : type a. a ty -> code_location -> string -> a = function
     | External (module E) -> E.from_json
