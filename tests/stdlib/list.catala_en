@@ -17,8 +17,15 @@ scope Tsequence:
 ```catala-test-cli
 $ catala test-scope Tsequence
 ┌─[RESULT]─ Tsequence ─
-│ o1 = [3; 4; 5]
-│ o2 = [-$1.00; $0.00]
+│ o1 = [
+│        3;
+│        4;
+│        5;
+│      ]
+│ o2 = [
+│        -$1.00;
+│        $0.00;
+│      ]
 │ o3 = []
 │ o4 = []
 └─
@@ -67,8 +74,15 @@ scope Tremove_nth_element:
 ```catala-test-cli
 $ catala test-scope Tremove_nth_element
 ┌─[RESULT]─ Tremove_nth_element ─
-│ o1 = [$101.00; $103.00]
-│ o2 = [12.2; 13.3; 14.4]
+│ o1 = [
+│        $101.00;
+│        $103.00;
+│      ]
+│ o2 = [
+│        12.2;
+│        13.3;
+│        14.4;
+│      ]
 │ o3 = []
 │ o4 = []
 └─
@@ -94,10 +108,31 @@ scope Treverse:
 ```catala-test-cli
 $ catala test-scope Treverse
 ┌─[RESULT]─ Treverse ─
-│ o1 = [$103.00; $102.00; $101.00]
-│ o2 = [14.4; 13.3; 12.2]
+│ o1 = [
+│        $103.00;
+│        $102.00;
+│        $101.00;
+│      ]
+│ o2 = [
+│        14.4;
+│        13.3;
+│        12.2;
+│      ]
 │ o3 = []
-│ o4 = [(12.0, 44)]
-│ o5 = [[4; 5; 6]; [1; 2; 3]]
+│ o4 = [
+│        (12.0, 44);
+│      ]
+│ o5 = [
+│        [
+│          4;
+│          5;
+│          6;
+│        ];
+│        [
+│          1;
+│          2;
+│          3;
+│        ];
+│      ]
 └─
 ```

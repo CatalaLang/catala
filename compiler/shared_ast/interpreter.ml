@@ -124,7 +124,6 @@ let rec evaluate_operator
     evaluate_expr
     ((op, opos) : < overloaded : no ; .. > operator Mark.pos)
     m
-    lang
     args =
   let pos = Expr.mark_pos m in
   let rpos () = Expr.pos_to_runtime opos in
@@ -145,8 +144,7 @@ let rec evaluate_operator
         @ List.mapi
             (fun i arg ->
               ( Format.asprintf "Argument n°%d, value %a" (i + 1)
-                  (Print.UserFacing.expr lang)
-                  arg,
+                  Print.UserFacing.expr arg,
                 Expr.pos arg ))
             args)
       "Operator %a applied to the wrong@ arguments"
@@ -640,12 +638,11 @@ let rec handle_assert : type d r.
     eval_expr:
       (((d, r, yes) interpr_kind, 't) gexpr ->
       ((d, r, yes) interpr_kind, 't) gexpr) ->
-    lang:Global.backend_lang ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
     't mark ->
     Pos.t ->
     ((d, r, yes) interpr_kind, 't) gexpr =
- fun ~eval_expr ~lang pred m pos ->
+ fun ~eval_expr pred m pos ->
   match Mark.remove (eval_expr pred) with
   | ELit (LBool true) -> ELit LUnit, m
   | ELit (LBool false) ->
@@ -672,8 +669,7 @@ let rec handle_assert : type d r.
     | _ ->
       (if Global.options.no_fail_on_assert then Message.warning
        else Message.delayed_error ~kind:AssertFailure ())
-        ~pos "@[<hv>%t:@ @[<hv 4>%a@]@]" msg
-        (Print.UserFacing.expr lang)
+        ~pos "@[<hv>%t:@ @[<hv 4>%a@]@]" msg Print.UserFacing.expr
         partially_evaluated_assertion_failure_expr);
     Mark.add m (ELit LUnit)
   | _ ->
@@ -840,7 +836,7 @@ let rec evaluate_expr : type d r.
         e1)
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
-    evaluate_operator ctx (evaluate_expr ctx lang) op m lang args
+    evaluate_operator ctx (evaluate_expr ctx lang) op m args
   | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty -> e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
@@ -880,8 +876,7 @@ let rec evaluate_expr : type d r.
     | _ ->
       Message.error ~pos:(Expr.pos e) ~internal:true
         "The expression %a@ should@ be@ a@ struct@ %a@ but@ is@ not@ one"
-        (Print.UserFacing.expr lang)
-        e StructName.format s)
+        Print.UserFacing.expr e StructName.format s)
   | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx lang) es))
   | ETupleAccess { e = e1; index; size } -> (
     match evaluate_expr ctx lang e1 with
@@ -889,8 +884,7 @@ let rec evaluate_expr : type d r.
     | e ->
       Message.error ~internal:true ~pos:(Expr.pos e)
         "The expression %a@ was@ expected@ to@ be@ a@ tuple@ of@ size@ %d"
-        (Print.UserFacing.expr lang)
-        e size)
+        Print.UserFacing.expr e size)
   | EInj { e; name; cons } ->
     let e = evaluate_expr ctx lang e in
     let name =
@@ -933,9 +927,8 @@ let rec evaluate_expr : type d r.
           EFatalError_pos { error = AssertionFailed; pos_expr = EPos pos, _ }, _;
       } ->
     (* For lcalc's already compiled assertions *)
-    handle_assert ~eval_expr:(evaluate_expr ctx lang) ~lang pred m pos
-  | EAssert pred ->
-    handle_assert ~eval_expr:(evaluate_expr ctx lang) ~lang pred m pos
+    handle_assert ~eval_expr:(evaluate_expr ctx lang) pred m pos
+  | EAssert pred -> handle_assert ~eval_expr:(evaluate_expr ctx lang) pred m pos
   | EIfThenElse { cond; etrue; efalse } -> (
     let cond = evaluate_expr ctx lang cond in
     match Mark.remove cond with

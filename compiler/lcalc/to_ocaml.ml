@@ -834,8 +834,8 @@ let commands = if commands = [] then test_scopes else commands
   List.iter
     (fun (scope, e) ->
       Format.fprintf fmt
-        "@[<v 2>let () = if Stdlib.List.mem %S commands then (@ @[<hv>@[<hov \
-         2>let result =@ @[<hv>%a@]@]@,\
+        "@[<v 2>let () =@ Print.set_lang `%s; if Stdlib.List.mem %S commands \
+         then (@ @[<hv>@[<hov 2>let result =@ @[<hv>%a@]@]@,\
          in@,\
          @[<v 2>Format.eprintf \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
          successfully.@@.\";@]@,\
@@ -843,6 +843,7 @@ let commands = if commands = [] then test_scopes else commands
          Catala_runtime.Value.format (Catala_runtime.Value.embed %a.rtype \
          result)@]@]@]@,\
          )@,"
+        (match p.lang with `En -> "En" | `Fr -> "Fr" | _ -> "En")
         (ScopeName.to_string scope)
         (format_expr p.decl_ctx) e ScopeName.format_original scope
         StructName.format

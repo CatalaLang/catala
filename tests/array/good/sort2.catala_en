@@ -29,10 +29,26 @@ scope Tsort1:
 ```catala-test-cli
 $ catala test-scope Tsort1
 ┌─[RESULT]─ Tsort1 ─
-│ o1 = [(Absent, 2); (Absent, 3); (Absent, 4)]
-│ o2 = [(Absent, 4); (Absent, 2); (Absent, 3)]
-│ o3 = [(Absent, 2); (Absent, 3); (Absent, 4)]
-│ o4 = [(Absent, 4); (Absent, 2); (Absent, 3)]
+│ o1 = [
+│        (Absent, 2);
+│        (Absent, 3);
+│        (Absent, 4);
+│      ]
+│ o2 = [
+│        (Absent, 4);
+│        (Absent, 2);
+│        (Absent, 3);
+│      ]
+│ o3 = [
+│        (Absent, 2);
+│        (Absent, 3);
+│        (Absent, 4);
+│      ]
+│ o4 = [
+│        (Absent, 4);
+│        (Absent, 2);
+│        (Absent, 3);
+│      ]
 │ o5 = []
 └─
 ```

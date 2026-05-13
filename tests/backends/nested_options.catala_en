@@ -24,6 +24,8 @@ scope Test:
 ```catala-test-cli
 $ catala test-scope Test
 ┌─[RESULT]─ Test ─
-│ o = S { -- o: 1 }
+│ o = S {
+│       -- o: 1
+│     }
 └─
 ```

@@ -22,12 +22,12 @@ module File = Catala_utils.File
 
 let stdlib_path = "/static"
 
-let format_results ppf scope language results =
+let format_results ppf scope results =
   Message.results ~ppf ~title:scope
     (List.map
        (fun ((var, _), result) ppf ->
          Format.fprintf ppf "@[<hov 2>%s =@ %a@]" var
-           (Shared_ast.Print.UserFacing.value language)
+           (fun ppf -> Shared_ast.Print.UserFacing.value ppf)
            result)
        results)
 
@@ -302,7 +302,7 @@ let () =
                          (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
                          results
                      in
-                     format_results ppf scope language results)
+                     format_results ppf scope results)
              in
              let warning_diags, _error_notifs = drain_all ~ansi () in
              object%js

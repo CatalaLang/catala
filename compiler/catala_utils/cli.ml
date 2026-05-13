@@ -21,7 +21,7 @@ module G = Global
 (* Manipulation of types used by flags & options *)
 
 (** Associates a {!type: Global.backend_lang} with its string represtation. *)
-let languages = ["en", En; "fr", Fr; "pl", Pl]
+let languages = ["en", `En; "fr", `Fr; "pl", `Pl]
 
 let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
@@ -46,12 +46,12 @@ let raw_file =
 
 let extensions =
   [
-    "catala_fr", Fr;
-    "catala_fr.md", Fr;
-    "catala_en", En;
-    "catala_en.md", En;
-    "catala_pl", Pl;
-    "catala_pl.md", Pl;
+    "catala_fr", `Fr;
+    "catala_fr.md", `Fr;
+    "catala_en", `En;
+    "catala_en.md", `En;
+    "catala_pl", `Pl;
+    "catala_pl.md", `Pl;
   ]
 
 let file_lang filename =
@@ -671,7 +671,7 @@ let man_footer =
     `Noblank;
     `P "Alain Delaët-Tixeuil <$(i,alain.delaet--tixeuil@inria.fr)>";
     `Noblank;
-    `P "Aymeric Fromherz <$(i,aymeric.fromherz@inria.fr)>";
+    `P "Aymeric `Fromherz <$(i,aymeric.fromherz@inria.fr)>";
     `Noblank;
     `P "Louis Gesbert <$(i,louis.gesbert@ocamlpro.com)>";
     `Noblank;
@@ -679,7 +679,7 @@ let man_footer =
     `Noblank;
     `P "Emile Rolley <$(i,erolley@tutamail.com)>";
     `S Manpage.s_bugs;
-    `P "Please file bug reports at https://github.com/CatalaLang/catala/issues";
+    `P "`Please file bug reports at https://github.com/CatalaLang/catala/issues";
   ]
 
 let man_base = man_header @ man_footer
