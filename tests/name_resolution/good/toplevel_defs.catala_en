@@ -35,7 +35,10 @@ $ catala Typecheck --check-invariants
 $ catala test-scope S
 ┌─[RESULT]─ S ─
 │ a = 1,946.574,4
-│ b = A { -- y: true -- z: 2,091.0 }
+│ b = A {
+│       -- y: true
+│       -- z: 2,091.0
+│     }
 └─
 ```
 
@@ -124,10 +127,10 @@ module decimal_internal = Decimal_internal
 let loc =
   [<toplevel_defs:7.10-11>; <toplevel_defs:8.10-11>;
     <toplevel_defs:15.14-27>; <toplevel_defs:18.24-37>;
-    <toplevel_defs:19.24-29>; <toplevel_defs:50.10-11>;
-    <toplevel_defs:53.24-44>; <toplevel_defs:71.10-11>;
-    <toplevel_defs:74.24-49>; <toplevel_defs:95.10-11>;
-    <toplevel_defs:98.24-35>]
+    <toplevel_defs:19.24-29>; <toplevel_defs:53.10-11>;
+    <toplevel_defs:56.24-44>; <toplevel_defs:74.10-11>;
+    <toplevel_defs:77.24-49>; <toplevel_defs:98.10-11>;
+    <toplevel_defs:101.24-35>]
 
 let glob1 = 44.12
 
@@ -289,12 +292,12 @@ loc = (Array([SourcePosition(filename="tests/name_resolution/good/toplevel_defs.
               SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=8, start_column=10, end_line=8, end_column=11, law_headings=["Test basic toplevel values defs"]),
               SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=18, start_column=24, end_line=18, end_column=37, law_headings=["Test basic toplevel values defs"]),
               SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=19, start_column=24, end_line=19, end_column=29, law_headings=["Test basic toplevel values defs"]),
-              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=50, start_column=10, end_line=50, end_column=11, law_headings=["Test toplevel function defs"]),
-              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=53, start_column=24, end_line=53, end_column=44, law_headings=["Test toplevel function defs"]),
-              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=71, start_column=10, end_line=71, end_column=11, law_headings=["Test function def with two args"]),
-              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=74, start_column=24, end_line=74, end_column=49, law_headings=["Test function def with two args"]),
-              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=95, start_column=10, end_line=95, end_column=11, law_headings=["Test inline defs in toplevel defs"]),
-              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=98, start_column=24, end_line=98, end_column=35, law_headings=["Test inline defs in toplevel defs"])]))
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=53, start_column=10, end_line=53, end_column=11, law_headings=["Test toplevel function defs"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=56, start_column=24, end_line=56, end_column=44, law_headings=["Test toplevel function defs"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=74, start_column=10, end_line=74, end_column=11, law_headings=["Test function def with two args"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=77, start_column=24, end_line=77, end_column=49, law_headings=["Test function def with two args"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=98, start_column=10, end_line=98, end_column=11, law_headings=["Test inline defs in toplevel defs"]),
+              SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en", start_line=101, start_column=24, end_line=101, end_column=35, law_headings=["Test inline defs in toplevel defs"])]))
 
 glob1 = (Decimal('1103/25'))
 

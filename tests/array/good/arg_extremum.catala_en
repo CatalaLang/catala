@@ -51,10 +51,22 @@ $ catala Typecheck --check-invariants
 ```catala-test-cli
 $ catala test-scope B
 ┌─[RESULT]─ B ─
-│ argmax = S { -- id: 1 -- income: $9.00 }
-│ argmax2 = S { -- id: 2 -- income: $5.20 }
-│ argmin = S { -- id: 0 -- income: $0.00 }
-│ argmin2 = S { -- id: -1 -- income: $20.00 }
+│ argmax = S {
+│            -- id: 1
+│            -- income: $9.00
+│          }
+│ argmax2 = S {
+│             -- id: 2
+│             -- income: $5.20
+│           }
+│ argmin = S {
+│            -- id: 0
+│            -- income: $0.00
+│          }
+│ argmin2 = S {
+│             -- id: -1
+│             -- income: $20.00
+│           }
 └─
 ```
 

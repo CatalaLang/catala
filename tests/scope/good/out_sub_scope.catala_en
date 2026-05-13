@@ -22,7 +22,10 @@ scope B:
 ```catala-test-cli
 $ catala test-scope B
 ┌─[RESULT]─ B ─
-│ a = A { -- o: 99 -- io: 100 }
+│ a = A {
+│       -- o: 99
+│       -- io: 100
+│     }
 │ b = 99
 └─
 ```

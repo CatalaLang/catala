@@ -40,8 +40,17 @@ $ catala Typecheck --check-invariants
 ```catala-test-cli
 $ catala test-scope S
 ┌─[RESULT]─ S ─
-│ a = A { -- x: -2.0 -- y: B { -- y: false -- z: -1.0 } }
-│ b = B { -- y: true -- z: 42.0 }
+│ a = A {
+│       -- x: -2.0
+│       -- y: B {
+│         -- y: false
+│         -- z: -1.0
+│       }
+│     }
+│ b = B {
+│       -- y: true
+│       -- z: 42.0
+│     }
 └─
 ```
 
@@ -65,9 +74,9 @@ $ catala test-scope S2
 │  Unused variable: x does not contribute to computing any of scope S2
 │  outputs. Did you forget something?
 │
-├─➤ tests/name_resolution/good/let_in.catala_en:52.4-5:
+├─➤ tests/name_resolution/good/let_in.catala_en:61.4-5:
 │    │
-│ 52 │    x scope S
+│ 61 │    x scope S
 │    │    ‾
 └─ Check scope of let-in vs scope variable
 ┌─[RESULT]─ S2 ─

@@ -70,7 +70,16 @@ scope S2:
 ```catala-test-cli
 $ catala test-scope S2 --disable-warnings
 ┌─[RESULT]─ S2 ─
-│ o1 = [false; true; false; true; true; false; true; true]
+│ o1 = [
+│        false;
+│        true;
+│        false;
+│        true;
+│        true;
+│        false;
+│        true;
+│        true;
+│      ]
 └─
 ```
 
@@ -166,8 +175,18 @@ $ catala test-scope S4 --disable-warnings
 ┌─[RESULT]─ S4 ─
 │ o1 =
 │   [
-│     true; false; false; true; true; true; false; true; true; true; true;
-│     false
+│     true;
+│     false;
+│     false;
+│     true;
+│     true;
+│     true;
+│     false;
+│     true;
+│     true;
+│     true;
+│     true;
+│     false;
 │   ]
 └─
 ```

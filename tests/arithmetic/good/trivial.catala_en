@@ -24,6 +24,6 @@ $ catala Typecheck --check-invariants
 $ catala test-scope A
 ┌─[RESULT]─ A ─
 │ m = $12,345,678.00
-│ w = 12,312.123,123,123,1
+│ w = 12,312.123,123…
 └─
 ```

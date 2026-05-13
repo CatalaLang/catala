@@ -29,7 +29,10 @@ scope T:
 ```catala-test-cli
 $ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} -F human
 ┌─[RESULT]─ T ─
-│ r = S { -- x: 2 -- y: false }
+│ r = S {
+│       -- x: 2
+│       -- y: false
+│     }
 └─
 ```
 

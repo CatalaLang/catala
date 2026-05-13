@@ -48,11 +48,34 @@ scope TBase:
 $ catala test-scope TBase
 ┌─[RESULT]─ TBase ─
 │ x =
-│   [true; true; true; true; true; true; true; true; true; true; true; true]
+│   [
+│     true;
+│     true;
+│     true;
+│     true;
+│     true;
+│     true;
+│     true;
+│     true;
+│     true;
+│     true;
+│     true;
+│     true;
+│   ]
 │ y =
 │   [
-│     false; false; false; false; false; false; false; false; false; false;
-│     false; false
+│     false;
+│     false;
+│     false;
+│     false;
+│     false;
+│     false;
+│     false;
+│     false;
+│     false;
+│     false;
+│     false;
+│     false;
 │   ]
 └─
 ```
@@ -81,7 +104,14 @@ scope TPoly:
 ```catala-test-cli
 $ catala test-scope TPoly
 ┌─[RESULT]─ TPoly ─
-│ x = [true; true; true; true; true; true]
+│ x = [
+│       true;
+│       true;
+│       true;
+│       true;
+│       true;
+│       true;
+│     ]
 └─
 ```
 
@@ -104,7 +134,12 @@ scope TTuple:
 ```catala-test-cli
 $ catala test-scope TTuple
 ┌─[RESULT]─ TTuple ─
-│ x = [true; true; true; true]
+│ x = [
+│       true;
+│       true;
+│       true;
+│       true;
+│     ]
 └─
 ```
 
@@ -133,7 +168,12 @@ scope TStruct:
 ```catala-test-cli
 $ catala test-scope TStruct
 ┌─[RESULT]─ TStruct ─
-│ y = [false; false; false; false]
+│ y = [
+│       false;
+│       false;
+│       false;
+│       false;
+│     ]
 └─
 ```
 
@@ -167,6 +207,14 @@ scope TEnum:
 ```catala-test-cli
 $ catala test-scope TEnum
 ┌─[RESULT]─ TEnum ─
-│ x = [true; true; true; true; true; true; true]
+│ x = [
+│       true;
+│       true;
+│       true;
+│       true;
+│       true;
+│       true;
+│       true;
+│     ]
 └─
 ```
