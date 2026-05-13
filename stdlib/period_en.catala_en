@@ -158,6 +158,9 @@ declaration find_period
 ```catala-metadata
 ## Sorts the given periods by starting day.
 ## if two periods start on the same day, their order in the list is preserved
+## **Deprecated:** use the new `sort` built-in instead: this is equivalent to
+## `sort all (p, x) among lst in increasing order of p.begin`. This function
+## will be removed in the next release.
 declaration sort_by_date
   content list of (Period, anything of type t)
   depends on l content list of (Period, anything of type t)

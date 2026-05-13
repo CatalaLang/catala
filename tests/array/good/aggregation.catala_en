@@ -29,6 +29,17 @@ scope B:
 
 ```catala-test-cli
 $ catala Typecheck --check-invariants
+┌─[WARNING]─
+│
+│  Deprecated: the construction 'sum <type> of' is deprecated and will be
+│  removed in the next release.
+│  Use the function 'Money.sum of' instead
+│
+├─➤ tests/array/good/aggregation.catala_en:24.24-69:
+│    │
+│ 24 │    definition y equals sum money of map each m among a.x to (m + $1)
+│    │                        ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
 ┌─[RESULT]─
 │ All invariant checks passed
 └─
@@ -39,6 +50,17 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-cli
 $ catala test-scope A
+┌─[WARNING]─
+│
+│  Deprecated: the construction 'sum <type> of' is deprecated and will be
+│  removed in the next release.
+│  Use the function 'Money.sum of' instead
+│
+├─➤ tests/array/good/aggregation.catala_en:24.24-69:
+│    │
+│ 24 │    definition y equals sum money of map each m among a.x to (m + $1)
+│    │                        ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
 ┌─[RESULT]─ A ─
 │ x = [$0.00; $9.00; $5.20]
 └─
@@ -46,6 +68,17 @@ $ catala test-scope A
 
 ```catala-test-cli
 $ catala test-scope B
+┌─[WARNING]─
+│
+│  Deprecated: the construction 'sum <type> of' is deprecated and will be
+│  removed in the next release.
+│  Use the function 'Money.sum of' instead
+│
+├─➤ tests/array/good/aggregation.catala_en:24.24-69:
+│    │
+│ 24 │    definition y equals sum money of map each m among a.x to (m + $1)
+│    │                        ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
 ┌─[RESULT]─ B ─
 │ max = $18.00
 │ min = $5.00
