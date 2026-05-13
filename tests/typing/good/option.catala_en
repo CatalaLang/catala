@@ -58,6 +58,9 @@ $ catala typecheck
 ```catala-test-cli
 $ catala test-scope S2
 ┌─[RESULT]─ S2 ─
-│ o = Present content [Present content true; Present content true]
+│ o = Present content [
+│         Present content true;
+│         Present content true;
+│       ]
 └─
 ```

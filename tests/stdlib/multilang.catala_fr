@@ -14,21 +14,24 @@ champ d'application S:
 ```catala-test-cli
 $ catala test-scope S
 ┌─[RESULT]─ S ─
-│ ma = MonthYear_fr.MoisAnnée { -- nom_mois: Janvier -- année: 2 000 }
+│ ma = MonthYear_fr.MoisAnnée {
+│        -- nom_mois: Janvier
+│        -- année: 2 000
+│      }
 │ my =
 │   MonthYear.Tunit {
-│     -- my1:
-│       MonthYear_en.MonthYear {
-│         -- year_number: 2 000
-│         -- month_name: January
-│       }
-│     -- my2:
-│       MonthYear_en.MonthYear { -- year_number: 2 010 -- month_name: June }
-│     -- my3:
-│       MonthYear_en.MonthYear {
-│         -- year_number: 2 020
-│         -- month_name: December
-│       }
+│     -- my1: MonthYear_en.MonthYear {
+│       -- year_number: 2 000
+│       -- month_name: January
+│     }
+│     -- my2: MonthYear {
+│       -- year_number: 2 010
+│       -- month_name: June
+│     }
+│     -- my3: MonthYear {
+│       -- year_number: 2 020
+│       -- month_name: December
+│     }
 │   }
 └─
 ```

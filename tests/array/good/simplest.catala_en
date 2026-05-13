@@ -23,6 +23,10 @@ $ catala Typecheck --check-invariants
 ```catala-test-cli
 $ catala test-scope A
 ┌─[RESULT]─ A ─
-│ x = [0; 4; 8]
+│ x = [
+│       0;
+│       4;
+│       8;
+│     ]
 └─
 ```

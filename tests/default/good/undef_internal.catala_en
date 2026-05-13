@@ -42,6 +42,8 @@ $ catala test-scope Test
 │   │            ‾
 └─
 ┌─[RESULT]─ Test ─
-│ a = A { -- z: 42 }
+│ a = A {
+│       -- z: 42
+│     }
 └─
 ```

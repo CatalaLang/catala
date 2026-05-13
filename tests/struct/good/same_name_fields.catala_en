@@ -49,7 +49,9 @@ $ catala test-scope A
 │   │                       ‾‾‾
 └─ Article
 ┌─[RESULT]─ A ─
-│ x = Foo { -- f: 1 }
+│ x = Foo {
+│       -- f: 1
+│     }
 │ y = 1
 └─
 ```

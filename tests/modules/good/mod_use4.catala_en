@@ -12,6 +12,12 @@ scope T:
 ```catala-test-cli
 $ catala test-scope T
 ┌─[RESULT]─ T ─
-│ r = Mod_def2.S { -- x: [Mod_def2.Si { -- x: 1 }] }
+│ r = S {
+│       -- x: [
+│         Si {
+│           -- x: 1
+│         };
+│       ]
+│     }
 └─
 ```
