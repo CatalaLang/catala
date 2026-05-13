@@ -45,12 +45,12 @@ val begins_with_uppercase : string -> bool
     Handles utf8. [false] if [s] is empty. *)
 
 val to_snake_case : string -> string
-(** Converts CamlCase into snake_case after removing Remove all diacritics on
-    Latin letters. *)
+(** Converts CamlCase into snake_case after removing all diacritics on Latin
+    letters. *)
 
 val to_camel_case : ?capitalize:bool -> string -> string
-(** Converts snake_case into CamlCase after removing Remove all diacritics on
-    Latin letters.
+(** Converts snake_case into CamlCase after removing all diacritics on Latin
+    letters.
 
     If [capitalize] is [false], the first letter is lowercase. Defaults to true.
 *)
