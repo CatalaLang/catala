@@ -1,0 +1,104 @@
+# Test
+
+```catala
+dichiarazione struttura Individuo:
+  dato reddito contenuto importo
+
+dichiarazione campo di applicazione Test:
+  entrata individuo contenuto Individuo
+  interno x contenuto decimale
+
+campo di applicazione Test:
+  etichetta base
+  definizione x
+  sotto condizione individuo.reddito <= 100.000 €
+  conseguenza vale 0,0
+
+  etichetta reddito_alto eccezione base
+  definizione x
+  sotto condizione individuo.reddito > 100.000 €
+  conseguenza vale 0,1
+
+  etichetta reddito_molto_alto eccezione reddito_alto
+  definizione x
+  sotto condizione individuo.reddito > 100.000 € e individuo.reddito <= 200.000 €
+  conseguenza vale 0,2
+```
+
+```catala-test-cli
+$ catala Exceptions -s Test -v x
+┌─[WARNING]─
+│
+│  Unused variable: x does not contribute to computing any of scope Test
+│  outputs. Did you forget something?
+│
+├─➤ tests/exception/good/condizioni_utf8.catala_it:9.11-12:
+│   │
+│ 9 │   interno x contenuto decimale
+│   │           ‾
+└─ Test
+┌─[RESULT]─
+│ Printing the tree of exceptions for the definitions of variable "x" of scope "Test".
+└─
+┌─[RESULT]─
+│ Definitions with label "base":
+│
+├─➤ tests/exception/good/condizioni_utf8.catala_it:12.3-13.16:
+│    │
+│ 12 │   etichetta base
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 13 │   definizione x
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Test
+│
+│ under condition:
+├─➤ tests/exception/good/condizioni_utf8.catala_it:14.20-50:
+│    │
+│ 14 │   sotto condizione individuo.reddito <= 100.000 €
+│    │                    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Test
+┌─[RESULT]─
+│ Definitions with label "reddito_alto":
+│
+├─➤ tests/exception/good/condizioni_utf8.catala_it:17.3-18.16:
+│    │
+│ 17 │   etichetta reddito_alto eccezione base
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 18 │   definizione x
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Test
+│
+│ under condition:
+├─➤ tests/exception/good/condizioni_utf8.catala_it:19.20-49:
+│    │
+│ 19 │   sotto condizione individuo.reddito > 100.000 €
+│    │                    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Test
+┌─[RESULT]─
+│ Definitions with label "reddito_molto_alto":
+│
+├─➤ tests/exception/good/condizioni_utf8.catala_it:22.3-23.16:
+│    │
+│ 22 │   etichetta reddito_molto_alto eccezione reddito_alto
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 23 │   definizione x
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Test
+│
+│ under condition:
+├─➤ tests/exception/good/condizioni_utf8.catala_it:24.20-82:
+│    │
+│ 24 │   sotto condizione individuo.reddito > 100.000 € e individuo.reddito <= 200.000 €
+│    │                    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Test
+┌─[RESULT]─
+│ The exception tree structure is as follows:
+│ 
+│ "base"
+│ │ [individuo.reddito ≤ $100,000.00]
+│ └── "reddito_alto"
+│     │ [individuo.reddito > $100,000.00]
+│     └── "reddito_molto_alto"
+│           [individuo.reddito > $100,000.00 && individuo.reddito ≤ $200,000.00]
+└─
+```
