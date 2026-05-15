@@ -641,6 +641,8 @@ let extensions =
     ".catala_en.md", "en";
     ".catala_pl", "pl";
     ".catala_pl.md", "pl";
+    ".catala_it", "it";
+    ".catala_it.md", "it";
   ]
 
 type module_loading =

@@ -1,0 +1,123 @@
+# Decimali
+
+> Modulo Decimal_it
+
+> Uso di Decimal_internal come D
+
+## Funzioni di utilità
+
+```catala-metadata
+## Restituisce il minore dei due argomenti.
+dichiarazione min
+  contenuto decimale
+  dipende da
+    d1 contenuto decimale,
+    d2 contenuto decimale
+  vale
+    se d1 > d2 allora d2 altrimenti d1
+
+## Restituisce il maggiore dei due argomenti.
+dichiarazione max
+  contenuto decimale
+  dipende da
+    d1 contenuto decimale,
+    d2 contenuto decimale
+  vale
+    se d1 > d2 allora d1 altrimenti d2
+
+## Applica un limite superiore a `d`, restituendo un valore che non è
+## mai più grande di `valore_massimo`.
+dichiarazione limite_superiore
+  contenuto decimale
+  dipende da
+    d contenuto decimale,
+    valore_massimo contenuto decimale
+  vale
+    min di d, valore_massimo
+
+## Applica un limite inferiore a `d`, restituendo un valore che non è
+## mai più piccolo di `valore_minimo`.
+dichiarazione limite_inferiore
+  contenuto decimale
+  dipende da
+    d contenuto decimale,
+    valore_minimo contenuto decimale
+  vale
+    max di d, valore_minimo
+
+## Restituisce l'argomento se è positivo, 0,0 altrimenti.
+dichiarazione positivo
+  contenuto decimale
+  dipende da d contenuto decimale
+  vale
+    limite_inferiore di d, 0,0
+
+## Rimuove le cifre dopo la virgola.
+## **Esempi:**
+## - `troncatura di 7,61 = 7,0`
+## - `troncatura di -7,61 = -7,0`
+dichiarazione troncatura
+  contenuto decimale
+  dipende da d contenuto decimale
+  vale
+    se d = 0,0 allora
+      0,0
+    altrimenti se d > 0,0 allora
+      arrotondato di (d - 0,5)
+    altrimenti
+      arrotondato di (d + 0,5)
+
+## Arrotonda all'intero superiore.
+## **Esempi:**
+## - `arrotondato_per_eccesso di 4,34 = 5,0`
+## - `arrotondato_per_eccesso di -4,34 = -4,0`
+dichiarazione arrotondato_per_eccesso
+  contenuto decimale
+  dipende da d contenuto decimale
+  vale
+    se d >= 0,0 allora
+      se troncatura di d = d allora
+        d
+      altrimenti
+        troncatura di (d + 1,0)
+    altrimenti
+      arrotondato di (d + 0,5)
+
+## Arrotonda all'intero inferiore.
+## **Esempi:**
+## - `arrotondato_per_difetto di 3,78 = 3,0`
+## - `arrotondato_per_difetto di -3,78 = -4,0`
+dichiarazione arrotondato_per_difetto
+  contenuto decimale
+  dipende da d contenuto decimale
+  vale
+    se d > 0,0 allora
+      troncatura di d
+    altrimenti se troncatura di d = d allora
+      d
+    altrimenti
+      troncatura di (d - 1,0)
+
+## Arrotonda al `n_esimo_decimale` specificato. `n_esimo_decimale` può essere un
+## valore negativo.
+## **Esempi:**
+## - `arrotondato_al_decimale di 123,4567,  3 = 123,457`
+## - `arrotondato_al_decimale di 123,4567, -2 = 100,0`
+dichiarazione arrotondato_al_decimale
+  contenuto decimale
+  dipende da
+    d contenuto decimale,
+    n_esimo_decimale contenuto intero
+  vale
+    D.round_to_decimal di d, n_esimo_decimale
+
+## Calcola la somma degli elementi di una lista di decimali. Restituisce `0,0` per una lista vuota.
+## **Esempi:**
+## - `Decimale.somma di [1,5; 2,5; 0,5] = 4,5`
+## - `Decimale.somma di [] = 0,0`
+dichiarazione somma
+  contenuto decimale
+  dipende da l contenuto lista di decimale
+  vale
+    combina ogni x tra l in totale inizialmente 0,0 con totale + x
+```

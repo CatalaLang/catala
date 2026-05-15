@@ -1,0 +1,142 @@
+# Importi
+
+> Modulo Money_it
+
+> Uso di Money_internal come M
+
+## Funzioni di utilità
+
+```catala-metadata
+## Restituisce il minore dei due argomenti.
+dichiarazione min
+  contenuto importo
+  dipende da
+    m1 contenuto importo,
+    m2 contenuto importo
+  vale
+    se m1 > m2 allora m2 altrimenti m1
+
+## Restituisce il maggiore dei due argomenti.
+dichiarazione max
+  contenuto importo
+  dipende da
+    m1 contenuto importo,
+    m2 contenuto importo
+  vale
+    se m1 > m2 allora m1 altrimenti m2
+
+## Applica un limite superiore a `montante`, restituendo un valore che non è
+## mai più grande di `valore_massimo`.
+dichiarazione limite_superiore
+  contenuto importo
+  dipende da
+    montante contenuto importo,
+    valore_massimo contenuto importo
+  vale
+    min di montante, valore_massimo
+
+## Applica un limite inferiore a `montante`, restituendo un valore che non è
+## mai più piccolo di `valore_minimo`.
+dichiarazione limite_inferiore
+  contenuto importo
+  dipende da
+    montante contenuto importo,
+    valore_minimo contenuto importo
+  vale
+    max di montante, valore_minimo
+
+## Restituisce l'argomento se è positivo, 0 € altrimenti.
+dichiarazione positivo
+  contenuto importo
+  dipende da montante contenuto importo
+  vale
+    limite_inferiore di montante, 0 €
+
+## Rimuove da un importo le cifre dopo la virgola.
+## **Esempi:**
+## - `troncatura di 7,61 € = 7 €`
+## - `troncatura di -7,61 € = -7 €`
+dichiarazione troncatura
+  contenuto importo
+  dipende da montante contenuto importo
+  vale
+    se montante = 0 € allora 0 €
+    altrimenti se montante > 0 € allora
+      arrotondato di (montante - 0,5 €)
+    altrimenti
+      arrotondato di (montante + 0,5 €)
+
+## Arrotonda un importo all'euro superiore.
+## **Esempi:**
+## - `arrotondato_per_eccesso di 4,34 € = 5 €`
+## - `arrotondato_per_eccesso di -4,34 € = -4 €`
+dichiarazione arrotondato_per_eccesso
+  contenuto importo
+  dipende da montante contenuto importo
+  vale
+    se montante >= 0 € allora
+      arrotondato di (montante + 0,49 €)
+    altrimenti
+      arrotondato di (montante + 0,5 €)
+
+## Arrotonda un importo all'euro inferiore.
+## **Esempi:**
+## - `arrotondato_per_difetto di 3,78 € = 3 €`
+## - `arrotondato_per_difetto di -3,78 € = -4 €`
+dichiarazione arrotondato_per_difetto
+  contenuto importo
+  dipende da montante contenuto importo
+  vale
+    se montante > 0 € allora
+      arrotondato di (montante - 0,5 €)
+    altrimenti
+      arrotondato di (montante - 0,49 €)
+
+## Arrotonda un importo al `n_esimo_decimale` specificato.
+## `n_esimo_decimale` può essere un valore negativo.
+## **Esempi:**
+## - `arrotondato_al_decimale di 123,45 €, 1 = 123,5 €`
+## - `arrotondato_al_decimale di 123,45 €, -2 = 100 €`
+dichiarazione arrotondato_al_decimale
+  contenuto importo
+  dipende da
+    montante contenuto importo,
+    n_esimo_decimale contenuto intero
+  vale
+    M.round_to_decimal di montante, n_esimo_decimale
+
+## Calcola la somma degli elementi di una lista di importi. Restituisce `0 €` per una lista vuota.
+## **Esempi:**
+## - `Importo.somma di [10 €; 25 €; 5 €] = 40 €`
+## - `Importo.somma di [] = 0 €`
+dichiarazione somma
+  contenuto importo
+  dipende da l contenuto lista di importo
+  vale
+    combina ogni x tra l in totale inizialmente 0 € con totale + x
+
+```
+
+## Operazioni finanziarie
+
+```catala-metadata
+## Restituisce l'importo positivo di cui `montante` supera `riferimento`
+## (altrimenti 0 €).
+dichiarazione in_eccesso
+  contenuto importo
+  dipende da
+    montante contenuto importo,
+    riferimento contenuto importo
+  vale
+    max di (0 €, montante - riferimento)
+
+## Restituisce l'importo positivo di cui `montante` è al di sotto di `riferimento`
+## (altrimenti 0 €).
+dichiarazione in_difetto
+  contenuto importo
+  dipende da
+    montante contenuto importo,
+    riferimento contenuto importo
+  vale
+    max di (0 €, riferimento - montante)
+```

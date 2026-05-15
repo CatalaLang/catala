@@ -1,0 +1,62 @@
+# Interi
+
+> Modulo Integer_it
+
+## Funzioni di utilità
+
+```catala-metadata
+## Restituisce il minore dei due argomenti.
+dichiarazione min
+  contenuto intero
+  dipende da
+    n1 contenuto intero,
+    n2 contenuto intero
+  vale
+    se n1 > n2 allora n2 altrimenti n1
+
+## Restituisce il maggiore dei due argomenti.
+dichiarazione max
+  contenuto intero
+  dipende da
+    n1 contenuto intero,
+    n2 contenuto intero
+  vale
+    se n1 > n2 allora n1 altrimenti n2
+
+## Applica un limite superiore a `n`, restituendo un valore che non è
+## mai più grande di `valore_massimo`.
+dichiarazione limite_superiore
+  contenuto intero
+  dipende da
+    variabile contenuto intero,
+    valore_massimo contenuto intero
+  vale
+    min di variabile, valore_massimo
+
+## Applica un limite inferiore a `n`, restituendo un valore che non è
+## mai più piccolo di `valore_minimo`.
+dichiarazione limite_inferiore
+  contenuto intero
+  dipende da
+    variabile contenuto intero,
+    valore_minimo contenuto intero
+  vale
+    max di variabile, valore_minimo
+
+## Restituisce l'argomento se è positivo, 0 altrimenti.
+dichiarazione positivo
+  contenuto intero
+  dipende da variabile contenuto intero
+  vale
+    limite_inferiore di variabile, 0
+
+## Calcola la somma degli elementi di una lista di interi. Restituisce `0` per una lista vuota.
+## **Esempi:**
+## - `Intero.somma di [1; 2; 3; 4] = 10`
+## - `Intero.somma di [] = 0`
+dichiarazione somma
+  contenuto intero
+  dipende da l contenuto lista di intero
+  vale
+    combina ogni x tra l in totale inizialmente 0 con totale + x
+```
