@@ -1043,10 +1043,10 @@ module UserFacing = struct
      https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Grouping_of_digits
      https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Conventions_concernant_les_nombres#Pour_un_comptage_ou_une_mesure *)
   let bigsep (lang : Global.backend_lang) =
-    match lang with En -> ",", 3 | Fr -> " ", 3 | Pl -> ",", 3
+    match lang with En -> ",", 3 | Fr -> " ", 3 | Pl -> ",", 3 | It -> ".", 3
 
   let decsep (lang : Global.backend_lang) =
-    match lang with En -> "." | Fr -> "," | Pl -> "."
+    match lang with En -> "." | Fr -> "," | Pl -> "." | It -> ","
 
   let unit (_lang : Global.backend_lang) ppf () =
     Format.pp_print_string ppf "()"
@@ -1060,6 +1060,8 @@ module UserFacing = struct
       | Fr, false -> "faux"
       | Pl, true -> "prawda"
       | Pl, false -> "falsz"
+      | It, true -> "vero"
+      | It, false -> "falso"
     in
     Format.pp_print_string ppf s
 
@@ -1080,7 +1082,7 @@ module UserFacing = struct
     let num = Z.abs n in
     let units, cents = Z.div_rem num (Z.of_int 100) in
     if Z.sign n < 0 then Format.pp_print_char ppf '-';
-    (match lang with En -> Format.pp_print_string ppf "$" | Fr | Pl -> ());
+    (match lang with En -> Format.pp_print_string ppf "$" | Fr | Pl | It -> ());
     integer lang ppf units;
     Format.pp_print_string ppf (decsep lang);
     Format.fprintf ppf "%02d" (Z.to_int (Z.abs cents));
@@ -1088,6 +1090,7 @@ module UserFacing = struct
     | En -> ()
     | Fr -> Format.pp_print_string ppf " €"
     | Pl -> Format.pp_print_string ppf " PLN"
+    | It -> Format.pp_print_string ppf " €"
 
   let decimal (lang : Global.backend_lang) ppf r =
     let den = Q.den r in
@@ -1144,7 +1147,8 @@ module UserFacing = struct
     (match lang with
       | En -> [splur y "year"; splur m "month"; splur d "day"]
       | Fr -> [splur y "an"; m, "mois"; splur d "jour"]
-      | Pl -> [y, "rok"; m, "miesiac"; d, "dzien"])
+      | Pl -> [y, "rok"; m, "miesiac"; d, "dzien"]
+      | It -> [y, "anno"; m, "mese"; d, "giorno"])
     |> filter0
     |> Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.pp_print_string ppf ", ")
@@ -1208,7 +1212,7 @@ module UserFacing = struct
     | EInj { name = _; cons; e } ->
       Format.fprintf ppf "@[<hov 2>%a %a@ %a@]" EnumConstructor.format cons
         keyword
-        (match lang with En -> "content" | Fr -> "contenu" | Pl -> "typu")
+        (match lang with En -> "content" | Fr -> "contenu" | Pl -> "typu" | It -> "contenuto")
         (value ~fallback lang) e
     | EEmpty -> Format.pp_print_string ppf "ø"
     | ECustom { targs = []; _ } -> expr () ppf e
