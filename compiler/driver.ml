@@ -436,6 +436,34 @@ module Commands = struct
         $ Cli.Flags.print_only_law
         $ Cli.Flags.wrap_weaved_output)
 
+  let markdown options output print_only_law wrap_weaved_output =
+    let prg = Passes.surface options in
+    Message.debug "Weaving literate program into HTML";
+    get_output_format options ~ext:"html" output
+    @@ fun output_file fmt ->
+    let language =
+      Cli.file_lang (Global.input_src_file options.Global.input_src)
+    in
+    let weave_output = Literate.Md.ast_to_markdown language ~print_only_law in
+    Message.debug "Writing to %s" (Option.value ~default:"stdout" output_file);
+    if wrap_weaved_output then
+      Literate.Md.wrap_markdown prg.Surface.Ast.program_source_files language
+        fmt (fun fmt -> weave_output fmt prg)
+    else weave_output fmt prg
+
+  let md_cmd =
+    Cmd.v
+      (Cmd.info "markdown" ~man:Cli.man_base
+         ~doc:
+           "Weaves an Pandoc-Markdown literate programming output of the \
+            Catala program.")
+      Term.(
+        const markdown
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.output
+        $ Cli.Flags.print_only_law
+        $ Cli.Flags.wrap_weaved_output)
+
   let latex options output print_only_law wrap_weaved_output extra_files =
     let prg = Passes.surface options in
     let prg_annex =
@@ -479,6 +507,33 @@ module Commands = struct
         $ Cli.Flags.print_only_law
         $ Cli.Flags.wrap_weaved_output
         $ Cli.Flags.extra_files)
+
+  let pdf options output print_only_law wrap_weaved_output =
+    File.with_temp_file "catala_markdown" "md"
+    @@ fun temp_file_in ->
+    let raw_file = Global.raw_file temp_file_in in
+    let () =
+      markdown options (Some raw_file) print_only_law wrap_weaved_output
+    in
+    let language =
+      Cli.file_lang (Global.input_src_file options.Global.input_src)
+    in
+    get_output_format options ~ext:"pdf" output
+    @@ fun output_file _fmt ->
+    let output_file = Option.value ~default:"-" output_file in
+    Literate.Literate_common.run_pandoc_on_file temp_file_in output_file
+      language `Pdf
+
+  let pdf_cmd =
+    Cmd.v
+      (Cmd.info "pdf" ~man:Cli.man_base
+         ~doc:"Weaves a PDF output of the Catala program.")
+      Term.(
+        const pdf
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.output
+        $ Cli.Flags.print_only_law
+        $ Cli.Flags.wrap_weaved_output)
 
   let exceptions options includes stdlib ex_scope ex_variable output_format =
     let prg, ctxt = Passes.desugared options ~includes ~stdlib in
@@ -1366,6 +1421,8 @@ module Commands = struct
       c_cmd;
       latex_cmd;
       html_cmd;
+      md_cmd;
+      pdf_cmd;
       makefile_cmd;
       scopelang_cmd;
       dcalc_cmd;
