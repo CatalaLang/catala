@@ -1,0 +1,22 @@
+```catala-metadata
+declaration enumeration DümmyÉnum:
+  -- Â
+  -- Ä
+
+declaration scope MŷScøpè:
+  input înpût content DümmyÉnum
+  output rèsult content DümmyÉnum
+
+scope MŷScøpè:
+  definition rèsult equals înpût
+```
+
+```catala-test-cli
+$ catala json-schema --scope MŷScøpè --disable-warnings
+┌─[ERROR]─
+│
+│  Cannot generate JSON encoder due to name clashing between 'Ä' and 'Â': these values would be normalized to the same JSON name 'A'
+│
+└─
+#return code 123#
+```
