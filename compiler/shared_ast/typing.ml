@@ -401,7 +401,6 @@ let polymorphic_op_type (op : Operator.polymorphic operator Mark.pos) : typ =
     | Reduce -> [[any; any] @-> any; array any] @-> option any
     | Sort _ -> [[any] @-> any2; array any] @-> array any
     | Concat -> [array any; array any] @-> array any
-    | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
     | HandleExceptions ->
@@ -444,7 +443,6 @@ let polymorphic_op_return_type
   | Map, [tf; _] -> TArray (return_type tf 1), pos
   | Map2, [tf; _; _] -> TArray (return_type tf 2), pos
   | (Filter | Concat), [_; tau] -> tau
-  | Log (PosRecordIfTrueBool, _), _ -> TLit TBool, pos
   | Log _, [tau] -> tau
   | Length, _ -> TLit TInt, pos
   | HandleExceptions, [_] -> Type.any pos

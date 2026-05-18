@@ -47,7 +47,6 @@ type 'm scope_sig_ctx = {
 
 type 'm ctx = {
   decl_ctx : decl_ctx;
-  scope_name : ScopeName.t option;
   scopes_parameters : 'm scope_sig_ctx ScopeName.Map.t;
   toplevel_vars : ('m Ast.expr Var.t * naked_typ) TopdefName.Map.t;
   scope_vars :
@@ -127,15 +126,12 @@ let merge_defaults
     in
     body
 
-let tag_with_log_entry
-    (e : 'm Ast.expr boxed)
-    (l : log_entry)
-    (markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
+let tag_with_log_entry (e : 'm Ast.expr boxed) (l : log_entry) :
+    'm Ast.expr boxed =
   let m = mark_tany (Mark.get e) (Expr.pos e) in
-
   if Global.options.trace <> None then
     let pos = Expr.pos e in
-    Expr.eappop ~op:(Log (l, markings), pos) ~tys:[Type.any pos] ~args:[e] m
+    Expr.eappop ~op:(Log l, pos) ~tys:[Type.any pos] ~args:[e] m
   else e
 
 (* In a list of exceptions, it is normally an error if more than a single one
@@ -298,7 +294,14 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     in
     let field_map =
       ScopeVar.Map.fold
-        (fun _ (fld, e) acc -> StructField.Map.add fld e acc)
+        (fun var (fld, e) acc ->
+          let e =
+            tag_with_log_entry e
+              (ScopeVarDef
+                 ( ScopeVar var,
+                   { log_io_output = false; log_io_input = OnlyInput } ))
+          in
+          StructField.Map.add fld e acc)
         in_var_map StructField.Map.empty
     in
     let arg_struct =
@@ -313,37 +316,20 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         | External_scope_ref name ->
           Expr.eexternal ~name:(Mark.map (fun s -> External_scope s) name) m
       in
-      tag_with_log_entry e BeginCall
-        [ScopeName.get_info scope; Mark.add (Expr.pos e) "direct"]
-    in
-    let single_arg =
-      tag_with_log_entry arg_struct
-        (VarDef
-           {
-             log_typ = TStruct sc_sig.scope_sig_input_struct;
-             log_io_output = false;
-             log_io_input = OnlyInput;
-           })
-        [
-          ScopeName.get_info scope;
-          Mark.add (Expr.pos e) "direct";
-          Mark.add (Expr.pos e) "input";
-        ]
-    in
-    let direct_output_info =
-      [
-        ScopeName.get_info scope;
-        Mark.add (Expr.pos e) "direct";
-        Mark.add (Expr.pos e) "output";
-      ]
+      tag_with_log_entry e (ScopeCall scope)
     in
     (* calling_expr = scope_function scope_input_struct *)
     let calling_expr =
-      Expr.eapp ~f:called_func ~args:[single_arg]
-        ~tys:[TStruct sc_sig.scope_sig_input_struct, pos]
-        m
+      let e =
+        Expr.eapp ~f:called_func ~args:[arg_struct]
+          ~tys:[TStruct sc_sig.scope_sig_input_struct, pos]
+          m
+      in
+      tag_with_log_entry e (ScopeCall scope)
     in
-    (* For the purposes of log parsing explained in Runtime.EventParser, we need
+    (* TODO: re-assess that
+
+       For the purposes of log parsing explained in Runtime.EventParser, we need
        to wrap this function call in a flurry of log tags. Specifically, we are
        masquerading this scope call as a function call. In a normal function
        call, the log parser expects the output of the function to be defined as
@@ -386,41 +372,45 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
                    ListLabels.mapi ts_in ~f:(fun i _ ->
                        Var.make ("param" ^ string_of_int i))
                  in
-                 let f_markings =
-                   [ScopeName.get_info scope; StructField.get_info field]
-                 in
                  let args =
                    List.mapi
-                     (fun i (param_var, t_in) ->
+                     (fun _i (param_var, t_in) ->
+                       let scope_var =
+                         ScopeVar.fresh
+                           (Mark.add (Mark.get t_in)
+                              (Bindlib.name_of param_var))
+                       in
                        tag_with_log_entry
                          (Expr.make_var param_var (Expr.with_ty m t_in))
-                         (VarDef
-                            {
-                              log_typ = Mark.remove t_in;
-                              log_io_output = false;
-                              log_io_input = OnlyInput;
-                            })
-                         (f_markings
-                         @ [Mark.add (Expr.pos e) ("input" ^ string_of_int i)]))
+                         (ScopeVarDef
+                            ( ScopeVar scope_var,
+                              {
+                                log_io_output = false;
+                                log_io_input = OnlyInput;
+                              } )))
                      (List.combine params_vars ts_in)
                  in
-                 Expr.make_ghost_abs params_vars
-                   (tag_with_log_entry
-                      (tag_with_log_entry
-                         (Expr.eapp
-                            ~f:
-                              (tag_with_log_entry original_field_expr BeginCall
-                                 f_markings)
-                            ~args ~tys:ts_in (Expr.with_ty m t_out))
-                         (VarDef
-                            {
-                              log_typ = Mark.remove t_out;
-                              log_io_output = true;
-                              log_io_input = NoInput;
-                            })
-                         (f_markings @ [Mark.add (Expr.pos e) "output"]))
-                      EndCall f_markings)
-                   ts_in (Expr.pos e)
+                 let e =
+                   Expr.eapp ~f:original_field_expr ~args ~tys:ts_in
+                     (Expr.with_ty m t_out)
+                 in
+                 Expr.make_ghost_abs params_vars e ts_in (Expr.pos e)
+                 (* (tag_with_log_entry *)
+                 (*    (tag_with_log_entry *)
+                 (*       (Expr.eapp *)
+                 (*          ~f: *)
+                 (*            (tag_with_log_entry original_field_expr BeginCall *)
+                 (*               f_markings) *)
+                 (*          ~args ~tys:ts_in (Expr.with_ty m t_out)) *)
+                 (*       (VarDef *)
+                 (*          { *)
+                 (*            log_typ = Mark.remove t_out; *)
+                 (*            log_io_output = true; *)
+                 (*            log_io_input = NoInput; *)
+                 (*          }) *)
+                 (*       (f_markings @ [Mark.add (Expr.pos e) "output"])) *)
+                 (*    EndCall f_markings) *)
+                 (* ts_in (Expr.pos e) *)
                | _ -> original_field_expr)
              (StructName.Map.find sc_sig.scope_sig_output_struct
                 ctx.decl_ctx.ctx_structs))
@@ -432,20 +422,24 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
        down the chain. *)
     (* if_then_else_returned = if log true then result_eta_expanded else
        result_eta_expanded *)
-    let if_then_else_returned =
-      Expr.eifthenelse
-        (tag_with_log_entry
-           (Expr.box
-              (Mark.add
-                 (Expr.with_ty m (TLit TBool, Expr.pos e))
-                 (ELit (LBool true))))
-           PosRecordIfTrueBool direct_output_info)
-        (Expr.make_var result_eta_expanded_var
-           (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)))
-        (Expr.make_var result_eta_expanded_var
-           (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)))
+    let result =
+      Expr.make_var result_eta_expanded_var
         (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
     in
+    (* let if_then_else_returned = *)
+    (*   Expr.eifthenelse *)
+    (*     (tag_with_log_entry *)
+    (*        (Expr.box *)
+    (*           (Mark.add *)
+    (*              (Expr.with_ty m (TLit TBool, Expr.pos e)) *)
+    (*              (ELit (LBool true)))) *)
+    (*        PosRecordIfTrueBool direct_output_info) *)
+    (*     (Expr.make_var result_eta_expanded_var *)
+    (*        (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))) *)
+    (*     (Expr.make_var result_eta_expanded_var *)
+    (*        (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))) *)
+    (*     (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)) *)
+    (* in *)
     (* let result_var = calling_expr in let result_eta_expanded_var =
        result_eta_expaneded in log (if_then_else_returned ) *)
     Expr.make_let_in (Mark.ghost result_var)
@@ -455,96 +449,43 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
          (Mark.ghost result_eta_expanded_var)
          (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)
          result_eta_expanded
-         (tag_with_log_entry
-            (tag_with_log_entry if_then_else_returned
-               (VarDef
-                  {
-                    log_typ = TStruct sc_sig.scope_sig_output_struct;
-                    log_io_output = true;
-                    log_io_input = NoInput;
-                  })
-               direct_output_info)
-            EndCall
-            [ScopeName.get_info scope; Mark.add (Expr.pos e) "direct"])
-         (Expr.pos e))
+         (* (tag_with_log_entry *)
+         (*    (tag_with_log_entry if_then_else_returned *)
+         (*       (VarDef *)
+         (*          { *)
+         (*            log_typ = TStruct sc_sig.scope_sig_output_struct; *)
+         (*            log_io_output = true; *)
+         (*            log_io_input = NoInput; *)
+         (*          }) *)
+         (*       direct_output_info) *)
+         (*    EndCall *)
+         (*    [ScopeName.get_info scope; Mark.add (Expr.pos e) "direct"]) *)
+         result (Expr.pos e))
       (Expr.pos e)
   | EApp { f; args; tys } ->
     (* We insert various log calls to record arguments and outputs of
        user-defined functions belonging to scopes *)
     let e1_func = translate_expr ctx f in
-    let markings =
-      match ctx.scope_name, Mark.remove f with
-      | Some sname, ELocation loc -> (
-        match loc with
-        | ScopelangScopeVar { name = v, _; _ } ->
-          [ScopeName.get_info sname; ScopeVar.get_info v]
-        | ToplevelVar _ -> [])
-      | _ -> []
+    let e_args = List.map (translate_expr ctx) args in
+    let e_args =
+      List.mapi
+        (fun i (new_arg, input_typ) ->
+          (* TODO: retrieve proper argument name *)
+          tag_with_log_entry new_arg
+            (LocalVarDef
+               (Mark.map (fun _ -> Format.sprintf "fun_arg#%d" i) input_typ)))
+        (List.combine e_args tys)
     in
-    let e1_func =
-      match markings with
-      | [] -> e1_func
-      | m -> tag_with_log_entry e1_func BeginCall m
-    in
-    let new_args = List.map (translate_expr ctx) args in
-    let input_typs = List.map Mark.remove tys in
-    let output_typ =
-      (* NOTE: this is a temporary solution, it works because it's assumed that
-         all function have explicit types. However, this will change -- for more
-         information see
-         https://github.com/CatalaLang/catala/pull/280#discussion_r898851693. *)
-      let retrieve_out_typ_or_any var vars =
-        let _, typ, _ = ScopeVar.Map.find (Mark.remove var) vars in
-        match typ with
-        | TArrow (_, marked_output_typ) -> Mark.remove marked_output_typ
-        | _ -> Mark.remove (Type.any (Mark.get var))
-      in
+    let e = Expr.eapp ~f:e1_func ~args:e_args ~tys m in
+    let fname =
       match Mark.remove f with
-      | ELocation (ScopelangScopeVar { name = var }) ->
-        retrieve_out_typ_or_any var ctx.scope_vars
-      | ELocation (ToplevelVar { name; _ }) -> (
-        let typ, _vis =
-          TopdefName.Map.find (Mark.remove name) ctx.decl_ctx.ctx_topdefs
-        in
-        match Mark.remove (Type.unquantify typ) with
-        | TArrow (_, (tout, _)) -> tout
-        | _ ->
-          Message.error ~pos:(Expr.pos e)
-            "Application of non-function toplevel variable")
-      | _ -> Mark.remove (Type.any (Expr.pos f))
+      | ELocation (ScopelangScopeVar { name }) ->
+        Mark.map ScopeVar.to_string name
+      | ELocation (ToplevelVar { name; _ }) ->
+        Mark.map TopdefName.to_string name
+      | _ -> "<anon_fun>", Expr.pos f
     in
-    let new_args =
-      ListLabels.mapi (List.combine new_args input_typs)
-        ~f:(fun i (new_arg, input_typ) ->
-          match markings with
-          | _ :: _ as m ->
-            tag_with_log_entry new_arg
-              (VarDef
-                 {
-                   log_typ = input_typ;
-                   log_io_output = false;
-                   log_io_input = OnlyInput;
-                 })
-              (m @ [Mark.add (Expr.pos e) ("input" ^ string_of_int i)])
-          | _ -> new_arg)
-    in
-    let new_e = Expr.eapp ~f:e1_func ~args:new_args ~tys m in
-    let new_e =
-      match markings with
-      | [] -> new_e
-      | m ->
-        tag_with_log_entry
-          (tag_with_log_entry new_e
-             (VarDef
-                {
-                  log_typ = output_typ;
-                  log_io_output = true;
-                  log_io_input = NoInput;
-                })
-             (m @ [Mark.add (Expr.pos e) "output"]))
-          EndCall m
-    in
-    new_e
+    tag_with_log_entry e (FunCall fname)
   | EDefault { excepts; just; cons } ->
     let excepts = collapse_similar_outcomes excepts in
     Expr.edefault
@@ -586,7 +527,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
 let translate_rule
     (ctx : 'm ctx)
     (rule : 'm S.rule)
-    ((sigma_name, pos_sigma) : Uid.MarkedString.info) :
+    ((_sigma_name, _pos_sigma) : Uid.MarkedString.info) :
     ('m Ast.expr scope_body_expr Bindlib.box ->
     'm Ast.expr scope_body_expr Bindlib.box)
     * 'm ctx =
@@ -612,13 +553,12 @@ let translate_rule
     in
     let merged_expr =
       tag_with_log_entry merged_expr
-        (VarDef
-           {
-             log_typ = Mark.remove typ;
-             log_io_output = Mark.remove io.io_output;
-             log_io_input = Mark.remove io.io_input;
-           })
-        [sigma_name, pos_sigma; a_name]
+        (ScopeVarDef
+           ( ScopeVar (fst var),
+             {
+               log_io_output = Mark.remove io.io_output;
+               log_io_input = Mark.remove io.io_input;
+             } ))
     in
     ( (fun next ->
         Bindlib.box_apply2
@@ -717,7 +657,6 @@ let translate_scope_decl
     ScopeName.Map.find sigma.scope_decl_name ctx.scopes_parameters
   in
   let scope_variables = scope_sig.scope_sig_local_vars in
-  let ctx = { ctx with scope_name = Some scope_name } in
   let ctx =
     (* the context must be initialized for fresh variables for all only-input
        scope variables *)
@@ -978,7 +917,6 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
   let ctx =
     {
       decl_ctx;
-      scope_name = None;
       scopes_parameters;
       scope_vars = ScopeVar.Map.empty;
       toplevel_vars;

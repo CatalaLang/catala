@@ -309,18 +309,17 @@ type date_rounding = Catala_runtime.date_rounding
 type duration = Catala_runtime.duration
 
 type var_def_log = {
-  log_typ : naked_typ;
   log_io_input : Catala_runtime.io_input;
   log_io_output : bool;
 }
 
 type log_entry =
-  | VarDef of var_def_log
-      (** During code generation, we need to know the type of the variable being
-          logged for embedding as well as its I/O properties. *)
-  | BeginCall
-  | EndCall
-  | PosRecordIfTrueBool
+  | ScopeCall of ScopeName.t
+  | ScopeVarDef of scope_var_or_subscope * var_def_log
+  | ToplevelVarDef of MarkedIdent.t
+  | LocalVarDef of MarkedIdent.t
+  | FunCall of MarkedIdent.t (* ?? *)
+  | Branching of EnumConstructor.t option (* Needed for pattern-matching *)
 
 module Op = struct
   (** Classification of operators on how they should be typed *)
@@ -348,7 +347,7 @@ module Op = struct
     | ValueFromJson : typ * string -> < monomorphic ; .. > t
     (* * polymorphic *)
     | Length : < polymorphic ; .. > t
-    | Log : log_entry * Uid.MarkedString.info list -> < polymorphic ; .. > t
+    | Log : log_entry -> < polymorphic ; .. > t
     | ToClosureEnv : < polymorphic ; .. > t
     | FromClosureEnv : < polymorphic ; .. > t
     | ArrayAccess : int -> < polymorphic ; .. > t

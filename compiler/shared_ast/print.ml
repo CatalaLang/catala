@@ -211,11 +211,12 @@ let lit (fmt : Format.formatter) (l : lit) : unit =
   | LDuration d -> lit_style fmt (Catala_runtime.duration_to_string d)
 
 let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
+  (* TODO: print infos *)
   match entry with
-  | VarDef _ -> Format.fprintf fmt "@{<blue>@<1>%s @}" "≔"
-  | BeginCall -> Format.fprintf fmt "@{<yellow>@<1>%s @}" "→"
-  | EndCall -> Format.fprintf fmt "@{<yellow>@<1>%s @}" "←"
-  | PosRecordIfTrueBool -> Format.fprintf fmt "@{<green>@<1>%s @}" "☛"
+  | LocalVarDef _ | ToplevelVarDef _ | ScopeVarDef _ ->
+    Format.fprintf fmt "@{<blue>@<1>%s @}" "≔"
+  | ScopeCall _ | FunCall _ -> Format.fprintf fmt "@{<yellow>@<1>%s @}" "→"
+  | Branching _ -> Format.fprintf fmt "@{<green>@<1>%s @}" "☛"
 
 let operator_to_string : type a. a Op.t -> string =
   let open Op in
@@ -359,13 +360,7 @@ let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
  fun ?(debug = true) fmt op ->
   let open Op in
   match op with
-  | Log (entry, infos) ->
-    Format.fprintf fmt "@{<blue>#{@}%a%a@{<blue>}@}" log_entry entry
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> punctuation fmt ".")
-         (fun fmt info ->
-           Format.fprintf fmt "@{<blue>%s@}" (Uid.MarkedString.to_string info)))
-      infos
+  | Log entry -> Format.fprintf fmt "@{<blue>#{@}%a@{<blue>}@}" log_entry entry
   | op ->
     literal_op_style fmt
       (if debug then operator_to_string op else operator_to_shorter_string op)

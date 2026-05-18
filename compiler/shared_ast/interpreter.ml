@@ -33,43 +33,44 @@ let is_empty_error : type a. (a, 'm) gexpr -> bool =
 
 (** {1 Evaluation} *)
 
-let print_log ppf _lang level entry =
-  let pp_infos =
-    Format.(
-      pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ".@,") pp_print_string)
-  in
-  let logprintf level entry fmt =
-    if ppf == Message.std_ppf () then Format.fprintf ppf "[@{<bold;grey>LOG@}] ";
-    Format.fprintf ppf
-      ("@[<hov>%*s%a" ^^ fmt ^^ "@]@,")
-      (level * 2) "" Print.log_entry entry
-  in
-  match entry with
-  | Runtime.BeginCall infos ->
-    logprintf level BeginCall " %a" pp_infos infos;
-    level + 1
-  | Runtime.EndCall infos ->
-    let level = max 0 (level - 1) in
-    logprintf level EndCall " %a" pp_infos infos;
-    level
-  | Runtime.VariableDefinition (infos, io, value) ->
-    logprintf level
-      (VarDef
-         {
-           log_typ = TVar (Type.Var.fresh ());
-           log_io_input = io.Runtime.io_input;
-           log_io_output = io.Runtime.io_output;
-         })
-      " %a: @{<green>%s@}" pp_infos infos
-      (Message.unformat (fun ppf -> Runtime.Value.format ppf value));
-    level
-  | Runtime.DecisionTaken rtpos ->
-    let pos = Expr.runtime_to_pos rtpos in
-    logprintf level PosRecordIfTrueBool
-      "@[<v -2>@{<green>Definition applied@}:@,@{<cyan>%a@}@]@,"
-      (Pos.format_loc_text ~pp_file:Message.pp_pos ())
-      pos;
-    level
+let print_log _ _ = failwith "TODO"
+(* let print_log ppf _lang level entry = *)
+(*   let pp_infos = *)
+(*     Format.( *)
+(*       pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ".@,") pp_print_string) *)
+(*   in *)
+(*   let logprintf level entry fmt = *)
+(*     if ppf == Message.std_ppf () then Format.fprintf ppf "[@{<bold;grey>LOG@}] "; *)
+(*     Format.fprintf ppf *)
+(*       ("@[<hov>%*s%a" ^^ fmt ^^ "@]@,") *)
+(*       (level * 2) "" Print.log_entry entry *)
+(*   in *)
+(*   match entry with *)
+(*   | Runtime.BeginCall infos -> *)
+(*     logprintf level BeginCall " %a" pp_infos infos; *)
+(*     level + 1 *)
+(*   | Runtime.EndCall infos -> *)
+(*     let level = max 0 (level - 1) in *)
+(*     logprintf level EndCall " %a" pp_infos infos; *)
+(*     level *)
+(*   | Runtime.VariableDefinition (infos, io, value) -> *)
+(*     logprintf level *)
+(*       (VarDef *)
+(*          { *)
+(*            log_typ = TVar (Type.Var.fresh ()); *)
+(*            log_io_input = io.Runtime.io_input; *)
+(*            log_io_output = io.Runtime.io_output; *)
+(*          }) *)
+(*       " %a: @{<green>%s@}" pp_infos infos *)
+(*       (Message.unformat (fun ppf -> Runtime.Value.format ppf value)); *)
+(*     level *)
+(*   | Runtime.DecisionTaken rtpos -> *)
+(*     let pos = Expr.runtime_to_pos rtpos in *)
+(*     logprintf level PosRecordIfTrueBool *)
+(*       "@[<v -2>@{<green>Definition applied@}:@,@{<cyan>%a@}@]@," *)
+(*       (Pos.format_loc_text ~pp_file:Message.pp_pos ()) *)
+(*       pos; *)
+(*     level *)
 
 let handle_eq ctx pos e1 e2 =
   Runtime.Value.equal (Expr.pos_to_runtime pos) (Expr.embed_value ctx e1)
@@ -159,25 +160,25 @@ let rec evaluate_operator
   match op, args with
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
-  | Log (entry, infos), [(e, m)] when Global.options.trace <> None -> (
-    let rtinfos = List.map Uid.MarkedString.to_string infos in
-    match entry with
-    | BeginCall -> Runtime.log_begin_call rtinfos e
-    | EndCall -> Runtime.log_end_call rtinfos e
-    | PosRecordIfTrueBool ->
-      (match e with
-      | ELit (LBool b) ->
-        Runtime.log_decision_taken (Expr.pos_to_runtime pos) b |> ignore
-      | _ -> ());
-      e
-    | VarDef def ->
-      Mark.remove
-      @@ Runtime.log_variable_definition rtinfos
-           {
-             Runtime.io_input = def.log_io_input;
-             io_output = def.log_io_output;
-           }
-           (Expr.embed_value ctx) (e, m))
+  | Log entry, [(e, m)] when Global.options.trace <> None -> (
+    ignore (e, m);
+    match entry with _ -> failwith "TODO"
+    (* | BeginCall -> Runtime.log_begin_call rtinfos e *)
+    (* | EndCall -> Runtime.log_end_call rtinfos e *)
+    (* | PosRecordIfTrueBool -> *)
+    (*   (match e with *)
+    (*   | ELit (LBool b) -> *)
+    (*     Runtime.log_decision_taken (Expr.pos_to_runtime pos) b |> ignore *)
+    (*   | _ -> ()); *)
+    (*   e *)
+    (* | VarDef def -> *)
+    (*   Mark.remove *)
+    (*   @@ Runtime.log_variable_definition rtinfos *)
+    (*        { *)
+    (*          Runtime.io_input = def.log_io_input; *)
+    (*          io_output = def.log_io_output; *)
+    (*        } *)
+    (*        (Expr.embed_value ctx) (e, m)) *))
   | Log _, [(e', _)] -> e'
   | (FromClosureEnv | ToClosureEnv), [e'] ->
     (* [FromClosureEnv] and [ToClosureEnv] are just there to bypass the need for
