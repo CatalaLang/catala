@@ -41,12 +41,32 @@ let print_failures () =
       "@[<v>@[<v 2>Some plugins could not be loaded:@,\
        %a@]@,\
        @,\
-       @[<hov>This generally means that they were compiled against a \
-       different@ version@ of@ Catala.@]@]"
+       @[<hov>This generally means that they need to be recompiled for this \
+       version@ of@ Catala.@]@]"
       (Format.pp_print_seq (fun ppf (n, s) ->
-           Format.fprintf ppf "- @{<bold>%s@}: @[<hov>%a@]" n
-             Format.pp_print_text s))
+           Format.fprintf ppf "- @[<hv>@{<bold>%s@}" n;
+           if s <> "" then
+             Format.fprintf ppf ":@ @[<hov>%a@]" Format.pp_print_text s;
+           Format.pp_close_box ppf ()))
       (Hashtbl.to_seq load_failures)
+
+let check_failure cmd =
+  Hashtbl.iter
+    (fun f err ->
+      if
+        String.lowercase_ascii Filename.(remove_extension (basename f))
+        = String.lowercase_ascii cmd
+      then
+        Message.Content.emit
+          (Message.error
+             "@[<v>@[<hov>Plugin \"@{<bold>%s@}\" could not be loaded.@]@,\
+              It probably needs to be recompiled for this version of \
+              Catala.%t@]"
+             cmd (fun ppf ->
+               if err = "" then ()
+               else Format.fprintf ppf "@, @[<hov>%a@]" Format.pp_print_text err))
+          Error)
+    load_failures
 
 let load_file f =
   try
@@ -55,11 +75,17 @@ let load_file f =
   with
   | Dynlink.Error (Dynlink.Module_already_loaded s) ->
     Message.debug "Plugin %S (%s) was already loaded, skipping" f s
-  | Dynlink.Error err ->
+  | Dynlink.Error err -> (
     let msg = Dynlink.error_message err in
     Message.debug "Could not load plugin %S: %s" f msg;
-    Hashtbl.add load_failures f msg
-  | e -> Message.warning "Could not load plugin %S: %s" f (Printexc.to_string e)
+    match err with
+    | Dynlink.Cannot_open_dynamic_library
+        (Dynlink.Error (Dynlink.Cannot_open_dynamic_library (Failure _))) ->
+      Hashtbl.add load_failures f ""
+    | _ -> Hashtbl.add load_failures f msg)
+  | e ->
+    Message.warning "@[<hv>Could not load plugin %S:@ %s@]" f
+      (Printexc.to_string e)
 
 let load_dir d =
   Message.debug "Loading plugins from %s" d;

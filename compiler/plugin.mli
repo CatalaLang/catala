@@ -76,3 +76,7 @@ val load_dir : string -> unit
 val print_failures : unit -> unit
 (** Dynlink errors may be silenced at startup time if not in --debug mode, this
     prints them as warnings *)
+
+val check_failure : string -> unit
+(** Checks if a missing command could be due to a failed plugin load and prints
+    the appropriate message and fails in that case *)
