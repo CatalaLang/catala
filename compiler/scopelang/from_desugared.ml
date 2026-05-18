@@ -43,13 +43,11 @@ type ctx = {
   var_mapping : (D.expr, untyped Ast.expr Var.t) Var.Map.t;
 }
 
-let tag_with_log_entry
-    (e : untyped Ast.expr boxed)
-    (l : log_entry)
-    (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
+let tag_with_log_entry (e : untyped Ast.expr boxed) (l : log_entry) :
+    untyped Ast.expr boxed =
   if Global.options.trace <> None then
     Expr.eappop
-      ~op:(Log (l, markings), Expr.pos e)
+      ~op:(Log l, Expr.pos e)
       ~tys:[Type.any (Expr.pos e)]
       ~args:[e] (Mark.get e)
   else e

@@ -332,10 +332,6 @@ let map
   | ELit l -> elit l m
   | EApp { f = e1; args; tys } ->
     eapp ~f:(f e1) ~args:(List.map f args) ~tys:(List.map typ tys) m
-  | EAppOp { op = Op.Log (VarDef vd, infos), pos; tys; args } ->
-    let log_typ = Mark.remove (typ (Mark.add Pos.void vd.log_typ)) in
-    let op = fop (Op.Log (VarDef { vd with log_typ }, infos), pos) in
-    eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EAppOp { op = Op.ValueFromJson (ty, str), pos; tys; args } ->
     let op = fop (Op.ValueFromJson (typ ty, str), pos) in
     eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m

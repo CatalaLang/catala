@@ -708,6 +708,176 @@ end
 (* -- *)
 
 type information = string list
+(** Represents information about a name in the code -- i.e. variable name,
+    subscope name, etc...
+
+    It's a list of strings with a length varying from 2 to 3, where:
+
+    - the first string is the name of the current scope -- starting with a
+      capitalized letter [Scope_name],
+    - the second string is either: the name of a scope variable or, the name of
+      a subscope input variable -- [a_subscope_var.input_var]
+    - the third string is either: a subscope name (starting with a capitalized
+      letter [Subscope_name] or, the [input] (resp. [output]) string -- which
+      corresponds to the input (resp. the output) of a function. *)
+
+type var_def = { var_name : string; pos : code_location; value : Value.t }
+
+type trace_elt =
+  | ScopeCall of {
+      scope_name : string;
+      pos : code_location;
+      input_struct : Value.t option;
+      sub_events : trace_elt list;
+    }
+  | ScopeVarDef of {
+      scope_var_def : var_def;
+      pos : code_location;
+      exceptions : exception_info list;
+      input_struct : Value.t option;
+      sub_events : trace_elt list;
+    }
+  | LocalVarDef of { local_var_def : var_def; sub_events : trace_elt list }
+  | FunCall of {
+      fun_name : string;
+      pos : code_location;
+      sub_events : trace_elt list;
+      extern : bool;
+    }
+  | Branching of { pos : code_location; branching_info : branching_info }
+  | Assertion of { pos : code_location; sub_events : trace_elt list }
+  | Error of code_location * string
+
+and exception_info = {
+  (* TODO? *)
+  label : string option;
+  condition : (bool * code_location) option;
+  sub_events : trace_elt list;
+}
+
+and branching_info =
+  | If of code_location
+  | Match of { constructor_name : string; branch_pos : code_location }
+
+let begin_scope_call () = assert false
+
+(* PREV VERSIONS *)
+
+type variable_def = {
+  var_name : string;
+  kind : io_log;
+  pos : code_location;
+  value : Value.t option;
+  exn_rule : exception_info option;
+  mutable inner_calls : scope_call list;
+  mutable error : string option;
+}
+
+and scope_call = {
+  scope_name : string;
+  pos : code_location;
+  mutable variables : variable_def list;
+  mutable error : string option;
+}
+
+type event_elt =
+  | Call of information * event_elt list
+  | VariableDefinition of information * io_log * Value.t
+(* | DecisionTaken of code_location *)
+
+type stack_state =
+  | InVarDef of scope_call * variable_def
+  | InScope of scope_call
+
+type events = {
+  mutable current_state : stack_state option;
+  mutable callstack : scope_call list;
+}
+
+let empty_log () = { current_state = None; callstack = [] }
+let log = empty_log ()
+
+let reset_log () =
+  log.current_state <- None;
+  log.callstack <- []
+
+let log_error msg =
+  match log with
+  | { current_state = None; _ } -> ()
+  | { current_state = Some (InScope scope_call); _ } -> scope_call.error <- msg
+  | { current_state = Some (InVarDef (_scope_call, var_def)); _ } ->
+    var_def.error <- msg
+
+(* let log_begin_call scope_name (inputs: variable_def list) pos = *)
+(*   let new_scope_call = { scope_name; pos; variables = List.rev inputs; error = None } in *)
+(*   match log with *)
+(*   | { current_state = None; _ } -> log.current_state <- Some (InScope (new_scope_call)) *)
+(*   | { current_state = Some (InScope _); _ } -> *)
+(*     (\* Scope called outside of a scope variable definition, we ignore it. *\) *)
+(*     () *)
+(*   | { current_state = Some ((InVarDef (curr_scope, var_def))) ; callstack } -> *)
+(*     curr_scope.variables <- var_def :: curr_scope.variables; *)
+(*     log.callstack <- curr_scope :: callstack; *)
+(*     log.current_state <- Some (InScope new_scope_call) *)
+
+(* let log_end_call scope_name scope_pos = *)
+(*   let pop_callstack scope_call = *)
+(*     match log.callstack with *)
+(*     | [] -> log.callstack <- [scope_call] *)
+(*     | { variables = last_var :: prev_vars ; _ } as scope_call  :: rest -> *)
+(*       scope_call.variables <- prev_vars ; *)
+(*       last_var.inner_calls <- scope_call :: last_var.inner_calls; *)
+(*       let popped_stack_elt = InVarDef (scope_call, last_var) in *)
+(*       log.current_state <- Some popped_stack_elt; *)
+(*       log.callstack <- rest *)
+(*     | { variables = [] ; _ }  :: _ -> *)
+(*       (\* Cannot happen as we do not register sub-scopecalls outside of *)
+(*          variable definitions *\) *)
+(*       assert false *)
+(*   in *)
+(*   match log with *)
+(*   | { current_state = None; _ } -> *)
+(*     (\* inconsistent call *\) *)
+(*     () *)
+(*   | { current_state = Some (InScope scope_call); _ } -> *)
+(*     if scope_call.scope_name = scope_name && scope_call.pos =scope_pos then *)
+(*       pop_callstack scope_call *)
+(*     else *)
+(*       (\* Ignored scope call *\) *)
+(*       () *)
+(*   | { current_state = Some (InScope scope_call); callstack } -> *)
+(*     pop_callstack scope_call *)
+(*   | { current_state = Some (Some var_def, scope_call); callstack } -> *)
+(*     scope_call.variables <- var_def :: scope_call.variables; *)
+(*     log.current_state <- None; *)
+
+(* let push_scope_call scope_name pos = *)
+(*   let new_scope_call = { scope_name; pos; variables = [] } in *)
+(*   match log with *)
+(*   | { current = None; _ } -> log.current <- Some new_scope_call *)
+(*   | { current = Some prev; _ } -> *)
+(*     log.current <- Some new_scope_call; *)
+(*     log.callstack <- prev :: log.callstack *)
+
+(* let pop_callstack () = *)
+(*   match log with *)
+(*   | { callstack = []; _ } -> () *)
+(*   | { callstack = parent_call :: t; current } -> *)
+(*     log.current <- Some parent_call; *)
+(*     log.callstack <- t *)
+
+let push_element raw_event = log.current <- raw_event :: log.current
+let log_begin_call info = push_scope_call info
+
+let log_end_call info =
+  match log.callstack with
+  | [] -> failwith "Mismatch end_call event"
+  | (info', _) :: _ when info' <> info -> failwith "Mismatch end_call event"
+  | _ -> pop_callstack ()
+
+let log_variable_definition (info : string list) (io : io_log) embed (x : 'a) =
+  push_element (VariableDefinition (info, io, embed x));
+  x
 
 type raw_event =
   | BeginCall of information

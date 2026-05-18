@@ -104,9 +104,16 @@ let name : type a. a t -> string = function
 
 let compare_log_entries l1 l2 =
   match l1, l2 with
-  | VarDef t1, VarDef t2 ->
-    let tcompare = Type.compare (t1.log_typ, Pos.void) (t2.log_typ, Pos.void) in
-    if tcompare = 0 then
+  | ScopeCall s1, ScopeCall s2 -> ScopeName.compare s1 s2
+  | ScopeVarDef (k1, t1), ScopeVarDef (k2, t2) ->
+    let kcompare =
+      match k1, k2 with
+      | ScopeVar sv1, ScopeVar sv2 | SubScope (sv1, _), SubScope (sv2, _) ->
+        ScopeVar.compare sv1 sv2
+      | ScopeVar _, _ -> 1
+      | _ -> -1
+    in
+    if kcompare = 0 then
       let ocompare = Bool.compare t1.log_io_output t2.log_io_output in
       if ocompare = 0 then
         match t1.log_io_input, t2.log_io_input with
@@ -116,26 +123,32 @@ let compare_log_entries l1 l2 =
         | OnlyInput, _ -> 1
         | _, OnlyInput -> -1
       else ocompare
-    else tcompare
-  | BeginCall, BeginCall
-  | EndCall, EndCall
-  | PosRecordIfTrueBool, PosRecordIfTrueBool ->
-    0
-  | VarDef _, _ -> -1
-  | _, VarDef _ -> 1
-  | BeginCall, _ -> -1
-  | _, BeginCall -> 1
-  | EndCall, _ -> -1
-  | _, EndCall -> 1
-  | PosRecordIfTrueBool, _ -> .
-  | _, PosRecordIfTrueBool -> .
+    else kcompare
+  | ToplevelVarDef v1, ToplevelVarDef v2
+  | LocalVarDef v1, LocalVarDef v2
+  | FunCall v1, FunCall v2 ->
+    MarkedIdent.compare v1 v2
+  | Branching None, Branching None -> 0
+  | Branching (Some _), Branching None -> 1
+  | Branching None, Branching (Some _) -> -1
+  | Branching (Some c1), Branching (Some c2) -> EnumConstructor.compare c1 c2
+  | ScopeCall _, _ -> 1
+  | _, ScopeCall _ -> -1
+  | ScopeVarDef _, _ -> 1
+  | _, ScopeVarDef _ -> -1
+  | ToplevelVarDef _, _ -> 1
+  | _, ToplevelVarDef _ -> -1
+  | LocalVarDef _, _ -> 1
+  | _, LocalVarDef _ -> -1
+  | FunCall _, _ -> 1
+  | _, FunCall _ -> -1
+  | Branching _, _ -> .
+  | _, Branching _ -> .
 
 let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   match[@ocamlformat "disable"] t1, t2 with
-  | Log (l1, info1), Log (l2, info2) -> (
-    match compare_log_entries l1 l2 with
-    | 0 -> List.compare Uid.MarkedString.compare info1 info2
-    | n -> n)
+  | Log (l1), Log (l2) -> (
+     compare_log_entries l1 l2 )
   | Add_dat_dur l, Add_dat_dur r -> Stdlib.compare l r
   | Sub_dat_dur l, Sub_dat_dur r -> Stdlib.compare l r
   | Not, Not
