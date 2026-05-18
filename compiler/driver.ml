@@ -1461,6 +1461,7 @@ let main () =
   in
   let eval_cmd () =
     let r = Cmd.eval_value ~catch:false ~argv command in
+    (match r with Error `Term -> Plugin.check_failure argv.(1) | _ -> ());
     Message.report_delayed_errors_if_any ();
     r
   in
