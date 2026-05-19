@@ -1148,7 +1148,10 @@ module UserFacing = struct
       | En -> [splur y "year"; splur m "month"; splur d "day"]
       | Fr -> [splur y "an"; m, "mois"; splur d "jour"]
       | Pl -> [y, "rok"; m, "miesiac"; d, "dzien"]
-      | It -> [y, "anno"; m, "mese"; d, "giorno"])
+      | It ->
+        [ (if abs y > 1 then y, "anni" else y, "anno");
+          (if abs m > 1 then m, "mesi" else m, "mese");
+          (if abs d > 1 then d, "giorni" else d, "giorno") ])
     |> filter0
     |> Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.pp_print_string ppf ", ")
