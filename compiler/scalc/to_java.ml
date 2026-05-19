@@ -145,7 +145,7 @@ let format_scope = format_qualified (module ScopeName)
 
 let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
-  | Log (_entry, _infos) -> assert false
+  | Log _ -> assert false
   | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
     pp_print_string ppf "subtract"
   | Not -> pp_print_string ppf "not"

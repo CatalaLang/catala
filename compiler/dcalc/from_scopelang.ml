@@ -230,7 +230,11 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
                  matching"
                 EnumConstructor.format constructor EnumName.format name
           in
-          let case_d = translate_expr ctx case_e in
+          let case_d =
+            tag_with_log_entry
+              (translate_expr ctx case_e)
+              (Branching (Some constructor))
+          in
           ( EnumConstructor.Map.add constructor case_d d_cases,
             EnumConstructor.Map.remove constructor e_cases ))
         enum_sig
@@ -293,15 +297,10 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         sc_sig.scope_sig_in_fields args
     in
     let field_map =
+      (* Not need to log the input struct, we will process it using the
+         englobing ScopeCall *)
       ScopeVar.Map.fold
-        (fun var (fld, e) acc ->
-          let e =
-            tag_with_log_entry e
-              (ScopeVarDef
-                 ( ScopeVar var,
-                   { log_io_output = false; log_io_input = OnlyInput } ))
-          in
-          StructField.Map.add fld e acc)
+        (fun _var (fld, e) acc -> StructField.Map.add fld e acc)
         in_var_map StructField.Map.empty
     in
     let arg_struct =
@@ -320,12 +319,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     in
     (* calling_expr = scope_function scope_input_struct *)
     let calling_expr =
-      let e =
-        Expr.eapp ~f:called_func ~args:[arg_struct]
-          ~tys:[TStruct sc_sig.scope_sig_input_struct, pos]
-          m
-      in
-      tag_with_log_entry e (ScopeCall scope)
+      Expr.eapp ~f:called_func ~args:[arg_struct]
+        ~tys:[TStruct sc_sig.scope_sig_input_struct, pos]
+        m
     in
     (* TODO: re-assess that
 
@@ -488,8 +484,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     tag_with_log_entry e (FunCall fname)
   | EDefault { excepts; just; cons } ->
     let excepts = collapse_similar_outcomes excepts in
-    Expr.edefault
-      ~excepts:(List.map (translate_expr ctx) excepts)
+    let f_exn e = tag_with_log_entry (translate_expr ctx e) Exception in
+    Expr.edefault ~excepts:(List.map f_exn excepts)
       ~just:(translate_expr ctx just) ~cons:(translate_expr ctx cons) m
   | EPureDefault e -> Expr.epuredefault (translate_expr ctx e) m
   | ELocation (ScopelangScopeVar { name = a }) ->
@@ -514,9 +510,15 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
   | EAppOp { op = Sub_dat_dur _, opos; args; tys } ->
     let args = List.map (translate_expr ctx) args in
     Expr.eappop ~op:(Sub_dat_dur ctx.date_rounding, opos) ~args ~tys m
+  | EIfThenElse { cond; etrue; efalse } ->
+    let etrue, efalse =
+      ( tag_with_log_entry (translate_expr ctx etrue) (Branching None),
+        tag_with_log_entry (translate_expr ctx efalse) (Branching None) )
+    in
+    Expr.eifthenelse (translate_expr ctx cond) etrue efalse m
   | ( EVar _ | EAbs _ | ELit _ | EStruct _ | EStructAccess _ | ETuple _
     | ETupleAccess _ | EInj _ | EFatalError _ | EEmpty | EErrorOnEmpty _
-    | EArray _ | EIfThenElse _ | EAppOp _ | EPos _ | EAssert _ | EBad ) as e ->
+    | EArray _ | EAppOp _ | EPos _ | EAssert _ | EBad ) as e ->
     Expr.map ~f:(translate_expr ctx) ~op:Operator.translate (e, m)
 
 (** The result of a rule translation is a list of assignments, with variables
@@ -554,7 +556,11 @@ let translate_rule
     let merged_expr =
       tag_with_log_entry merged_expr
         (ScopeVarDef
-           ( ScopeVar (fst var),
+           ( ScopeVar
+               (fst var
+               |> fun s ->
+               ScopeVar.fresh ~from:s
+                 (ScopeVar.to_string s ^ "FROM RULE", Pos.void)),
              {
                log_io_output = Mark.remove io.io_output;
                log_io_input = Mark.remove io.io_input;

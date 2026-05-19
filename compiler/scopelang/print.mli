@@ -17,12 +17,14 @@
 open Catala_utils
 
 val scope :
+  ?s_expr:bool ->
   ?debug:bool (** [true] for debug printing *) ->
   Format.formatter ->
   Shared_ast.ScopeName.t * 'm Ast.scope_decl Mark.pos ->
   unit
 
 val program :
+  ?s_expr:bool ->
   ?debug:bool (** [true] for debug printing *) ->
   Format.formatter ->
   'm Ast.program ->

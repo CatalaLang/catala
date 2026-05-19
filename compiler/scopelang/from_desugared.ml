@@ -467,7 +467,8 @@ let rec rule_tree_to_expr
                  ~excepts:[]
                    (* Here we insert the logging command that records when a
                       decision is taken for the value of a variable. *)
-                 ~just:(tag_with_log_entry base_just PosRecordIfTrueBool [])
+                   (* TODO: refine this *)
+                 ~just:(tag_with_log_entry base_just Exception)
                  ~cons
                  (Expr.no_attrs (Mark.get cons))
                :: acc)

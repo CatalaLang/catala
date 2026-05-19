@@ -100,6 +100,9 @@ val scope :
 
 val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
 
+val program_s_expr :
+  ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
+
 (** User-facing, localised printer *)
 module UserFacing : sig
   val unit :

@@ -223,12 +223,12 @@ type information = string list
 
 (** {3 The raw events} *)
 
-type event_elt =
-  | Call of information * event_elt list
-  | VariableDefinition of information * io_log * Value.t
-(* | DecisionTaken of code_location *)
+(* type event_elt = *)
+(*   | Call of information * event_elt list *)
+(*   | VariableDefinition of information * io_log * Value.t *)
+(* (\* | DecisionTaken of code_location *\) *)
 
-val retrieve_log : unit -> event_elt list
+(* val retrieve_log : unit -> event_elt list *)
 
 type raw_event =
   | BeginCall of information  (** Subscope or function call. *)

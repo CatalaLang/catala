@@ -473,7 +473,7 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
 
 let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
-  | Log (_entry, _infos) -> assert false
+  | Log _ -> assert false
   | FromClosureEnv | ToClosureEnv -> assert false
   | Add_dat_dur _ -> assert false (* needs specific printing *)
   | op -> Format.fprintf fmt "@{<blue;bold>%s@}" (Operator.name op)

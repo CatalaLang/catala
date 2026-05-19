@@ -579,92 +579,92 @@ type information = string list
       letter [Subscope_name] or, the [input] (resp. [output]) string -- which
       corresponds to the input (resp. the output) of a function. *)
 
-type var_def = { var_name : string; pos : code_location; value : Value.t }
+(* type var_def = { var_name : string; pos : code_location; value : Value.t } *)
 
-type trace_elt =
-  | ScopeCall of {
-      scope_name : string;
-      pos : code_location;
-      input_struct : Value.t option;
-      sub_events : trace_elt list;
-    }
-  | ScopeVarDef of {
-      scope_var_def : var_def;
-      pos : code_location;
-      exceptions : exception_info list;
-      input_struct : Value.t option;
-      sub_events : trace_elt list;
-    }
-  | LocalVarDef of { local_var_def : var_def; sub_events : trace_elt list }
-  | FunCall of {
-      fun_name : string;
-      pos : code_location;
-      sub_events : trace_elt list;
-      extern : bool;
-    }
-  | Branching of { pos : code_location; branching_info : branching_info }
-  | Assertion of { pos : code_location; sub_events : trace_elt list }
-  | Error of code_location * string
+(* type trace_elt = *)
+(*   | ScopeCall of { *)
+(*       scope_name : string; *)
+(*       pos : code_location; *)
+(*       input_struct : Value.t option; *)
+(*       sub_events : trace_elt list; *)
+(*     } *)
+(*   | ScopeVarDef of { *)
+(*       scope_var_def : var_def; *)
+(*       pos : code_location; *)
+(*       exceptions : exception_info list; *)
+(*       input_struct : Value.t option; *)
+(*       sub_events : trace_elt list; *)
+(*     } *)
+(*   | LocalVarDef of { local_var_def : var_def; sub_events : trace_elt list } *)
+(*   | FunCall of { *)
+(*       fun_name : string; *)
+(*       pos : code_location; *)
+(*       sub_events : trace_elt list; *)
+(*       extern : bool; *)
+(*     } *)
+(*   | Branching of { pos : code_location; branching_info : branching_info } *)
+(*   | Assertion of { pos : code_location; sub_events : trace_elt list } *)
+(*   | Error of code_location * string *)
 
-and exception_info = {
-  (* TODO? *)
-  label : string option;
-  condition : (bool * code_location) option;
-  sub_events : trace_elt list;
-}
+(* and exception_info = { *)
+(*   (\* TODO? *\) *)
+(*   label : string option; *)
+(*   condition : (bool * code_location) option; *)
+(*   sub_events : trace_elt list; *)
+(* } *)
 
-and branching_info =
-  | If of code_location
-  | Match of { constructor_name : string; branch_pos : code_location }
+(* and branching_info = *)
+(*   | If of code_location *)
+(*   | Match of { constructor_name : string; branch_pos : code_location } *)
 
-let begin_scope_call () = assert false
+(* let begin_scope_call () = assert false *)
 
 (* PREV VERSIONS *)
 
-type variable_def = {
-  var_name : string;
-  kind : io_log;
-  pos : code_location;
-  value : Value.t option;
-  exn_rule : exception_info option;
-  mutable inner_calls : scope_call list;
-  mutable error : string option;
-}
+(* type variable_def = { *)
+(*   var_name : string; *)
+(*   kind : io_log; *)
+(*   pos : code_location; *)
+(*   value : Value.t option; *)
+(*   exn_rule : exception_info option; *)
+(*   mutable inner_calls : scope_call list; *)
+(*   mutable error : string option; *)
+(* } *)
 
-and scope_call = {
-  scope_name : string;
-  pos : code_location;
-  mutable variables : variable_def list;
-  mutable error : string option;
-}
+(* and scope_call = { *)
+(*   scope_name : string; *)
+(*   pos : code_location; *)
+(*   mutable variables : variable_def list; *)
+(*   mutable error : string option; *)
+(* } *)
 
-type event_elt =
-  | Call of information * event_elt list
-  | VariableDefinition of information * io_log * Value.t
-(* | DecisionTaken of code_location *)
+(* type event_elt = *)
+(*   | Call of information * event_elt list *)
+(*   | VariableDefinition of information * io_log * Value.t *)
+(* (\* | DecisionTaken of code_location *\) *)
 
-type stack_state =
-  | InVarDef of scope_call * variable_def
-  | InScope of scope_call
+(* type stack_state = *)
+(*   | InVarDef of scope_call * variable_def *)
+(*   | InScope of scope_call *)
 
-type events = {
-  mutable current_state : stack_state option;
-  mutable callstack : scope_call list;
-}
+(* type events = { *)
+(*   mutable current_state : stack_state option; *)
+(*   mutable callstack : scope_call list; *)
+(* } *)
 
-let empty_log () = { current_state = None; callstack = [] }
-let log = empty_log ()
+(* let empty_log () = { current_state = None; callstack = [] } *)
+(* let log = empty_log () *)
 
-let reset_log () =
-  log.current_state <- None;
-  log.callstack <- []
+(* let reset_log () = *)
+(*   log.current_state <- None; *)
+(*   log.callstack <- [] *)
 
-let log_error msg =
-  match log with
-  | { current_state = None; _ } -> ()
-  | { current_state = Some (InScope scope_call); _ } -> scope_call.error <- msg
-  | { current_state = Some (InVarDef (_scope_call, var_def)); _ } ->
-    var_def.error <- msg
+(* let log_error msg = *)
+(*   match log with *)
+(*   | { current_state = None; _ } -> () *)
+(*   | { current_state = Some (InScope scope_call); _ } -> scope_call.error <- msg *)
+(*   | { current_state = Some (InVarDef (_scope_call, var_def)); _ } -> *)
+(*     var_def.error <- msg *)
 
 (* let log_begin_call scope_name (inputs: variable_def list) pos = *)
 (*   let new_scope_call = { scope_name; pos; variables = List.rev inputs; error = None } in *)
@@ -724,18 +724,18 @@ let log_error msg =
 (*     log.current <- Some parent_call; *)
 (*     log.callstack <- t *)
 
-let push_element raw_event = log.current <- raw_event :: log.current
-let log_begin_call info = push_scope_call info
+(* let push_element raw_event = log.current <- raw_event :: log.current *)
+(* let log_begin_call info = push_scope_call info *)
 
-let log_end_call info =
-  match log.callstack with
-  | [] -> failwith "Mismatch end_call event"
-  | (info', _) :: _ when info' <> info -> failwith "Mismatch end_call event"
-  | _ -> pop_callstack ()
+(* let log_end_call info = *)
+(*   match log.callstack with *)
+(*   | [] -> failwith "Mismatch end_call event" *)
+(*   | (info', _) :: _ when info' <> info -> failwith "Mismatch end_call event" *)
+(*   | _ -> pop_callstack () *)
 
-let log_variable_definition (info : string list) (io : io_log) embed (x : 'a) =
-  push_element (VariableDefinition (info, io, embed x));
-  x
+(* let log_variable_definition (info : string list) (io : io_log) embed (x : 'a) = *)
+(*   push_element (VariableDefinition (info, io, embed x)); *)
+(*   x *)
 
 type raw_event =
   | BeginCall of information

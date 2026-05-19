@@ -319,7 +319,8 @@ type log_entry =
   | ToplevelVarDef of MarkedIdent.t
   | LocalVarDef of MarkedIdent.t
   | FunCall of MarkedIdent.t (* ?? *)
-  | Branching of EnumConstructor.t option (* Needed for pattern-matching *)
+  | Branching of EnumConstructor.t option (* For pattern-matching *)
+  | Exception (* label? *)
 
 module Op = struct
   (** Classification of operators on how they should be typed *)
