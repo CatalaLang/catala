@@ -18,7 +18,10 @@ open Catala_utils
 open Shared_ast
 open Ast
 
-let scope ?debug fmt (name, (decl, _pos)) =
+let scope ?(s_expr = false) ?debug fmt (name, (decl, _pos)) =
+  let print_expr ?debug () =
+    if s_expr then Print.s_expr else Print.expr ?debug ()
+  in
   Print.attrs fmt (Mark.get (ScopeName.get_info name));
   Format.pp_open_vbox fmt 2;
   Format.pp_open_hvbox fmt 4;
@@ -66,14 +69,14 @@ let scope ?debug fmt (name, (decl, _pos)) =
               Print.op_style fmt "reentrant or by default";
               Format.pp_print_space fmt ()
             | _ -> ())
-          (Print.expr ?debug ()) e
+          (print_expr ?debug ()) e
       | Assertion { e; _ } ->
-        Format.fprintf fmt "%a %a" Print.keyword "assert" (Print.expr ?debug ())
+        Format.fprintf fmt "%a %a" Print.keyword "assert" (print_expr ?debug ())
           e)
     fmt decl.scope_decl_rules;
   Format.pp_close_box fmt ()
 
-let print_topdef ppf name (e, ty, _vis, _is_external) =
+let print_topdef ~s_expr ppf name (e, ty, _vis, _is_external) =
   Print.attrs ppf (Mark.get (TopdefName.get_info name));
   Format.pp_open_vbox ppf 2;
   let () =
@@ -89,11 +92,14 @@ let print_topdef ppf name (e, ty, _vis, _is_external) =
     Format.pp_close_box ppf ()
   in
   Format.pp_print_cut ppf ();
-  Print.expr () ppf e;
+  if s_expr then Print.s_expr ppf e else Print.expr () ppf e;
   Format.pp_close_box ppf ()
 
-let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
-    unit =
+let program
+    ?(s_expr = false)
+    ?(debug : bool = false)
+    (fmt : Format.formatter)
+    (p : 'm program) : unit =
   let pp_sep fmt () =
     Format.pp_print_cut fmt ();
     Format.pp_print_cut fmt ()
@@ -102,12 +108,12 @@ let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
   Print.decl_ctx ~debug fmt p.program_ctx;
   TopdefName.Map.iter
     (fun name def ->
-      print_topdef fmt name def;
+      print_topdef ~s_expr fmt name def;
       pp_sep fmt ())
     p.program_topdefs;
   ScopeName.Map.format_bindings_i
     (fun fmt _ name scope_decl ->
       Format.pp_print_cut fmt ();
-      scope ~debug fmt (name, scope_decl))
+      scope ~s_expr ~debug fmt (name, scope_decl))
     fmt p.program_scopes;
   Format.pp_close_box fmt ()

@@ -214,11 +214,25 @@ let lit (fmt : Format.formatter) (l : lit) : unit =
 
 let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   (* TODO: print infos *)
+  let pp_marked_ident fmt (id, pos) =
+    Format.fprintf fmt "%s<%s>" id (Pos.to_string_shorter pos)
+  in
   match entry with
-  | LocalVarDef _ | ToplevelVarDef _ | ScopeVarDef _ ->
-    Format.fprintf fmt "@{<blue>@<1>%s @}" "≔"
-  | ScopeCall _ | FunCall _ -> Format.fprintf fmt "@{<yellow>@<1>%s @}" "→"
-  | Branching _ -> Format.fprintf fmt "@{<green>@<1>%s @}" "☛"
+  | LocalVarDef m -> Format.fprintf fmt "LocalVarDef(%a)" pp_marked_ident m
+  | ToplevelVarDef m ->
+    Format.fprintf fmt "ToplevelVarDef(%a)" pp_marked_ident m
+  | ScopeVarDef (ScopeVar v, _def_log) ->
+    Format.fprintf fmt "ScopeVarDef(%s, ...)" (ScopeVar.to_string v)
+  | ScopeVarDef (SubScope (v, subscope), _def_log) ->
+    Format.fprintf fmt "SubScopeVarDef(%s from scope %s)" (ScopeVar.to_string v)
+      (ScopeName.to_string subscope)
+  | ScopeCall scope ->
+    Format.fprintf fmt "ScopeCall(%s)" (ScopeName.to_string scope)
+  | FunCall f -> Format.fprintf fmt "FunCall(%a)" pp_marked_ident f
+  | Branching None -> Format.fprintf fmt "IfBranching"
+  | Branching (Some cstr) ->
+    Format.fprintf fmt "MatchBranching(%s)" (EnumConstructor.to_string cstr)
+  | Exception -> Format.fprintf fmt "Exception"
 
 let operator_to_string : type a. a Op.t -> string =
   let open Op in
@@ -237,7 +251,7 @@ let operator_to_string : type a. a Op.t -> string =
   | Round -> "round"
   | Round_rat -> "round_rat"
   | Round_mon -> "round_mon"
-  | Log _ -> "Log"
+  | Log log -> Format.asprintf "Log:%a" log_entry log
   | Minus -> "-"
   | Minus_int -> "-!"
   | Minus_rat -> "-."
@@ -1280,10 +1294,102 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
     pf fmt "FatalError<%s>" (Catala_runtime.error_to_string error)
   | EPos p -> pf fmt "Pos<%s>" (Pos.to_string_shorter p)
   | EDefault { excepts; just; cons } ->
-    pf fmt "@[<hov 1>Default(%a,@ %a,@ %a)@]" ppl excepts s_expr just s_expr
+    pf fmt "@[<hov 1>Default(@,%a,@ %a,@ %a)@]" ppl excepts s_expr just s_expr
       cons
-  | EPureDefault e -> pf fmt "@[<hov 1>PureDefault(%a)@]" s_expr e
+  | EPureDefault e -> pf fmt "@[<hov 1>PureDefault(@,%a)@]" s_expr e
   | EEmpty -> pf fmt "Empty"
-  | EErrorOnEmpty e -> pf fmt "@[<hov 1>ErrorOnEmpty(%a)@]" s_expr e
+  | EErrorOnEmpty e -> pf fmt "@[<hov 1>ErrorOnEmpty(@,%a)@]" s_expr e
   | ECustom _ -> pf fmt "Custom<..>"
   | EBad -> pf fmt "Bad"
+
+let scope_body_s_expr ?(debug = false) fmt b : unit =
+  let print_scope_let x sl =
+    Format.fprintf fmt
+      "@[<hv 2>@[<hov 4>%a %a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]@," keyword "let"
+      (scope_let_kind ~debug) sl.scope_let_kind
+      (if debug then var_debug else var)
+      x punctuation ":" typ sl.scope_let_typ punctuation "=" s_expr
+      sl.scope_let_expr keyword "in"
+  in
+  let last = BoundList.iter ~f:print_scope_let b in
+  Format.fprintf fmt "%a %a" keyword "return" s_expr last
+
+let scope_body_s_expr ?(debug = false) fmt (n, l) : unit =
+  let {
+    scope_body_input_struct;
+    scope_body_output_struct;
+    scope_body_expr = body;
+    scope_body_visibility = _vis;
+  } =
+    l
+  in
+  let input_typ = TStruct scope_body_input_struct, Pos.void in
+  let output_typ = TStruct scope_body_output_struct, Pos.void in
+  let x, body = Bindlib.unbind body in
+  Format.pp_open_vbox fmt 2;
+  let () =
+    Format.pp_open_hvbox fmt 2;
+    let () =
+      Format.pp_open_hovbox fmt 4;
+      keyword fmt "let scope";
+      Format.fprintf fmt "@ @{<hi_magenta>%s@}@]" n
+    in
+    Format.pp_print_space fmt ();
+    punctuation fmt "(";
+    let () =
+      Format.pp_open_hvbox fmt 2;
+      (if debug then var_debug else var) fmt x;
+      punctuation fmt ":";
+      Format.pp_print_space fmt ();
+      typ fmt input_typ;
+      punctuation fmt ")";
+      Format.pp_close_box fmt ()
+    in
+    Format.pp_print_cut fmt ();
+    punctuation fmt ":";
+    Format.pp_print_string fmt " ";
+    let () =
+      Format.pp_open_hvbox fmt 2;
+      typ fmt output_typ;
+      Format.pp_close_box fmt ()
+    in
+    Format.pp_print_space fmt ();
+    punctuation fmt "=";
+    Format.pp_close_box fmt ()
+  in
+  Format.pp_print_cut fmt ();
+  scope_body_s_expr ~debug fmt body;
+  Format.pp_close_box fmt ()
+
+let scope_s_expr
+    ?(debug : bool = false)
+    (fmt : Format.formatter)
+    ((n, s) : string * 'm scope_body) : unit =
+  Format.pp_open_vbox fmt 0;
+  scope_body_s_expr ~debug fmt (n, s);
+  Format.pp_close_box fmt ()
+
+let program_s_expr ?(debug = false) fmt p =
+  let s_expr_code_item ?(debug = false) name fmt c =
+    match c with
+    | ScopeDef (n, b) ->
+      attrs fmt (Mark.get (ScopeName.get_info n));
+      scope_s_expr ~debug fmt (name, b)
+    | Topdef (n, ty, _vis, e) ->
+      attrs fmt (Mark.get (TopdefName.get_info n));
+      Format.fprintf fmt
+        "@[<v 2>@[<hov 2>%a@ @{<hi_green>%s@}@ %a@ %a@ %a@]@ %a@]" keyword
+        "let topval" name op_style ":" typ ty op_style "=" s_expr e
+  in
+  let s_expr_code_item_list ?(debug = false) fmt c =
+    Format.pp_open_vbox fmt 0;
+    Format.pp_print_seq
+      (fun fmt (id, item) ->
+        let name = Format.asprintf "%a" (if debug then var_debug else var) id in
+        s_expr_code_item ~debug name fmt item;
+        Format.pp_print_cut fmt ())
+      fmt (BoundList.to_seq c);
+    Format.pp_close_box fmt ()
+  in
+  decl_ctx ~debug fmt p.decl_ctx;
+  s_expr_code_item_list ~debug fmt p.code_items

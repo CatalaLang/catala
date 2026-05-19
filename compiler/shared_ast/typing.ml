@@ -798,12 +798,15 @@ and typecheck_expr_top_down : type a m.
       EnumConstructor.Map.mapi
         (fun c_name e ->
           let c_ty = get_ty env e (EnumConstructor.Map.find c_name cases_ty) in
-          let e =
+          let rec f (e : (a, m) gexpr) : (a, m) gexpr =
             match e with
             | EAbs ({ tys = [ty]; _ } as abs), m ->
               EAbs { abs with tys = [union env e c_ty ty] }, m
+            | EAppOp ({ op = Log _, _; args = [e]; _ } as log), m ->
+              EAppOp { log with args = [f e] }, m
             | _ -> assert false
           in
+          let e = f e in
           let e_ty = TArrow ([c_ty], t_ret), Expr.pos e in
           typecheck_expr_top_down ctx env e_ty e)
         cases

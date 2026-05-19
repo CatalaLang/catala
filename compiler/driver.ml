@@ -178,6 +178,7 @@ module Passes = struct
           else prg
         in
         Message.debug "Retyping lambda calculus...";
+        Message.debug "%a" (Print.program ~debug:options.Global.debug) prg;
         Typing.program ~internal_check:true ~assume_op_types:true prg)
     in
     let prg, type_ordering =
@@ -597,7 +598,7 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir)
 
-  let scopelang options includes stdlib output ex_scopes =
+  let scopelang options includes stdlib output ex_scopes s_expr =
     let prg = Passes.scopelang options ~includes ~stdlib in
     get_output_format options output
     @@ fun _ fmt ->
@@ -611,7 +612,7 @@ module Commands = struct
           Format.pp_print_newline fmt ())
         ex_scopes
     | [] ->
-      Scopelang.Print.program ~debug:options.Global.debug fmt prg;
+      Scopelang.Print.program ~s_expr ~debug:options.Global.debug fmt prg;
       Format.pp_print_newline fmt ()
 
   let scopelang_cmd =
@@ -627,7 +628,8 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.output
-        $ Cli.Flags.ex_scopes)
+        $ Cli.Flags.ex_scopes
+        $ Cli.Flags.s_expr)
 
   let typecheck options check_invariants includes stdlib quiet =
     let prg = Passes.scopelang options ~allow_external:true ~includes ~stdlib in
@@ -675,7 +677,8 @@ module Commands = struct
       optimize
       ex_scopes
       check_invariants
-      autotest =
+      autotest
+      s_expr =
     let prg, _ =
       Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~typed
@@ -684,7 +687,8 @@ module Commands = struct
     @@ fun _ fmt ->
     match ex_scopes with
     | [] ->
-      Print.program ~debug:options.Global.debug fmt prg;
+      if s_expr then Print.program_s_expr ~debug:options.Global.debug fmt prg
+      else Print.program ~debug:options.Global.debug fmt prg;
       Format.pp_print_newline fmt ()
     | scopes ->
       List.iter
@@ -721,7 +725,8 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.ex_scopes
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.autotest)
+        $ Cli.Flags.autotest
+        $ Cli.Flags.s_expr)
 
   let print_interpretation_results
       options
@@ -857,7 +862,8 @@ module Commands = struct
       closure_conversion
       keep_special_ops
       monomorphize_types
-      ex_scopes =
+      ex_scopes
+      s_expr =
     let options = if closure_conversion then fix_trace options else options in
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
@@ -876,7 +882,8 @@ module Commands = struct
           Format.pp_print_newline fmt ())
         scopes
     | [] ->
-      Print.program ~debug:options.Global.debug fmt prg;
+      if s_expr then Print.program_s_expr ~debug:options.Global.debug fmt prg
+      else Print.program ~debug:options.Global.debug fmt prg;
       Format.pp_print_newline fmt ()
 
   let lcalc_cmd =
@@ -902,7 +909,8 @@ module Commands = struct
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.monomorphize_types
-        $ Cli.Flags.ex_scopes)
+        $ Cli.Flags.ex_scopes
+        $ Cli.Flags.s_expr)
 
   let interpret_lcalc
       typed
@@ -1186,7 +1194,7 @@ module Commands = struct
         $ Cli.Flags.closure_conversion)
 
   let c options includes stdlib output optimize check_invariants autotest =
-    let options = fix_trace options in
+    (* let options = fix_trace options in *)
     let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion:true ~keep_special_ops:false

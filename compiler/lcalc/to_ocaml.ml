@@ -73,14 +73,14 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
     Format.fprintf fmt "duration_of_numbers %a %a %a" pint years pint months
       pint days
 
-let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
-    : unit =
-  Format.fprintf fmt "@[<hov 2>[%a]@]"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-       (fun fmt info ->
-         Format.fprintf fmt "\"%a\"" Uid.MarkedString.format info))
-    uids
+(* let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list) *)
+(*     : unit = *)
+(*   Format.fprintf fmt "@[<hov 2>[%a]@]" *)
+(*     (Format.pp_print_list *)
+(*        ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ") *)
+(*        (fun fmt info -> *)
+(*          Format.fprintf fmt "\"%a\"" Uid.MarkedString.format info)) *)
+(*     uids *)
 
 let op_needs_pos (type a) (op : a Op.t) ty =
   match op with
@@ -443,42 +443,42 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
          (fun fmt (x, tau) ->
            Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
       xs_tau format_expr body
-  | EApp
-      {
-        f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _;
-        args;
-        _;
-      }
-    when Global.options.trace <> None ->
-    Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
-      format_with_parens f
-      (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens)
-      args
-  | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    Format.fprintf fmt
-      "(log_variable_definition@ %a@ {io_input=%s;@ io_output=%b}@ (%a)@ %a)"
-      format_uid_list info
-      (match var_def_info.log_io_input with
-      | NoInput -> "NoInput"
-      | OnlyInput -> "OnlyInput"
-      | Reentrant -> "Reentrant")
-      var_def_info.log_io_output format_embedding
-      (var_def_info.log_typ, Pos.void)
-      format_with_parens arg1
-  | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    let pos = Expr.pos e in
-    Format.fprintf fmt
-      "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
-       start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a)"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos) format_with_parens arg1
-  | EAppOp { op = Log (EndCall, info), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
-      format_with_parens arg1
+  (* | EApp *)
+  (*     { *)
+  (*       f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _; *)
+  (*       args; *)
+  (*       _; *)
+  (*     } *)
+  (*   when Global.options.trace <> None -> *)
+  (*   Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info *)
+  (*     format_with_parens f *)
+  (*     (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens) *)
+  (*     args *)
+  (* | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1]; _ } *)
+  (*   when Global.options.trace <> None -> *)
+  (*   Format.fprintf fmt *)
+  (*     "(log_variable_definition@ %a@ {io_input=%s;@ io_output=%b}@ (%a)@ %a)" *)
+  (*     format_uid_list info *)
+  (*     (match var_def_info.log_io_input with *)
+  (*     | NoInput -> "NoInput" *)
+  (*     | OnlyInput -> "OnlyInput" *)
+  (*     | Reentrant -> "Reentrant") *)
+  (*     var_def_info.log_io_output format_embedding *)
+  (*     (var_def_info.log_typ, Pos.void) *)
+  (*     format_with_parens arg1 *)
+  (* | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1]; _ } *)
+  (*   when Global.options.trace <> None -> *)
+  (*   let pos = Expr.pos e in *)
+  (*   Format.fprintf fmt *)
+  (*     "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \ *)
+  (*      start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a)" *)
+  (*     (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos) *)
+  (*     (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list *)
+  (*     (Pos.get_law_info pos) format_with_parens arg1 *)
+  (* | EAppOp { op = Log (EndCall, info), _; args = [arg1]; _ } *)
+  (*   when Global.options.trace <> None -> *)
+  (*   Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info *)
+  (*     format_with_parens arg1 *)
   | EAppOp { op = Log _, _; args = [arg1]; _ } ->
     Format.fprintf fmt "%a" format_with_parens arg1
   | EApp { f; args; _ } ->

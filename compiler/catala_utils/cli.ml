@@ -596,6 +596,11 @@ module Flags = struct
           "Compile all the way to lcalc before interpreting (the default is to \
            interpret at dcalc stage). For debugging purposes."
 
+  let s_expr =
+    value
+    & flag
+    & info ["s-expr"] ~doc:"Display the program as a raw s-expression."
+
   let extension =
     value
     & opt_all string []

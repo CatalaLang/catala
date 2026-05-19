@@ -132,6 +132,7 @@ let compare_log_entries l1 l2 =
   | Branching (Some _), Branching None -> 1
   | Branching None, Branching (Some _) -> -1
   | Branching (Some c1), Branching (Some c2) -> EnumConstructor.compare c1 c2
+  | Exception, Exception -> 0
   | ScopeCall _, _ -> 1
   | _, ScopeCall _ -> -1
   | ScopeVarDef _, _ -> 1
@@ -142,8 +143,10 @@ let compare_log_entries l1 l2 =
   | _, LocalVarDef _ -> -1
   | FunCall _, _ -> 1
   | _, FunCall _ -> -1
-  | Branching _, _ -> .
-  | _, Branching _ -> .
+  | Branching _, _ -> 1
+  | _, Branching _ -> -1
+  | Exception, _ -> .
+  | _, Exception -> .
 
 let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   match[@ocamlformat "disable"] t1, t2 with
