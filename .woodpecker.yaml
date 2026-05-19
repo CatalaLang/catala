@@ -7,6 +7,14 @@ when:
     repo: CatalaLang/catala
   - event: manual
 
+variables:
+  - &catala_image registry.gitlab.inria.fr/catala/registry:g${CI_COMMIT_SHA}
+  - &build_env
+    OCAMLRUNPARAM: b
+    DUNE_PROFILE: check
+    COLUMNS: "165"
+    # Ensures the side-by-side diff isn't truncated to less than 80 cols
+
 steps:
   - name: image
     image: woodpeckerci/plugin-docker-buildx
@@ -20,55 +28,79 @@ steps:
       cache_images:
         - registry.gitlab.inria.fr/catala/registry:cache
       tags: g${CI_COMMIT_SHA}
+      target: dev-build-context
+
+  - name: build
+    depends_on: image
+    image: *catala_image
+    environment: *build_env
+    commands:
+      - eval $(opam env)
+      - make dependencies-python pygments
+      - make build prepare-install
 
   - name: promoted
-    image: registry.gitlab.inria.fr/catala/registry:g${CI_COMMIT_SHA}
+    image: *catala_image
     depends_on: image
-    directory: /home/ocaml/catala
-    failure: ignore
     commands:
       - eval $(opam env)
-      - make check-promoted
-      - git diff --exit-code
+      - git clone $${CI_WORKSPACE} /tmp/catala
+      - cd /tmp/catala
+      - make check-promoted && git diff --exit-code
 
   - name: tests
-    image: registry.gitlab.inria.fr/catala/registry:g${CI_COMMIT_SHA}
-    depends_on: image
-    directory: /home/ocaml/catala
-    environment:
-      COLUMNS: "165"
-      # Ensures the side-by-side diff isn't truncated to less than 80 cols
+    image: *catala_image
+    depends_on: build
+    environment: *build_env
     commands:
       - eval $(opam env)
-      - make unit-tests backend-tests testsuite-base
-      - clerk test tests-extra doc
+      - make testsuite
 
   - name: extra-tests
-    image: registry.gitlab.inria.fr/catala/registry:g${CI_COMMIT_SHA}
+    image: *catala_image
     depends_on: tests
-    directory: /home/ocaml/catala
+    environment: *build_env
     commands:
       - eval $(opam env)
       - dune build @runtest-js
       - make validate-py-runtime
 
-  - name: report
-    depends_on: [tests, extra-tests]
-    environment:
-      COLUMNS: "165"
-    when:
-      status: [ 'success', 'failure' ]
-    image: registry.gitlab.inria.fr/catala/registry:g${CI_COMMIT_SHA}
-    directory: /home/ocaml/catala
+  - name: doc
+    image: *catala_image
+    depends_on: build
+    environment: *build_env
     commands:
       - eval $(opam env)
-      - dune exec -- clerk report --xml _build/*@test _build/test-*/*@test > $${CI_WORKSPACE}/report.junit.xml
-    failure: ignore
+      - sudo apk add typst texlive-xetex texmf-dist-latexextra texmf-dist-binextra texmf-dist-pictures texmf-dist-fontsrecommended font-dejavu groff libpng
+      - make syntax
+      - make doc
 
-  - name: summary
-    image: ghcr.io/brainbaking/woodpecker-ascii-junit:main
-    when:
-      status: [ 'success', 'failure' ]
-    depends_on: report
-    settings:
-      path: report.junit.xml
+  - name: check-examples
+    image: *catala_image
+    depends_on: tests
+    environment: *build_env
+    commands:
+      - eval $(opam env)
+      - opam install ./catala.opam --working-dir --assume-built
+      - git clone https://github.com/CatalaLang/catala-examples --depth 1 -b "$${GIT_COMMIT_SOURCE_BRANCH:-$$GIT_COMMIT_BRANCH}" ||
+        git clone https://github.com/CatalaLang/catala-examples --depth 1
+      - . _python_venv/bin/activate
+      - cd catala-examples
+      - make all testsuite
+
+  - name: lsp
+    image: *catala_image
+    depends_on: tests
+    environment:
+      CI: "true"
+    commands:
+      - eval $(opam env)
+      - opam install conf-npm
+      - opam install ./catala.opam --working-dir --assume-built
+      - git clone https://github.com/CatalaLang/catala-language-server --depth 1 -b "$${GIT_COMMIT_SOURCE_BRANCH:-$$GIT_COMMIT_BRANCH}" ||
+        git clone https://github.com/CatalaLang/catala-language-server --depth 1
+      - cd catala-language-server
+      - npm install
+      - opam install . --ignore-constraints-on=catala --ignore-pin-depends --with-test -y
+      - dune runtest
+
