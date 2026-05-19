@@ -1,0 +1,74 @@
+when:
+  - event: push
+    branch: master
+  - event: push
+    branch: test-woodpecker
+  - event: pull_request
+    repo: CatalaLang/catala
+  - event: manual
+
+steps:
+  - name: image
+    image: woodpeckerci/plugin-docker-buildx
+    settings:
+      registry: registry.gitlab.inria.fr
+      repo: registry.gitlab.inria.fr/catala/registry
+      username:
+        from_secret: inria-registry-login
+      password:
+        from_secret: inria-registry-pass
+      cache_images:
+        - registry.gitlab.inria.fr/catala/registry:cache
+      tags: g${CI_COMMIT_SHA}
+
+  - name: promoted
+    image: registry.gitlab.inria.fr/catala/registry:g${CI_COMMIT_SHA}
+    depends_on: image
+    directory: /home/ocaml/catala
+    failure: ignore
+    commands:
+      - eval $(opam env)
+      - make check-promoted
+      - git diff --exit-code
+
+  - name: tests
+    image: registry.gitlab.inria.fr/catala/registry:g${CI_COMMIT_SHA}
+    depends_on: image
+    directory: /home/ocaml/catala
+    environment:
+      COLUMNS: "165"
+      # Ensures the side-by-side diff isn't truncated to less than 80 cols
+    commands:
+      - eval $(opam env)
+      - make unit-tests backend-tests testsuite-base
+      - clerk test tests-extra doc
+
+  - name: extra-tests
+    image: registry.gitlab.inria.fr/catala/registry:g${CI_COMMIT_SHA}
+    depends_on: tests
+    directory: /home/ocaml/catala
+    commands:
+      - eval $(opam env)
+      - dune build @runtest-js
+      - make validate-py-runtime
+
+  - name: report
+    depends_on: [tests, extra-tests]
+    environment:
+      COLUMNS: "165"
+    when:
+      status: [ 'success', 'failure' ]
+    image: registry.gitlab.inria.fr/catala/registry:g${CI_COMMIT_SHA}
+    directory: /home/ocaml/catala
+    commands:
+      - eval $(opam env)
+      - dune exec -- clerk report --xml _build/*@test _build/test-*/*@test > $${CI_WORKSPACE}/report.junit.xml
+    failure: ignore
+
+  - name: summary
+    image: ghcr.io/brainbaking/woodpecker-ascii-junit:main
+    when:
+      status: [ 'success', 'failure' ]
+    depends_on: report
+    settings:
+      path: report.junit.xml

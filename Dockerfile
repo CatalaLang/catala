@@ -32,6 +32,9 @@ RUN sudo apk add py3-pip py3-pygments groff bash
 RUN opam --cli=2.2 switch create . --deps-only --with-test --with-doc --with-dev-setup && \
     opam clean
 
+ENV OPAMSWITCH="/home/ocaml/catala"
+ENV PATH="/home/ocaml/catala/_opam/bin:$PATH"
+
 #
 # STAGE 2: get the whole repo and build
 #
@@ -56,7 +59,7 @@ ENV DUNE_PROFILE=check
 ARG CATALA_VERSION
 
 # Check the build
-RUN opam exec -- make build
+RUN make build
 
 # Install to prefix
-RUN opam exec -- make install-all && opam clean
+RUN make install-all && opam clean
