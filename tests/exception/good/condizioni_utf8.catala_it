@@ -99,6 +99,7 @@ $ catala Exceptions -s Test -v x
 │ └── "reddito_alto"
 │     │ [individuo.reddito > $100,000.00]
 │     └── "reddito_molto_alto"
-│           [individuo.reddito > $100,000.00 && individuo.reddito ≤ $200,000.00]
+│           [individuo.reddito > $100,000.00
+│            && individuo.reddito ≤ $200,000.00]
 └─
 ```
