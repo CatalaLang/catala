@@ -169,13 +169,29 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
   | EAssert pred, m ->
     let pos = Expr.mark_pos m in
     let tbool = TLit TBool, pos in
+    let pred = translate_expr pred in
+    let vars = Expr.free_vars (Expr.unbox pred) in
+    let debug_vars =
+      List.map
+        (fun v ->
+          let ty = Type.fresh_var pos in
+          Expr.eappop
+            ~op:(Op.DebugPrint (Bindlib.name_of v), pos)
+            ~args:[Expr.evar v (Expr.with_ty m ty)]
+            ~tys:[ty]
+            (Expr.with_ty m (TLit TUnit, pos)))
+        (Var.Set.elements vars)
+    in
     Expr.eifthenelse
-      (Expr.eappop ~op:(Op.Not, pos)
-         ~args:[translate_expr pred]
-         ~tys:[tbool] (Expr.with_ty m tbool))
-      (Expr.efatalerror_pos ~error:AssertionFailed
-         ~pos_expr:(Expr.make_pos (Expr.mark_pos m) m)
-         m)
+      (Expr.eappop ~op:(Op.Not, pos) ~args:[pred] ~tys:[tbool]
+         (Expr.with_ty m tbool))
+      (Expr.make_seq
+         (debug_vars
+         @ [
+             Expr.efatalerror_pos ~error:AssertionFailed
+               ~pos_expr:(Expr.make_pos (Expr.mark_pos m) m)
+               m;
+           ]))
       (Expr.elit LUnit m) m
   | ( ( ELit _ | EArray _ | EVar _ | EApp _ | EAbs _ | EExternal _
       | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _

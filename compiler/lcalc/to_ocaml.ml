@@ -528,6 +528,11 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     format_expr fmt (EAppOp { op; args = e1 :: args; tys }, m)
   | EAppOp { op = ArrayAccess i, _; args = [a]; _ } ->
     Format.fprintf fmt "%a.(%d)" format_with_parens a i
+  | EAppOp { op = DebugPrint name, _; args = [a]; _ } ->
+    Format.fprintf fmt
+      "Format.eprintf \"@@[<hv 2>%s = %%a@@]@@.\" Value.format (Value.embed \
+       (%a) %a)"
+      (String.escaped name) format_rtyp (Expr.ty a) format_with_parens a
   | EAppOp
       {
         op = ValueFromJson (ty, json), _;
@@ -545,6 +550,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       | TLit TUnit, _ -> ""
       | _ -> " _")
   | EAppOp { op = ((Eq | Lt | Lte | Gt | Gte) as op), _; args = [a1; a2]; _ } ->
+    (* [op_needs_pos] is fine-tuned so that this applies only to primitive types where it's safe to use OCaml polymorphic comparisons *)
     Format.fprintf fmt "@[<hov 2>%a@ %s %a@]" format_with_parens a1
       (Print.operator_to_string op)
       format_with_parens a2

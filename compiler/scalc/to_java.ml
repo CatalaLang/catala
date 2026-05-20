@@ -195,6 +195,9 @@ let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   | ValueFromJson _ ->
     (* Handled in format_expression call *)
     Message.error ~internal:true "ValueFromJSON incorrectly reached"
+  | DebugPrint _ ->
+    (* Handled in format_expression call *)
+    Message.error ~internal:true "DebugPrint incorrectly reached"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_visibility ppf = function
@@ -417,6 +420,9 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "%a.fromJSONString(%a ,%s)"
       (format_typ ~wildcard:false ~diamond:false ctx)
       ty (format_expression ctx) (EPosLit, p) encoded_string
+  | EAppOp { op = DebugPrint str, _; args = [e]; _ } ->
+    fprintf ppf "System.err.println(\"%s = \" + %a.toString())" str
+      (format_expression ctx) e
   | EAppOp
       {
         op = (HandleExceptions, _) as op;
@@ -557,6 +563,9 @@ and format_currified_args ctx ppf = function
 
 let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
   match Mark.remove stmt with
+  | SLocalDecl { typ = TLit TUnit, _; _ } -> ()
+  | SLocalDef { expr = e; typ = TLit TUnit, _; _ } ->
+    Format.fprintf ppf "@[<hov 4>%a;@]" (format_expression ctx) e
   | SLocalDecl { name; typ } ->
     fprintf ppf "@[<hov 4>final %a@ %a;@]" (format_typ ctx) typ VarName.format
       (Mark.remove name)
@@ -734,6 +743,13 @@ and format_block ?(toplevel = false) ctx ppf (block : Ast.block) =
   let rec format_stmts ~toplevel = function
     | [] -> ()
     | [stmt] -> format_stmt ~toplevel ctx ppf stmt
+    | (SLocalDecl { name = n, _; typ = TLit TUnit, _ }, _)
+      :: (SLocalDef { name = n2, _; expr; _ }, _)
+      :: r
+      when VarName.equal n n2 ->
+      fprintf ppf "@[<hov 4>%a;@]" (format_expression ctx) expr;
+      pp_print_space ppf ();
+      format_stmts ~toplevel r
     | (SLocalDecl { name = n, _; typ }, _)
       :: (SLocalDef { name = n2, _; expr; _ }, _)
       :: r

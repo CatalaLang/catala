@@ -1285,6 +1285,7 @@ let expr_to_dot_label0 : type a.
           | HandleExceptions -> ""
           | ToClosureEnv -> ""
           | FromClosureEnv -> ""
+          | DebugPrint _ -> ""
         in
         Format.pp_print_string ppf str
 

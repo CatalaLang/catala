@@ -585,7 +585,20 @@ void stdprintf(const char * fmt, ...) {
   gmp_vprintf(fmt, args);
   va_end(args);
 }
-const struct catala_buf catala_stdbuf = { &stdprintf, 0, &stdflush };
+struct catala_buf catala_stdbuf = { &stdprintf, 0, &stdflush };
+
+const void* errflush() {
+  fputs("", stderr);
+  fflush(stderr);
+  return NULL;
+}
+void errprintf(const char * fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  gmp_vfprintf(stderr, fmt, args);
+  va_end(args);
+}
+struct catala_buf catala_errbuf = { &errprintf, 0, &errflush };
 
 __thread char* strbuf = NULL;
 __thread int strbufsize = 0;
@@ -614,7 +627,7 @@ void strprintf(const char * fmt, ...) {
     strbufsize += size;
   }
 }
-const struct catala_buf catala_strbuf = { &strprintf, 0, &strflush };
+struct catala_buf catala_strbuf = { &strprintf, 0, &strflush };
 
 void catala_print (struct catala_buf buf, const catala_value x) {
   int i;

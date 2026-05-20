@@ -434,6 +434,8 @@ val make_multiple_let_in :
   Pos.t ->
   ('a any, 'm) boxed_gexpr
 
+val make_seq : ('a, 'm) boxed_gexpr list -> ('a any, 'm) boxed_gexpr
+
 val make_tuple :
   ('a any, 'm) boxed_gexpr list -> 'm mark -> ('a, 'm) boxed_gexpr
 (** Builds a tuple; the mark argument is only used as witness and for position

@@ -183,8 +183,9 @@ struct catala_buf {
   /* return NULL if printing is to a device, return the final result of the
      printings if it is to an object */
 };
-extern const struct catala_buf catala_stdbuf;
-extern const struct catala_buf catala_strbuf;
+extern struct catala_buf catala_stdbuf;
+extern struct catala_buf catala_errbuf;
+extern struct catala_buf catala_strbuf;
 
 enum catala_type_kind {
   UNINITIALIZED,

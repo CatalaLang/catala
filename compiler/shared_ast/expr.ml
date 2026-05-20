@@ -1043,6 +1043,14 @@ let make_let_in x tau e1 e2 mpos =
 let make_multiple_let_in xs taus e1s e2 mpos =
   make_app (make_abs xs e2 taus mpos) e1s taus (pos e2)
 
+let rec make_seq = function
+  | [] -> invalid_arg "Expr.make_seq"
+  | [e] -> e
+  | e1 :: es ->
+    let v = Var.make "_", pos e1 in
+    let e2 = make_seq es in
+    make_let_in v (TLit TUnit, pos e1) e1 e2 (pos e2)
+
 let make_puredefault e =
   let mark =
     map_mark

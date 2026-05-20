@@ -295,6 +295,7 @@ let operator_to_string : type a. a Op.t -> string =
     Printf.sprintf "o_is(%s.%s)" (EnumName.to_string e)
       (EnumConstructor.to_string c)
   | ValueFromJson (_ty, json) -> Printf.sprintf "json[%s]" json
+  | DebugPrint s -> Printf.sprintf "debug_print(\"%s\")" s
 
 let operator_to_shorter_string : type a. a Op.t -> string =
   let open Op in
@@ -343,6 +344,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | ConstructorCheck (_, c) ->
     Printf.sprintf "is_%s" (EnumConstructor.to_string c)
   | ValueFromJson (_ty, json) -> Printf.sprintf "json[%s]" json
+  | DebugPrint s -> Printf.sprintf "debug_print(\"%s\")" s
 
 let negated_op_to_string : type a. a Op.t -> string = function
   | Xor -> "="
@@ -424,7 +426,7 @@ module Precedence = struct
         Op Div
       | HandleExceptions | Map | Map2 | Concat | Filter | Find | Reduce | Fold
       | Sort _ | ToClosureEnv | FromClosureEnv | ArrayAccess _
-      | ConstructorCheck _ ->
+      | ConstructorCheck _ | DebugPrint _ ->
         App
       | ValueFromJson _ -> Contained)
     | EApp _ -> App

@@ -86,7 +86,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | HandleExceptions -> Format.pp_print_string fmt "handle_exceptions"
   | ValueFromJson (_ty, str) ->
     Format.fprintf fmt ".from_json(%s" (String.quote str)
-  | ArrayAccess _ | ConstructorCheck _ -> assert false
+  | ArrayAccess _ | ConstructorCheck _ | DebugPrint _ -> assert false
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
@@ -372,6 +372,9 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     else
       Format.fprintf fmt "%a.code == %a.Code.%a" (format_expression ctx) a
         EnumName.format enum EnumConstructor.format case
+  | EAppOp { op = DebugPrint str, _; args = [a]; _ } ->
+    Format.fprintf fmt "print(f\"%s = {%a.__str__(indent=2)}\")" str
+      (format_expression ctx) a
   | EAppOp
       { op = ((Eq | Lt | Lte | Gt | Gte), _) as op; args = [pos; a1; a2]; _ } ->
     Format.fprintf fmt "%a.%a(@[<hv>%a,@ %a)@]" (format_expression ctx) a1
@@ -490,6 +493,9 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       VarName.format (Mark.remove name)
   | SLocalDecl _ ->
     assert false (* We don't need to declare variables in Python *)
+  | SLocalDef { expr = e; typ = TLit TUnit, _; _ }
+  | SLocalInit { expr = e; typ = TLit TUnit, _; _ } ->
+    Format.fprintf fmt "@[<hv 4>%a@]" (format_expression ctx) e
   | SLocalDef { name = v; expr = e; _ } | SLocalInit { name = v; expr = e; _ }
     ->
     Format.fprintf fmt "@[<hv 4>%a = (%a)@]" VarName.format (Mark.remove v)
