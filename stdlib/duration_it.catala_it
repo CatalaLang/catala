@@ -1,0 +1,28 @@
+# Durate
+
+> Modulo Duration_it
+
+## Funzioni di utilità
+
+Il confronto tra due durate può fallire (ad esempio, non esiste una risposta
+corretta a `30 giorno < 1 mese`). Per questo motivo, le operazioni standard
+come `min`, `max`, ecc. non sono disponibili in questo modulo.
+
+```catala-metadata
+## Restituisce l'argomento se è positivo, 0 altrimenti.
+dichiarazione positivo
+  contenuto durata
+  dipende da d contenuto durata
+  vale
+    se d > 0 giorno allora d altrimenti 0 giorno
+
+## Calcola la somma degli elementi di una lista di durate. Restituisce `0 giorno` per una lista vuota.
+## **Esempi:**
+## - `Durata.somma di [1 giorno; 2 giorno; 3 giorno] = 6 giorno`
+## - `Durata.somma di [] = 0 giorno`
+dichiarazione somma
+  contenuto durata
+  dipende da l contenuto lista di durata
+  vale
+    combina ogni x tra l in totale inizialmente 0 giorno con totale + x
+```
