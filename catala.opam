@@ -47,7 +47,6 @@ depends: [
   "ninja_utils" {= "1.0.0"}
   "otoml" {>= "1.0"}
   "json-data-encoding" { >= "1.0.1" }
-  "testo-diff"
   "odoc" {with-doc}
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.28.1"}
   "obelisk" {?cataladevmode & cataladevmode}
