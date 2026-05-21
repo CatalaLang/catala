@@ -21,6 +21,16 @@ module SurfacePrint = Surface.Print
 open Shared_ast
 module Runtime = Catala_runtime
 
+let tag_with_log_entry (l : log_entry) (e : Ast.expr boxed) : Ast.expr boxed =
+  let mark_tany m pos =
+    Expr.with_ty m (Type.any pos) ~pos:(Expr.no_attrs_pos pos)
+  in
+  let m = mark_tany (Mark.get e) (Expr.pos e) in
+  if Global.options.trace <> None then
+    let pos = Expr.pos e in
+    Expr.eappop ~op:(Log l, pos) ~tys:[Type.any pos] ~args:[e] m
+  else e
+
 let fold_left_catch_errors f init l =
   List.fold_left
     (fun acc e ->
@@ -363,20 +373,10 @@ let translate_ternop :
       ~args:[fct; arg2; arg3]
       (Untyped { pos })
   | S.ListArgMin | S.ListArgMax ->
-    (* {v x among l such that scale(x) is minimum v}
-       is transformed into
-       {v
-         let weights = map (fun x -> x, scale(x)) l in
-         let weighted_result =
-           reduce
-             (fun (x1,w1) (x2,w2) ->
-                if CMP w1 w2 then (x1, w1) else (x2, w2))
-             weights
-         in
-         match weighted_result with
-         | Some r -> r.0
-         | None -> default
-       v} *)
+    (* {v x among l such that scale(x) is minimum v} is transformed into {v let
+       weights = map (fun x -> x, scale(x)) l in let weighted_result = reduce
+       (fun (x1,w1) (x2,w2) -> if CMP w1 w2 then (x1, w1) else (x2, w2)) weights
+       in match weighted_result with | Some r -> r.0 | None -> default v} *)
     let cmp_op =
       match op with S.ListArgMax -> Op.Gt, op_pos | _ -> Op.Lt, op_pos
     in
@@ -698,8 +698,10 @@ let rec translate_expr
     check_formula op e2;
     translate_binop op pos (rec_helper e1) (rec_helper e2)
   | IfThenElse (e_if, e_then, e_else) ->
-    Expr.eifthenelse (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
-      emark
+    let e_if = tag_with_log_entry BranchingCondition (rec_helper e_if) in
+    let e_then = tag_with_log_entry (Branching None) (rec_helper e_then) in
+    let e_else = tag_with_log_entry (Branching None) (rec_helper e_else) in
+    Expr.eifthenelse e_if e_then e_else emark
   | Ternop (op, e1, e2, e3) ->
     translate_ternop op pos (rec_helper e1) (rec_helper e2) (rec_helper e3)
   | Binop ((S.Neq, posn), e1, e2) ->
@@ -858,8 +860,7 @@ let rec translate_expr
          <> None
          (* FIXME: Temporary syntax, an attribute can normally not be used to
             alter the syntax. The point is not to break syntax tools right away.
-            See also <name_resolution.ml:268>. *)
-    ->
+            See also <name_resolution.ml:268>. *) ->
     rec_helper
       ( S.Builtin
           (External (Base (Data (Primitive (Named (path, constructor)))), pos)),
@@ -930,7 +931,7 @@ let rec translate_expr
         ScopeVar.Map.empty fields
     in
     Expr.escopecall ~scope:called_scope ~args:in_struct emark
-  | LetIn (xs, e1, e2) ->
+  | LetIn (xs, e1, e2) -> (
     let m_xs : _ Var.t Mark.pos list =
       List.map (fun x -> Mark.map Var.make x) xs
     in
@@ -943,10 +944,17 @@ let rec translate_expr
     let tys = List.map (fun x -> Type.any (Mark.get x)) xs in
     (* This type will be resolved in Scopelang.Desambiguation *)
     let f = Expr.make_abs m_xs (rec_helper ~local_vars e2) tys pos in
-    Expr.detuplify_application
-      [rec_helper e1]
-      tys
-      (fun args -> Expr.eapp ~f ~args ~tys emark)
+    let e =
+      Expr.detuplify_application
+        [rec_helper e1]
+        tys
+        (fun args -> Expr.eapp ~f ~args ~tys emark)
+    in
+    match List.rev xs with
+    | [] -> e
+    | v :: t ->
+      let e = tag_with_log_entry (LocalVarDef v) e in
+      List.fold_left (fun e v -> tag_with_log_entry (LocalVarDef v) e) e t)
   | StructReplace (e, fields) ->
     let fields =
       fold_left_catch_errors
@@ -1085,7 +1093,7 @@ let rec translate_expr
         Message.error ~pos "Enum %s does not contain case %s."
           (Mark.remove enum) (Mark.remove constructor)))
   | MatchWith (e1, (cases, _cases_pos)) ->
-    let e1 = rec_helper e1 in
+    let e1 = tag_with_log_entry BranchingCondition @@ rec_helper e1 in
     let cases_d, e_uid =
       disambiguate_match_and_build_expression scope inside_definition_of ctxt
         local_vars ~no_wildcard_warning cases
@@ -1281,8 +1289,9 @@ and disambiguate_match_and_build_expression
           local_vars binding
       in
       let case_body =
-        translate_expr scope inside_definition_of ctxt local_vars
-          case.S.match_case_expr
+        tag_with_log_entry (Branching (Some (EnumConstructor.to_string c_uid)))
+        @@ translate_expr scope inside_definition_of ctxt local_vars
+             case.S.match_case_expr
       in
       let e_binder = Expr.bind (Array.of_list param_var) case_body in
       let pos_binder =
@@ -1355,6 +1364,11 @@ and disambiguate_match_and_build_expression
         (* For each missing cases, binds the wildcard payload. *)
         EnumConstructor.Map.fold
           (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
+            let case_body =
+              tag_with_log_entry
+                (Branching (Some (EnumConstructor.to_string c_uid)))
+                case_body
+            in
             let case_expr =
               bind_case_body c_uid e_uid ctxt case_body e_binder pos_binder
             in

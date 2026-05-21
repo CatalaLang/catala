@@ -567,9 +567,9 @@ module Value = struct
     | t -> compare pos (V (t, x1)) (V (t, x2))
 
   let format ppf v =
-    (* Format performs indentation, but also alignment, which we want to disable here
-       to be similar to the other backend printers. Hence the manual indentation
-       printing within a single vbox *)
+    (* Format performs indentation, but also alignment, which we want to disable
+       here to be similar to the other backend printers. Hence the manual
+       indentation printing within a single vbox *)
     let rec aux indent ppf =
       let nl n ppf = Format.fprintf ppf "@,%*s" (indent + n) "" in
       function
@@ -721,45 +721,195 @@ type information = string list
       letter [Subscope_name] or, the [input] (resp. [output]) string -- which
       corresponds to the input (resp. the output) of a function. *)
 
-(* type var_def = { var_name : string; pos : code_location; value : Value.t } *)
+type trace_kind =
+  | ScopeCall of { scope_name : string }
+  | ScopeVarDef of {
+      scope_var_def : trace_var_def;
+          (* exceptions : trace_exception_info list; (\* ? *\) *)
+    }
+  | LocalVarDef of trace_var_def
+  | FunCall of { func_name : string }
+  | BranchingCondition
+  | IfBranching
+  | MatchBranching of { constructor_name : string }
+  | Assertion
+  | Exception
+  | Error of { message : string }
 
-(* type trace_elt = *)
-(*   | ScopeCall of { *)
-(*       scope_name : string; *)
-(*       pos : code_location; *)
-(*       input_struct : Value.t option; *)
-(*       sub_events : trace_elt list; *)
-(*     } *)
-(*   | ScopeVarDef of { *)
-(*       scope_var_def : var_def; *)
-(*       pos : code_location; *)
-(*       exceptions : exception_info list; *)
-(*       input_struct : Value.t option; *)
-(*       sub_events : trace_elt list; *)
-(*     } *)
-(*   | LocalVarDef of { local_var_def : var_def; sub_events : trace_elt list } *)
-(*   | FunCall of { *)
-(*       fun_name : string; *)
-(*       pos : code_location; *)
-(*       sub_events : trace_elt list; *)
-(*       extern : bool; *)
-(*     } *)
-(*   | Branching of { pos : code_location; branching_info : branching_info } *)
-(*   | Assertion of { pos : code_location; sub_events : trace_elt list } *)
-(*   | Error of code_location * string *)
+and trace_var_def = { var_name : string; pos : code_location }
 
-(* and exception_info = { *)
-(*   (\* TODO? *\) *)
-(*   label : string option; *)
-(*   condition : (bool * code_location) option; *)
-(*   sub_events : trace_elt list; *)
-(* } *)
+and trace_exception_info = {
+  (* TODO? *)
+  label : string option;
+  condition : (bool * code_location) option;
+}
 
-(* and branching_info = *)
-(*   | If of code_location *)
-(*   | Match of { constructor_name : string; branch_pos : code_location } *)
+type trace_node = {
+  kind : trace_kind;
+  pos : code_location;
+  mutable value : Value.t option;
+  mutable sub_rev_nodes : trace_node list;
+  parent : trace_node option;
+}
 
-(* let begin_scope_call () = assert false *)
+type trace_context = {
+  mutable current_node : trace_node option;
+  mutable root_rev_trace : trace_node list;
+}
+
+let trace_context = { current_node = None; root_rev_trace = [] }
+
+let begin_trace kind pos =
+  let node =
+    {
+      kind;
+      pos;
+      sub_rev_nodes = [];
+      value = None;
+      parent = trace_context.current_node;
+    }
+  in
+  (match trace_context.current_node with
+  | None ->
+    (* root node *)
+    trace_context.root_rev_trace <- node :: trace_context.root_rev_trace
+  | Some parent_node ->
+    parent_node.sub_rev_nodes <- node :: parent_node.sub_rev_nodes);
+  trace_context.current_node <- Some node
+
+let end_trace ?value () =
+  (* pop the scope *)
+  Option.iter (fun c -> c.value <- value) trace_context.current_node;
+  match trace_context.current_node with
+  | None -> failwith "end_trace: no tracing scope to end"
+  | Some { parent = None; _ } ->
+    (* No parent: root node *)
+    trace_context.current_node <- None
+  | Some { parent = some_p; _ } -> trace_context.current_node <- some_p
+
+let with_trace kind pos f =
+  begin_trace kind pos;
+  let value, r = f () in
+  end_trace ?value ();
+  r
+
+let single_trace kind pos =
+  begin_trace kind pos;
+  end_trace ()
+
+let retrieve_trace_context () =
+  (* should be empty when there are no errors *)
+  (* assert (trace_context.root_rev_trace = []); *)
+  let rec pop_trace () =
+    if trace_context.current_node = None || trace_context.root_rev_trace = []
+    then trace_context
+    else (
+      end_trace ();
+      pop_trace ())
+  in
+  pop_trace ()
+
+let reset_trace_context () =
+  trace_context.current_node <- None;
+  trace_context.root_rev_trace <- []
+
+let format_code_location
+    ppf
+    { filename; start_line; start_column; end_line; end_column; _ } =
+  let f =
+    if Filename.extension filename = ".md" then
+      Filename.(remove_extension (remove_extension (basename filename)))
+    else Filename.(remove_extension (basename filename))
+  in
+  Format.fprintf ppf "%s:%d.%d-%d.%d" f start_line start_column end_line
+    end_column
+
+let format_trace_context ppf (tctx : trace_context) =
+  let open Format in
+  fprintf ppf "Trace context:@\n";
+  let format_kind ppf (k : trace_kind) =
+    match k with
+    | ScopeCall { scope_name } -> fprintf ppf "ScopeCall(%s)" scope_name
+    | ScopeVarDef { scope_var_def = { var_name; _ }; _ } ->
+      fprintf ppf "ScopeVarDef(%s)" var_name
+    | LocalVarDef { var_name; _ } -> fprintf ppf "LocalVarDef(%s)" var_name
+    | FunCall _ -> fprintf ppf "FunCall"
+    | BranchingCondition -> fprintf ppf "BranchingCondition"
+    | IfBranching -> fprintf ppf "IfBranching"
+    | MatchBranching _ -> fprintf ppf "MatchBranching"
+    | Assertion -> fprintf ppf "Assertion"
+    | Exception -> fprintf ppf "Exception"
+    | Error _ -> fprintf ppf "Error"
+  in
+  let rec format_trace_node ppf { kind; pos; sub_rev_nodes; value; parent } =
+    let format_value ppf =
+      Option.iter
+        (fun v ->
+          let v = Format.asprintf "%a" Value.format v in
+          let len = String.length v in
+          let buf = Buffer.create len in
+          let rec loop i =
+            if i >= String.length v then ()
+            else (
+              (match v.[i] with
+              | ' ' when i < len - 2 && v.[i + 1] = ' ' -> ()
+              | '\n' | '\t' | '\r' -> ()
+              | c -> Buffer.add_char buf c);
+              loop (succ i))
+          in
+          loop 0;
+          fprintf ppf "=> [value: %s]" (Buffer.contents buf))
+        value
+    in
+    match sub_rev_nodes with
+    | [] ->
+      fprintf ppf "@[<h>(LEAF) %a<%a> %t@]" format_kind kind
+        format_code_location pos format_value
+    | rev_nodes ->
+      fprintf ppf "@[<v 2>%s %a<%a> %t:@ %a@]"
+        (if parent = None then "(ROOT)" else "(NODE)")
+        format_kind kind format_code_location pos format_value
+        (pp_print_list ~pp_sep:pp_print_space format_trace_node)
+        (List.rev rev_nodes)
+  in
+  (pp_print_list ~pp_sep:pp_print_space format_trace_node)
+    ppf
+    (List.rev tctx.root_rev_trace)
+
+let format_trace_positions ppf (tctx : trace_context) =
+  let open Format in
+  let format_kind ppf (k : trace_kind) =
+    match k with
+    | ScopeCall { scope_name } -> fprintf ppf "ScopeCall(%s)" scope_name
+    | ScopeVarDef { scope_var_def = { var_name; _ }; _ } ->
+      fprintf ppf "ScopeVarDef(%s)" var_name
+    | LocalVarDef _ -> fprintf ppf "LocalVarDef"
+    | FunCall _ -> fprintf ppf "FunCall"
+    | BranchingCondition -> fprintf ppf "BranchingCondition"
+    | IfBranching -> fprintf ppf "IfBranching"
+    | MatchBranching _ -> fprintf ppf "MatchBranching"
+    | Assertion -> fprintf ppf "Assertion"
+    | Exception -> fprintf ppf "Exception"
+    | Error _ -> fprintf ppf "Error"
+  in
+  let format_code_location
+      ppf
+      { filename; start_line; start_column; end_line; end_column; _ } =
+    Format.fprintf ppf "./%s:%d.%d-%d.%d"
+      (Filename.basename filename)
+      start_line start_column end_line end_column
+  in
+  let rec format_trace_node ppf { kind; pos; sub_rev_nodes; _ } =
+    if sub_rev_nodes = [] then
+      fprintf ppf "@[<h>%a(%a)@]@\n" format_kind kind format_code_location pos
+    else
+      fprintf ppf "@[<v 2>@[<h>%a(%a):@]@ %a@]" format_kind kind
+        format_code_location pos
+        Format.(pp_print_list ~pp_sep:pp_print_newline format_trace_node)
+        (List.rev sub_rev_nodes)
+  in
+  List.rev tctx.root_rev_trace
+  |> (pp_print_list ~pp_sep:pp_print_newline format_trace_node) ppf
 
 (* PREV VERSIONS *)
 

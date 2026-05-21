@@ -104,15 +104,9 @@ let name : type a. a t -> string = function
 
 let compare_log_entries l1 l2 =
   match l1, l2 with
-  | ScopeCall s1, ScopeCall s2 -> ScopeName.compare s1 s2
+  | ScopeCall s1, ScopeCall s2 -> MarkedIdent.compare s1 s2
   | ScopeVarDef (k1, t1), ScopeVarDef (k2, t2) ->
-    let kcompare =
-      match k1, k2 with
-      | ScopeVar sv1, ScopeVar sv2 | SubScope (sv1, _), SubScope (sv2, _) ->
-        ScopeVar.compare sv1 sv2
-      | ScopeVar _, _ -> 1
-      | _ -> -1
-    in
+    let kcompare = MarkedIdent.compare k1 k2 in
     if kcompare = 0 then
       let ocompare = Bool.compare t1.log_io_output t2.log_io_output in
       if ocompare = 0 then
@@ -124,14 +118,15 @@ let compare_log_entries l1 l2 =
         | _, OnlyInput -> -1
       else ocompare
     else kcompare
-  | ToplevelVarDef v1, ToplevelVarDef v2
   | LocalVarDef v1, LocalVarDef v2
+  | ToplevelVarDef v1, ToplevelVarDef v2
   | FunCall v1, FunCall v2 ->
     MarkedIdent.compare v1 v2
-  | Branching None, Branching None -> 0
+  | BranchingCondition, BranchingCondition -> 0
   | Branching (Some _), Branching None -> 1
   | Branching None, Branching (Some _) -> -1
-  | Branching (Some c1), Branching (Some c2) -> EnumConstructor.compare c1 c2
+  | Branching None, Branching None -> 0
+  | Branching (Some c1), Branching (Some c2) -> Ident.compare c1 c2
   | Exception, Exception -> 0
   | ScopeCall _, _ -> 1
   | _, ScopeCall _ -> -1
@@ -143,6 +138,8 @@ let compare_log_entries l1 l2 =
   | _, LocalVarDef _ -> -1
   | FunCall _, _ -> 1
   | _, FunCall _ -> -1
+  | BranchingCondition, _ -> 1
+  | _, BranchingCondition -> -1
   | Branching _, _ -> 1
   | _, Branching _ -> -1
   | Exception, _ -> .

@@ -336,12 +336,13 @@ type var_def_log = {
 }
 
 type log_entry =
-  | ScopeCall of ScopeName.t
-  | ScopeVarDef of scope_var_or_subscope * var_def_log
+  | ScopeCall of MarkedIdent.t
+  | ScopeVarDef of MarkedIdent.t * var_def_log
   | ToplevelVarDef of MarkedIdent.t
   | LocalVarDef of MarkedIdent.t
   | FunCall of MarkedIdent.t (* ?? *)
-  | Branching of EnumConstructor.t option (* For pattern-matching *)
+  | BranchingCondition
+  | Branching of Ident.t option
   | Exception (* label? *)
 
 module Op = struct

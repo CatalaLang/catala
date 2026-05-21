@@ -158,25 +158,6 @@ let rec evaluate_operator
   match op, args with
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
-  | Log entry, [(e, m)] when Global.options.trace <> None -> (
-    ignore (e, m);
-    match entry with _ -> failwith "TODO"
-    (* | BeginCall -> Runtime.log_begin_call rtinfos e *)
-    (* | EndCall -> Runtime.log_end_call rtinfos e *)
-    (* | PosRecordIfTrueBool -> *)
-    (*   (match e with *)
-    (*   | ELit (LBool b) -> *)
-    (*     Runtime.log_decision_taken (Expr.pos_to_runtime pos) b |> ignore *)
-    (*   | _ -> ()); *)
-    (*   e *)
-    (* | VarDef def -> *)
-    (*   Mark.remove *)
-    (*   @@ Runtime.log_variable_definition rtinfos *)
-    (*        { *)
-    (*          Runtime.io_input = def.log_io_input; *)
-    (*          io_output = def.log_io_output; *)
-    (*        } *)
-    (*        (Expr.embed_value ctx) (e, m)) *))
   | Log _, [(e', _)] -> e'
   | (FromClosureEnv | ToClosureEnv), [e'] ->
     (* [FromClosureEnv] and [ToClosureEnv] are just there to bypass the need for
@@ -854,6 +835,64 @@ let rec evaluate_expr : type d r.
           if Global.options.debug then Format.fprintf ppf ":@ %a" Expr.format e
           else ())
         e1)
+  | EAppOp { op = Log entry, _; args = [e]; _ }
+    when Global.options.trace <> None -> (
+    let pos = Expr.pos e in
+    match entry, Mark.remove e with
+    | ( ScopeCall (scope_name, _decl_pos),
+        EApp ({ args = [in_struct]; _ } as eapp) ) ->
+      let kind = Runtime.ScopeCall { scope_name } in
+      let eval_in_struct = evaluate_expr ctx lang in_struct in
+      Runtime.with_trace kind (Expr.pos_to_runtime pos) (fun () ->
+          let runtime_in_struct = Expr.embed_value ctx eval_in_struct in
+          ( Some runtime_in_struct,
+            evaluate_expr ctx lang
+              (EApp { eapp with args = [in_struct] }, Mark.get e) ))
+    | ScopeVarDef ((var_name, decl_pos), _var_def_log), _ ->
+      let kind =
+        Runtime.ScopeVarDef
+          {
+            scope_var_def = { var_name; pos = Expr.pos_to_runtime decl_pos };
+            (* exceptions = []; *)
+          }
+      in
+      Runtime.with_trace kind (Expr.pos_to_runtime pos) (fun () ->
+          let e = evaluate_expr ctx lang e in
+          Some (Expr.embed_value ctx e), e)
+    | ToplevelVarDef _, _ -> (* ignore topdefs ? *) evaluate_expr ctx lang e
+    | LocalVarDef (var_name, decl_pos), _ ->
+      let kind =
+        Runtime.LocalVarDef { var_name; pos = Expr.pos_to_runtime decl_pos }
+      in
+      Runtime.with_trace kind (Expr.pos_to_runtime pos) (fun () ->
+          let e = evaluate_expr ctx lang e in
+          Some (Expr.embed_value ctx e), e)
+    | FunCall (func_name, _decl_pos), _ ->
+      let kind : Runtime.trace_kind = Runtime.FunCall { func_name } in
+      Runtime.with_trace kind (Expr.pos_to_runtime pos) (fun () ->
+          let e = evaluate_expr ctx lang e in
+          Some (Expr.embed_value ctx e), e)
+    | BranchingCondition, _ ->
+      Runtime.with_trace BranchingCondition (Expr.pos_to_runtime pos) (fun () ->
+          let e = evaluate_expr ctx lang e in
+          Some (Expr.embed_value ctx e), e)
+    | Branching None, _ ->
+      Runtime.with_trace IfBranching (Expr.pos_to_runtime pos) (fun () ->
+          None, evaluate_expr ctx lang e)
+    | Branching (Some constructor_name), _ ->
+      Format.eprintf "%a@." Print.s_expr e;
+      Runtime.with_trace
+        (MatchBranching { constructor_name })
+        (Expr.pos_to_runtime pos)
+        (fun () -> None, evaluate_expr ctx lang e)
+    | Exception, _ ->
+      (* ?? *)
+      (* evaluate_expr ctx lang e *)
+      Runtime.with_trace Exception (Expr.pos_to_runtime pos) (fun () ->
+          None, evaluate_expr ctx lang e)
+    | entry, _ ->
+      Message.warning "Unmatched trace logging: %a" Print.log_entry entry;
+      evaluate_expr ctx lang e)
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
     evaluate_operator ctx (evaluate_expr ctx lang) op m args
@@ -925,7 +964,10 @@ let rec evaluate_expr : type d r.
           "%a" Format.pp_print_text
           "Error during match: two different enums found";
       let f, tys =
-        match EnumConstructor.Map.find_opt cons cases with
+        match
+          Option.map (evaluate_expr ctx lang)
+            (EnumConstructor.Map.find_opt cons cases)
+        with
         | Some ((EAbs { tys; _ }, _) as f) -> f, tys
         | _ ->
           Message.error ~internal:true ~pos:(Expr.pos e) "Match branch error"
@@ -1223,11 +1265,20 @@ let interpret_program_dcalc ?input ?on_expr p s :
         [TStruct s_in, Expr.pos e]
         (Expr.pos e)
     in
-    match
-      Mark.remove
-        (evaluate_expr_safe ?on_expr ctx p.lang (Expr.unbox to_interpret))
-    with
-    | EStruct { fields; _ } ->
+    if Global.options.trace <> None then (
+      (* Format.eprintf "to_interpret:@\n%a@." Print.s_expr *)
+      (*   (Expr.unbox to_interpret); *)
+      Runtime.reset_trace_context ();
+      let scope_name, pos = ScopeName.get_info s in
+      Runtime.begin_trace (ScopeCall { scope_name }) (Expr.pos_to_runtime pos));
+    match evaluate_expr_safe ?on_expr ctx p.lang (Expr.unbox to_interpret) with
+    | (EStruct { fields; _ }, _) as v ->
+      if Global.options.trace <> None then (
+        Runtime.end_trace ~value:(Expr.embed_value ctx v) ();
+        Format.fprintf (Message.std_ppf ()) "%a@." Runtime.format_trace_context
+          (Runtime.retrieve_trace_context ()));
+      (* Format.eprintf "%a@." Runtime.format_trace_positions *)
+      (*   (Runtime.retrieve_trace_context ()); *)
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)

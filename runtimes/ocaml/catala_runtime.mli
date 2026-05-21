@@ -223,12 +223,42 @@ type information = string list
 
 (** {3 The raw events} *)
 
-(* type event_elt = *)
-(*   | Call of information * event_elt list *)
-(*   | VariableDefinition of information * io_log * Value.t *)
-(* (\* | DecisionTaken of code_location *\) *)
+type trace_kind =
+  | ScopeCall of { scope_name : string }
+  | ScopeVarDef of {
+      scope_var_def : trace_var_def;
+          (* exceptions : trace_exception_info list; (\* ? *\) *)
+    }
+  | LocalVarDef of trace_var_def
+  | FunCall of { func_name : string }
+  | BranchingCondition
+  | IfBranching
+  | MatchBranching of { constructor_name : string }
+  | Assertion
+  | Exception
+  | Error of { message : string }
 
-(* val retrieve_log : unit -> event_elt list *)
+and trace_var_def = { var_name : string; pos : code_location }
+
+and trace_exception_info = {
+  (* TODO? *)
+  label : string option;
+  condition : (bool * code_location) option;
+}
+
+val single_trace : trace_kind -> code_location -> unit
+val begin_trace : trace_kind -> code_location -> unit
+val end_trace : ?value:Value.t -> unit -> unit
+
+val with_trace :
+  trace_kind -> code_location -> (unit -> Value.t option * 'a) -> 'a
+
+type trace_context
+
+val retrieve_trace_context : unit -> trace_context
+val reset_trace_context : unit -> unit
+val format_trace_context : Format.formatter -> trace_context -> unit
+val format_trace_positions : Format.formatter -> trace_context -> unit
 
 type raw_event =
   | BeginCall of information  (** Subscope or function call. *)

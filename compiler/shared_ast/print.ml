@@ -218,20 +218,15 @@ let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
     Format.fprintf fmt "%s<%s>" id (Pos.to_string_shorter pos)
   in
   match entry with
-  | LocalVarDef m -> Format.fprintf fmt "LocalVarDef(%a)" pp_marked_ident m
+  | LocalVarDef v -> Format.fprintf fmt "LocalVarDef(%a)" pp_marked_ident v
   | ToplevelVarDef m ->
     Format.fprintf fmt "ToplevelVarDef(%a)" pp_marked_ident m
-  | ScopeVarDef (ScopeVar v, _def_log) ->
-    Format.fprintf fmt "ScopeVarDef(%s, ...)" (ScopeVar.to_string v)
-  | ScopeVarDef (SubScope (v, subscope), _def_log) ->
-    Format.fprintf fmt "SubScopeVarDef(%s from scope %s)" (ScopeVar.to_string v)
-      (ScopeName.to_string subscope)
-  | ScopeCall scope ->
-    Format.fprintf fmt "ScopeCall(%s)" (ScopeName.to_string scope)
+  | ScopeVarDef (v, _def_log) -> Format.fprintf fmt "ScopeVarDef(%s)" (fst v)
+  | ScopeCall scope -> Format.fprintf fmt "ScopeCall(%s)" (fst scope)
   | FunCall f -> Format.fprintf fmt "FunCall(%a)" pp_marked_ident f
+  | BranchingCondition -> Format.fprintf fmt "BranchingCondition"
   | Branching None -> Format.fprintf fmt "IfBranching"
-  | Branching (Some cstr) ->
-    Format.fprintf fmt "MatchBranching(%s)" (EnumConstructor.to_string cstr)
+  | Branching (Some cstr) -> Format.fprintf fmt "MatchBranching(%s)" cstr
   | Exception -> Format.fprintf fmt "Exception"
 
 let operator_to_string : type a. a Op.t -> string =
@@ -251,7 +246,7 @@ let operator_to_string : type a. a Op.t -> string =
   | Round -> "round"
   | Round_rat -> "round_rat"
   | Round_mon -> "round_mon"
-  | Log log -> Format.asprintf "Log:%a" log_entry log
+  | Log log -> Format.asprintf "Log(%a)" log_entry log
   | Minus -> "-"
   | Minus_int -> "-!"
   | Minus_rat -> "-."
@@ -1229,6 +1224,10 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
   | ELit (LDate d) -> pf fmt "LitDate<%a>" Dates_calc.format_date d
   | ELit (LDuration d) -> pf fmt "LitDur<%a>" Dates_calc.format_period d
   | EApp { f; args; _ } -> pf fmt "@[<hov 1>App(%a,@ %a)@]" s_expr f ppl args
+  | EAppOp { op = Log entry, m_op; args; _ } ->
+    pf fmt "@[<hov 1>AppOp( Log(%a,%s),@ %a)@]" log_entry entry
+      (Pos.to_string_shorter m_op)
+      ppl args
   | EAppOp { op; args; _ } ->
     pf fmt "@[<hov 1>AppOp( %s,@ %a)@]"
       (operator_to_string (Mark.remove op))

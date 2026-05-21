@@ -685,6 +685,7 @@ module Commands = struct
     in
     get_output_format options output
     @@ fun _ fmt ->
+    if s_expr then Print.program_s_expr ~debug:options.Global.debug fmt prg;
     match ex_scopes with
     | [] ->
       if s_expr then Print.program_s_expr ~debug:options.Global.debug fmt prg

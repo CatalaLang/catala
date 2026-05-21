@@ -99,7 +99,6 @@ let merge_defaults
           (Expr.with_ty m_callee
              (Mark.add (Expr.mark_pos m_callee) (TLit TBool)))
       in
-
       let cons = Expr.make_puredefault (Expr.rebox body) in
       let d =
         Expr.edefault ~excepts:[caller] ~just:ltrue ~cons (Mark.get cons)
@@ -231,9 +230,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
                 EnumConstructor.format constructor EnumName.format name
           in
           let case_d =
-            tag_with_log_entry
-              (translate_expr ctx case_e)
-              (Branching (Some constructor))
+            (* tag_with_log_entry *)
+            translate_expr ctx case_e
+            (* (Branching (Some (EnumConstructor.to_string constructor))) *)
           in
           ( EnumConstructor.Map.add constructor case_d d_cases,
             EnumConstructor.Map.remove constructor e_cases ))
@@ -247,6 +246,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
         (EnumConstructor.Map.format_keys ~pp_sep:(fun fmt () ->
              Format.fprintf fmt ", "))
         remaining_e_cases;
+    (* let e1 = tag_with_log_entry (translate_expr ctx e1) BranchingCondition
+       in *)
     let e1 = translate_expr ctx e1 in
     Expr.ematch ~e:e1 ~name ~cases:d_cases m
   | EScopeCall { scope; args } ->
@@ -309,19 +310,19 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     in
     let called_func =
       let m = mark_tany m pos in
-      let e =
-        match sc_sig.scope_sig_scope_ref with
-        | Local_scope_ref v -> Expr.evar v m
-        | External_scope_ref name ->
-          Expr.eexternal ~name:(Mark.map (fun s -> External_scope s) name) m
-      in
-      tag_with_log_entry e (ScopeCall scope)
+      match sc_sig.scope_sig_scope_ref with
+      | Local_scope_ref v -> Expr.evar v m
+      | External_scope_ref name ->
+        Expr.eexternal ~name:(Mark.map (fun s -> External_scope s) name) m
     in
     (* calling_expr = scope_function scope_input_struct *)
     let calling_expr =
       Expr.eapp ~f:called_func ~args:[arg_struct]
         ~tys:[TStruct sc_sig.scope_sig_input_struct, pos]
         m
+    in
+    let calling_expr =
+      tag_with_log_entry calling_expr (ScopeCall (ScopeName.get_info scope))
     in
     (* TODO: re-assess that
 
@@ -379,7 +380,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
                        tag_with_log_entry
                          (Expr.make_var param_var (Expr.with_ty m t_in))
                          (ScopeVarDef
-                            ( ScopeVar scope_var,
+                            ( ScopeVar.get_info scope_var,
                               {
                                 log_io_output = false;
                                 log_io_input = OnlyInput;
@@ -463,28 +464,66 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
        user-defined functions belonging to scopes *)
     let e1_func = translate_expr ctx f in
     let e_args = List.map (translate_expr ctx) args in
-    let e_args =
-      List.mapi
-        (fun i (new_arg, input_typ) ->
-          (* TODO: retrieve proper argument name *)
-          tag_with_log_entry new_arg
-            (LocalVarDef
-               (Mark.map (fun _ -> Format.sprintf "fun_arg#%d" i) input_typ)))
-        (List.combine e_args tys)
-    in
+    (* let e_args = *)
+    (*   Message.debug "FUNC: %a" Print.s_expr f; *)
+    (*   let find_gen_arg_names (type a) (e : (a, 'm) gexpr) : MarkedIdent.t list = *)
+    (*     match Mark.remove e with *)
+    (*     | EAbs { binder; pos; _ } -> *)
+    (*       (\* Tag variable bindings *\) *)
+    (*       let vars, _body = Bindlib.unmbind binder in *)
+    (*       List.combine (Bindlib.names_of vars |> Array.to_list) pos *)
+    (*     | _ -> *)
+    (*       Message.debug "bad find gen: %a" Print.s_expr e; *)
+    (*       assert false *)
+    (*   in *)
+    (*   let find_arg_names (e : (scopelang, 'm) gexpr) : MarkedIdent.t list = *)
+    (*     match Mark.remove e with *)
+    (*     | EAbs { binder; pos; _ } -> *)
+    (*       (\* Tag variable bindings *\) *)
+    (*       let vars, _body = Bindlib.unmbind binder in *)
+    (*       List.combine (Bindlib.names_of vars |> Array.to_list) pos *)
+    (*     | ELocation (ToplevelVar { name; _ }) -> *)
+    (*       let var = *)
+    (*         Mark.remove *)
+    (*           (TopdefName.Map.find (Mark.remove name) ctx.toplevel_vars) *)
+    (*       in *)
+    (*       let x = Bindlib.(box_var var |> unbox) in *)
+    (*       find_gen_arg_names (x, m) *)
+    (*     | ELocation (ScopelangScopeVar { name; _ }) -> *)
+    (*       let x = ctx.decl_ctx in *)
+    (*       let var, _, _ = ScopeVar.Map.find (Mark.remove name) ctx.scope_vars in *)
+    (*       let x = Bindlib.(box_var var |> unbox) in *)
+    (*       find_gen_arg_names (x, m) *)
+    (*     | _ -> assert false *)
+    (*     (\* | e_args | ELocation (ScopelangScopeVar { name }) -> *\) *)
+    (*     (\*     (\\* [Mark.map ScopeVar.to_string name] *\\) *\) *)
+    (*     (\*     e_args *\) *)
+    (*     (\*   | _ -> e_args) *\) *)
+    (*     (\* List.mapi *\) *)
+    (*     (\*   (fun i input_typ -> *\) *)
+    (*     (\*      (\\* TODO: retrieve proper argument name *\\) *\) *)
+    (*     (\*      Mark.map (fun _ -> Format.sprintf "fun_arg#%d" i) input_typ) *\) *)
+    (*     (\* tys *\) *)
+    (*   in *)
+    (*   List.map2 *)
+    (*     (fun e var_name -> tag_with_log_entry e (LocalVarDef var_name)) *)
+    (*     e_args (find_arg_names f) *)
+    (* in *)
     let e = Expr.eapp ~f:e1_func ~args:e_args ~tys m in
-    let fname =
-      match Mark.remove f with
-      | ELocation (ScopelangScopeVar { name }) ->
-        Mark.map ScopeVar.to_string name
-      | ELocation (ToplevelVar { name; _ }) ->
-        Mark.map TopdefName.to_string name
-      | _ -> "<anon_fun>", Expr.pos f
-    in
-    tag_with_log_entry e (FunCall fname)
+    begin match Mark.remove f with
+    | ELocation (ScopelangScopeVar { name }) ->
+      let fname = Mark.map ScopeVar.to_string name in
+      tag_with_log_entry e (FunCall fname)
+    | ELocation (ToplevelVar { name; _ }) ->
+      let fname = Mark.map TopdefName.to_string name in
+      tag_with_log_entry e (FunCall fname)
+    | _ -> e
+    end
   | EDefault { excepts; just; cons } ->
     let excepts = collapse_similar_outcomes excepts in
-    let f_exn e = tag_with_log_entry (translate_expr ctx e) Exception in
+    (* let f_exn e = tag_with_log_entry (translate_expr ctx e) Exception in *)
+    (* ??? *)
+    let f_exn e = translate_expr ctx e in
     Expr.edefault ~excepts:(List.map f_exn excepts)
       ~just:(translate_expr ctx just) ~cons:(translate_expr ctx cons) m
   | EPureDefault e -> Expr.epuredefault (translate_expr ctx e) m
@@ -511,14 +550,35 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     let args = List.map (translate_expr ctx) args in
     Expr.eappop ~op:(Sub_dat_dur ctx.date_rounding, opos) ~args ~tys m
   | EIfThenElse { cond; etrue; efalse } ->
-    let etrue, efalse =
-      ( tag_with_log_entry (translate_expr ctx etrue) (Branching None),
-        tag_with_log_entry (translate_expr ctx efalse) (Branching None) )
+    let cond =
+      translate_expr ctx cond
+      (* tag_with_log_entry (translate_expr ctx cond) BranchingCondition *)
     in
-    Expr.eifthenelse (translate_expr ctx cond) etrue efalse m
-  | ( EVar _ | EAbs _ | ELit _ | EStruct _ | EStructAccess _ | ETuple _
-    | ETupleAccess _ | EInj _ | EFatalError _ | EEmpty | EErrorOnEmpty _
-    | EArray _ | EAppOp _ | EPos _ | EAssert _ | EBad ) as e ->
+    let etrue =
+      translate_expr ctx etrue
+      (* tag_with_log_entry (translate_expr ctx etrue) (Branching None) *)
+    in
+    let efalse =
+      translate_expr ctx efalse
+      (* tag_with_log_entry (translate_expr ctx efalse) (Branching None) *)
+    in
+    Expr.eifthenelse cond etrue efalse m
+  | EAbs { binder; pos; tys } as e ->
+    (* Tag variable bindings *)
+    let vars, _body = Bindlib.unmbind binder in
+    let names = List.combine (Bindlib.names_of vars |> Array.to_list) pos in
+    let e = Expr.map ~f:(translate_expr ctx) ~op:Operator.translate (e, m) in
+    (* match tys with *)
+    (* | [(TLit TUnit, _)] -> (\* Do not log thunks *\) e *)
+    (* | _ -> *)
+    (*   List.fold_left *)
+    (*     (fun e name -> tag_with_log_entry e (LocalVarDef name)) *)
+    (*     e names) *)
+    ignore (names, tys);
+    e
+  | ( EVar _ | ELit _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _
+    | EInj _ | EFatalError _ | EEmpty | EErrorOnEmpty _ | EArray _ | EAppOp _
+    | EPos _ | EAssert _ | EBad ) as e ->
     Expr.map ~f:(translate_expr ctx) ~op:Operator.translate (e, m)
 
 (** The result of a rule translation is a list of assignments, with variables
@@ -556,11 +616,7 @@ let translate_rule
     let merged_expr =
       tag_with_log_entry merged_expr
         (ScopeVarDef
-           ( ScopeVar
-               (fst var
-               |> fun s ->
-               ScopeVar.fresh ~from:s
-                 (ScopeVar.to_string s ^ "FROM RULE", Pos.void)),
+           ( ScopeVar.get_info (fst var),
              {
                log_io_output = Mark.remove io.io_output;
                log_io_input = Mark.remove io.io_input;

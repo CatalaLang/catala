@@ -9,39 +9,44 @@ declaration f
 
 declaration scope ScopeA:
   input i content boolean
-  output a content boolean
+  output f_scope_a content boolean depends on x content integer
+  output a_scopeA content boolean
 
 scope ScopeA:
-  definition a equals i
+  definition f_scope_a of x equals
+    match (if x = 3 then Absent else Present content 3) with pattern
+    -- Absent : false
+    -- anything : true
+  definition a_scopeA equals i
 
 declaration scope ScopeB:
-  output a content boolean
-  subscope scope ScopeA
+  output a_scopeB content boolean
+  ssv scope ScopeA
   internal g content boolean depends on x content integer
   output res content ScopeA
 
 scope ScopeB:
-  definition subscope.i equals true
+  definition ssv.i equals let zzz equals 333 in true
 
   label base
-  definition a equals subscope.a
+  definition a_scopeB equals ssv.a_scopeA
 
   label one exception base
-  definition a
-  under condition 42 > 42
+  definition a_scopeB
+  under condition 42 = 42
   consequence equals
-    not subscope.a
+    not ssv.a_scopeA
 
   label two exception one
-  definition a
+  definition a_scopeB
   under condition 43 > 43
   consequence equals
-    not subscope.a
+    not (ssv.f_scope_a of 2 or ssv.a_scopeA)
 
   definition g of x equals
-    match Absent with pattern
+    match (if x = 3 then Absent else Present content 3) with pattern
     -- Absent : false
-    -- Present content p : true
+    -- anything : true
 
   definition res equals
     output of ScopeA with { -- i: f of 2 or g of 3 }
