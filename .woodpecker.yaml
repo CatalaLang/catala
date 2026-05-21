@@ -102,5 +102,5 @@ steps:
       - cd catala-language-server
       - npm install
       - opam install . --ignore-constraints-on=catala --ignore-pin-depends --with-test -y
-      - dune runtest
+      - dune runtest --root .
 
