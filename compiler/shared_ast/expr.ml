@@ -1051,6 +1051,18 @@ let rec make_seq = function
     let e2 = make_seq es in
     make_let_in v (TLit TUnit, pos e1) e1 e2 (pos e2)
 
+let rec seq_last_element = function
+  | ( EApp
+        {
+          args = [_];
+          tys = [(TLit TUnit, _)];
+          f = EAbs { binder; tys = [(TLit TUnit, _)]; pos = _ }, _;
+        },
+      _ ) ->
+    let _, body = Bindlib.unmbind binder in
+    seq_last_element body
+  | e -> e
+
 let make_puredefault e =
   let mark =
     map_mark

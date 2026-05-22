@@ -758,11 +758,11 @@ let rec evaluate_expr : type d r.
     | None -> fun r -> r
     | Some label_opt ->
       fun r ->
-        Message.debug "%a%a @{<grey>(at %s)@}"
+        Message.debug "%a%a @{<grey>(at %a)@}"
           (fun ppf -> function
             | Some s -> Format.fprintf ppf "@{<bold;yellow>%s@} = " s
             | None -> ())
-          label_opt (Print.expr ()) r (Pos.to_string_short pos);
+          label_opt (Print.expr ()) r Message.pp_pos pos;
         r)
   @@
   match Mark.remove e with
@@ -932,10 +932,17 @@ let rec evaluate_expr : type d r.
       {
         cond = EAppOp { op = Not, _; args = [pred]; _ }, _;
         efalse = ELit LUnit, _;
-        etrue =
-          EFatalError_pos { error = AssertionFailed; pos_expr = EPos pos, _ }, _;
-      } ->
+        etrue = seq;
+      }
+    when match Expr.seq_last_element seq with
+         | EFatalError_pos { error = AssertionFailed; _ }, _ -> true
+         | _ -> false ->
     (* For lcalc's already compiled assertions *)
+    let pos =
+      match Expr.seq_last_element seq with
+      | EFatalError_pos { pos_expr = EPos pos, _; _ }, _ -> pos
+      | _ -> assert false
+    in
     handle_assert ~eval_expr:(evaluate_expr ctx lang) ~lang pred m pos
   | EAssert pred ->
     handle_assert ~eval_expr:(evaluate_expr ctx lang) ~lang pred m pos

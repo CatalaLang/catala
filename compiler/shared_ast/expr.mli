@@ -436,6 +436,10 @@ val make_multiple_let_in :
 
 val make_seq : ('a, 'm) boxed_gexpr list -> ('a any, 'm) boxed_gexpr
 
+val seq_last_element : ('a, 'm) gexpr -> ('a any, 'm) gexpr
+(** Retrieves the "return value" [z] in a sequence [x; y; z]. More exactly, (λ
+    (). z) ((λ (). y) x) --> z *)
+
 val make_tuple :
   ('a any, 'm) boxed_gexpr list -> 'm mark -> ('a, 'm) boxed_gexpr
 (** Builds a tuple; the mark argument is only used as witness and for position
