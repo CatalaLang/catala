@@ -858,10 +858,10 @@ let catala_test_commands = if commands = [] then test_scopes else commands
         (ScopeName.Map.find scope p.decl_ctx.ctx_scopes).out_struct_name
       in
       Format.fprintf fmt
-        "@[<v>if List.mem `Test catala_test_flags then ()@,\
-         @[<hv 2>else if List.mem `Json catala_test_flags then@ print_endline \
-         (Catala_runtime.Json.runtime_value@ (Catala_runtime.Value.embed \
-         %a.rtype result))@]@,\
+        "@[<v>if Stdlib.List.mem `Test catala_test_flags then ()@,\
+         @[<hv 2>else if Stdlib.List.mem `Json catala_test_flags then@ \
+         print_endline (Catala_runtime.Json.runtime_value@ \
+         (Catala_runtime.Value.embed %a.rtype result))@]@,\
          @[<hv 2>else Format.printf \"@@[<v>%%a@@]@@.\"@ \
          Catala_runtime.Value.format@ (Catala_runtime.Value.embed %a.rtype \
          result)@]"
