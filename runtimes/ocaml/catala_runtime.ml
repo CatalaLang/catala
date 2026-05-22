@@ -789,11 +789,16 @@ module BufferedJson = struct
         value
     | V (Struct str, s) ->
       let fields = str.fields s in
+      let pfield buf (name, v) =
+        Printf.bprintf buf "%a: %a" quote name runtime_value v
+      in
       Printf.bprintf buf {|{"kind": "struct", "name": "%s", "fields": {%a}}|}
         str.name
-        (fun buf ->
-          List.iter (fun (name, v) ->
-              Printf.bprintf buf {|"%a": %a|} quote name runtime_value v))
+        (fun buf -> function
+          | f :: r ->
+            pfield buf f;
+            List.iter (fun f -> Printf.bprintf buf ", %a" pfield f) r
+          | [] -> ())
         fields
     | V (Array t, a) ->
       Printf.bprintf buf {|{"kind": "array", "value":[%a]}|}

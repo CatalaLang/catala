@@ -813,19 +813,24 @@ let format_scope_exec_args
 
   Format.pp_print_string fmt
     {|
-let commands =
-  Stdlib.List.map (fun c ->
-      if Stdlib.List.mem c test_scopes then c else (
-        Stdlib.print_endline
-          "Specify scopes from the following list (or no argument \
-           for running them all):";
-        Stdlib.List.iter (fun n -> Stdlib.print_endline ("  - " ^ n))
-          test_scopes;
-        Stdlib.exit 1
-      ))
+let catala_test_flags, commands =
+  Stdlib.List.partition_map (function
+    | "--test" -> Left `Test
+    | "--json" -> Left `Json
+    | c when Stdlib.List.mem c test_scopes -> Right c
+    | c ->
+      Stdlib.print_endline
+        "Specify scopes from the following list (or no argument \
+         for running them all):";
+      Stdlib.List.iter (fun n -> Stdlib.print_endline ("  - " ^ n))
+        test_scopes;
+      Stdlib.print_endline
+        "Allowed flags:\n  --test\tcheck without printing results\n\
+        \  --json\toutput results in JSON";
+      Stdlib.exit 1)
     (Stdlib.List.tl (Stdlib.Array.to_list Stdlib.Sys.argv))
 
-let commands = if commands = [] then test_scopes else commands
+let catala_test_commands = if commands = [] then test_scopes else commands
 
 |};
   let modname =
@@ -840,20 +845,28 @@ let commands = if commands = [] then test_scopes else commands
   List.iter
     (fun (scope, e) ->
       Format.fprintf fmt
-        "@[<v 2>let () =@ Print.set_lang `%s; if Stdlib.List.mem %S commands \
-         then (@ @[<hv>@[<hov 2>let result =@ @[<hv>%a@]@]@,\
+        "@[<v 2>let () =@ Print.set_lang `%s; if Stdlib.List.mem %S \
+         catala_test_commands then (@ @[<hv>@[<hov 2>let result =@ \
+         @[<hv>%a@]@]@,\
          in@,\
          @[<v 2>Format.eprintf \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
-         successfully.@@.\";@]@,\
-         @[<v 2>Format.printf \"@@[<v>%%a@@]@@.\"@,\
-         Catala_runtime.Value.format (Catala_runtime.Value.embed %a.rtype \
-         result)@]@]@]@,\
-         )@,"
+         successfully.@@.\";@]@,"
         (match p.lang with `En -> "En" | `Fr -> "Fr" | _ -> "En")
         (ScopeName.to_string scope)
-        (format_expr p.decl_ctx) e ScopeName.format_original scope
-        StructName.format
-        (ScopeName.Map.find scope p.decl_ctx.ctx_scopes).out_struct_name)
+        (format_expr p.decl_ctx) e ScopeName.format_original scope;
+      let struct_name =
+        (ScopeName.Map.find scope p.decl_ctx.ctx_scopes).out_struct_name
+      in
+      Format.fprintf fmt
+        "@[<v>if List.mem `Test catala_test_flags then ()@,\
+         @[<hv 2>else if List.mem `Json catala_test_flags then@ print_endline \
+         (Catala_runtime.Json.runtime_value@ (Catala_runtime.Value.embed \
+         %a.rtype result))@]@,\
+         @[<hv 2>else Format.printf \"@@[<v>%%a@@]@@.\"@ \
+         Catala_runtime.Value.format@ (Catala_runtime.Value.embed %a.rtype \
+         result)@]"
+        StructName.format struct_name StructName.format struct_name;
+      Format.fprintf fmt "@]@]@,)@,")
     tests;
   Format.pp_close_box fmt ()
 
