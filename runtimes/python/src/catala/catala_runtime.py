@@ -24,6 +24,14 @@ Alpha = TypeVar('Alpha', bound='Value')
 Beta = TypeVar('Beta', bound='Value')
 Gamma = TypeVar('Gamma', bound='Value')
 
+class Lang(Enum):
+    En = 'En'
+    Fr = 'Fr'
+    Pl = 'Pl'
+
+lang = Lang.En
+max_decimals = 6
+
 # ================================
 # Base class for all Catala values
 # ================================
@@ -403,11 +411,19 @@ class Bool(Value):
         return self.value - other.value
 
     def __str__(self, indent: int = 0):
-        if self.value: return "true"
-        else: return "false"
+        if self.value:
+            return {Lang.En: "true", Lang.Fr: "vrai", Lang.Pl: "prawda"}[lang]
+        else:
+            return {Lang.En: "false", Lang.Fr: "faux", Lang.Pl: "falsz"}[lang]
 
 true = Bool(True)
 false = Bool(False)
+
+def bigsep():
+    return (' ' if lang == Lang.Fr else ',')
+def decsep():
+    return (',' if lang == Lang.Fr else '.')
+
 
 class Integer(Value, int): #type:ignore[misc]
     def __new__(cls, value: Union[str, int, Decimal, Money]) -> Integer:
@@ -420,7 +436,16 @@ class Integer(Value, int): #type:ignore[misc]
         return Decimal(self).__truediv__(Decimal(other), pos)
 
     def __str__(self, indent: int = 0) -> str:
-        return str(int(self))
+        x = abs(int(self))
+        chunks = [x]
+        x = x // 1000
+        while x != 0:
+            chunks.append(x)
+            x = x // 1000
+        return  (
+            ('-' if int(self) < 0 else '') +
+            bigsep().join([ (f'%0d' if c < 1000 else f'%03d') % (c % 1000) for c in reversed(chunks) ])
+        )
 
     def __repr__(self) -> str:
         return f"Integer({int(self)})"
@@ -442,10 +467,24 @@ class Decimal(Value, Fraction): #type:ignore[misc]
         return obj
 
     def __str__(self, indent: int = 0) -> str:
-        return "%.10f" % self
+        n = abs(int(self.numerator)) % self.denominator
+        decimals = [str(10 * n // self.denominator)]
+        ndec = 1
+        n = 10 * n % self.denominator
+        while n != 0 and ndec < max_decimals:
+            if ndec % 3 == 0: decimals.append(bigsep())
+            decimals.append(str(10 * n // self.denominator))
+            n = 10 * n % self.denominator
+            ndec = ndec + 1
+        return (
+            Integer(self).__str__(indent) +
+            decsep() +
+            ''.join(decimals) +
+            ('…' if n != 0 else '')
+        )
 
     def __repr__(self) -> str:
-        return f"Decimal({self.numerator}, {self.denominator})"
+        return f"Decimal({self.numerator.__repr__()}, {self.denominator.__repr__()})"
 
     def round(self) -> Decimal:
         return Decimal(round(self))
@@ -483,7 +522,16 @@ class Money(Value, int): #type:ignore[misc]
             return self * (Decimal(1).__truediv__(Decimal(other)))
 
     def __str__(self, indent: int = 0) -> str:
-        return "%01.2f€" % Decimal(self)
+        n = abs(self)
+        return (
+            ('-' if int(self) < 0 else '') +
+            ('$' if lang == Lang.En else '') +
+            Integer(int(n) // 100).__str__(indent) +
+            decsep() +
+            f'%02d' % (n % 100) +
+            (' €' if lang == Lang.Fr else
+             ' PLN' if lang == Lang.Pl else '')
+        )
 
     def __repr__(self) -> str:
         return f"Money({int(self)})"
@@ -616,7 +664,23 @@ class Duration(Value):
             raise DateError(pos, "ambiguous comparison between durations in different units (e.g. months vs. days)")
 
     def __str__(self, indent: int = 0) -> str:
-        return f'[{self.value.years} years, {self.value.months} months, {self.value.days} days]'
+        def pr(x, r):
+            if x == 0: return ''
+            label = r[lang]
+            if abs(x) > 1 and lang != Lang.Pl and label[-1] != 's':
+                label = label + 's'
+            return f'%d %s' % (x, label)
+        label_year = { Lang.En: 'year', Lang.Fr: 'an', Lang.Pl: 'rok' }
+        label_month = { Lang.En: 'month', Lang.Fr: 'mois', Lang.Pl: 'miesiac' }
+        label_day = { Lang.En: 'day', Lang.Fr: 'jour', Lang.Pl: 'dzien' }
+        return (
+            '[' +
+            pr(self.value.years, label_year) +
+            pr(self.value.months, label_month) +
+            pr(self.value.days, label_day) +
+            (f'0 %s' % label_day[lang] if self.value.months == self.value.months == self.value.days == 0 else '') +
+            ']'
+        )
 
     def __repr__(self) -> str:
         return f"Duration({self.value.__repr__()})"

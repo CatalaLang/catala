@@ -871,7 +871,8 @@ let run_targets
     iter_commands ~build_dir test_targets
     @@ fun item target ->
     let cmd = link_cmd item target in
-    Message.debug "Running command: '%s'..." (String.concat " " cmd);
+    if cmd <> [] then
+      Message.debug "Running command: '%s'..." (String.concat " " cmd);
     match Clerk_cli.run_command_line cmd with
     | 0 -> run_artifact ~test config ~backend ~var_bindings ?scope target
     | n -> n)
