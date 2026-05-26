@@ -167,11 +167,8 @@ let colordiff_str s1 s2 =
 let diff_command =
   lazy begin match disp_flags.diff_command with
   | None ->
-    let open Testo_diff.Make (struct
+    let open Clerk_utils.Diff.Make (struct
       include String
-
-      let pp _ = assert false
-      let show _ = assert false
     end) in
     let stringdiff ppf s1 s2 =
       let width = Message.terminal_columns () - 5 in

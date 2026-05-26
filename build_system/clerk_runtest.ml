@@ -219,14 +219,22 @@ let run_catala_test_scopes
            [
              bos;
              group ~name:"file" @@ rep1 (diff any (char ':'));
-             char ':';
-             group ~name:"line0" @@ rep1 digit;
-             char '.';
-             group ~name:"col0" @@ rep1 digit;
-             char '-';
-             group ~name:"line1" @@ rep1 digit;
-             char '.';
-             group ~name:"col1" @@ rep1 digit;
+             opt
+               (seq
+                  [
+                    char ':';
+                    group ~name:"line0" @@ rep1 digit;
+                    opt (seq [char '.'; group ~name:"col0" @@ rep1 digit]);
+                    opt
+                      (seq
+                         [
+                           char '-';
+                           group ~name:"end" @@ rep1 digit;
+                           opt
+                             (seq
+                                [char '.'; group ~name:"endcol" @@ rep1 digit]);
+                         ]);
+                  ]);
              str ": [ERROR]";
              rep (alt [set " :/"; digit]);
              group ~name:"message" @@ rep1 any;
@@ -234,15 +242,23 @@ let run_catala_test_scopes
     in
     match Re.exec_opt re_error line with
     | Some g ->
-      let gets label =
-        Re.Group.get g (List.assoc label (Re.group_names re_error))
-      in
-      let file = gets "file" in
+      let gr label = List.assoc label (Re.group_names re_error) in
+      let file = Re.Group.get g (gr "file") in
       let pos = get_pos file in
-      let geti label = int_of_string (gets label) in
-      Some
-        ( (pos (geti "line0") (geti "col0"), pos (geti "line1") (geti "col1")),
-          gets "message" )
+      let geti label =
+        Re.Group.get_opt g (gr label) |> Option.map int_of_string
+      in
+      let li0, col0, li1, col1 =
+        match geti "line0", geti "col0", geti "end", geti "endcol" with
+        | None, None, None, None -> 0, 0, -1, -1
+        | Some l, None, None, None -> l, 0, l, -1
+        | Some l, Some c, None, None -> l, c, l, c
+        | Some l, None, Some l2, None -> l, 0, l2, -1 (* listart-liend *)
+        | Some l, Some c, Some c2, None -> l, c, l, c2 (* li.colstart-colend *)
+        | Some l, Some c, Some l2, Some c2 -> l, c, l2, c2
+        | _ -> assert false
+      in
+      Some ((pos li0 col0, pos li1 col1), Re.Group.get g (gr "message"))
     | None -> None
   in
   let re_line =
