@@ -100,6 +100,7 @@ let name : type a. a t -> string = function
     Printf.sprintf "o_is(%s.%s)" (EnumName.to_string e)
       (EnumConstructor.to_string c)
   | ValueFromJson (_ty, str) -> Printf.sprintf "from_json(%s)" str
+  | DebugPrint str -> Printf.sprintf "debug_print(%s)" str
 
 let compare_log_entries l1 l2 =
   match l1, l2 with
@@ -199,11 +200,14 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | FromClosureEnv, FromClosureEnv | ToClosureEnv, ToClosureEnv -> 0
   | ArrayAccess n1, ArrayAccess n2 -> compare n1 n2
   | ConstructorCheck (_, c1), ConstructorCheck (_, c2) -> EnumConstructor.compare c1 c2
+  | Sort o1, Sort o2 -> (match o1, o2 with
+      | `Asc, `Asc | `Desc, `Desc -> 0
+      | `Desc, `Asc -> -1 | `Asc, `Desc -> 1)
+  | DebugPrint s1, DebugPrint s2 -> String.compare s1 s2
   | ValueFromJson (ty1, j1), ValueFromJson (ty2, j2) ->
     (match Type.compare ty1 ty2 with
      | 0 -> String.compare j1 j2
      | n -> n)
-  | Sort o1, Sort o2 -> (match o1, o2 with `Asc, `Asc | `Desc, `Desc -> 0 | `Desc, `Asc -> -1 | `Asc, `Desc -> 1)
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
   | Log _, _ -> -1 | _, Log _ -> 1
@@ -271,6 +275,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | ToClosureEnv, _ -> -1 | _, ToClosureEnv -> 1
   | ArrayAccess _, _ -> -1 | _, ArrayAccess _ -> 1
   | ConstructorCheck _, _ -> -1 | _, ConstructorCheck _  -> 1
+  | DebugPrint _, _ -> -1 | _, DebugPrint _ -> 1
   | ValueFromJson _, _ | _, ValueFromJson _ -> .
 
 let equal t1 t2 = compare t1 t2 = 0
@@ -290,7 +295,7 @@ let kind_dispatch : type a.
   | ((Not | And | Or | Xor | ValueFromJson _), _) as op -> monomorphic op
   | ( ( Log _ | Length | Eq | Concat | Map | Filter | Find | Reduce | Sort _
       | Map2 | Fold | Lt | Lte | Gt | Gte | HandleExceptions | FromClosureEnv
-      | ToClosureEnv | ArrayAccess _ | ConstructorCheck _ ),
+      | ToClosureEnv | ArrayAccess _ | ConstructorCheck _ | DebugPrint _ ),
       _ ) as op ->
     polymorphic op
   | ((Minus | ToInt | ToRat | ToMoney | Round | Add | Sub | Mult | Div), _) as
@@ -326,7 +331,7 @@ let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
       | Sub_dat_dur _ | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int
       | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon
       | Div_mon_int | Div_mon_rat | Div_dur_dur | FromClosureEnv | ToClosureEnv
-      | ArrayAccess _ | ConstructorCheck _ | ValueFromJson _ ),
+      | ArrayAccess _ | ConstructorCheck _ | ValueFromJson _ | DebugPrint _ ),
       _ ) as op ->
     op
 
@@ -497,7 +502,7 @@ let is_pure : type a. a t -> bool = function
     (* basically, operators that take a position in the backends, and their
        overloaded counterparts: those are the ones that can raise *)
     false
-  | Log _ -> false
+  | Log _ | DebugPrint _ -> false
   | Not | Length | ToClosureEnv | FromClosureEnv | ArrayAccess _
   | ConstructorCheck _ | Minus | Minus_int | Minus_rat | Minus_mon | Minus_dur
   | ToInt | ToInt_mon | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney

@@ -531,6 +531,12 @@ let rec format_expression
       Format.fprintf fmt "catala_new_bool((%a)->code == %s)" format_expression
         arg
         (EnumConstructor.to_string constr)
+  | EAppOp { op = DebugPrint str, _; args = [a]; tys = [ty] } ->
+    Format.fprintf fmt "@[<v>fputs(\"%s = \", stderr);@," str;
+    Format.fprintf fmt "catala_errbuf.indent += 2;@,";
+    Format.fprintf fmt "catala_print (catala_errbuf, embed(%a, %a));@,"
+      format_rtyp ty format_expression a;
+    Format.fprintf fmt "catala_errbuf.indent -= 2;@,fputc('\\n', stderr)@]"
   | EAppOp { op = ((Map | Filter), _) as op; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op op format_expression arg1
       format_expression arg2
@@ -810,6 +816,8 @@ let rec format_statement
       typ
       (format_expression ctx env)
       e
+  | SLocalDef { expr = e; typ = TLit TUnit, _; _ } ->
+    Format.fprintf fmt "@,@[<hov 2>%a;@]" (format_expression ctx env) e
   | SLocalDef { name = v; expr = e; _ } ->
     Format.fprintf fmt "@,@[<hov 2>%a = %a;@]" VarName.format (Mark.remove v)
       (format_expression ctx env)

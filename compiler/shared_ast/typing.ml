@@ -382,6 +382,7 @@ let polymorphic_op_type (op : Operator.polymorphic operator Mark.pos) : typ =
   let any3 = lazy (Type.fresh_var pos) in
   let bt = lazy (TLit TBool, pos) in
   let it = lazy (TLit TInt, pos) in
+  let ut = lazy (TLit TUnit, pos) in
   let cet = lazy (TClosureEnv, pos) in
   let array a = lazy (TArray (Lazy.force a), pos) in
   let option a = lazy (TOption (Lazy.force a), pos) in
@@ -413,6 +414,7 @@ let polymorphic_op_type (op : Operator.polymorphic operator Mark.pos) : typ =
     | FromClosureEnv -> [cet] @-> any
     | ArrayAccess _ -> [array any] @-> any
     | ConstructorCheck _ -> [any] @-> bt
+    | DebugPrint _ -> [any] @-> ut
   in
   Lazy.force ty
 
@@ -454,6 +456,7 @@ let polymorphic_op_return_type
   | ArrayAccess _, [tarr] -> element_type tarr
   | Find, [_; tarr] -> TOption (element_type tarr), pos
   | Sort _, [_; t] -> t
+  | DebugPrint _, _ -> TLit TUnit, pos
   | ( (( Fold | Reduce | Map | Map2 | Filter | Concat | Log _ | HandleExceptions
        | ArrayAccess _ | Find | Sort _ ) as op),
       targs ) ->

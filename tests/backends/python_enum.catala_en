@@ -224,6 +224,7 @@ def s(s_in:SIn) -> S:
     else:
         raise NoValue(loc[1])
     if o.not_().not_():
+        print(f"o = {o.__str__(indent=2)}")
         raise AssertionFailed(loc[3])
     return S(o = o)
 

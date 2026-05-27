@@ -355,6 +355,7 @@ module Op = struct
     | ConstructorCheck :
         (EnumName.t * EnumConstructor.t)
         -> < polymorphic ; .. > t
+    | DebugPrint : string -> < polymorphic ; .. > t
     (* * overloaded *)
     | Minus : < overloaded ; .. > t
     | Minus_int : < resolved ; .. > t

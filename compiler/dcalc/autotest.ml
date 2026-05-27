@@ -85,8 +85,8 @@ let test_scope_outs ctx lang acc env name scope =
     | exception e ->
       if e <> Exit then
         Message.warning
-          "Failed to interpret scope %a: cannot add autotests, will generate \
-           an always-failing test program."
+          "Failed to interpret scope %a: not adding autotests. The generated \
+           test program should be expected to always fail."
           ScopeName.format name;
       acc
     | output_expr -> ScopeName.Map.add name output_expr acc

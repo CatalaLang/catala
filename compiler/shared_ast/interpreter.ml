@@ -359,6 +359,9 @@ let rec evaluate_operator
           cons = Expr.some_constr;
           e = ETuple [e; EPos p, Expr.with_pos p m], m;
         })
+  | DebugPrint s, [v] ->
+    Format.fprintf (Message.err_ppf ()) "@{<blue>%s@} = %a@," s Expr.format v;
+    ELit LUnit
   | ValueFromJson (((TAbstract tid, _) as ty), str), [(ELit LUnit, _)] ->
     let module E = (val Type.lookup_external tid) in
     runtime_to_val ctx m ty
@@ -375,7 +378,7 @@ let rec evaluate_operator
       | Sub_dat_dur _ | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_int
       | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon
       | Div_mon_int | Div_mon_rat | Div_dur_dur | Lt | Lte | Gt | Gte
-      | HandleExceptions ),
+      | HandleExceptions | DebugPrint _ ),
       _ ) ->
     err ()
 
@@ -755,11 +758,11 @@ let rec evaluate_expr : type d r.
     | None -> fun r -> r
     | Some label_opt ->
       fun r ->
-        Message.debug "%a%a @{<grey>(at %s)@}"
+        Message.debug "%a%a @{<grey>(at %a)@}"
           (fun ppf -> function
             | Some s -> Format.fprintf ppf "@{<bold;yellow>%s@} = " s
             | None -> ())
-          label_opt (Print.expr ()) r (Pos.to_string_short pos);
+          label_opt (Print.expr ()) r Message.pp_pos pos;
         r)
   @@
   match Mark.remove e with
@@ -929,10 +932,17 @@ let rec evaluate_expr : type d r.
       {
         cond = EAppOp { op = Not, _; args = [pred]; _ }, _;
         efalse = ELit LUnit, _;
-        etrue =
-          EFatalError_pos { error = AssertionFailed; pos_expr = EPos pos, _ }, _;
-      } ->
+        etrue = seq;
+      }
+    when match Expr.seq_last_element seq with
+         | EFatalError_pos { error = AssertionFailed; _ }, _ -> true
+         | _ -> false ->
     (* For lcalc's already compiled assertions *)
+    let pos =
+      match Expr.seq_last_element seq with
+      | EFatalError_pos { pos_expr = EPos pos, _; _ }, _ -> pos
+      | _ -> assert false
+    in
     handle_assert ~eval_expr:(evaluate_expr ctx lang) ~lang pred m pos
   | EAssert pred ->
     handle_assert ~eval_expr:(evaluate_expr ctx lang) ~lang pred m pos

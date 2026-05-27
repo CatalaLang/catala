@@ -488,7 +488,7 @@ module Value = struct
            format)
         (destr v)
     | V (Position, pos) ->
-      Format.fprintf ppf "@[<h><%s:%d.%d-%d-%d@]" pos.filename pos.start_line
+      Format.fprintf ppf "@[<h>%s:%d.%d-%d-%d@]" pos.filename pos.start_line
         pos.start_column pos.end_line pos.end_column
     | V (Function, _) -> Format.fprintf ppf "<function>"
     | V (Polymorphic, _) -> Format.fprintf ppf "<poly>"

@@ -14,9 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Translation from the default calculus to the lambda calculus. This
-    translation uses an option monad to handle empty defaults terms. This
-    transformation is one piece to permit to compile toward legacy languages
-    that does not contains exceptions. *)
+(** Translation from the default calculus to the lambda calculus. *)
 
 val translate_program : 'm Dcalc.Ast.program -> 'm Ast.program
