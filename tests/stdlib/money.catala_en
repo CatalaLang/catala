@@ -9,7 +9,7 @@ declaration scope A:
   output v2 content money
   output w1 content money
   output w2 content money
-  internal test_values content list of money
+  output test_values content list of money
   output truncations content list of money
   output roundings_by_excess content list of money
   output roundings_by_default content list of money

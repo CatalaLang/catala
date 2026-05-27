@@ -584,7 +584,13 @@ module Value = struct
         match en.constr v with
         | _, name, None -> Format.fprintf ppf "%s" name
         | _, name, Some v ->
-          Format.fprintf ppf "%s content %a" name (aux (indent + 2)) v)
+          Format.fprintf ppf "%s %s %a" name
+            (match !Print.lang with
+            | `En -> "content"
+            | `Fr -> "contenu"
+            | `Pl -> "typu")
+            (aux (indent + 2))
+            v)
       | V (Struct str, v) ->
         Format.fprintf ppf "%s {" str.name;
         let fields = str.fields v in

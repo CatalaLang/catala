@@ -884,7 +884,8 @@ let format_scope_out_struct_constructor
       vis format_scope scope_name format_scope scope_name
       format_scope_out_constructor_body fields
 
-let format_tests ctx ppf (closures, tests) =
+let format_tests ctx ppf p =
+  let closures, tests = p.tests in
   assert (closures = []);
   pp_skip_line ppf ();
   fprintf ppf "// Automatic Catala tests@\n";
@@ -909,10 +910,7 @@ let format_tests ctx ppf (closures, tests) =
        pp_open_vbox ppf 2;
        fprintf ppf "try {@\n";
        fprintf ppf "CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
-         (match Global.options.language with
-         | Some `Fr -> "FR"
-         | Some `Pl -> "EN"
-         | _ -> "EN");
+         (match p.lang with `En -> "EN" | `Fr -> "FR" | `Pl -> "EN");
        fprintf ppf "%a@\nCatalaGlobals.displayResult(args, \"%a\", %s);"
          (format_block ~toplevel:true ctx)
          block ScopeName.format_original scope_name (VarName.to_string var);
@@ -1312,7 +1310,7 @@ let format_globals ctx ppf globals =
       global_funcs = FuncName.Set.of_list funcs;
     }
 
-let format_program ctx ppf { code_items; tests; _ } =
+let format_program ctx ppf p =
   let scopes, globals =
     List.partition_map
       (let open Either in
@@ -1335,7 +1333,7 @@ let format_program ctx ppf { code_items; tests; _ } =
          in
          Left body
        | x -> Right x)
-      code_items
+      p.code_items
   in
   let ctx = format_globals ctx ppf globals in
   format_abstract_types ctx ppf;
@@ -1354,7 +1352,7 @@ let format_program ctx ppf { code_items; tests; _ } =
   pp_print_list_padded ~pp_sep:pp_skip_line
     (fun ppf s -> format_scope ctx ppf s)
     ppf scopes;
-  if snd tests <> [] then format_tests ctx ppf tests
+  if snd p.tests <> [] then format_tests ctx ppf p
 
 let format_program ~is_stdlib ~class_name output_file ppf (p : Ast.program) :
     unit =

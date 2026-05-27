@@ -785,4 +785,5 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
     code_items = List.rev rev_items;
     module_name = p.module_name;
     tests = List.rev rev_tdefs, List.rev rev_tests;
+    lang = p.lang;
   }

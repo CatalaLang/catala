@@ -709,6 +709,8 @@ let format_tests ctx ppf (p : Ast.program) =
     Format.fprintf ppf "@,# Automatic Catala tests@,";
     Format.fprintf ppf "@[<v 2>if __name__ == \"__main__\":";
     Format.fprintf ppf "@,import argparse";
+    Format.fprintf ppf "@,catala_set_lang(Lang.%s)"
+      (match p.lang with `En -> "En" | `Fr -> "Fr" | _ -> "En");
     Format.fprintf ppf
       "@,parser = argparse.ArgumentParser(description='Catala test program%t')"
       (fun ppf ->

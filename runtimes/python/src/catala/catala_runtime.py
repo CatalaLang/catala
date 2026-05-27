@@ -32,6 +32,14 @@ class Lang(Enum):
 lang = Lang.En
 max_decimals = 6
 
+def catala_set_lang(lg):
+    global lang
+    lang = lg
+
+def catala_set_max_decimals(n):
+    global max_decimals
+    max_decimals = n
+
 # ================================
 # Base class for all Catala values
 # ================================
@@ -295,7 +303,7 @@ class CatalaTuple[*T](Value):
         return compare (len(self.value), len(other.value))
 
     def __str__(self, indent: int = 0) -> str:
-        return "({})".format(', '.join([x.__str__(indent + 2) for x in self.value]))
+        return "({})".format(', '.join([x.__str__(indent + 1) for x in self.value]))
 
 class CatalaStruct(Value):
     name: ClassVar[str]
@@ -366,7 +374,9 @@ class CatalaEnum(Value):
         if isinstance(self.payload, Unit):
             return str(self.code)
         else:
-            return f'{self.code} content {self.payload}'
+            return f'{self.code} %s {self.payload}' % (
+              {Lang.En: "content", Lang.Fr: "contenu", Lang.Pl: "typu"}[lang]
+            )
 
 class Function[Targs, TRet](Value):
     __slots__ = ('value')
@@ -734,9 +744,12 @@ class Option[T: Value](Value):
 
     def __str__(self, indent: int = 0) -> str:
         if self.value is None:
-            return "Absent"
+            return {Lang.En: "Absent", Lang.Fr: "Absent", Lang.Pl: "Nieobecny"}[lang]
         else:
-            return f'Present content {self.value.__str__(indent + 2)}'
+            return f'%s %s {self.value.__str__(indent + 2)}' % (
+                {Lang.En: "Present", Lang.Fr: "Présent", Lang.Pl: "Obecny"}[lang],
+                {Lang.En: "content", Lang.Fr: "contenu", Lang.Pl: "typu"}[lang]
+              )
 
     def __repr__(self) -> str:
         return f"Option({self.value.__repr__()})"
