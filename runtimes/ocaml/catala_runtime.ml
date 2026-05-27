@@ -728,7 +728,7 @@ module BufferedJson = struct
         match Seq.uncons sq with
         | None -> ()
         | Some (x, r) ->
-          Buffer.add_char buf ',';
+          Buffer.add_string buf ", ";
           f buf x;
           aux r
       in
@@ -775,43 +775,38 @@ module BufferedJson = struct
     | Value.V (Unit, ()) -> Buffer.add_string buf "{}"
     | V (Bool, b) -> Buffer.add_string buf (string_of_bool b)
     | V (Money, m) -> Buffer.add_string buf (money_to_string m)
-    | V (Integer, i) -> Buffer.add_string buf (integer_to_string i)
-    | V (Decimal, d) -> decimal buf d
+    | V (Integer, i) -> Printf.bprintf buf {|"%s"|} (integer_to_string i)
+    | V (Decimal, d) -> Printf.bprintf buf {|"%a"|} decimal d
     | V (Date, d) -> quote buf (date_to_string d)
-    | V (Duration, d) -> quote buf (duration_to_string d)
-    | V (Enum en, e) ->
+    | V (Duration, d) ->
+      let y, m, d = Dates_calc.period_to_ymds d in
+      let p buf (s, v) = Printf.bprintf buf {|"%s": %d|} s v in
+      Printf.bprintf buf {|{%a}|} (list p)
+        (List.filter
+           (fun (_, v) -> v <> 0)
+           ["years", y; "months", m; "days", d])
+    | V (Enum en, e) -> (
       let _, constr, value = en.constr e in
-      Printf.bprintf buf
-        {|{"kind": "enum", "name": "%s", "constructor": "%s"%a}|} en.name constr
-        (fun buf -> function
-          | None -> ()
-          | Some v -> Printf.bprintf buf {|, "value": %a|} runtime_value v)
-        value
+      match value with
+      | None -> Printf.bprintf buf "\"%s\"" constr
+      | Some v -> Printf.bprintf buf {|{"%s": %a}|} constr runtime_value v)
     | V (Struct str, s) ->
       let fields = str.fields s in
       let pfield buf (name, v) =
-        Printf.bprintf buf "%a: %a" quote name runtime_value v
+        Printf.bprintf buf {|"%s": %a|} name runtime_value v
       in
-      Printf.bprintf buf {|{"kind": "struct", "name": "%s", "fields": {%a}}|}
-        str.name
-        (fun buf -> function
-          | f :: r ->
-            pfield buf f;
-            List.iter (fun f -> Printf.bprintf buf ", %a" pfield f) r
-          | [] -> ())
-        fields
+      Printf.bprintf buf {|{%a}|} (list pfield) fields
     | V (Array t, a) ->
-      Printf.bprintf buf {|{"kind": "array", "value":[%a]}|}
+      Printf.bprintf buf {|[%a]|}
         (seq (fun buf v -> runtime_value buf (t v)))
         (Stdlib.Array.to_seq a)
     | V (Tuple destr, a) ->
-      Printf.bprintf buf {|{"kind": "tuple", "value":[%a]}|}
-        (list runtime_value) (destr a)
+      Printf.bprintf buf {|[%a]|} (list runtime_value) (destr a)
     | V (Position, pos) ->
-      Printf.bprintf buf {|{"kind": "position", "value":[%s, %d, %d, %d, %d]}|}
+      Printf.bprintf buf
+        {|{"file": "%s", "start":{"line":%d, "character":%d}, "end":{"line":%d, "character":%d}}|}
         pos.filename pos.start_line pos.start_column pos.end_line pos.end_column
-    | V ((Function | Polymorphic), _) ->
-      Buffer.add_string buf {|"unembeddable"|}
+    | V ((Function | Polymorphic), _) -> Buffer.add_string buf {|"<function>"|}
     | V (External (module E), v) -> Buffer.add_string buf (E.to_json v)
 
   let information buf info = Printf.bprintf buf "[%a]" (list quote) info
