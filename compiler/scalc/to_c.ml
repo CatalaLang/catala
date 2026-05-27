@@ -1125,6 +1125,18 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
       (format_code_item ctx ~ppc:fmt ~pph:(Message.ignore_ppf ()))
       env t_defs
   in
+  let ntests = List.length tests in
+  Format.fprintf fmt "#include <string.h>@,";
+  Format.fprintf fmt "@,int catala_test_mode = 0;";
+  Format.fprintf fmt "@,int catala_json_mode = 0;";
+  Format.fprintf fmt "@,int catala_tests_enabled[%d];" ntests;
+  Format.fprintf fmt "@,@[<v 2>char* catala_tests[%d] = {@,%a@]@,};@," ntests
+    (Format.pp_print_list
+       ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+       (fun ppf (name, _, _) ->
+         Format.fprintf ppf "\"%s\""
+           (String.escaped (ScopeName.original_base name))))
+    tests;
   Format.fprintf fmt "@,@[<v 2>void* run_tests ()@;<0 -2>{";
   (if tests = [] then
      Message.warning
@@ -1140,10 +1152,11 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
             (fun ppf (s, _, _) -> ScopeName.format ppf s))
          tests
      in
-     List.iter
-       (fun (name, var, block) ->
-         Format.fprintf fmt "@,@[<v 2>{ /* Test for scope %a */"
-           ScopeName.format name;
+     List.iteri
+       (fun i (name, var, block) ->
+         Format.fprintf fmt
+           "@,@[<v 2>if (catala_tests_enabled[%d]) { /* Test for scope %a */" i
+           ScopeName.format_original name;
          format_block ctx env fmt block;
          Format.fprintf fmt
            "@,\
@@ -1157,14 +1170,50 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
          in
          Format.fprintf fmt
            "@,\
-            catala_print(catala_stdbuf, embed(%a, %a));@,\
+            @[<v 2>if (!catala_test_mode) {@,\
+            @[<v 2>if (catala_json_mode)@,\
+            catala_tojson(catala_stdbuf, embed(%a, %a));@]@,\
+            @[<v 2>else@,\
+            catala_print(catala_stdbuf, embed(%a, %a));@]@,\
             catala_stdbuf.flush();@;\
+            <1 -2>}@]@;\
             <1 -2>}@]"
-           format_rtyp ty VarName.format var)
+           format_rtyp ty VarName.format var format_rtyp ty VarName.format var)
        tests);
   Format.fprintf fmt "@,return (void*)1;@;<1 -2>}@]@,";
   Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv)@;<0 -2>{";
-  Format.fprintf fmt "@,void* result = catala_do(&run_tests);";
+  Format.fprintf fmt "@,void* result;";
+  Format.fprintf fmt "@,int i, j;";
+  Format.fprintf fmt "@,@[<v 2>for (i = 1; i < argc; i++) {";
+  Format.fprintf fmt "@,if (!strcmp(\"--test\", argv[i])) catala_test_mode=1;";
+  Format.fprintf fmt
+    "@,else if (!strcmp(\"--json\", argv[i])) catala_json_mode=1;";
+  Format.fprintf fmt "@,@[<v 2>else {";
+  Format.fprintf fmt "@,@[<v 2>for (j = 0; j < %d; j++)" ntests;
+  Format.fprintf fmt
+    " if (!strcmp(catala_tests[j], argv[i])) {@,\
+     catala_tests_enabled[j] = 1;@,\
+     break;";
+  Format.fprintf fmt "@;<1 -2>}@]";
+  Format.fprintf fmt "@,@[<v 2>if (j == %d) {" ntests;
+  Format.fprintf fmt "@,fprintf(stderr, \"Available scopes:\\n\");";
+  Format.fprintf fmt
+    "@,for (j = 0; j < %d; j++) fprintf(stderr, \"  %%s\\n\", catala_tests[j]);"
+    ntests;
+  Format.fprintf fmt
+    "@,fprintf(stderr, \"Available flags: --test  --json\\n\");";
+  Format.fprintf fmt "@,return 2;";
+  Format.fprintf fmt "@;<1 -2>}@]";
+  Format.fprintf fmt "@;<1 -2>}@]";
+  Format.fprintf fmt "@;<1 -2>}@]";
+
+  Format.fprintf fmt "@,for (i = 0; i < %d; i++)" ntests;
+  Format.fprintf fmt " if (catala_tests_enabled[i]) break;";
+  Format.fprintf fmt "@,if (i == %d)" ntests;
+  Format.fprintf fmt " for (i = 0; i < %d; i++) catala_tests_enabled[i] = 1;"
+    ntests;
+
+  Format.fprintf fmt "@,result = catala_do(&run_tests);";
 
   Format.fprintf fmt "@,return !result;@;<1 -2>}@]"
 
