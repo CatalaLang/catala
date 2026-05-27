@@ -70,6 +70,10 @@ class Value:
     def __hash__(self) -> int:
         return super().__hash__()
 
+    def to_json(self):
+        # Default place-holder, this is work in progress
+        return json.dumps(str(self), ensure_ascii=False)
+
     @classmethod
     def from_json(cls, str, pos: SourcePosition | None = None):
         try: return cls(json.loads(str))

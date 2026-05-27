@@ -708,18 +708,48 @@ let format_tests ctx ppf (p : Ast.program) =
     in
     Format.fprintf ppf "@,# Automatic Catala tests@,";
     Format.fprintf ppf "@[<v 2>if __name__ == \"__main__\":";
+    Format.fprintf ppf "@,import argparse";
+    Format.fprintf ppf
+      "@,parser = argparse.ArgumentParser(description='Catala test program%t')"
+      (fun ppf ->
+        match p.module_name with
+        | Some (m, _) ->
+          Format.fprintf ppf "for %a" ModuleName.format_original m
+        | None -> ());
+    Format.fprintf ppf
+      "@,\
+       parser.add_argument('scopes', nargs='*', help='scopes to test (omit for \
+       all)')";
+    Format.fprintf ppf
+      "@,\
+       parser.add_argument(@[<hov>'--test',@ action='store_true',@ help='check \
+       without printing results'@])";
+    Format.fprintf ppf
+      "@,\
+       parser.add_argument(@[<hov>'--json',@ action='store_true',@ \
+       help='output results in JSON'@])";
+    Format.fprintf ppf "@,args = parser.parse_args()";
     List.iter
       (fun (name, var, block) ->
         Format.pp_print_cut ppf ();
         (* Format.fprintf ppf "@,print(\"Executing scope %a...\")@," ScopeName.format
          *   name; *)
+        Format.fprintf ppf
+          "@,@[<v 2>if args.scopes == [] or '%a' in args.scopes:@,"
+          ScopeName.format_original name;
         format_block ctx ppf block;
         Format.fprintf ppf
           "@,\
            print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\", \
            file=stderr)"
           ScopeName.format_original name;
-        Format.fprintf ppf "@,print(%a)" VarName.format var)
+        Format.fprintf ppf
+          "@,\
+           @[<v 2>if not args.test:@,\
+           if args.json: print(%a.to_json())@,\
+           else: print(%a)@]"
+          VarName.format var VarName.format var;
+        Format.pp_close_box ppf ())
       tests;
     Format.fprintf ppf "@]@,"
 

@@ -745,7 +745,7 @@ let run_artifact config ~backend ~var_bindings ?scope ~test src =
   match backend with
   | `OCaml -> Clerk_backends.Ocaml.run_artifact ~test ?scope src
   | `C -> Clerk_backends.C.run_artifact ?scope src
-  | `Python -> Clerk_backends.Python.run_artifact config ~var_bindings src
+  | `Python -> Clerk_backends.Python.run_artifact config ~test ~var_bindings src
   | `Java -> Clerk_backends.Java.run_artifact ~var_bindings ~test src
 
 let backend_to_config = function
