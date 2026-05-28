@@ -1157,11 +1157,7 @@ let run_clerk_test
          @{<yellow>interpret@}@ backend.@ Please use a backend-specific \
          coverage tool instead.";
   let { clerk_targets; others = files_or_folders } =
-    (* Check if the users gave a target in parameter, if not we assume that all
-       targets are involved. *)
-    match clerk_targets_or_files_or_folders with
-    | [] -> { clerk_targets = config.Cli.options.targets; others = [] }
-    | targets -> classify_targets config targets
+    classify_targets config clerk_targets_or_files_or_folders
   in
   let clerk_targets = check_clerk_targets_tests backend clerk_targets in
   let files_or_folders =
