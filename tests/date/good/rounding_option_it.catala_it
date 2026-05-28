@@ -1,0 +1,41 @@
+```catala
+
+dichiarazione campo di applicazione VerificaEtàMinoreDi:
+  entrata data_nascita contenuto data
+  entrata data_corrente contenuto data
+  entrata anni contenuto durata
+  risultato r contenuto booleano
+
+campo di applicazione VerificaEtàMinoreDi:
+  definizione r vale data_nascita + anni <= data_corrente
+  data arrotondato su
+  asserzione |2018-05-31| - 1 mese = |2018-05-01|
+
+#[test] dichiarazione campo di applicazione Test:
+  risultato r contenuto booleano
+
+campo di applicazione Test:
+  definizione r vale (risultato di VerificaEtàMinoreDi con
+                    { -- data_nascita: |2000-02-29|
+                      -- data_corrente: |2018-03-01|
+                      -- anni: 18 anno}).r
+  asserzione r
+
+```
+
+```catala-test-cli
+$ catala Typecheck --check-invariants
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[RESULT]─ Test ─
+│ r = vero
+└─
+```

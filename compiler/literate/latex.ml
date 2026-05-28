@@ -163,7 +163,11 @@ codes={\catcode`\$=3\catcode`\^=7}
 \[\star\star\star\]
 \clearpage
 |latex}
-    (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
+    (match language with
+    | Fr -> "french"
+    | En -> "english"
+    | Pl -> "polish"
+    | It -> "italian")
     (match language with Fr -> "\\setmainfont{Marianne}" | _ -> "")
     (* for France, we use the official font of the French state design system
        https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography *)
@@ -174,7 +178,8 @@ codes={\catcode`\$=3\catcode`\^=7}
     (pre_latexify (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat
-       ((match language with Fr -> " ;" | En -> ";" | Pl -> ";") ^ "\n")
+       ((match language with Fr -> " ;" | En -> ";" | Pl -> ";" | It -> ";")
+       ^ "\n")
        (List.map
           (fun filename ->
             let mtime = (Unix.stat filename).Unix.st_mtime in
@@ -310,6 +315,7 @@ let rec law_structure_to_latex
       | Fr -> "Métadonnées"
       | En -> "Metadata"
       | Pl -> "Metadane"
+      | It -> "Metadati"
     in
     let start_line = Pos.get_start_line (Mark.get c) + 1 in
     let filename = Pos.get_file (Mark.get c) in

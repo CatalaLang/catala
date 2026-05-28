@@ -1,0 +1,26 @@
+```catala
+dichiarazione campo di applicazione Test:
+  interno data_nascita contenuto data
+  interno data_corrente contenuto data
+  risultato ambiguità contenuto booleano
+
+campo di applicazione Test:
+  definizione data_nascita vale |2000-02-29|
+  definizione data_corrente vale |2018-03-01|
+  definizione ambiguità vale data_nascita + 18 anno <= data_corrente
+```
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[ERROR]─
+│
+│  During evaluation: ambiguous date computation with no rounding mode
+│  specified.
+│
+├─➤ tests/date/bad/rounding_option_it.catala_it:10.43-44:
+│    │
+│ 10 │   definizione ambiguità vale data_nascita + 18 anno <= data_corrente
+│    │                                           ‾
+└─
+#return code 123#
+```

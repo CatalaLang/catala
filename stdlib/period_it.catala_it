@@ -1,0 +1,244 @@
+# Periodi di tempo
+
+> Modulo Period_it
+> Uso di Period_internal
+> Uso di Date_it come Data
+
+## Definizioni e operazioni
+
+Un periodo è composto da una data di inizio e una data di fine.
+
+```catala-metadata
+dichiarazione struttura Periodo:
+  dato inizio contenuto data
+  # La data di fine è inclusa nel periodo per convenzione
+  dato fine contenuto data
+
+## Restituisce il periodo che comprende il mese dato dell'anno dato.
+dichiarazione da_mese_e_anno
+  contenuto Periodo
+  dipende da
+    pmese contenuto Data.Mese,
+    panno contenuto intero
+  vale
+    sia pinizio vale
+      Data.da_anno_mese_giorno di (panno, (Data.mese_in_intero di pmese), 1)
+    in
+    Periodo {
+      -- inizio: pinizio
+      -- fine: Data.ultimo_giorno_del_mese di pinizio
+    }
+
+## Restituisce il periodo che comprende l'anno dato.
+dichiarazione da_anno
+  contenuto Periodo
+  dipende da panno contenuto intero
+  vale
+    Periodo {
+      -- inizio: Data.da_anno_mese_giorno di panno, 1, 1
+      -- fine: Data.da_anno_mese_giorno di panno, 12, 31
+    }
+
+## Verifica che il periodo sia coerente (inizia prima della fine e dura
+## almeno un giorno).
+dichiarazione valido
+  contenuto booleano
+  dipende da p contenuto Periodo
+  vale
+    se p.fine < p.inizio allora falso
+    altrimenti vero
+
+## Durata di un periodo, in numero di giorni.
+dichiarazione durata
+  contenuto durata
+  dipende da p contenuto Periodo
+  vale
+    1 giorno + p.fine - p.inizio
+
+## Due periodi sono adiacenti se il secondo inizia immediatamente dopo la fine
+## del primo.
+dichiarazione sono_adiacenti
+  contenuto booleano
+  dipende da
+    p1 contenuto Periodo,
+    p2 contenuto Periodo
+  vale
+    p1.fine = p2.inizio - 1 giorno
+
+## Restituisce il periodo che comprende sia `p1` che `p2`.
+dichiarazione unione
+  contenuto Periodo
+  dipende da
+    p1 contenuto Periodo,
+    p2 contenuto Periodo
+  vale
+    Periodo {
+      -- inizio: Data.min di p1.inizio, p2.inizio
+      -- fine: Data.max di p1.fine, p2.fine
+    }
+
+## Restituisce il periodo contenuto sia in p1 che in p2, se esiste.
+dichiarazione intersezione
+  contenuto opzionale di Periodo
+  dipende da
+    p1 contenuto Periodo,
+    p2 contenuto Periodo
+  vale
+    sia intersezione vale
+      Periodo {
+        -- inizio: Data.max di p1.inizio, p2.inizio
+        -- fine: Data.min di p1.fine, p2.fine
+      }
+    in
+    se valido di intersezione allora Presente contenuto intersezione
+    altrimenti Assente
+
+## Verifica se i periodi si sovrappongono di almeno un giorno.
+dichiarazione si_sovrappongono
+  contenuto booleano
+  dipende da
+    p1 contenuto Periodo,
+    p2 contenuto Periodo
+  vale
+    (intersezione di p1, p2) con forma Presente
+
+## Verifica se il periodo `lungo` comprende interamente il periodo `corto`.
+dichiarazione comprende
+  contenuto booleano
+  dipende da
+    lungo contenuto Periodo,
+    corto contenuto Periodo
+  vale
+    lungo.inizio <= corto.inizio e corto.fine <= lungo.fine
+
+## Verifica se la data `d` è contenuta nel periodo `p`.
+dichiarazione data_nel_periodo
+  contenuto booleano
+  dipende da
+    p contenuto Periodo,
+    d contenuto data
+  vale
+    p.inizio <= d e d <= p.fine
+
+## Verifica se la data si trova *strettamente* prima del periodo.
+dichiarazione prima_del_periodo
+  contenuto booleano
+  dipende da
+    p contenuto Periodo,
+    d contenuto data
+  vale
+    d < p.inizio
+
+## Verifica se la data si trova *strettamente* dopo il periodo.
+dichiarazione dopo_il_periodo
+  contenuto booleano
+  dipende da
+    p contenuto Periodo,
+    d contenuto data
+  vale
+    d > p.fine
+
+## Trova il primo periodo nella lista `l` che data_nel_periodo la data `d`.
+dichiarazione trova_periodo
+  contenuto opzionale di Periodo
+  dipende da
+    l contenuto lista di Periodo,
+    d contenuto data
+  vale
+    combina ogni p tra l
+      in trovato inizialmente Assente
+      con
+        secondo trovato con forma
+        -- Presente : trovato
+        -- Assente : se data_nel_periodo di p, d allora Presente contenuto p altrimenti Assente
+```
+
+## Operazioni su liste associate indicizzate da periodi
+
+```catala-metadata
+## Ordina la lista di periodi in base alla data di inizio.
+## Se due periodi iniziano lo stesso giorno, il loro ordine nella lista viene
+## preservato.
+## **Deprecato:** utilizzare la nuova costruzione `ordina` al suo posto. Questa
+## funzione è equivalente a `ordina ogni (p, x) tra lst in ordine crescente
+## di p.inizio`. Sarà rimossa nella prossima versione di Catala.
+dichiarazione ordina_per_data
+  contenuto lista di (Periodo, qualsiasi di tipo t)
+  dipende da l contenuto lista di (Periodo, qualsiasi di tipo t)
+  vale
+    sia tuple_associated_list vale in_tuple_lista_associata di l in
+    sia sorted_tuple_associated_list vale
+      Period_internal.sort_ di tuple_associated_list
+    in
+    da_tuple_lista_associata di sorted_tuple_associated_list
+```
+
+## Divisione di periodi
+
+```catala-metadata
+## Divide il periodo in tante sotto-periodi quanti sono i mesi del calendario
+## che data_nel_periodo. I primi e gli ultimi elementi restituiti possono quindi essere
+## mesi incompleti.
+## Se il periodo dato non è valido, restituisce una lista vuota.
+dichiarazione dividi_per_mese
+  contenuto lista di Periodo
+  dipende da p contenuto Periodo
+  vale
+    da_tuple_lista di Period_internal.split_by_month di in_tuple di p
+
+## Divide il periodo in tante sotto-periodi quanti sono gli anni del calendario
+## che data_nel_periodo. I primi e gli ultimi elementi restituiti possono quindi essere
+## anni incompleti.
+## Se il periodo dato non è valido, restituisce una lista vuota.
+dichiarazione dividi_per_anno
+  contenuto lista di Periodo
+  dipende da
+    mese_di_inizio contenuto Data.Mese,
+    p contenuto Periodo
+  vale
+    da_tuple_lista di
+      Period_internal.split_by_year di
+        (Data.mese_in_intero di mese_di_inizio),
+        in_tuple di p
+```
+
+## Funzioni interne
+```catala
+dichiarazione in_tuple
+  contenuto (data, data)
+  dipende da p contenuto Periodo
+  vale
+  (p.inizio, p.fine)
+
+dichiarazione in_tuple_lista_associata
+  contenuto lista di ((data, data), qualsiasi di tipo t)
+  dipende da l contenuto lista di (Periodo, qualsiasi di tipo t)
+  vale
+    trasforma ogni p tra l a ((in_tuple di p.1), p.2)
+
+dichiarazione in_tuple_lista
+  contenuto lista di (data, data)
+  dipende da l contenuto lista di Periodo
+  vale
+    trasforma ogni p tra l a in_tuple di p
+
+dichiarazione da_tuple
+  contenuto Periodo
+  dipende da
+    inizio contenuto data,
+    fine contenuto data
+  vale
+    Periodo { -- inizio: inizio -- fine: fine }
+
+dichiarazione da_tuple_lista_associata
+  contenuto lista di (Periodo, qualsiasi di tipo t)
+  dipende da l contenuto lista di ((data, data), qualsiasi di tipo t)
+  vale
+    trasforma ogni tpl tra l a ((da_tuple di tpl.1), tpl.2)
+
+dichiarazione da_tuple_lista
+  contenuto lista di Periodo
+  dipende da l contenuto lista di (data, data)
+  vale
+    trasforma ogni tpl tra l a da_tuple di tpl
+```

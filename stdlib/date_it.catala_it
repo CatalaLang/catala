@@ -1,0 +1,356 @@
+# Date
+
+> Modulo Date_it
+
+> Uso di Date_internal come D
+> Uso di List_it come Lista
+
+## Funzioni di utilità
+
+```catala-metadata
+## Restituisce la più antica delle due date.
+dichiarazione min
+  contenuto data
+  dipende da
+    d1 contenuto data,
+    d2 contenuto data
+  vale
+    se d1 <= d2 allora d1 altrimenti d2
+
+## Restituisce la più recente delle due date.
+dichiarazione max
+  contenuto data
+  dipende da
+    d1 contenuto data,
+    d2 contenuto data
+  vale
+    se d1 >= d2 allora d1 altrimenti d2
+
+## Aggiunge una durata a una data, arrotondando al giorno precedente in caso
+## di ambiguità.
+## Nota: questo corrisponde al comportamento di "`+`" nei campi di applicazione
+## in cui è stato impostato `data arrotondato giù`.
+## **Esempi:**
+## - `aggiungi_arrotondato_inferiore di |2026-05-31|, 1 mese = |2026-06-30|`
+## - `aggiungi_arrotondato_inferiore di |2000-02-29|, 1 anno = |2001-02-28|`
+dichiarazione aggiungi_arrotondato_inferiore contenuto data
+  dipende da
+    t contenuto data,
+    dt contenuto durata
+  vale
+  D.add_rounded_down di t, dt
+
+## Aggiunge una durata a una data, arrotondando al giorno successivo in caso
+## di ambiguità.
+## Nota: questo corrisponde al comportamento di "`+`" nei campi di applicazione
+## in cui è stato impostato `data arrotondato su`.
+## **Esempi:**
+## - `aggiungi_arrotondato_superiore di |2026-05-31|, 1 mese = |2026-07-01|`
+## - `aggiungi_arrotondato_superiore di |2000-02-29|, 1 anno = |2001-03-01|`
+dichiarazione aggiungi_arrotondato_superiore contenuto data
+  dipende da
+    t contenuto data,
+    dt contenuto durata
+  vale
+  D.add_rounded_up di t, dt
+
+## Sottrae una durata da una data, arrotondando al giorno precedente in caso
+## di ambiguità.
+## Nota: questo corrisponde al comportamento di "`-`" nei campi di applicazione
+## in cui è stato impostato `data arrotondato giù`.
+## **Esempi:**
+## - `sottrai_arrotondato_inferiore di |2026-05-31|, 1 mese = |2026-04-30|`
+## - `sottrai_arrotondato_inferiore di |2000-02-29|, 1 anno = |1999-02-28|`
+dichiarazione sottrai_arrotondato_inferiore contenuto data
+  dipende da
+    t contenuto data,
+    dt contenuto durata
+  vale
+  D.add_rounded_down di t, -dt
+
+## Sottrae una durata da una data, arrotondando al giorno successivo in caso
+## di ambiguità.
+## Nota: questo corrisponde al comportamento di "`-`" nei campi di applicazione
+## in cui è stato impostato `data arrotondato su`.
+## **Esempi:**
+## - `sottrai_arrotondato_superiore di |2026-05-31|, 1 mese = |2026-05-01|`
+## - `sottrai_arrotondato_superiore di |2000-02-29|, 1 anno = |1999-03-01|`
+dichiarazione sottrai_arrotondato_superiore contenuto data
+  dipende da
+    t contenuto data,
+    dt contenuto durata
+  vale
+  D.add_rounded_up di t, -dt
+```
+
+## Date, anni, mesi e giorni
+
+```catala-metadata
+## Costruisce una data a partire dal numero dell'anno, del mese (a partire da 1)
+## e del giorno (a partire da 1).
+dichiarazione da_anno_mese_giorno
+  contenuto data
+  dipende da
+    #[implicit_position_argument]
+    pos contenuto posizione_sorgente,
+    n_anno contenuto intero,
+    mese_n contenuto intero,
+    giorno_n contenuto intero
+  vale
+    D.of_ymd di pos, n_anno, mese_n, giorno_n
+
+## Restituisce il numero dell'anno, del mese (1-12) e del giorno (1-31) della data.
+dichiarazione in_anno_mese_giorno
+  contenuto (intero, intero, intero)
+  dipende da d contenuto data
+  vale
+    D.to_ymd di d
+
+## Restituisce il numero dell'anno da una data.
+dichiarazione accedi_anno
+  contenuto intero
+  dipende da d contenuto data
+  vale
+    (in_anno_mese_giorno di d).1
+
+## Restituisce il numero del mese (1-12) da una data.
+dichiarazione accedi_mese
+  contenuto intero
+  dipende da d contenuto data
+  vale
+    (in_anno_mese_giorno di d).2
+
+## Restituisce il numero del giorno (1-31) da una data.
+dichiarazione accedi_giorno
+  contenuto intero
+  dipende da d contenuto data
+  vale
+    (in_anno_mese_giorno di d).3
+```
+
+## Navigazione nel passato e nel futuro
+
+```catala-metadata
+## Restituisce il primo giorno del mese della data data.
+## **Esempio:** `primo_giorno_del_mese di |2024-01-21| = |2024-01-01|`
+dichiarazione primo_giorno_del_mese
+  contenuto data
+  dipende da d contenuto data
+  vale
+    sia ymd vale in_anno_mese_giorno di d in
+    da_anno_mese_giorno di (ymd.1, ymd.2, 1)
+
+## Restituisce l'ultimo giorno del mese della data data.
+## **Esempio:** `ultimo_giorno_del_mese di |2024-01-21| = |2024-01-31|`
+dichiarazione ultimo_giorno_del_mese
+  contenuto data
+  dipende da d contenuto data
+  vale
+    D.last_day_of_month di d
+
+## Restituisce il primo giorno dell'anno della data data.
+## **Esempio:** `primo_giorno_dell_anno di |2024-03-21| = |2024-01-01|`
+dichiarazione primo_giorno_dell_anno
+  contenuto data
+  dipende da d contenuto data
+  vale
+    sia ymd vale (in_anno_mese_giorno di d) in
+    da_anno_mese_giorno di (ymd.1, (1), (1))
+
+## Restituisce l'ultimo giorno dell'anno della data data.
+## **Esempio:** `ultimo_giorno_dell_anno di |2024-03-21| = |2024-12-31|`
+dichiarazione ultimo_giorno_dell_anno
+  contenuto data
+  dipende da d contenuto data
+  vale
+    sia ymd vale in_anno_mese_giorno di d in
+    da_anno_mese_giorno di (ymd.1, (12), (31))
+```
+
+## Mesi denominati
+
+```catala-metadata
+dichiarazione enumerazione Mese:
+  -- Gennaio
+  -- Febbraio
+  -- Marzo
+  -- Aprile
+  -- Maggio
+  -- Giugno
+  -- Luglio
+  -- Agosto
+  -- Settembre
+  -- Ottobre
+  -- Novembre
+  -- Dicembre
+
+## Restituisce il numero del mese (1-12) associato a un mese denominato.
+dichiarazione mese_in_intero
+  contenuto intero
+  dipende da m contenuto Mese
+  vale
+    secondo m con forma
+    -- Gennaio : 1
+    -- Febbraio : 2
+    -- Marzo : 3
+    -- Aprile : 4
+    -- Maggio : 5
+    -- Giugno : 6
+    -- Luglio : 7
+    -- Agosto : 8
+    -- Settembre : 9
+    -- Ottobre : 10
+    -- Novembre : 11
+    -- Dicembre : 12
+
+## Restituisce il mese denominato corrispondente al numero del mese (1-12).
+## **Fallisce:** se l'argomento non è compreso tra 1 e 12
+dichiarazione intero_in_mese
+  contenuto Mese
+  dipende da
+    #[implicit_position_argument]
+    pos contenuto posizione_sorgente,
+    i contenuto intero
+  vale
+    se i = 1 allora Gennaio
+    altrimenti se i = 2 allora Febbraio
+    altrimenti se i = 3 allora Marzo
+    altrimenti se i = 4 allora Aprile
+    altrimenti se i = 5 allora Maggio
+    altrimenti se i = 6 allora Giugno
+    altrimenti se i = 7 allora Luglio
+    altrimenti se i = 8 allora Agosto
+    altrimenti se i = 9 allora Settembre
+    altrimenti se i = 10 allora Ottobre
+    altrimenti se i = 11 allora Novembre
+    altrimenti se i = 12 allora Dicembre
+    altrimenti sia errore vale D.of_ymd di (pos, -1, -1, -1) in impossibile
+```
+
+## Confronto tra date
+
+```catala-metadata
+## Verifica se una persona nata a `data_di_nascita` ha almeno `età` anni alla
+## data `alla_data`. Questa funzione arrotonda all'**inferiore** quando calcola
+## il compleanno.
+## **Esempi:**
+## - `abbastanza_grande_arrotondato_inferiore di |2000-06-01|, 24 anno, |2024-06-15| = vero`
+## - `abbastanza_grande_arrotondato_inferiore di |2000-06-01|, 24 anno, |2024-05-15| = falso`
+## - `abbastanza_grande_arrotondato_inferiore di |2000-01-31|, 1 mese, |2000-02-29| = vero`
+dichiarazione abbastanza_grande_arrotondato_inferiore
+  contenuto booleano
+  dipende da
+    data_di_nascita contenuto data,
+    età contenuto durata,
+    alla_data contenuto data
+  vale
+    alla_data >= D.add_rounded_down di data_di_nascita, età
+
+## Verifica se una persona nata a `data_di_nascita` ha almeno `età` anni alla
+## data `alla_data`. Questa funzione arrotonda al **superiore** quando calcola
+## il compleanno.
+## **Esempi:**
+## - `abbastanza_grande_arrotondato_superiore di |2000-06-01|, 24 anno, |2024-06-15| = vero`
+## - `abbastanza_grande_arrotondato_superiore di |2000-06-01|, 24 anno, |2024-05-15| = falso`
+## - `abbastanza_grande_arrotondato_superiore di |2000-01-31|, 1 mese, |2000-02-29| = falso`
+dichiarazione abbastanza_grande_arrotondato_superiore
+  contenuto booleano
+  dipende da
+    data_di_nascita contenuto data,
+    età contenuto durata,
+    alla_data contenuto data
+  vale
+    alla_data >= D.add_rounded_up di data_di_nascita, età
+
+## Verifica se una persona nata a `data_di_nascita` ha un'età strettamente
+## inferiore a `età` alla data `alla_data`. Questa funzione arrotonda
+## all'**inferiore** quando calcola il compleanno.
+## **Esempi:**
+## - `abbastanza_giovane_arrotondato_inferiore di |2000-06-01|, 24 anno, |2024-06-15| = falso`
+## - `abbastanza_giovane_arrotondato_inferiore di |2000-06-01|, 24 anno, |2024-05-15| = vero`
+## - `abbastanza_giovane_arrotondato_inferiore di |2000-01-31|, 1 mese, |2000-02-29| = falso`
+dichiarazione abbastanza_giovane_arrotondato_inferiore
+  contenuto booleano
+  dipende da
+    data_di_nascita contenuto data,
+    età contenuto durata,
+    alla_data contenuto data
+  vale
+    non (abbastanza_grande_arrotondato_inferiore di data_di_nascita, età, alla_data)
+
+## Verifica se una persona nata a `data_di_nascita` ha un'età strettamente
+## inferiore a `età` alla data `alla_data`. Questa funzione arrotonda
+## al **superiore** quando calcola il compleanno.
+## **Esempi:**
+## - `abbastanza_giovane_arrotondato_superiore di |2000-06-01|, 24 anno, |2024-06-15| = falso`
+## - `abbastanza_giovane_arrotondato_superiore di |2000-06-01|, 24 anno, |2024-05-15| = vero`
+## - `abbastanza_giovane_arrotondato_superiore di |2000-01-31|, 1 mese, |2000-02-29| = vero`
+dichiarazione abbastanza_giovane_arrotondato_superiore
+  contenuto booleano
+  dipende da
+    data_di_nascita contenuto data,
+    età contenuto durata,
+    alla_data contenuto data
+  vale
+    non (abbastanza_grande_arrotondato_superiore di data_di_nascita, età, alla_data)
+```
+
+
+## Giorni della settimana
+
+```catala-metadata
+dichiarazione enumerazione Giorno_della_settimana:
+  -- Lunedì
+  -- Martedì
+  -- Mercoledì
+  -- Giovedì
+  -- Venerdì
+  -- Sabato
+  -- Domenica
+```
+
+## Determinazione del giorno della settimana per una data (algoritmo di Sakamoto)
+
+```catala-metadata
+## Restituisce il giorno della settimana corrispondente alla `data_indicata`.
+## **Esempi:**
+## - `giorno_della_settimana di |2025-12-31| = Mercoledì`
+## - `giorno_della_settimana di |2026-01-01| = Giovedì`
+dichiarazione giorno_della_settimana
+  contenuto Giorno_della_settimana
+  dipende da data_indicata contenuto data
+  vale
+  sia weekdays vale [Domenica; Lunedì; Martedì; Mercoledì; Giovedì; Venerdì; Sabato] in
+  sia sakamoto_list vale [0; 3; 2; 5; 0; 3; 5; 1; 4; 6; 2; 4] in
+  sia month_number vale accedi_mese di data_indicata in
+  sia year_number vale
+    se month_number < 3
+    allora accedi_anno di data_indicata - 1
+    altrimenti accedi_anno di data_indicata
+  in
+  sia n_number vale
+    secondo (Lista.n_esimo_elemento di sakamoto_list, month_number) con forma
+    -- Presente contenuto n: n
+    -- Assente: impossibile
+  in
+  sia day_number vale
+    (year_number
+     + intero di (year_number / 4)
+     - intero di (year_number / 100)
+     + intero di (year_number / 400)
+     + n_number
+     + accedi_giorno di data_indicata)
+    - 7 * intero di (
+      (year_number
+       + intero di (year_number / 4)
+       - intero di (year_number / 100)
+       + intero di (year_number / 400)
+       + n_number
+       + accedi_giorno di data_indicata)
+      / 7
+    )
+  in
+  secondo (Lista.n_esimo_elemento di weekdays, (day_number + 1)) con forma
+  -- Presente contenuto d: d
+  -- Assente: impossibile
+```

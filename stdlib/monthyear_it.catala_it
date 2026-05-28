@@ -1,0 +1,79 @@
+# Mesi di anni specifici
+
+> Modulo MonthYear_it
+> Uso di Date_it come D
+
+```catala-metadata
+dichiarazione struttura MeseAnno:
+  dato nome_mese contenuto D.Mese
+  dato n_anno contenuto intero
+
+## Estrae il mese e l'anno da una data ignorando il giorno.
+dichiarazione da_data
+  contenuto MeseAnno
+  dipende da d contenuto data
+  vale
+    MeseAnno {
+      -- n_anno: D.accedi_anno di d
+      -- nome_mese: D.intero_in_mese di (D.accedi_mese di d)
+    }
+
+## Restituisce la `data` del primo giorno del mese.
+dichiarazione primo_giorno_del_mese
+  contenuto data
+  dipende da m contenuto MeseAnno
+  vale
+    D.da_anno_mese_giorno di (m.n_anno, (D.mese_in_intero di m.nome_mese), 1)
+
+## Restituisce la `data` dell'ultimo giorno del mese.
+dichiarazione ultimo_giorno_del_mese
+  contenuto data
+  dipende da m contenuto MeseAnno
+  vale
+    D.ultimo_giorno_del_mese di
+      (D.da_anno_mese_giorno di (m.n_anno, (D.mese_in_intero di m.nome_mese), 1))
+
+## Verifica se la data si trova strettamente prima del mese indicato.
+dichiarazione prima_del_mese
+  contenuto booleano
+  dipende da m contenuto MeseAnno, d contenuto data
+  vale
+    d < primo_giorno_del_mese di m
+
+## Verifica se la data si trova strettamente dopo il mese indicato.
+dichiarazione dopo_il_mese
+  contenuto booleano
+  dipende da m contenuto MeseAnno, d contenuto data
+  vale
+    d > ultimo_giorno_del_mese di m
+
+## Verifica se la data si trova durante il mese indicato.
+dichiarazione nel_mese
+  contenuto booleano
+  dipende da m contenuto MeseAnno, d contenuto data
+  vale
+    (prima_o_durante_il_mese di m, d)
+    e (durante_o_dopo_il_mese di m, d)
+
+## Verifica se la data si trova prima del primo giorno del mese successivo.
+## **Esempi:**
+## - `prima_o_durante_il_mese di maggio_2025, |2025-04-13| = vero`
+## - `prima_o_durante_il_mese di maggio_2025, |2025-05-31| = vero`
+## - `prima_o_durante_il_mese di maggio_2025, |2025-06-01| = falso`
+dichiarazione prima_o_durante_il_mese
+  contenuto booleano
+  dipende da m contenuto MeseAnno, d contenuto data
+  vale
+    d <= ultimo_giorno_del_mese di m
+
+## Verifica se la data si trova dopo l'ultimo giorno del mese precedente.
+## **Esempi:**
+## - `durante_o_dopo_il_mese di maggio_2025, |2025-06-15| = vero`
+## - `durante_o_dopo_il_mese di maggio_2025, |2025-05-01| = vero`
+## - `durante_o_dopo_il_mese di maggio_2025, |2025-04-30| = falso`
+dichiarazione durante_o_dopo_il_mese
+  contenuto booleano
+  dipende da m contenuto MeseAnno, d contenuto data
+  vale
+    d >= primo_giorno_del_mese di m
+```
