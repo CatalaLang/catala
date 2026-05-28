@@ -798,6 +798,11 @@ let format_constructor (ctx : context) (sbody : scope_body) ppf =
   |> function
   | None -> ()
   | Some in_fields ->
+    if StructField.Map.cardinal in_fields >= 255 then
+      Message.error
+        "The scope %a has too many input variables: Java does not support more \
+         than 255 parameters in methods. "
+        ScopeName.format_original sbody.scope_body_name;
     fprintf ppf "@[<v 4>@[<hov 4>%a%a@ (@[<hov>%a@])@;<1 -4>{@]@,%t@;<1 -4>}@]"
       format_visibility sbody.scope_body_visibility format_scope
       sbody.scope_body_name (format_struct_params ctx) in_fields
@@ -940,6 +945,11 @@ let format_scope ctx ppf (sbody : Ast.scope_body) =
     | None -> []
     | Some out_fields -> StructField.Map.bindings out_fields
   in
+  if List.length out_fields >= 255 then
+    Message.error
+      "The scope %a has too many output variables: Java does not support more \
+       than 255 parameters in methods, this would yield invalid Java code. "
+      ScopeName.format_original sbody.scope_body_name;
   fprintf ppf
     "@[<v 4>@[<hov 4>public static class %a extends CatalaStruct {@]@\n\
      @,\
@@ -1037,6 +1047,11 @@ let populate_context (p : Ast.program) : context =
 
 let format_structs ctx ppf =
   let format_struct ppf (sname, fields) =
+    if StructField.Map.cardinal fields >= 255 then
+      Message.error
+        "The structure %a has too many fields: Java does not support more than \
+         255 parameters. "
+        StructName.format_original sname;
     let fields_l = StructField.Map.bindings fields in
     let format_params ppf =
       let format_output_parameter ppf (field_name, typ) =
