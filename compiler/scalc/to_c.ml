@@ -315,7 +315,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
       List.iteri
         (fun i (name, ty) ->
           Format.fprintf ppc "@,cases[%d].name = \"%a\";" i
-            EnumConstructor.format name;
+            EnumConstructor.format_original name;
           Format.fprintf ppc "@,cases[%d].ty = %a;" i format_rtyp ty)
         cases;
       Format.fprintf ppc "@,ty.kind = ENUM;@,return ty;@;<1 -2>}@]")
@@ -806,6 +806,9 @@ let rec format_statement
       typ cast
       (format_expression ctx env)
       e
+  | SLocalInit { expr = e; typ = TLit TUnit, _; _ }
+  | SLocalDef { expr = e; typ = TLit TUnit, _; _ } ->
+    Format.fprintf fmt "@,@[<hov 2>%a;@]" (format_expression ctx env) e
   | SLocalInit { name = v; typ; expr = e } ->
     (* Handling at the block level guarantees that [e] is supported as initial
        value *)
@@ -816,8 +819,6 @@ let rec format_statement
       typ
       (format_expression ctx env)
       e
-  | SLocalDef { expr = e; typ = TLit TUnit, _; _ } ->
-    Format.fprintf fmt "@,@[<hov 2>%a;@]" (format_expression ctx env) e
   | SLocalDef { name = v; expr = e; _ } ->
     Format.fprintf fmt "@,@[<hov 2>%a = %a;@]" VarName.format (Mark.remove v)
       (format_expression ctx env)
