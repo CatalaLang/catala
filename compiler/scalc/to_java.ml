@@ -889,7 +889,7 @@ let format_tests ctx ppf p =
   assert (closures = []);
   pp_skip_line ppf ();
   fprintf ppf "// Automatic Catala tests@\n";
-  fprintf ppf "@[<v 4>public static void main(String[] args) {@\n";
+  fprintf ppf "@[<v 4>public static void main(String[] args) {@,";
   (if tests = [] then
      Message.warning
        "%a@{<magenta>#[test]@}@ attribute@ above@ their@ declaration."
@@ -899,6 +899,37 @@ let format_tests ctx ppf p =
         inputs, and add the "
    else
      let () =
+       fprintf ppf "boolean test_mode = false;";
+       fprintf ppf "@,boolean json_mode = false;";
+       fprintf ppf
+         "@,\
+          java.util.Set<String> enabled_tests = new \
+          java.util.HashSet<String>();";
+       fprintf ppf
+         "@,@[<hov 4>java.util.Set<String> all_tests = java.util.Set.of(%a);@]"
+         (pp_print_list
+            ~pp_sep:(fun ppf () -> fprintf ppf ",@ ")
+            (fun ppf (name, _, _) ->
+              pp_print_string ppf (String.quote (ScopeName.original_base name))))
+         tests;
+       fprintf ppf "@,CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
+         (match p.lang with `En -> "EN" | `Fr -> "FR" | `Pl -> "EN");
+       fprintf ppf "@[<v 4>for (int i = 0; i < args.length; i++) {";
+       fprintf ppf "@,if (args[i].equals(\"--test\")) { test_mode = true; }";
+       fprintf ppf
+         "@,else if (args[i].equals(\"--json\")) { json_mode = true; }";
+       fprintf ppf
+         "@,\
+          else if (all_tests.contains(args[i])) { enabled_tests.add(args[i]); }";
+       fprintf ppf "@,@[<v 4>else {";
+       fprintf ppf "@,System.out.println(\"Available scopes: \");";
+       fprintf ppf "@,System.out.println(all_tests);";
+       fprintf ppf "@,System.out.println(\"Available flags: --test  --json\");";
+       fprintf ppf "@,System.exit(2);";
+       fprintf ppf "@;<1 -4>}@]";
+       fprintf ppf "@;<1 -4>}@]@,"
+     in
+     let () =
        Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]"
          (Format.pp_print_list ~pp_sep:Format.pp_print_space
             (fun ppf (s, _, _) -> ScopeName.format ppf s))
@@ -906,12 +937,13 @@ let format_tests ctx ppf p =
      in
      let format_test ppf (scope_name, var, block) =
        pp_open_vbox ppf 2;
-       fprintf ppf "{ /* Test for scope %a */@\n" ScopeName.format scope_name;
+       fprintf ppf
+         "if (enabled_tests.isEmpty() || enabled_tests.contains(%s)) {@\n"
+         (String.quote (ScopeName.original_base scope_name));
        pp_open_vbox ppf 2;
        fprintf ppf "try {@\n";
-       fprintf ppf "CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
-         (match p.lang with `En -> "EN" | `Fr -> "FR" | `Pl -> "EN");
-       fprintf ppf "%a@\nCatalaGlobals.displayResult(args, \"%a\", %s);"
+       fprintf ppf
+         "%a@\nCatalaGlobals.displayResult(\"%a\", %s, test_mode, json_mode);"
          (format_block ~toplevel:true ctx)
          block ScopeName.format_original scope_name (VarName.to_string var);
        pp_close_box ppf ();

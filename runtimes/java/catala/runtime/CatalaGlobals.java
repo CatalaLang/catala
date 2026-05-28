@@ -15,12 +15,10 @@ public class CatalaGlobals {
         throw CatalaError.error(CatalaError.Error.NotImplemented, p);
     }
 
-    public static void displayResult(String[] args, String scope, CatalaValue<?> result) {
-        boolean is_test = Stream.of(args).anyMatch(s -> s.equals("--test"));
-        boolean json = Stream.of(args).anyMatch(s -> s.equals("--json"));
-        System.out.println("\u001B[32m[RESULT]\u001B[0m Scope " + scope + " executed successfully.");
-        if (!is_test) {
-            if (json) {
+    public static void displayResult(String scope, CatalaValue<?> result, boolean test_mode, boolean json_mode) {
+        System.err.println("\u001B[32m[RESULT]\u001B[0m Scope " + scope + " executed successfully.");
+        if (!test_mode) {
+            if (json_mode) {
                 System.out.println(result.toJSONString());
             } else {
                 System.out.println(result.toString());
