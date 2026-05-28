@@ -48,13 +48,13 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
         return 0;
     }
 
-    public String toString(String qualified_name) {
+    public String toString(String qualified_name, int indent) {
         Field[] fields = this.getClass().getDeclaredFields();
         if (fields.length == 0) {
-            return qualified_name + " { }";
+            return qualified_name + " {}";
         }
         StringBuilder b = new StringBuilder();
-        b.append(qualified_name).append(" {\n");
+        b.append(qualified_name).append(" {\n").append(" ".repeat(indent+2));
         StringBuilder subb = new StringBuilder();
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];
@@ -67,25 +67,30 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
             }
             try {
                 if (CatalaStruct.class.isAssignableFrom(c)) {
-                    subb.append(((CatalaStruct) (f.get(this))).toString(c.getCanonicalName()));
+                    subb.append(((CatalaStruct) (f.get(this))).toString(c.getCanonicalName(), indent + 2));
                 } else {
-                    subb.append(f.get(this).toString());
+                    subb.append(((CatalaValue)f.get(this)).toString(indent + 2));
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {
                 throw CatalaError.error(CatalaError.Error.GenericError, "failed to introspect value of field " + f.getName());
             }
             if (i < fields.length - 1) {
-                subb.append('\n');
+                subb.append('\n').append(" ".repeat(indent+2));
             }
         }
         // indent adds a newline for no intelligible reason: we do not add a new one.
-        b.append(subb.toString().indent(2)).append("}");
+        b.append(subb).append("\n").append(" ".repeat(indent)).append("}");
         return b.toString();
     }
 
     @Override
+    public String toString(int indent) {
+        return toString(this.getClass().getSimpleName(), indent);
+    }
+
+    @Override
     public String toString() {
-        return toString(this.getClass().getSimpleName());
+        return toString(0);
     }
 
     @Override

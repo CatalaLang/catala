@@ -186,13 +186,13 @@ public final class CatalaMoney extends CatalaValue<CatalaMoney> {
     @Override
     public String toString() {
         BigInteger[] unitsAndCents = this.value.divideAndRemainder(BigInteger.valueOf(100));
-        if (CatalaGlobals.lang == CatalaGlobals.Language.EN) {
-            NumberFormat nf = NumberFormat.getInstance(Locale.ENGLISH);
-            return String.format("$%s.%02d", nf.format(unitsAndCents[0]), unitsAndCents[1]);
-        } else {
-            NumberFormat nf = NumberFormat.getInstance(Locale.FRENCH);
-            return String.format("%s,%02d€", nf.format(unitsAndCents[0]), unitsAndCents[1]);
+        String n = CatalaGlobals.number_format().format(unitsAndCents[0].abs());
+        if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
+            return String.format("%s%s,%02d €", (this.value.signum() < 0 ? "-" : ""), n, unitsAndCents[1].abs());
+        } else if (CatalaGlobals.lang == CatalaGlobals.Language.PL) {
+            return String.format("%s%s.%02d PLN", (this.value.signum() < 0 ? "-" : ""), n, unitsAndCents[1].abs());
         }
+        return String.format("%s$%s.%02d", (this.value.signum() < 0 ? "-" : ""), n, unitsAndCents[1].abs());
     }
 
     @Override

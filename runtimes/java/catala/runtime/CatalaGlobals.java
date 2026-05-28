@@ -2,14 +2,42 @@ package catala.runtime;
 
 import catala.runtime.exception.CatalaError;
 import java.util.stream.Stream;
+import java.text.NumberFormat;
+import java.text.DecimalFormat;
+import java.math.RoundingMode;
+import java.util.Locale;
 
 public class CatalaGlobals {
 
     public enum Language {
-        EN, FR
+        EN, FR, PL
     }
 
     public static Language lang = Language.EN;
+
+    public static Integer max_decimals = 6;
+
+    public static NumberFormat number_format() {
+        NumberFormat nf;
+        if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
+            return NumberFormat.getInstance(Locale.FRENCH);
+        } else if (CatalaGlobals.lang == CatalaGlobals.Language.PL) {
+            return NumberFormat.getInstance(Locale.forLanguageTag("pl-PL"));
+        }  else {
+            return NumberFormat.getInstance(Locale.US);
+        }
+    }
+
+    public static DecimalFormat decimal_format() {
+        DecimalFormat df = (DecimalFormat)(number_format());
+        df.setParseBigDecimal(true);
+        df.setDecimalSeparatorAlwaysShown(true);
+        df.setMinimumIntegerDigits(1);
+        df.setMinimumFractionDigits(1);
+        df.setMaximumFractionDigits(max_decimals);
+        df.setRoundingMode(RoundingMode.DOWN);
+        return df;
+    }
 
     public static CatalaValue<?> fromJSONString(CatalaPosition p, String json){
         throw CatalaError.error(CatalaError.Error.NotImplemented, p);
