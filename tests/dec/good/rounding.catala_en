@@ -30,8 +30,8 @@ $ catala Typecheck --check-invariants
 $ catala test-scope A
 ┌─[RESULT]─ A ─
 │ x = 84.648,665
-│ x1 = 85.0
 │ y = 4.368,297
+│ x1 = 85.0
 │ y1 = 4.0
 └─
 ```

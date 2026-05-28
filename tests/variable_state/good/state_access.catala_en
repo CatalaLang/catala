@@ -26,7 +26,7 @@ scope A:
 ```catala-test-cli
 $ catala test-scope A
 ┌─[RESULT]─ A ─
-│ bar = 5
 │ foo = 6
+│ bar = 5
 └─
 ```

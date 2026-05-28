@@ -297,13 +297,7 @@ let () =
                          (fun ppf ->
                            Format.fprintf ppf "Computation successful!");
                        ]
-                   | _ ->
-                     let results =
-                       List.sort
-                         (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
-                         results
-                     in
-                     format_results ppf scope results)
+                   | _ -> format_results ppf scope results)
              in
              let warning_diags, _error_notifs = drain_all ~ansi () in
              object%js

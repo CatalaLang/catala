@@ -14,10 +14,6 @@ champ d'application S:
 ```catala-test-cli
 $ catala test-scope S
 ┌─[RESULT]─ S ─
-│ ma = MonthYear_fr.MoisAnnée {
-│        -- nom_mois: Janvier
-│        -- année: 2 000
-│      }
 │ my =
 │   MonthYear.Tunit {
 │     -- my1: MonthYear_en.MonthYear {
@@ -33,5 +29,9 @@ $ catala test-scope S
 │       -- month_name: December
 │     }
 │   }
+│ ma = MoisAnnée {
+│        -- nom_mois: Janvier
+│        -- année: 2 000
+│      }
 └─
 ```

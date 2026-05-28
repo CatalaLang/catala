@@ -733,11 +733,6 @@ module Commands = struct
       Message.debug "Starting interpretation...";
       let results, cov_opt = interpreter () in
       Message.debug "End of interpretation";
-      let sorted_results =
-        List.sort
-          (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
-          results
-      in
       (if quiet then begin
          (* Caution: this output is parsed by Clerk *)
          Format.fprintf (Message.std_ppf ()) "%a: @{<green>passed@}%t@."
@@ -757,7 +752,7 @@ module Commands = struct
                      (if options.Global.debug then Print.expr ~debug:false ()
                       else fun ppf -> Print.UserFacing.value ppf)
                      result))
-                sorted_results)
+                results)
          | [], JSON ->
            Format.fprintf (Message.std_ppf ()) "%a@."
              (Yojson.Safe.pretty_print ~std:true)
