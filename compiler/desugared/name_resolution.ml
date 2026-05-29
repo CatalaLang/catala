@@ -130,7 +130,7 @@ let register_attribute ~plugin ~path ~contexts callback =
 let handle_extra_attributes context plugin path value pos =
   match List.find_all (fun (n, _, _, _) -> plugin = n) !attribute_parsers with
   | [] ->
-    Message.warning ~pos
+    Message.debug ~pos
       "No plugin registered to handle attribute @{<magenta>#[%s.%s]@}" plugin
       (String.concat "." path);
     None

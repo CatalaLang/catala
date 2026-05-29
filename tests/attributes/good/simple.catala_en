@@ -57,36 +57,6 @@ $ catala scopelang
    └─ First tests
 ┌─[WARNING]─
 │
-│  No plugin registered to handle attribute #[attr.unit]
-│
-├─➤ tests/attributes/good/simple.catala_en:15.5-26:
-│    │
-│ 15 │   #[passthrough.attr.unit]
-│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attr.multi]
-│
-├─➤ tests/attributes/good/simple.catala_en:19.5-27:
-│    │
-│ 19 │   #[passthrough.attr.multi = "string"]
-│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
-│  No plugin registered to handle attribute #[attr.expr]
-│
-├─➤ tests/attributes/good/simple.catala_en:18.5-26:
-│    │
-│ 18 │   #[passthrough.attr.expr = false]
-│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
 │  In scope "S", the variable "x" is declared but never defined;
 │  did you forget something?
 │
