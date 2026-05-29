@@ -4,7 +4,7 @@
 # You should replace all `raise Impossible` place-holders with your
 # implementation and rename it to remove the ".template" suffix.
 
-from catala_runtime import *
+from .catala_runtime import *
 from typing import Any, List, Callable, Tuple
 from enum import Enum
 from . import Stdlib_en as stdlib_en

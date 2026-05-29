@@ -1,4 +1,4 @@
-from catala_runtime import *
+from .catala_runtime import *
 from enum import Enum
 
 def sort_(p:Array[CatalaTuple[CatalaTuple[Date, Date], Alpha]]) -> Array[CatalaTuple[CatalaTuple[Date, Date], Alpha]]:

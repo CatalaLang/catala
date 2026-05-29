@@ -255,8 +255,7 @@ backend-tests-%: $(CLERK_BIN) $(BACKEND_TESTS)
 backend-tests-python: BACKEND_ENV=$(PY_VENV_ACTIVATE)
 
 validate-py-runtime: dependencies-python
-	@$(PY_VENV_ACTIVATE) MYPYPATH=$(PWD)/runtimes/python/src/catala: mypy -p catala_runtime
-	@$(PY_VENV_ACTIVATE) PYTHONPATH=$(PWD)/runtimes/python/src/catala: mypy --follow-untyped-imports stdlib/python/*
+	@$(PY_VENV_ACTIVATE) MYPYPATH=$(PWD)/runtimes/python/src: mypy -p catala
 
 backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python backend-tests-java
 

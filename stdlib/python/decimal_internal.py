@@ -1,4 +1,4 @@
-from catala_runtime import *
+from .catala_runtime import *
 
 def round_to_decimal2(variable: Decimal, n_decimal: Integer) -> Decimal:
     if n_decimal == Integer(0):

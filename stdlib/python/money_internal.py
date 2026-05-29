@@ -1,4 +1,4 @@
-from catala_runtime import *
+from .catala_runtime import *
 
 
 def round_to_decimal(variable: Money, n_decimal: Integer) -> Money:

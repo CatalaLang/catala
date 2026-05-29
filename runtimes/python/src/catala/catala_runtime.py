@@ -12,7 +12,7 @@ from __future__ import annotations # 'ClsType' ~> ClsType annotations
 
 import math
 from fractions import Fraction
-import dates
+from . import dates
 from typing import NewType, List, Generic, Callable, Tuple, TypeVar, Iterable, Union, Any, overload, override, ClassVar
 from functools import reduce
 from enum import Enum, IntEnum, nonmember, auto
