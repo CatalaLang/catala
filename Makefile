@@ -246,6 +246,10 @@ backend-tests-%: $(CLERK_BIN) $(BACKEND_TESTS)
 
 backend-tests-python: BACKEND_ENV=$(PY_VENV_ACTIVATE)
 
+# The stdlib helpers (stdlib/python/*.py) use relative imports
+# (from .catala_runtime import *) so mypy needs them in a proper package
+# context alongside catala_runtime.py. We assemble a throw-away package
+# in a temp dir rather than moving the files out of stdlib/python/.
 validate-py-runtime: dependencies-python
 	@$(PY_VENV_ACTIVATE) MYPYPATH=$(PWD)/runtimes/python/src: mypy -p catala
 	@tmp=$$(mktemp -d) && \
