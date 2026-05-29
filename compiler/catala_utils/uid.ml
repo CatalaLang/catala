@@ -38,6 +38,7 @@ module type Id = sig
   val id : t -> int
   val hash : t -> Hash.t
   val original_info : t -> info
+  val original_string : t -> string
   val format_original : Format.formatter -> t -> unit
 
   module Set : Set.S with type elt = t
@@ -66,6 +67,9 @@ module Make (X : Info) (S : Style) () : Id with type info = X.info = struct
       X.format ppf (Option.value ~default:t.info t.orig_info);
       (* Format.pp_print_int ppf t.id; (* uncomment for precise uid debug *) *)
       Format.pp_close_stag ppf ()
+
+    let original_string t =
+      X.to_string (Option.value ~default:t.info t.orig_info)
   end
 
   include Ordering

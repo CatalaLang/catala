@@ -188,10 +188,8 @@ module Decimal_en = Decimal_en
 module Assert_in__1 = struct
   type t = { assert__1: integer; }
   let rtype = Value.Struct {
-    name = "Assert_in__1";
-    fields = fun t -> [
-      "assert__1", Value.embed (Value.Integer) t.assert__1;
-    ]
+    name = "Assert_in";
+    fields = fun t -> [ "assert", Value.embed (Value.Integer) t.assert__1; ]
   }
 end
 
@@ -199,9 +197,7 @@ module Assert__1 = struct
   type t = { assert__1: integer; }
   let rtype = Value.Struct {
     name = "Assert__1";
-    fields = fun t -> [
-      "assert__1", Value.embed (Value.Integer) t.assert__1;
-    ]
+    fields = fun t -> [ "assert", Value.embed (Value.Integer) t.assert__1; ]
   }
 end
 
@@ -209,7 +205,7 @@ module Assert = struct
   type t = { assert__1: bool; }
   let rtype = Value.Struct {
     name = "Assert";
-    fields = fun t -> [ "assert__1", Value.embed (Value.Bool) t.assert__1; ]
+    fields = fun t -> [ "assert", Value.embed (Value.Bool) t.assert__1; ]
   }
 end
 

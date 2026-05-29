@@ -1,0 +1,32 @@
+# Test consistency of outputs
+
+This test mixes all existing type structures, with slightly cursed field,
+constructor and ident names.
+
+```catala-metadata
+déclaration énumération Tenûm:
+  -- Ĉ contenu booléen
+  -- Ĉ2 contenu entier
+
+déclaration structure Tstrûc:
+  donnée f_ê contenu liste de Tenûm
+  donnée f_1 contenu (date, durée, durée, durée)
+  donnée f_ôô contenu (optionnel de Période, optionnel de Période)
+  donnée f_ûû contenu liste de (décimal, argent)
+```
+
+
+```catala
+#[test]
+déclaration champ d'application Ŝ:
+  résultat ô contenu Tstrûc
+
+champ d'application Ŝ:
+  définition ô égal à
+    Tstrûc {
+      -- f_ê : [Ĉ contenu vrai; Ĉ contenu faux; Ĉ2 contenu -1000000]
+      -- f_1 : (|0000-01-01|, 0 jour, 1 an, 2 an + 1 mois + 2 jour)
+      -- f_ôô : (Absent, Présent contenu Période { -- début: |2001-01-01| -- fin: |2001-07-01| })
+      -- f_ûû : [(0,0, 0€); (-1000,0, -1000€); (1000,000001, 1000,01€); (-0,0000001, -0€)]
+}
+```

@@ -253,12 +253,12 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1 StructField.format
       field
   | EInj { cons; name = e_name; _ }
-    when EnumName.equal e_name Expr.option_enum
-         && EnumConstructor.equal cons Expr.none_constr ->
+    when EnumName.equal e_name ConstantNames.option_enum
+         && EnumConstructor.equal cons ConstantNames.none_constr ->
     Format.fprintf fmt "Option(None)"
   | EInj { e1 = e; cons; name = e_name; _ }
-    when EnumName.equal e_name Expr.option_enum
-         && EnumConstructor.equal cons Expr.some_constr ->
+    when EnumName.equal e_name ConstantNames.option_enum
+         && EnumConstructor.equal cons ConstantNames.some_constr ->
     Format.fprintf fmt "Option(%a)" (format_expression ctx) e
   | EInj { e1 = e; cons; name = enum_name; _ } ->
     Format.fprintf fmt "%a(%a.Code.%a,@ %a)" (format_enum ctx) enum_name
@@ -363,8 +363,8 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   | EAppOp { op = ArrayAccess n, _; args = [a]; _ } ->
     Format.fprintf fmt "%a[%d]" (format_expression ctx) a n
   | EAppOp { op = ConstructorCheck (enum, case), _; args = [a]; _ } ->
-    if EnumName.equal enum Expr.option_enum then
-      if EnumConstructor.equal case Expr.none_constr then
+    if EnumName.equal enum ConstantNames.option_enum then
+      if EnumConstructor.equal case ConstantNames.none_constr then
         Format.fprintf fmt "Bool(%a.value is None)" (format_expression ctx) a
       else
         Format.fprintf fmt "Bool(%a.value is not None)" (format_expression ctx)
@@ -541,7 +541,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
           ];
         _;
       }
-    when EnumName.equal e_name Expr.option_enum ->
+    when EnumName.equal e_name ConstantNames.option_enum ->
     let pos = Mark.get s in
     Format.fprintf fmt "@[<v 4>if %a.value is not None:@ %a@]@," VarName.format
       switch_var (format_block ctx)
@@ -663,7 +663,10 @@ let format_ctx (type_ordering : TypeIdent.t list) (fmt : Format.formatter) ctx :
           Format.fprintf fmt "%a@,@," format_struct_decl
             (s, StructName.Map.find s ctx.decl_ctx.ctx_structs)
       | TypeIdent.Enum e ->
-        if EnumName.path e = [] && not (EnumName.equal e Expr.option_enum) then
+        if
+          EnumName.path e = []
+          && not (EnumName.equal e ConstantNames.option_enum)
+        then
           Format.fprintf fmt "%a@,@," format_enum_decl
             (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums)
       | TypeIdent.Abstract t ->

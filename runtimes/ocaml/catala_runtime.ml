@@ -646,11 +646,26 @@ module Optional = struct
   let rtype t =
     Value.Enum
       {
-        name = "Optional";
+        name =
+          (match Print.get_lang () with
+          | `En -> "Optional"
+          | `Fr -> "Optionnel"
+          | `Pl -> "Opcjonalny");
         constr =
           (function
-          | Absent -> 0, "Absent", None
-          | Present v -> 1, "Present", Some (Value.embed t v));
+          | Absent ->
+            ( 0,
+              (match Print.get_lang () with
+              | `En | `Fr -> "Absent"
+              | `Pl -> "Nieobecny"),
+              None )
+          | Present v ->
+            ( 1,
+              (match Print.get_lang () with
+              | `En -> "Present"
+              | `Fr -> "Présent"
+              | `Pl -> "Obecny"),
+              Some (Value.embed t v) ));
       }
 
   let of_option = function Some x -> Present x | None -> Absent

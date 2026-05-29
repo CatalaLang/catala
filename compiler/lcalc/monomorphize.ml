@@ -197,9 +197,9 @@ let rec monomorphize_typ
     TEnum (Type.Map.find typ monomorphized_instances.options).name, Mark.get typ
 
 let is_some c =
-  EnumConstructor.equal Expr.some_constr c
+  EnumConstructor.equal ConstantNames.some_constr c
   ||
-  (assert (EnumConstructor.equal Expr.none_constr c);
+  (assert (EnumConstructor.equal ConstantNames.none_constr c);
    false)
 
 let rec monomorphize_expr
@@ -240,7 +240,8 @@ let rec monomorphize_expr
         e;
         field = fst (List.nth tuple_instance.fields index);
       }
-  | EMatch { name; e; cases } when EnumName.equal name Expr.option_enum ->
+  | EMatch { name; e; cases } when EnumName.equal name ConstantNames.option_enum
+    ->
     let opt_ty =
       match e0 with EMatch { e; _ }, _ -> Expr.ty e | _ -> assert false
     in
@@ -259,7 +260,7 @@ let rec monomorphize_expr
                  else option_instance.none_cons))
             cases EnumConstructor.Map.empty;
       }
-  | EInj { name; e; cons } when EnumName.equal name Expr.option_enum ->
+  | EInj { name; e; cons } when EnumName.equal name ConstantNames.option_enum ->
     let option_instance = Type.Map.find ty0 monomorphized_instances.options in
     EInj
       {
@@ -293,7 +294,9 @@ let program (prg : typed program) : typed program * TypeIdent.t list =
   let monomorphized_instances = collect_monomorphized_instances prg in
   let decl_ctx = prg.decl_ctx in
   (* First we remove the polymorphic option type *)
-  let ctx_enums = EnumName.Map.remove Expr.option_enum decl_ctx.ctx_enums in
+  let ctx_enums =
+    EnumName.Map.remove ConstantNames.option_enum decl_ctx.ctx_enums
+  in
   let ctx_structs = decl_ctx.ctx_structs in
   (* Then we replace all hardcoded types and expressions with the monomorphized
      instances *)

@@ -687,14 +687,13 @@ class Duration(Value):
         label_year = { Lang.En: 'year', Lang.Fr: 'an', Lang.Pl: 'rok' }
         label_month = { Lang.En: 'month', Lang.Fr: 'mois', Lang.Pl: 'miesiac' }
         label_day = { Lang.En: 'day', Lang.Fr: 'jour', Lang.Pl: 'dzien' }
-        return (
-            '[' +
-            pr(self.value.years, label_year) +
-            pr(self.value.months, label_month) +
-            pr(self.value.days, label_day) +
-            (f'0 %s' % label_day[lang] if self.value.months == self.value.months == self.value.days == 0 else '') +
-            ']'
-        )
+        str = ", ".join(filter (None, [
+            pr(self.value.years, label_year),
+            pr(self.value.months, label_month),
+            pr(self.value.days, label_day)
+        ]))
+        if str == "": str = f'0 %s' % label_day[lang]
+        return ('[' + str + ']')
 
     def __repr__(self) -> str:
         return f"Duration({self.value.__repr__()})"

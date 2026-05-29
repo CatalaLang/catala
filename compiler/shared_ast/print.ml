@@ -1045,6 +1045,37 @@ module UserFacing = struct
 
   exception Not_a_value
 
+  let embed_option embed_value cons payload =
+    let lang = Catala_runtime.Print.get_lang () in
+    let constr_index =
+      if EnumConstructor.equal cons ConstantNames.none_constr then 0
+      else if EnumConstructor.equal cons ConstantNames.some_constr then 1
+      else assert false
+    in
+    let name =
+      match lang with
+      | `En -> "Optional"
+      | `Fr -> "Optionnel"
+      | `Pl -> "Opcjonalny"
+    in
+    let constr =
+     fun (index, cons, payload) ->
+      let cons =
+        if EnumConstructor.equal cons ConstantNames.none_constr then
+          match lang with `En | `Fr -> "Absent" | `Pl -> "Nieobecny"
+        else if EnumConstructor.equal cons ConstantNames.some_constr then
+          match lang with
+          | `En -> "Present"
+          | `Fr -> "Présent"
+          | `Pl -> "Obecny"
+        else assert false
+      in
+      ( index,
+        cons,
+        match payload with ELit LUnit, _ -> None | e -> Some (embed_value e) )
+    in
+    V.V (Enum { name; constr }, (constr_index, cons, payload))
+
   (* this is a dumbed-down version of [Expr.embed_value] that doesn't require a
      context but won't document indexes of variant constructors correctly ; we
      go with it since those aren't necessary for printing, and [Expr] depends on
@@ -1079,17 +1110,20 @@ module UserFacing = struct
       V.V
         ( Struct
             {
-              name = StructName.canonical_str None name;
+              name = StructName.original_base name;
               fields =
                 List.map (fun (name, e) ->
-                    StructField.to_string name, embed_value e);
+                    StructField.original_string name, embed_value e);
             },
           StructField.Map.bindings fields )
+    | EInj { name; cons; e = payload }
+      when EnumName.equal name ConstantNames.option_enum ->
+      embed_option embed_value cons payload
     | EInj { name; cons; e = payload } ->
       V.V
         ( Enum
             {
-              name = EnumName.canonical_str None name;
+              name = EnumName.original_base name;
               constr =
                 (fun (index, cons, payload) ->
                   ( index,

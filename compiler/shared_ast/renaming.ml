@@ -463,7 +463,7 @@ let process_type_ident
       fields_map;
       ctx_structs = StructName.Map.add new_name ctx_fields tctx.ctx_structs;
     }
-  | TypeIdent.Enum name when EnumName.equal name Expr.option_enum ->
+  | TypeIdent.Enum name when EnumName.equal name ConstantNames.option_enum ->
     (* The option type shouldn't be renamed, it has special handling in
        backends. FIXME: could the fact that it's special be detected differently
        from id comparison ? Structure maybe, or a more specific construct ? *)

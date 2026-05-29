@@ -113,6 +113,28 @@ module StateName =
     end)
     ()
 
+module ConstantNames : sig
+  val option_enum : EnumName.t
+
+  val option_struct : StructName.t
+  (** Only used in some backends where enums piggy-back on structs (e.g. C) *)
+
+  (* Warning: order of these definitions is important, binary injection assumes
+     that None is first *)
+  val none_constr : EnumConstructor.t
+  val some_constr : EnumConstructor.t
+
+  val source_pos_struct : StructName.t
+  (** Fake structure (there is no corresponding decl) used for categorising
+      [PosLit] terms in scalc *)
+end = struct
+  let option_enum = EnumName.fresh [] ("Optional", Pos.void)
+  let option_struct = StructName.fresh [] ("Soption", Pos.void)
+  let none_constr = EnumConstructor.fresh ("Absent", Pos.void)
+  let some_constr = EnumConstructor.fresh ("Present", Pos.void)
+  let source_pos_struct = StructName.fresh [] ("SourcePosition", Pos.void)
+end
+
 (** {1 Abstract syntax tree} *)
 
 (** Define a common base type for the expressions in most passes of the compiler

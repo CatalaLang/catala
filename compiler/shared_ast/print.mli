@@ -119,6 +119,12 @@ module UserFacing : sig
   val expr : Format.formatter -> (_, _) gexpr -> unit
   (** This combines the user-facing value printer and the generic expression
       printer to handle all AST nodes *)
+
+  val embed_option :
+    (('a any, 'm) gexpr -> Catala_runtime.Value.t) ->
+    EnumConstructor.t ->
+    ('a, 'm) gexpr ->
+    Catala_runtime.Value.t
 end
 
 (**/*)

@@ -226,7 +226,7 @@ let rec format_typ ?(wildcard = false) ?(diamond = true) ctx ppf (typ : typ) =
       fprintf ppf "CatalaFunction<CatalaTuple,%a>" (format_typ ctx) ret_ty
     else fprintf ppf "CatalaFunction"
   | TTuple _ -> fprintf ppf "CatalaTuple"
-  | TStruct sname when sname == Expr.source_pos_struct ->
+  | TStruct sname when sname == ConstantNames.source_pos_struct ->
     pp_print_string ppf "CatalaPosition"
   | TStruct sname -> format_struct ppf sname
   | TEnum ename -> format_enum ppf ename
@@ -300,8 +300,8 @@ let fill_struct_bindings
     |> StructField.Map.map (fun _ ->
         ( EInj
             {
-              name = Expr.option_enum;
-              cons = Expr.none_constr;
+              name = ConstantNames.option_enum;
+              cons = ConstantNames.none_constr;
               e1 = ELit LUnit, Pos.void;
               expr_typ = TOption (Type.any Pos.void), Pos.void;
             },
@@ -345,7 +345,7 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     if FuncName.Set.mem f global_funcs && not in_globals then
       fprintf ppf "Globals.";
     FuncName.format ppf f
-  | EStruct { name = s; fields } when s == Expr.source_pos_struct ->
+  | EStruct { name = s; fields } when s == ConstantNames.source_pos_struct ->
     fprintf ppf "new CatalaPosition(%a)"
       (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
            fprintf ppf "%a" (format_expression ctx) e))
@@ -377,12 +377,12 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EStructFieldAccess { e1; field; _ } ->
     fprintf ppf "(%a).%a" (format_expression ctx) e1 StructField.format field
   | EInj { cons; name = e_name; _ }
-    when EnumName.equal e_name Expr.option_enum
-         && EnumConstructor.equal cons Expr.none_constr ->
+    when EnumName.equal e_name ConstantNames.option_enum
+         && EnumConstructor.equal cons ConstantNames.none_constr ->
     fprintf ppf "CatalaOption.none()"
   | EInj { e1 = e; cons; name = e_name; _ }
-    when EnumName.equal e_name Expr.option_enum
-         && EnumConstructor.equal cons Expr.some_constr ->
+    when EnumName.equal e_name ConstantNames.option_enum
+         && EnumConstructor.equal cons ConstantNames.some_constr ->
     fprintf ppf "@[<hv 2>CatalaOption.some@;<0 -1>(%a)@]"
       (format_expression ctx) e
   | EInj { e1 = ELit LUnit, _; cons; name = enum_name; _ } ->
@@ -471,8 +471,8 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       (format_expression_with_paren ctx)
       arg1 format_op op n
   | EAppOp { op = ConstructorCheck (enum, case), _; args = [arg1]; _ } ->
-    if EnumName.equal enum Expr.option_enum then
-      if EnumConstructor.equal case Expr.none_constr then
+    if EnumName.equal enum ConstantNames.option_enum then
+      if EnumConstructor.equal case ConstantNames.none_constr then
         fprintf ppf "CatalaBool.of(%a.isNone())"
           (format_expression_with_paren ctx)
           arg1
@@ -1079,6 +1079,7 @@ let populate_context (p : Ast.program) : context =
   }
 
 let format_structs ctx ppf =
+  (* TODO: register the struct and field original names for consistent printing *)
   let format_struct ppf (sname, fields) =
     if StructField.Map.cardinal fields >= 255 then
       Message.error
@@ -1192,7 +1193,8 @@ let format_enums ctx ppf =
   let enums_to_generate =
     EnumName.Map.filter
       (fun ename _ ->
-        EnumName.path ename = [] && not (EnumName.equal ename Expr.option_enum))
+        EnumName.path ename = []
+        && not (EnumName.equal ename ConstantNames.option_enum))
       ctx.decl_ctx.ctx_enums
     |> EnumName.Map.bindings
   in

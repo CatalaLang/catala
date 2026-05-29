@@ -20,6 +20,8 @@ module Runtime = Catala_runtime
 open Ast
 
 type ctx = { decl_ctx : decl_ctx; module_name : ModuleName.t option }
+[@@ocaml.warning "-69"]
+(* The module_name will be useful for json printing *)
 
 type env = {
   locs : VarName.t option;
@@ -235,9 +237,9 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
     if size <= 16 then (
       (* More readable version using the runtime function. Could be limited by
          the max number of arguments accepted (at least 127 by the standard) *)
-      Format.fprintf ppc "@[<hv 2>return catala_type_struct(&ty, %s, \"%s\", %d"
+      Format.fprintf ppc "@[<hv 2>return catala_type_struct(&ty, %s, %s, %d"
         (if size > 0 then "fields" else "NULL")
-        (StructName.canonical_str ctx.module_name struct_name)
+        (String.quote (StructName.original_base struct_name))
         size;
       List.iter
         (fun (name, ty) ->
@@ -249,7 +251,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
       (* Manual array init for unlimited number of fields *)
       Format.fprintf ppc
         "ty.contents.tstruct.name = \"%s\";@,ty.contents.tstruct.size = %d;"
-        (StructName.canonical_str ctx.module_name struct_name)
+        (String.quote (StructName.original_base struct_name))
         size;
       if size > 0 then
         Format.fprintf ppc "@,ty.contents.tstruct.fields = fields;";
@@ -295,21 +297,21 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
     if size <= 16 then (
       (* More readable version using the runtime function. Could be limited by
          the max number of arguments accepted (at least 127 by the standard) *)
-      Format.fprintf ppc
-        "@[<hv 2>return catala_type_enum(&ty, cases, \"%s\", %d"
-        (EnumName.canonical_str ctx.module_name enum_name)
+      Format.fprintf ppc "@[<hv 2>return catala_type_enum(&ty, cases, %s, %d"
+        (String.quote (EnumName.original_base enum_name))
         size;
       List.iter
         (fun (name, ty) ->
-          Format.fprintf ppc ",@,\"%a\", %a" EnumConstructor.format_original
-            name format_rtyp ty)
+          Format.fprintf ppc ",@,%s, %a"
+            (String.quote (EnumConstructor.original_string name))
+            format_rtyp ty)
         cases;
       Format.fprintf ppc ");@]@;<1 -2>}@]")
     else (
       (* Manual array init for unlimited number of cases *)
       Format.fprintf ppc
-        "ty.contents.tenum.name = \"%s\";@,ty.contents.tenum.size = %d;@,"
-        (EnumName.canonical_str ctx.module_name enum_name)
+        "ty.contents.tenum.name = %s;@,ty.contents.tenum.size = %d;@,"
+        (String.quote (EnumName.original_base enum_name))
         size;
       if size > 0 then Format.fprintf ppc "ty.contents.tenum.cases = cases;";
       List.iteri
@@ -424,7 +426,10 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
           pp ppfs "@,";
           format_struct_decl ppfs (s, def))
       | TypeIdent.Enum e ->
-        if EnumName.path e = [] && not (EnumName.equal e Expr.option_enum) then (
+        if
+          EnumName.path e = []
+          && not (EnumName.equal e ConstantNames.option_enum)
+        then (
           let def = EnumName.Map.find e ctx.decl_ctx.ctx_enums in
           pp ppfs "@,";
           format_enum_decl ppfs (e, def))
@@ -499,8 +504,8 @@ let rec format_expression
     Format.fprintf fmt "%s%a%s->%s" lpar format_expression e1 rpar
       (StructField.to_string field)
   | EInj { e1; cons; name = enum_name; _ }
-    when EnumName.equal enum_name Expr.option_enum ->
-    if EnumConstructor.equal cons Expr.none_constr then
+    when EnumName.equal enum_name ConstantNames.option_enum ->
+    if EnumConstructor.equal cons ConstantNames.none_constr then
       Format.fprintf fmt "CATALA_NONE"
     else Format.fprintf fmt "catala_some(%a)" format_expression e1
   | EStruct _ | EInj _ | EArray _ ->
@@ -521,10 +526,10 @@ let rec format_expression
   | EAppOp { op = FromClosureEnv, _; args = [arg]; _ } ->
     Format.fprintf fmt "((CATALA_TUPLE(_))%a)" format_expression arg
   | EAppOp { op = ConstructorCheck (enum, constr), _; args = [arg]; _ } ->
-    if EnumName.equal enum Expr.option_enum then
+    if EnumName.equal enum ConstantNames.option_enum then
       Format.fprintf fmt "catala_new_bool((%a)->code == %s)" format_expression
         arg
-        (if EnumConstructor.equal constr Expr.none_constr then
+        (if EnumConstructor.equal constr ConstantNames.none_constr then
            "catala_option_none"
          else "catala_option_some")
     else
@@ -660,7 +665,7 @@ let rec format_expression
       typ
       (fun ppf -> function
         | (EStructFieldAccess { name; _ }, _) as e
-          when name = Expr.option_struct ->
+          when name = ConstantNames.option_struct ->
           Format.fprintf ppf "((CATALA_TUPLE(_))%a)" format_expression e
         | e -> format_expression ppf e)
       e1 index
@@ -749,7 +754,7 @@ let rec format_statement
           expr)
       fields
   | SLocalDef { name = v, _; expr = EInj { e1; cons; name; _ }, _; _ }
-    when not (EnumName.equal name Expr.option_enum) ->
+    when not (EnumName.equal name ConstantNames.option_enum) ->
     Format.fprintf fmt "@,@[<hov 2>%a->code = %s;@]" VarName.format v
       (EnumConstructor.to_string cons);
     Format.fprintf fmt "@,@[<hov 2>%a->payload.%s = %a;@]" VarName.format v
@@ -839,7 +844,7 @@ let rec format_statement
   | SIfThenElse _ ->
     Format.fprintf fmt "@,@[<hv 2>%a@]" (format_ite ctx env) [s]
   | SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ } ->
-    if EnumName.equal e_name Expr.option_enum then
+    if EnumName.equal e_name ConstantNames.option_enum then
       Format.fprintf fmt "@,@[<hv 2>%a@]" (format_ite ctx env) [s]
     else
       let () =
@@ -902,7 +907,7 @@ and format_ite (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     format_block ctx env fmt ite.then_block;
     Format.fprintf fmt "@;<1 -2>}%a" format_else ite.else_block
   | [(SSwitch { switch_var; enum_name = e_name; switch_cases = cases; _ }, _)]
-    when EnumName.equal e_name Expr.option_enum ->
+    when EnumName.equal e_name ConstantNames.option_enum ->
     let cases =
       List.map2
         (fun x (cons, _) -> x, cons)
@@ -913,7 +918,8 @@ and format_ite (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     let some_case, none_case =
       match
         List.partition
-          (fun (_, cons) -> EnumConstructor.equal cons Expr.some_constr)
+          (fun (_, cons) ->
+            EnumConstructor.equal cons ConstantNames.some_constr)
           cases
       with
       | [(some, _)], [(none, _)] -> some, none
@@ -938,7 +944,8 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
      into Init (that will only do the malloc) + def) - for literal constants
      keep init - otherwise split Init into decl + def *)
   let requires_malloc = function
-    | EInj { name; _ }, _ when EnumName.equal name Expr.option_enum -> false
+    | EInj { name; _ }, _ when EnumName.equal name ConstantNames.option_enum ->
+      false
     | (EArray _ | EStruct _ | EInj _ | ETuple _), _ -> true
     | _ -> false
   in
@@ -1135,8 +1142,8 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
     (Format.pp_print_list
        ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
        (fun ppf (name, _, _) ->
-         Format.fprintf ppf "\"%s\""
-           (String.escaped (ScopeName.original_base name))))
+         Format.pp_print_string ppf
+           (String.quote (ScopeName.original_base name))))
     tests;
   Format.fprintf fmt "@,@[<v 2>void* run_tests ()@;<0 -2>{";
   (if tests = [] then
@@ -1213,9 +1220,8 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
   Format.fprintf fmt "@,if (i == %d)" ntests;
   Format.fprintf fmt " for (i = 0; i < %d; i++) catala_tests_enabled[i] = 1;"
     ntests;
-
-  (* Format.fprintf fmt "@,catala_set_lang(Catala_lang_%s);"
-   *       (match p.lang with `En -> "En" | `Fr -> "Fr" | _ -> "En"); *)
+  Format.fprintf fmt "@,catala_set_lang(Catala_lang_%s);"
+    (match p.lang with `En -> "En" | `Fr -> "Fr" | _ -> "En");
   Format.fprintf fmt "@,result = catala_do(&run_tests);";
 
   Format.fprintf fmt "@,return !result;@;<1 -2>}@]"

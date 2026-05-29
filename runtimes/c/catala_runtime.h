@@ -444,7 +444,7 @@ void catala_init(void);
 
 enum catala_language { Catala_lang_En, Catala_lang_Fr, Catala_lang_Pl };
 
-void set_lang (enum catala_language lg);
+void catala_set_lang (enum catala_language lg);
 void set_max_decimals (int n);
 
 void* catala_do(void* (*f)(void));

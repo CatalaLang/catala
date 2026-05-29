@@ -1465,7 +1465,8 @@ let empty_ctxt lang =
     var_typs = ScopeVar.Map.empty;
     structs = StructName.Map.empty;
     enums =
-      EnumName.Map.singleton Expr.option_enum (Expr.option_enum_config, Private);
+      EnumName.Map.singleton ConstantNames.option_enum
+        (Expr.option_enum_config, Private);
     abstract_types = AbstractType.Map.empty;
     modules = ModuleName.Map.empty;
     local = empty_module_ctxt lang;

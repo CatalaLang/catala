@@ -1041,13 +1041,27 @@ const catala_type catala_type_undef = { UNINITIALIZED };
 const catala_type catala_type_optional(const catala_type ty) {
   catala_type ret;
   ret.kind = ENUM;
-  ret.contents.tenum.name = "Optional";
   ret.contents.tenum.size = 2;
   ret.contents.tenum.cases = catala_malloc(2*sizeof(struct catala_label_type));
-  ret.contents.tenum.cases[0].name = "Absent";
   ret.contents.tenum.cases[0].ty = catala_type_unit;
-  ret.contents.tenum.cases[1].name = "Present";
   ret.contents.tenum.cases[1].ty = ty;
+  switch (catala_language) {
+    case Catala_lang_En:
+      ret.contents.tenum.name = "Optional";
+      ret.contents.tenum.cases[0].name = "Absent";
+      ret.contents.tenum.cases[1].name = "Present";
+      break;
+    case Catala_lang_Fr:
+      ret.contents.tenum.name = "Optionnel";
+      ret.contents.tenum.cases[0].name = "Absent";
+      ret.contents.tenum.cases[1].name = "Présent";
+      break;
+    case Catala_lang_Pl:
+      ret.contents.tenum.name = "Opcjonalny";
+      ret.contents.tenum.cases[0].name = "Niobecny";
+      ret.contents.tenum.cases[1].name = "Obecny";
+      break;
+  }
   return ret;
 }
 
@@ -1667,7 +1681,7 @@ void register_error_handler(void* (*f)(const struct catala_error *)){
 }
 
 
-void set_lang (enum catala_language lg) {
+void catala_set_lang (enum catala_language lg) {
   catala_language = lg;
 }
 

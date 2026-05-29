@@ -206,15 +206,15 @@ let rec evaluate_operator
   | Reduce, [_; (EArray [], m)] ->
     EInj
       {
-        name = Expr.option_enum;
-        cons = Expr.none_constr;
+        name = ConstantNames.option_enum;
+        cons = ConstantNames.none_constr;
         e = ELit LUnit, Expr.with_ty m (TLit TUnit, pos);
       }
   | Reduce, [f; (EArray (x0 :: xn), _)] ->
     EInj
       {
-        name = Expr.option_enum;
-        cons = Expr.some_constr;
+        name = ConstantNames.option_enum;
+        cons = ConstantNames.some_constr;
         e =
           List.fold_left
             (fun acc x -> eval_application evaluate_expr f [acc; x])
@@ -243,11 +243,17 @@ let rec evaluate_operator
     | None ->
       EInj
         {
-          name = Expr.option_enum;
-          cons = Expr.none_constr;
+          name = ConstantNames.option_enum;
+          cons = ConstantNames.none_constr;
           e = ELit LUnit, Expr.with_ty m (TLit TUnit, pos);
         }
-    | Some e -> EInj { name = Expr.option_enum; cons = Expr.some_constr; e })
+    | Some e ->
+      EInj
+        {
+          name = ConstantNames.option_enum;
+          cons = ConstantNames.some_constr;
+          e;
+        })
   | Sort updown, [f; (EArray es, _)] ->
     let weighted =
       List.map (fun e -> e, eval_application evaluate_expr f [e]) es
@@ -334,9 +340,9 @@ let rec evaluate_operator
     let exps =
       List.map
         (function
-          | EInj { name; cons; e }, _ when EnumName.equal name Expr.option_enum
-            ->
-            if EnumConstructor.equal cons Expr.some_constr then
+          | EInj { name; cons; e }, _
+            when EnumName.equal name ConstantNames.option_enum ->
+            if EnumConstructor.equal cons ConstantNames.some_constr then
               match e with
               | ETuple [e; (EPos p, _)], _ ->
                 Runtime.Optional.Present (e, Expr.pos_to_runtime p)
@@ -348,13 +354,17 @@ let rec evaluate_operator
     match Runtime.handle_exceptions (Array.of_list exps) with
     | Runtime.Optional.Absent ->
       EInj
-        { name = Expr.option_enum; cons = Expr.none_constr; e = ELit LUnit, m }
+        {
+          name = ConstantNames.option_enum;
+          cons = ConstantNames.none_constr;
+          e = ELit LUnit, m;
+        }
     | Runtime.Optional.Present (e, rpos) ->
       let p = Expr.runtime_to_pos rpos in
       EInj
         {
-          name = Expr.option_enum;
-          cons = Expr.some_constr;
+          name = ConstantNames.option_enum;
+          cons = ConstantNames.some_constr;
           e = ETuple [e; EPos p, Expr.with_pos p m], m;
         })
   | DebugPrint s, [v] ->
@@ -469,15 +479,21 @@ and runtime_to_val : type d r.
       (* constant constructor => None case *)
       ( EInj
           {
-            name = Expr.option_enum;
-            cons = Expr.none_constr;
+            name = ConstantNames.option_enum;
+            cons = ConstantNames.none_constr;
             e = ELit LUnit, Expr.with_ty m (TLit TUnit, Pos.void);
           },
         m )
     else
       (* Some case *)
       let e = runtime_to_val ctx m ty (Obj.field o 0) in
-      EInj { name = Expr.option_enum; cons = Expr.some_constr; e }, m
+      ( EInj
+          {
+            name = ConstantNames.option_enum;
+            cons = ConstantNames.some_constr;
+            e;
+          },
+        m )
   | TClosureEnv ->
     (* By construction, a closure environment can only be consumed from the same
        scope where it was built (compiled or not) ; for this reason, we can
@@ -580,8 +596,8 @@ and val_to_runtime : type d r.
         Obj.set_field o 0 field;
         o))
   | TOption ty, EInj { name; cons; e } ->
-    assert (EnumName.equal name Expr.option_enum);
-    if EnumConstructor.equal cons Expr.none_constr then Obj.repr None
+    assert (EnumName.equal name ConstantNames.option_enum);
+    if EnumConstructor.equal cons ConstantNames.none_constr then Obj.repr None
     else Obj.repr (Some (val_to_runtime eval_expr ctx ty e))
   | TArray ty, EArray es ->
     Array.of_list (List.map (val_to_runtime eval_expr ctx ty) es) |> Obj.repr

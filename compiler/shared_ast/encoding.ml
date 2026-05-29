@@ -546,11 +546,11 @@ let rec convert_to_dcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
   | TOption typ, V (Enum { name = "Optional"; constr }, v) -> begin
     match constr v with
     | 0, "Absent", None ->
-      Expr.einj ~name:Expr.option_enum ~cons:Expr.none_constr
+      Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.none_constr
         ~e:(Expr.elit LUnit mark) mark
     | 1, "Present", Some rval ->
-      Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr ~e:(f typ rval)
-        mark
+      Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.some_constr
+        ~e:(f typ rval) mark
     | _ -> assert false
   end
   | TEnum ename, V (Enum { name = _; constr }, v) ->
@@ -621,11 +621,11 @@ let rec convert_to_lcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
     begin
     match constr v with
     | 0, "Absent", None ->
-      Expr.einj ~name:Expr.option_enum ~cons:Expr.none_constr
+      Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.none_constr
         ~e:(Expr.elit LUnit mark) mark
     | 1, "Present", Some rval ->
-      Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr ~e:(f typ rval)
-        mark
+      Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.some_constr
+        ~e:(f typ rval) mark
     | _ -> assert false
   end
   | TEnum ename, V (Enum { name = _; constr }, v) ->

@@ -124,7 +124,7 @@ module Mod_def = struct
     | No
     | Maybe
   let rtype = Value.Enum {
-    name = "Mod_def.Mod_def";
+    name = "Mod_def";
     constr = function
       | Yes -> 0, "Yes", None
       | No -> 1, "No", None
@@ -135,7 +135,7 @@ end
 module Str1 = struct
   type t = { fld1: Mod_def.t; fld2: integer; }
   let rtype = Value.Struct {
-    name = "Mod_def.Str1";
+    name = "Str1";
     fields = fun t -> [
       "fld1", Value.embed (Mod_def.rtype) t.fld1;
       "fld2", Value.embed (Value.Integer) t.fld2;
@@ -146,7 +146,7 @@ end
 module S = struct
   type t = { sr: money; e1: Mod_def.t; }
   let rtype = Value.Struct {
-    name = "Mod_def.S";
+    name = "S";
     fields = fun t -> [
       "sr", Value.embed (Value.Money) t.sr;
       "e1", Value.embed (Mod_def.rtype) t.e1;
@@ -156,7 +156,7 @@ end
 
 module S_in = struct
   type t = unit
-  let rtype = Value.Struct { name = "Mod_def.S_in"; fields = fun t -> [ ] }
+  let rtype = Value.Struct { name = "S_in"; fields = fun t -> [ ] }
 end
 
 

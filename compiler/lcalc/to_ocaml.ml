@@ -277,7 +277,7 @@ let format_typ (fmt : Format.formatter) (typ : typ) : unit =
     | TStruct s -> Format.fprintf fmt "%a.t" format_to_module_name (`Sname s)
     | TOption t ->
       Format.fprintf fmt "@[<hov 2>(%a)@] %a.t" format_typ_with_parens t
-        format_to_module_name (`Ename Expr.option_enum)
+        format_to_module_name (`Ename ConstantNames.option_enum)
     | TDefault t -> aux bctx fmt t
     | TEnum e -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
     | TAbstract e -> Format.fprintf fmt "%a.t" format_to_module_name (`Aname e)
@@ -592,7 +592,7 @@ let format_ctx
     (ppml : Format.formatter)
     (ppi : Format.formatter)
     (ctx : decl_ctx)
-    (modname : ModuleName.t option) : unit =
+    (_modname : ModuleName.t option) : unit =
   let format_struct_decl (struct_name, struct_fields) =
     let ppdef ppf =
       if StructField.Map.is_empty struct_fields then
@@ -610,13 +610,12 @@ let format_ctx
       (`Sname struct_name);
     ppdef ppml;
     Format.fprintf ppml "@,@[<hv 2>let rtype = Value.Struct {";
-    Format.fprintf ppml "@ name = %S;"
-      (StructName.canonical_str modname struct_name);
+    Format.fprintf ppml "@ name = %S;" (StructName.original_base struct_name);
     Format.fprintf ppml "@ @[<hv 2>fields = fun t -> [";
     StructField.Map.iter
       (fun fld ty ->
         Format.fprintf ppml "@ %S, %a t.%a;"
-          (StructField.to_string fld)
+          (StructField.original_string fld)
           format_embedding ty StructField.format fld)
       struct_fields;
     Format.fprintf ppml "@;<1 -2>]@]";
@@ -646,8 +645,7 @@ let format_ctx
       (`Ename enum_name);
     ppdef ppml;
     Format.fprintf ppml "@,@[<hv 2>let rtype = Value.Enum {";
-    Format.fprintf ppml "@ name = %S;"
-      (EnumName.canonical_str modname enum_name);
+    Format.fprintf ppml "@ name = %S;" (EnumName.original_base enum_name);
     Format.fprintf ppml "@ @[<v 2>constr = function";
     List.iteri
       (fun i (constr, ty) ->
@@ -655,12 +653,12 @@ let format_ctx
         | TLit TUnit, _ ->
           Format.fprintf ppml "@,| @[<hv 2>%a ->@ %d, %S, None@]"
             format_enum_cons_name constr i
-            (EnumConstructor.to_string constr)
+            (EnumConstructor.original_string constr)
         | ty ->
           Format.fprintf ppml
             "@,| @[<hv 2>%a x ->@ @[<hov 2>%d,@ %S,@ Some (%a x)@]@]"
             format_enum_cons_name constr i
-            (EnumConstructor.to_string constr)
+            (EnumConstructor.original_string constr)
             format_embedding ty)
       (EnumConstructor.Map.bindings enum_cons);
     Format.fprintf ppml "@]";
@@ -715,7 +713,7 @@ let format_ctx
         let def = StructName.Map.find s ctx.ctx_structs in
         if StructName.path s = [] then format_struct_decl (s, def)
       | TypeIdent.Enum e ->
-        if EnumName.equal e Expr.option_enum then ()
+        if EnumName.equal e ConstantNames.option_enum then ()
         else
           let def = EnumName.Map.find e ctx.ctx_enums in
           if EnumName.path e = [] then format_enum_decl (e, def)

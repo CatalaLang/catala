@@ -27,7 +27,8 @@ let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   FuncName.format fmt v
 
 let format_type fmt = function
-  | TStruct name, _ when StructName.equal name Expr.source_pos_struct ->
+  | TStruct name, _ when StructName.equal name ConstantNames.source_pos_struct
+    ->
     StructName.format fmt name
   | ty -> Print.typ fmt ty
 

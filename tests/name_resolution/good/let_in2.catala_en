@@ -99,7 +99,7 @@ module Decimal_en = Decimal_en
 module S = struct
   type t = { a: bool; }
   let rtype = Value.Struct {
-    name = "Let_in2.S";
+    name = "S";
     fields = fun t -> [ "a", Value.embed (Value.Bool) t.a; ]
   }
 end
@@ -107,7 +107,7 @@ end
 module S_in = struct
   type t = { a_in: ((bool * code_location)) Optional.t; }
   let rtype = Value.Struct {
-    name = "Let_in2.S_in";
+    name = "S_in";
     fields = fun t -> [
       "a_in", Value.embed (Optional.rtype (Value.Tuple(fun (x0, x1) ->
       [Value.embed (Value.Bool) x0; Value.embed (Value.Position) x1]))) t.a_in;
