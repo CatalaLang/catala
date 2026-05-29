@@ -51,10 +51,7 @@ let run_artifact _config ~var_bindings src =
   in
   let pythonpath =
     String.concat ":"
-      [
-        File.dirname src;
-        Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH");
-      ]
+      [File.dirname src; Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH")]
   in
   Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
     (String.concat " " cmd);
