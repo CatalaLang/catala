@@ -805,27 +805,23 @@ let build_test_deps
       | `Interpret -> `Interpret_module
       | (`OCaml | `C | `Python | `Java) as bk -> bk
     in
-    List.fold_left
-      (fun acc (it, t) ->
-        if String.Set.mem t acc then acc
-        else
-          let acc =
-            if backend = `Interpret_module then String.Set.add t acc
-            else
-              let t = make_target ~build_dir ~backend it in
-              String.Set.add t
-              @@ String.Set.add
-                   (match backend with
-                   | `Java | `Python -> t
-                   | _ -> File.(remove_extension t ^ ("+main" -.- extension t)))
-                   acc
-          in
-          List.fold_left
-            (fun acc it ->
-              String.Set.add (make_target ~build_dir ~backend it) acc)
-            acc (link_deps it))
-      (String.Set.of_list runtime_targets)
-      base_targets
+    let add_target acc (it, t) =
+      let acc = String.Set.add t acc in
+      let acc =
+        match backend with
+        | `Interpret_module | `Java | `Python -> acc
+        | _ ->
+          (* OCaml and C backends generate an entrypoint: also add
+             these as targets *)
+          String.Set.add
+            File.(remove_extension t ^ ("+main" -.- extension t))
+            acc
+      in
+      List.fold_left
+        (fun acc it -> String.Set.add (make_target ~build_dir ~backend it) acc)
+        acc (link_deps it)
+    in
+    List.fold_left add_target (String.Set.of_list runtime_targets) base_targets
     |> String.Set.elements
   in
   Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
