@@ -29,12 +29,15 @@ val base_bindings :
   config:Clerk_cli.config ->
   (Var.t * string list) list
 
+exception Stop_ninja
+
 val run_ninja :
   ?include_dir:bool ->
   config:Clerk_cli.config ->
   ?tests:bool ->
   ?enabled_backends:backend list ->
   quiet:bool ->
+  default:'a ->
   code_coverage:bool ->
   autotest:bool ->
   ?clean_up_env:bool ->
@@ -50,4 +53,6 @@ val run_ninja :
     the corresponding build dir.
 
     By default, all backends are enabled, the env is not cleaned of CATALA_*
-    variables *)
+    variables.
+
+    [default] is returned if the callback aborts with exception [Stop_ninja]. *)
