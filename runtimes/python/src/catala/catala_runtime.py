@@ -344,10 +344,12 @@ class CatalaEnum(Value):
     payload: Value
 
     class Code(Enum):
+        label: str
         def __new__(cls, name):
             obj = object.__new__(cls)
             obj._value_ = len(cls.__members__)
             obj._name_ = name
+            obj.label = name
             return obj
         def __str__(self, indent: int = 0):
             return self.name
@@ -372,9 +374,9 @@ class CatalaEnum(Value):
 
     def __str__(self, indent: int = 0):
         if isinstance(self.payload, Unit):
-            return str(self.code)
+            return str(self.code.label)
         else:
-            return f'{self.code} %s {self.payload}' % (
+            return f'{self.code.label} %s {self.payload}' % (
               {Lang.En: "content", Lang.Fr: "contenu", Lang.Pl: "typu"}[lang]
             )
 
