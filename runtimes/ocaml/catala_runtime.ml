@@ -749,7 +749,7 @@ module BufferedJson = struct
         match Seq.uncons sq with
         | None -> ()
         | Some (x, r) ->
-          Buffer.add_string buf ", ";
+          Buffer.add_string buf ",";
           f buf x;
           aux r
       in
@@ -773,48 +773,31 @@ module BufferedJson = struct
     Buffer.add_char buf '"'
 
   let decimal buf d =
-    let max_decimals = 6 in
-    let dec_str =
-      let open Z in
-      let sign = Q.sign d in
-      let n = abs (Q.num d) in
-      let d = abs (Q.den d) in
-      let int_part, dec_part = div_rem n d in
-      bprint buf (~$sign * int_part);
-      Buffer.add_char buf '.';
-      let dec_part = (((~$10 ** max_decimals) * dec_part) + (d / ~$2)) / d in
-      format ("%0" ^ string_of_int max_decimals ^ "d") dec_part
-    in
-    let rec last_non0 n =
-      if n <= 1 || dec_str.[n - 1] <> '0' then n else last_non0 (n - 1)
-    in
-    Buffer.add_substring buf dec_str 0 (last_non0 max_decimals)
+    if Q.den d = Z.one then Z.bprint buf (Q.num d)
+    else Printf.bprintf buf "%a/%a" Z.bprint (Q.num d) Z.bprint (Q.den d)
 
   (* Note: the output format is made for transition with what Yojson gave us,
      but we could change it to something nicer (e.g. objects for structures) *)
   let rec runtime_value buf = function
     | Value.V (Unit, ()) -> Buffer.add_string buf "{}"
     | V (Bool, b) -> Buffer.add_string buf (string_of_bool b)
-    | V (Money, m) -> Buffer.add_string buf (money_to_string m)
+    | V (Money, m) -> Printf.bprintf buf {|"%s"|} (money_to_string m)
     | V (Integer, i) -> Printf.bprintf buf {|"%s"|} (integer_to_string i)
     | V (Decimal, d) -> Printf.bprintf buf {|"%a"|} decimal d
     | V (Date, d) -> quote buf (date_to_string d)
     | V (Duration, d) ->
       let y, m, d = Dates_calc.period_to_ymds d in
-      let p buf (s, v) = Printf.bprintf buf {|"%s": %d|} s v in
-      Printf.bprintf buf {|{%a}|} (list p)
-        (List.filter
-           (fun (_, v) -> v <> 0)
-           ["years", y; "months", m; "days", d])
+      let p buf (s, v) = Printf.bprintf buf {|"%s":%d|} s v in
+      Printf.bprintf buf {|{%a}|} (list p) ["years", y; "months", m; "days", d]
     | V (Enum en, e) -> (
       let _, constr, value = en.constr e in
       match value with
-      | None -> Printf.bprintf buf "\"%s\"" constr
-      | Some v -> Printf.bprintf buf {|{"%s": %a}|} constr runtime_value v)
+      | None -> quote buf constr
+      | Some v -> Printf.bprintf buf {|{%a:%a}|} quote constr runtime_value v)
     | V (Struct str, s) ->
       let fields = str.fields s in
       let pfield buf (name, v) =
-        Printf.bprintf buf {|"%s": %a|} name runtime_value v
+        Printf.bprintf buf {|%a:%a|} quote name runtime_value v
       in
       Printf.bprintf buf {|{%a}|} (list pfield) fields
     | V (Array t, a) ->
@@ -825,7 +808,7 @@ module BufferedJson = struct
       Printf.bprintf buf {|[%a]|} (list runtime_value) (destr a)
     | V (Position, pos) ->
       Printf.bprintf buf
-        {|{"file": "%s", "start":{"line":%d, "character":%d}, "end":{"line":%d, "character":%d}}|}
+        {|{"file":"%s","start":{"line":%d,"character":%d},"end":{"line":%d,"character":%d}}|}
         pos.filename pos.start_line pos.start_column pos.end_line pos.end_column
     | V ((Function | Polymorphic), _) -> Buffer.add_string buf {|"<function>"|}
     | V (External (module E), v) -> Buffer.add_string buf (E.to_json v)
