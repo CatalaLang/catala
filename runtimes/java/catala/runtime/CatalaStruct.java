@@ -54,7 +54,7 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
             return qualified_name + " {}";
         }
         StringBuilder b = new StringBuilder();
-        b.append(qualified_name).append(" {\n").append(" ".repeat(indent+2));
+        b.append(qualified_name).append(" {\n").append(" ".repeat(indent + 2));
         StringBuilder subb = new StringBuilder();
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];
@@ -69,13 +69,13 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
                 if (CatalaStruct.class.isAssignableFrom(c)) {
                     subb.append(((CatalaStruct) (f.get(this))).toString(c.getCanonicalName(), indent + 2));
                 } else {
-                    subb.append(((CatalaValue)f.get(this)).toString(indent + 2));
+                    subb.append(((CatalaValue) f.get(this)).toString(indent + 2));
                 }
             } catch (IllegalAccessException | IllegalArgumentException e) {
                 throw CatalaError.error(CatalaError.Error.GenericError, "failed to introspect value of field " + f.getName());
             }
             if (i < fields.length - 1) {
-                subb.append('\n').append(" ".repeat(indent+2));
+                subb.append('\n').append(" ".repeat(indent + 2));
             }
         }
         // indent adds a newline for no intelligible reason: we do not add a new one.

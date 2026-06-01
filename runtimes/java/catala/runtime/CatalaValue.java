@@ -8,6 +8,7 @@ public abstract class CatalaValue<T extends CatalaValue<?>> implements Comparabl
 
     @Override
     public abstract String toString();
+
     public String toString(int indent) {
         return toString();
     }

@@ -191,10 +191,15 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
         r = r.abs();
         for (int i = 0; i < CatalaGlobals.max_decimals; i++) {
             prout = r.multiply(BigInteger.TEN).divideAndRemainder(d);
-            q = prout[0]; r = prout[1];
-            if (i != 0 && i % 3 == 0) { s.append(bigsep); }
+            q = prout[0];
+            r = prout[1];
+            if (i != 0 && i % 3 == 0) {
+                s.append(bigsep);
+            }
             s.append(q.toString());
-            if (r.equals(BigInteger.ZERO)) break;
+            if (r.equals(BigInteger.ZERO)) {
+                break;
+            }
         }
         if (!r.equals(BigInteger.ZERO)) {
             s.append("…");

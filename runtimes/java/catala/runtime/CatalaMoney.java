@@ -4,8 +4,6 @@ import catala.runtime.exception.CatalaError;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-import java.text.NumberFormat;
-import java.util.Locale;
 
 public final class CatalaMoney extends CatalaValue<CatalaMoney> {
 

@@ -72,8 +72,11 @@ public final class CatalaOption<T extends CatalaValue<?>> extends CatalaValue<Ca
             }
         }
     }
+
     @Override
-    public String toString() { return toString(0); }
+    public String toString() {
+        return toString(0);
+    }
 
     @Override
     public String toJSONString() {
