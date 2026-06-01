@@ -2,18 +2,8 @@
 name = "catala-runtime"
 description = "Runtime libraries needed to execute Catala programs compiled to Python"
 version = "1.1.0"
-dependencies = [
-  "gmpy2 ~= 2.2.0rc1",
-  "typing",
-  "mypy",
-  "dates_calc",
-  "types-python-dateutil",
-  "autopep8",
-  "termcolor",
-  "types-termcolor",
-  "typer[all]",
-  "typing-extensions",
-]
+requires-python = ">=3.12"
+dependencies = []
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov"]

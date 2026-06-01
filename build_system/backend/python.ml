@@ -23,9 +23,8 @@ let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
 let python = Var.make "PYTHON"
 
 let linking_command ~build_dir link_deps item target =
-  (* a "linked" python module is a "Module.py" folder containing the module .py
-     file along with the runtime and all dependencies, plus a __init__.py
-     file *)
+  (* a "linked" python module is a self-contained package: all dependencies
+     and the runtime are bundled, no PYTHONPATH setup needed *)
   let open File in
   let tdir = Filename.remove_extension target in
   remove tdir;
@@ -39,23 +38,20 @@ let linking_command ~build_dir link_deps item target =
       copy_in ~src ~dir:tdir)
     (link_deps item);
   copy_in ~src:(target -.- "py") ~dir:tdir;
+  let runtime_dir = build_dir / Scan.libcatala / "python" in
+  copy_in ~src:(runtime_dir / "catala_runtime.py") ~dir:tdir;
+  copy_in ~src:(runtime_dir / "dates.py") ~dir:tdir;
   close_out (open_out (tdir / "__init__.py"));
   []
 
-let run_artifact config ~var_bindings src =
-  let open File in
-  let build_dir = config.Clerk_cli.options.global.build_dir in
+let run_artifact _config ~var_bindings src =
   let cmd =
     let base = Filename.basename (File.remove_extension src) in
     Var.get_var var_bindings python @ ["-m"; base ^ "." ^ base]
   in
   let pythonpath =
     String.concat ":"
-      [
-        build_dir / Scan.libcatala / "python";
-        File.dirname src;
-        Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH");
-      ]
+      [File.dirname src; Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH")]
   in
   Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
     (String.concat " " cmd);

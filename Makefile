@@ -57,14 +57,6 @@ $(PY_VENV_DIR)/stamp: \
 
 dependencies-python: $(PY_VENV_DIR)
 
-build-runtime-python: dependencies-python
-	$(PY_VENV_ACTIVATE) python3 -m pip install -U build
-	$(PY_VENV_ACTIVATE) python -m build runtimes/python -o _build/python-runtime/
-
-publish-runtime-python:
-	$(PY_VENV_ACTIVATE) python3 -m pip install -U twine
-	$(PY_VENV_ACTIVATE) python -m twine upload _build/python-runtime/*
-
 #> dependencies				: Install the Catala OCaml, JS and Git dependencies
 dependencies: dependencies-ocaml dependencies-python
 
@@ -254,9 +246,21 @@ backend-tests-%: $(CLERK_BIN) $(BACKEND_TESTS)
 
 backend-tests-python: BACKEND_ENV=$(PY_VENV_ACTIVATE)
 
+# The stdlib helpers (stdlib/python/*.py) use relative imports
+# (from .catala_runtime import *) so mypy needs them in a proper package
+# context alongside catala_runtime.py. We assemble a throw-away package
+# in a temp dir rather than moving the files out of stdlib/python/.
 validate-py-runtime: dependencies-python
-	@$(PY_VENV_ACTIVATE) MYPYPATH=$(PWD)/runtimes/python/src/catala: mypy -p catala_runtime
-	@$(PY_VENV_ACTIVATE) PYTHONPATH=$(PWD)/runtimes/python/src/catala: mypy --follow-untyped-imports stdlib/python/*
+	@$(PY_VENV_ACTIVATE) MYPYPATH=$(PWD)/runtimes/python/src: mypy -p catala
+	@tmp=$$(mktemp -d) && \
+	 mkdir $$tmp/catala_stdlib && \
+	 cp $(PWD)/runtimes/python/src/catala/catala_runtime.py \
+	    $(PWD)/runtimes/python/src/catala/dates.py \
+	    $(PWD)/stdlib/python/*.py $$tmp/catala_stdlib/ && \
+	 touch $$tmp/catala_stdlib/__init__.py && \
+	 $(PY_VENV_ACTIVATE) MYPYPATH=$$tmp \
+	   mypy --follow-untyped-imports -p catala_stdlib; \
+	 rc=$$?; rm -rf $$tmp; exit $$rc
 
 backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python backend-tests-java
 
