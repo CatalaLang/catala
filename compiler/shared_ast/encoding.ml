@@ -269,7 +269,7 @@ and generate_array_encoder (ctx : decl_ctx) typ : Val.t encoding =
 and generate_option_encoder ctx typ =
   let open Val in
   let proj_none = function
-    | V (Enum { name = "Optional"; constr }, v) -> (
+    | V (Enum { name = "Optional" | "Optionnel"; constr }, v) -> (
       match constr v with _, _, None -> Some (V (Unit, ())) | _ -> None)
     | _ -> None
   in
@@ -384,7 +384,7 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
           let rval =
             List.assoc_opt field_s (enc.fields data)
             |> Option.map (function
-              | V (Enum { name = "Optional"; constr }, data) ->
+              | V (Enum { name = "Optional" | "Optionnel"; constr }, data) ->
                 let _, _, x = constr data in
                 x
               | _ -> assert false)
