@@ -17,8 +17,11 @@
 
 open Catala_utils
 
-include module type of Ninja_utils.Var
-(** Ninja variable names *)
+include module type of struct
+  include Ninja_utils.Var
+end
+
+(** {1 Ninja variable names} *)
 
 (** {2 Global vars: always defined, at toplevel} *)
 
@@ -47,7 +50,7 @@ val class_path : t
 val cat_files : t
 val test_id : t
 
-(** {2 Utility functions} *)
+(** {1 Utility functions} *)
 
 type bindings = (t * string list) list
 

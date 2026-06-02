@@ -130,7 +130,7 @@ let format_exception_forest ~is_condition fmt trees =
 let pos_to_json (pos : Pos.t) : Yojson.Safe.t =
   `Assoc
     [
-      "filename", `String (File.make_absolute (Pos.get_file pos));
+      "filename", `String (Pos.get_file pos);
       "start_line", `Int (Pos.get_start_line pos);
       "start_column", `Int (Pos.get_start_column pos);
       "end_line", `Int (Pos.get_end_line pos);
