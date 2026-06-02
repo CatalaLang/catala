@@ -76,9 +76,10 @@ let rec separate_law_and_code
     let filename = Pos.get_file (Mark.get c) in
     let block_content = Mark.remove c in
     check_exceeding_lines start_line filename block_content;
+    let block_content = remove_exceeding_lines block_content in
     Format.fprintf fmt "[%s]{.filename}\n\n%s@\n"
       (Pos.get_file (Mark.get c))
-      ("~~~~~~~catala\n" ^ Mark.remove c ^ "~~~~~~~\n")
+      ("~~~~~~~catala\n" ^ block_content ^ "~~~~~~~\n")
   | A.CodeBlock _ -> ()
   | A.LawHeading (heading, children) ->
     let h_number = heading.law_heading_precedence + 1 in
