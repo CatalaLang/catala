@@ -64,7 +64,7 @@ let rec translate_default
   let mark_alpha = Expr.with_ty mark_default ty_alpha in
   let if_just_then_cons =
     let none =
-      Expr.einj ~cons:Expr.none_constr ~name:Expr.option_enum
+      Expr.einj ~cons:ConstantNames.none_constr ~name:ConstantNames.option_enum
         ~e:(Expr.elit LUnit (Expr.with_ty mark_default (TLit TUnit, pos)))
         mark_default
     in
@@ -74,7 +74,8 @@ let rec translate_default
       Expr.eifthenelse (translate_expr just) (translate_expr cons)
         (Expr.einj
            ~e:(Expr.elit LUnit (Expr.with_ty mark_default (TLit TUnit, pos)))
-           ~cons:Expr.none_constr ~name:Expr.option_enum mark_default)
+           ~cons:ConstantNames.none_constr ~name:ConstantNames.option_enum
+           mark_default)
         mark_default
   in
   let match_some e =
@@ -83,28 +84,30 @@ let rec translate_default
       (* in this case we can just forward the option in the argument *)
       e
     | _ ->
-      Expr.ematch ~name:Expr.option_enum ~e
+      Expr.ematch ~name:ConstantNames.option_enum ~e
         ~cases:
           (EnumConstructor.Map.of_list
              [
                (* Some x -> Some x *)
-               ( Expr.some_constr,
+               ( ConstantNames.some_constr,
                  let x = Var.make "x" in
                  Expr.make_ghost_abs [x]
-                   (Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr
+                   (Expr.einj ~name:ConstantNames.option_enum
+                      ~cons:ConstantNames.some_constr
                       ~e:(Expr.evar x mark_alpha) mark_default)
                    [ty_alpha] pos );
                (* None -> if just then cons else None *)
-               Expr.none_constr, Expr.thunk_term if_just_then_cons;
+               ConstantNames.none_constr, Expr.thunk_term if_just_then_cons;
              ])
         mark_default
   in
   match exceptions with
   | [] -> if_just_then_cons
   | [((EInj { cons; _ }, _) as e)] ->
-    if EnumConstructor.equal cons Expr.none_constr then
+    if EnumConstructor.equal cons ConstantNames.none_constr then
       Expr.thunk_term if_just_then_cons
-    else if EnumConstructor.equal cons Expr.some_constr then translate_expr e
+    else if EnumConstructor.equal cons ConstantNames.some_constr then
+      translate_expr e
     else assert false
   | [single_exception] -> match_some (translate_expr single_exception)
   | exceptions ->
@@ -123,7 +126,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
     let pos = Expr.mark_pos m in
     Expr.einj
       ~e:(Expr.elit LUnit (Expr.with_ty m (TLit TUnit, pos)))
-      ~cons:Expr.none_constr ~name:Expr.option_enum m
+      ~cons:ConstantNames.none_constr ~name:ConstantNames.option_enum m
   | EErrorOnEmpty arg, m ->
     let m = translate_mark m in
     let pos = Expr.mark_pos m in
@@ -133,7 +136,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
     let cases =
       EnumConstructor.Map.of_list
         [
-          ( Expr.none_constr,
+          ( ConstantNames.none_constr,
             let x = Var.make "_" in
             Expr.make_ghost_abs [x]
               (Expr.efatalerror_pos ~error:NoValue
@@ -142,7 +145,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
               [TLit TUnit, pos]
               pos );
           (* | None x -> raise NoValueProvided *)
-          ( Expr.some_constr,
+          ( ConstantNames.some_constr,
             let var = Var.make "arg" in
             Expr.make_abs
               [var, pos]
@@ -151,13 +154,13 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
               pos );
         ]
     in
-    Expr.ematch ~e:(translate_expr arg) ~name:Expr.option_enum ~cases m
+    Expr.ematch ~e:(translate_expr arg) ~name:ConstantNames.option_enum ~cases m
   | EDefault { excepts; just; cons }, m ->
     translate_default excepts just cons (translate_mark m)
   | EPureDefault e, m ->
     let pos = Expr.mark_pos m in
     let e = Expr.make_tuple [translate_expr e; Expr.make_pos pos m] m in
-    Expr.einj ~e ~cons:Expr.some_constr ~name:Expr.option_enum
+    Expr.einj ~e ~cons:ConstantNames.some_constr ~name:ConstantNames.option_enum
       (translate_mark m)
   | EAppOp { op; tys; args }, m ->
     Expr.eappop ~op:(Operator.translate op)

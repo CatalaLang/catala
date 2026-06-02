@@ -29,6 +29,9 @@
 
 __thread int catala_persistent_malloc_mode_on = 0;
 
+enum catala_language catala_language = Catala_lang_En;
+int catala_max_decimals = 6;
+
 /* --- Error handling --- */
 
 __thread const catala_code_position catala_empty_position =
@@ -629,38 +632,132 @@ void strprintf(const char * fmt, ...) {
 }
 struct catala_buf catala_strbuf = { &strprintf, 0, &strflush };
 
+void print_integer_aux(char bigsep, struct catala_buf buf, mpz_t n) {
+  mpz_t rem;
+  mpz_init(rem);
+  mpz_tdiv_qr_ui(n, rem, n, 1000);
+  if (!mpz_sgn(n))
+    buf.printf("%Zd", rem);
+  else {
+    print_integer_aux(bigsep, buf, n);
+    buf.printf("%c%03Zd", bigsep, rem);
+  }
+}
+
 void catala_print (struct catala_buf buf, const catala_value x) {
   int i;
+  char bigsep, decsep;
+  switch (catala_language) {
+  case Catala_lang_Fr:
+    bigsep = ' ';
+    decsep = ',';
+    break;
+  case Catala_lang_En: default:
+    bigsep = ',';
+    decsep = '.';
+    break;
+  };
   switch (x.t.kind) {
   case UNINITIALIZED:
     buf.printf("???"); return;
   case UNIT:
     buf.printf("()"); return;
   case BOOL:
-    buf.printf("%s", *(CATALA_BOOL)x.v ? "true" : "false"); return;
-  case INTEGER:
-    buf.printf("%Zd", x.v); return;
+    switch (catala_language) {
+    case Catala_lang_En:
+      buf.printf("%s", *(CATALA_BOOL)x.v ? "true" : "false"); return;
+    case Catala_lang_Fr:
+      buf.printf("%s", *(CATALA_BOOL)x.v ? "vrai" : "faux"); return;
+    case Catala_lang_Pl:
+      buf.printf("%s", *(CATALA_BOOL)x.v ? "prawda" : "falsz"); return;
+    }
+  case INTEGER: {
+    mpz_t abs;
+    mpz_init (abs);
+    mpz_abs(abs, x.v);
+    if (mpz_sgn((mpz_ptr)x.v) < 0) buf.printf("-");
+    print_integer_aux(bigsep, buf, abs);
+    return;
+  }
   case MONEY: {
     mpz_t units, cents;
     mpz_init(units), mpz_init(cents);
-    mpz_tdiv_qr(units, cents, x.v, zconst_100);
+    mpz_tdiv_qr_ui(units, cents, x.v, 100);
+    if (mpz_sgn((mpz_ptr)x.v) < 0) buf.printf("-");
+    mpz_abs(units, units);
     mpz_abs(cents, cents);
-    buf.printf("%Zd.%02Zd€", units, cents);
-    return;
+    if (catala_language == Catala_lang_En) buf.printf("$");
+    print_integer_aux(bigsep, buf, units);
+    buf.printf("%c", decsep);
+    buf.printf("%02Zd", cents);
+    switch (catala_language) {
+    case Catala_lang_Fr: buf.printf(" €"); return;
+    case Catala_lang_Pl: buf.printf(" PLN"); return;
+    default: return;
+    }
   }
   case DECIMAL: {
-    /* Note: this may do rounding, check the OCaml code for proper printing */
-    mpf_t f;
-    mpf_init(f);
-    mpf_set_q(f, x.v);
-    buf.printf("%01.10Ff", f);
+    int i;
+    mpz_t n, rem;
+    mpz_ptr denom;
+    denom = mpq_denref((mpq_ptr)x.v);
+    mpz_init_set(n, mpq_numref((mpq_ptr)x.v));
+    mpz_init(rem);
+    mpz_tdiv_qr(n, rem, n, denom);
+    print_integer_aux(bigsep, buf, n);
+    buf.printf("%c", decsep);
+    mpz_abs(rem, rem);
+    for (i = 0; i < catala_max_decimals; i++) {
+      mpz_mul_ui(rem, rem, 10);
+      mpz_tdiv_qr(n, rem, rem, denom);
+      if (i && i % 3 == 0) buf.printf("%c", bigsep);
+      buf.printf("%Zd", n);
+      if (!mpz_sgn(rem)) break;
+    }
+    if (mpz_sgn(rem)) buf.printf("…");
     return;
   }
   case DATE:
     buf.printf("|%04d-%02d-%02d|", dc_date_year(x.v), dc_date_month(x.v), dc_date_day(x.v));
     return;
   case DURATION:
-    buf.printf("[%d years, %d months, %d days]", dc_period_years(x.v), dc_period_months(x.v), dc_period_days(x.v));
+    buf.printf("[");
+    if (dc_period_years(x.v)) {
+      buf.printf ("%d ", dc_period_years(x.v));
+      switch (catala_language) {
+      case Catala_lang_En: buf.printf("year"); break;
+      case Catala_lang_Fr: buf.printf("an"); break;
+      case Catala_lang_Pl: buf.printf("rok"); break;
+      };
+      if (abs(dc_period_years(x.v)) > 1 && catala_language != Catala_lang_Pl)
+        buf.printf("s");
+      if (dc_period_months(x.v) ||  dc_period_days(x.v))
+        buf.printf(", ");
+    }
+    if (dc_period_months(x.v)) {
+      buf.printf ("%d ", dc_period_months(x.v));
+      switch (catala_language) {
+      case Catala_lang_En: buf.printf("month"); break;
+      case Catala_lang_Fr: buf.printf("mois"); break;
+      case Catala_lang_Pl: buf.printf("miesiac"); break;
+      };
+      if (abs(dc_period_months(x.v)) > 1 && catala_language == Catala_lang_En)
+        buf.printf("s");
+      if (dc_period_days(x.v))
+        buf.printf(", ");
+    }
+    if (dc_period_days(x.v) ||
+        (!dc_period_years(x.v) && !dc_period_months(x.v))) {
+      buf.printf ("%d ", dc_period_days(x.v));
+      switch (catala_language) {
+      case Catala_lang_En: buf.printf("day"); break;
+      case Catala_lang_Fr: buf.printf("jour"); break;
+      case Catala_lang_Pl: buf.printf("dzien"); break;
+      };
+      if (abs(dc_period_days(x.v)) > 1 && catala_language != Catala_lang_Pl)
+        buf.printf("s");
+    }
+    buf.printf("]");
     return;
   case POSITION: {
     CATALA_POSITION pos = x.v;
@@ -717,7 +814,11 @@ void catala_print (struct catala_buf buf, const catala_value x) {
     const struct catala_label_type t = x.t.contents.tenum.cases[e->code];
     buf.printf("%s", t.name);
     if (t.ty.kind != UNIT) {
-      buf.printf(" content ");
+      switch (catala_language) {
+      case Catala_lang_En: buf.printf(" content "); break;
+      case Catala_lang_Fr: buf.printf(" contenu "); break;
+      case Catala_lang_Pl: buf.printf(" typu "); break;
+      };
       buf.indent +=2;
       catala_print(buf, embed(t.ty, e->payload));
       buf.indent -=2;
@@ -940,13 +1041,27 @@ const catala_type catala_type_undef = { UNINITIALIZED };
 const catala_type catala_type_optional(const catala_type ty) {
   catala_type ret;
   ret.kind = ENUM;
-  ret.contents.tenum.name = "Optional";
   ret.contents.tenum.size = 2;
   ret.contents.tenum.cases = catala_malloc(2*sizeof(struct catala_label_type));
-  ret.contents.tenum.cases[0].name = "Absent";
   ret.contents.tenum.cases[0].ty = catala_type_unit;
-  ret.contents.tenum.cases[1].name = "Present";
   ret.contents.tenum.cases[1].ty = ty;
+  switch (catala_language) {
+    case Catala_lang_En:
+      ret.contents.tenum.name = "Optional";
+      ret.contents.tenum.cases[0].name = "Absent";
+      ret.contents.tenum.cases[1].name = "Present";
+      break;
+    case Catala_lang_Fr:
+      ret.contents.tenum.name = "Optionnel";
+      ret.contents.tenum.cases[0].name = "Absent";
+      ret.contents.tenum.cases[1].name = "Présent";
+      break;
+    case Catala_lang_Pl:
+      ret.contents.tenum.name = "Opcjonalny";
+      ret.contents.tenum.cases[0].name = "Niobecny";
+      ret.contents.tenum.cases[1].name = "Obecny";
+      break;
+  }
   return ret;
 }
 
@@ -1563,6 +1678,15 @@ void* (*error_handler)(const struct catala_error *) = NULL;
 
 void register_error_handler(void* (*f)(const struct catala_error *)){
   error_handler = f;
+}
+
+
+void catala_set_lang (enum catala_language lg) {
+  catala_language = lg;
+}
+
+void set_max_decimals (int n) {
+  catala_max_decimals = n;
 }
 
 void catala_init(void)

@@ -53,8 +53,8 @@ let scope TestBool (TestBool_in: TestBool_in): TestBool =
 ```catala-test-cli
 $ catala test-scope TestBool
 ┌─[RESULT]─ TestBool ─
-│ bar = 1
 │ foo = true
+│ bar = 1
 └─
 ```
 

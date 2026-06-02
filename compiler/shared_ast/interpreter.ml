@@ -124,7 +124,6 @@ let rec evaluate_operator
     evaluate_expr
     ((op, opos) : < overloaded : no ; .. > operator Mark.pos)
     m
-    lang
     args =
   let pos = Expr.mark_pos m in
   let rpos () = Expr.pos_to_runtime opos in
@@ -145,8 +144,7 @@ let rec evaluate_operator
         @ List.mapi
             (fun i arg ->
               ( Format.asprintf "Argument n°%d, value %a" (i + 1)
-                  (Print.UserFacing.expr lang)
-                  arg,
+                  Print.UserFacing.expr arg,
                 Expr.pos arg ))
             args)
       "Operator %a applied to the wrong@ arguments"
@@ -208,15 +206,15 @@ let rec evaluate_operator
   | Reduce, [_; (EArray [], m)] ->
     EInj
       {
-        name = Expr.option_enum;
-        cons = Expr.none_constr;
+        name = ConstantNames.option_enum;
+        cons = ConstantNames.none_constr;
         e = ELit LUnit, Expr.with_ty m (TLit TUnit, pos);
       }
   | Reduce, [f; (EArray (x0 :: xn), _)] ->
     EInj
       {
-        name = Expr.option_enum;
-        cons = Expr.some_constr;
+        name = ConstantNames.option_enum;
+        cons = ConstantNames.some_constr;
         e =
           List.fold_left
             (fun acc x -> eval_application evaluate_expr f [acc; x])
@@ -245,11 +243,17 @@ let rec evaluate_operator
     | None ->
       EInj
         {
-          name = Expr.option_enum;
-          cons = Expr.none_constr;
+          name = ConstantNames.option_enum;
+          cons = ConstantNames.none_constr;
           e = ELit LUnit, Expr.with_ty m (TLit TUnit, pos);
         }
-    | Some e -> EInj { name = Expr.option_enum; cons = Expr.some_constr; e })
+    | Some e ->
+      EInj
+        {
+          name = ConstantNames.option_enum;
+          cons = ConstantNames.some_constr;
+          e;
+        })
   | Sort updown, [f; (EArray es, _)] ->
     let weighted =
       List.map (fun e -> e, eval_application evaluate_expr f [e]) es
@@ -336,9 +340,9 @@ let rec evaluate_operator
     let exps =
       List.map
         (function
-          | EInj { name; cons; e }, _ when EnumName.equal name Expr.option_enum
-            ->
-            if EnumConstructor.equal cons Expr.some_constr then
+          | EInj { name; cons; e }, _
+            when EnumName.equal name ConstantNames.option_enum ->
+            if EnumConstructor.equal cons ConstantNames.some_constr then
               match e with
               | ETuple [e; (EPos p, _)], _ ->
                 Runtime.Optional.Present (e, Expr.pos_to_runtime p)
@@ -350,13 +354,17 @@ let rec evaluate_operator
     match Runtime.handle_exceptions (Array.of_list exps) with
     | Runtime.Optional.Absent ->
       EInj
-        { name = Expr.option_enum; cons = Expr.none_constr; e = ELit LUnit, m }
+        {
+          name = ConstantNames.option_enum;
+          cons = ConstantNames.none_constr;
+          e = ELit LUnit, m;
+        }
     | Runtime.Optional.Present (e, rpos) ->
       let p = Expr.runtime_to_pos rpos in
       EInj
         {
-          name = Expr.option_enum;
-          cons = Expr.some_constr;
+          name = ConstantNames.option_enum;
+          cons = ConstantNames.some_constr;
           e = ETuple [e; EPos p, Expr.with_pos p m], m;
         })
   | DebugPrint s, [v] ->
@@ -471,15 +479,21 @@ and runtime_to_val : type d r.
       (* constant constructor => None case *)
       ( EInj
           {
-            name = Expr.option_enum;
-            cons = Expr.none_constr;
+            name = ConstantNames.option_enum;
+            cons = ConstantNames.none_constr;
             e = ELit LUnit, Expr.with_ty m (TLit TUnit, Pos.void);
           },
         m )
     else
       (* Some case *)
       let e = runtime_to_val ctx m ty (Obj.field o 0) in
-      EInj { name = Expr.option_enum; cons = Expr.some_constr; e }, m
+      ( EInj
+          {
+            name = ConstantNames.option_enum;
+            cons = ConstantNames.some_constr;
+            e;
+          },
+        m )
   | TClosureEnv ->
     (* By construction, a closure environment can only be consumed from the same
        scope where it was built (compiled or not) ; for this reason, we can
@@ -582,8 +596,8 @@ and val_to_runtime : type d r.
         Obj.set_field o 0 field;
         o))
   | TOption ty, EInj { name; cons; e } ->
-    assert (EnumName.equal name Expr.option_enum);
-    if EnumConstructor.equal cons Expr.none_constr then Obj.repr None
+    assert (EnumName.equal name ConstantNames.option_enum);
+    if EnumConstructor.equal cons ConstantNames.none_constr then Obj.repr None
     else Obj.repr (Some (val_to_runtime eval_expr ctx ty e))
   | TArray ty, EArray es ->
     Array.of_list (List.map (val_to_runtime eval_expr ctx ty) es) |> Obj.repr
@@ -643,12 +657,11 @@ let rec handle_assert : type d r.
     eval_expr:
       (((d, r, yes) interpr_kind, 't) gexpr ->
       ((d, r, yes) interpr_kind, 't) gexpr) ->
-    lang:Global.backend_lang ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
     't mark ->
     Pos.t ->
     ((d, r, yes) interpr_kind, 't) gexpr =
- fun ~eval_expr ~lang pred m pos ->
+ fun ~eval_expr pred m pos ->
   match Mark.remove (eval_expr pred) with
   | ELit (LBool true) -> ELit LUnit, m
   | ELit (LBool false) ->
@@ -675,8 +688,7 @@ let rec handle_assert : type d r.
     | _ ->
       (if Global.options.no_fail_on_assert then Message.warning
        else Message.delayed_error ~kind:AssertFailure ())
-        ~pos "@[<hv>%t:@ @[<hv 4>%a@]@]" msg
-        (Print.UserFacing.expr lang)
+        ~pos "@[<hv>%t:@ @[<hv 4>%a@]@]" msg Print.UserFacing.expr
         partially_evaluated_assertion_failure_expr);
     Mark.add m (ELit LUnit)
   | _ ->
@@ -843,7 +855,7 @@ let rec evaluate_expr : type d r.
         e1)
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
-    evaluate_operator ctx (evaluate_expr ctx lang) op m lang args
+    evaluate_operator ctx (evaluate_expr ctx lang) op m args
   | EAbs _ | ELit _ | EPos _ | ECustom _ | EEmpty -> e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
@@ -883,8 +895,7 @@ let rec evaluate_expr : type d r.
     | _ ->
       Message.error ~pos:(Expr.pos e) ~internal:true
         "The expression %a@ should@ be@ a@ struct@ %a@ but@ is@ not@ one"
-        (Print.UserFacing.expr lang)
-        e StructName.format s)
+        Print.UserFacing.expr e StructName.format s)
   | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx lang) es))
   | ETupleAccess { e = e1; index; size } -> (
     match evaluate_expr ctx lang e1 with
@@ -892,8 +903,7 @@ let rec evaluate_expr : type d r.
     | e ->
       Message.error ~internal:true ~pos:(Expr.pos e)
         "The expression %a@ was@ expected@ to@ be@ a@ tuple@ of@ size@ %d"
-        (Print.UserFacing.expr lang)
-        e size)
+        Print.UserFacing.expr e size)
   | EInj { e; name; cons } ->
     let e = evaluate_expr ctx lang e in
     let name =
@@ -943,9 +953,8 @@ let rec evaluate_expr : type d r.
       | EFatalError_pos { pos_expr = EPos pos, _; _ }, _ -> pos
       | _ -> assert false
     in
-    handle_assert ~eval_expr:(evaluate_expr ctx lang) ~lang pred m pos
-  | EAssert pred ->
-    handle_assert ~eval_expr:(evaluate_expr ctx lang) ~lang pred m pos
+    handle_assert ~eval_expr:(evaluate_expr ctx lang) pred m pos
+  | EAssert pred -> handle_assert ~eval_expr:(evaluate_expr ctx lang) pred m pos
   | EIfThenElse { cond; etrue; efalse } -> (
     let cond = evaluate_expr ctx lang cond in
     match Mark.remove cond with

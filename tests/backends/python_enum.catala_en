@@ -339,7 +339,18 @@ def f(x:Integer) -> E:
 
 # Automatic Catala tests
 if __name__ == "__main__":
-  s_test = (s(SIn()))
-  print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.", file=stderr)
-  print(s_test)
+  import argparse
+  catala_set_lang(Lang.En)
+  parser = argparse.ArgumentParser(description='Catala test program')
+  parser.add_argument('scopes', nargs='*', help='scopes to test (omit for all)')
+  parser.add_argument('--test', action='store_true', help='check without printing results')
+  parser.add_argument('--json', action='store_true', help='output results in JSON')
+  args = parser.parse_args()
+  
+  if args.scopes == [] or 'S' in args.scopes:
+    s_test = (s(SIn()))
+    print("/x1b[32m[RESULT]/x1b[m Scope S executed successfully.", file=stderr)
+    if not args.test:
+      if args.json: print(s_test.to_json())
+      else: print(s_test)
 ```

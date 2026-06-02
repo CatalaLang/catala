@@ -179,22 +179,28 @@ public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<Cat
     }
 
     @Override
-    public String toString() {
+    public String toString(int indent) {
         if (this.values.length == 0) {
-            return "[ ]";
+            return "[]";
         }
         StringBuilder b = new StringBuilder();
-        b.append("[\n");
+        b.append("[\n").append(" ".repeat(indent + 2));
         StringBuilder newb = new StringBuilder();
         for (int i = 0; i < values.length; i++) {
-            newb.append(values[i].toString());
+            newb.append(values[i].toString(indent + 2));
+            newb.append(";");
             if (i < values.length - 1) {
-                newb.append("; ");
+                newb.append("\n").append(" ".repeat(indent + 2));
             }
         }
         // indent adds a newline for some reason, thus, we do not add one.
-        b.append(newb.toString().indent(2)).append("]");
+        b.append(newb).append("\n").append(" ".repeat(indent)).append("]");
         return b.toString();
+    }
+
+    @Override
+    public String toString() {
+        return toString(0);
     }
 
     @Override

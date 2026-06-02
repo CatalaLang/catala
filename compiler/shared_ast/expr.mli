@@ -256,19 +256,7 @@ val typed : typed mark
 
 (** {2 Predefined types} *)
 
-val option_enum : EnumName.t
-
-val option_struct : StructName.t
-(** Only used in some backends where enums piggy-back on structs (e.g. C) *)
-
-val none_constr : EnumConstructor.t
-val some_constr : EnumConstructor.t
 val option_enum_config : typ EnumConstructor.Map.t
-
-val source_pos_struct : StructName.t
-(** Fake structure (there is no corresponding decl) used for categorising
-    [PosLit] terms in scalc *)
-
 val pos_to_runtime : Pos.t -> Catala_runtime.code_location
 val runtime_to_pos : Catala_runtime.code_location -> Pos.t
 
@@ -582,4 +570,7 @@ end
 
 val embed_value : decl_ctx -> ('a, 'm) gexpr -> Catala_runtime.Value.t
 (** Create a runtime-compatible typed value embedding from an expression that
-    encodes a value. (NOTE TODO: functions not implemented yet!) *)
+    encodes a value. (NOTE TODO: functions not implemented yet!)
+
+    If the [ctx] is unspecified, the embedded value will be suitable **only for
+    printing**: enum constructors will have incorrect indexing. *)

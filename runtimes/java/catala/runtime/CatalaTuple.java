@@ -50,18 +50,23 @@ public final class CatalaTuple extends CatalaValue<CatalaTuple> {
     }
 
     @Override
-    public String toString() {
+    public String toString(int indent) {
         StringBuilder s = new StringBuilder();
         s.append('(');
         int len = this.values.length;
         for (int i = 0; i < len; i++) {
-            s.append(this.values[i].toString());
+            s.append(this.values[i].toString(indent + 1));
             if (i < len - 1) {
                 s.append(", ");
             }
         }
         s.append(')');
         return s.toString();
+    }
+
+    @Override
+    public String toString() {
+        return toString(0);
     }
 
     @Override

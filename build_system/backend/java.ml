@@ -89,13 +89,14 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
         ["-C"; java_dir_prefix; File.remove_prefix java_dir_prefix clazz])
       runtime_class_files
 
-let run_artifact ~var_bindings ~test src =
+let run_artifact ~var_bindings ~test ?scope src =
   let open Clerk_lib in
   let target_main = File.remove_extension (Filename.basename src) in
   let cmd =
     Var.get_var var_bindings java
     @ ["-cp"; src -.- "jar"; target_main]
-    @ (if test then ["--test"] else [])
+    @ Option.to_list scope
+    @ (if test && not Global.options.debug then ["--test"] else [])
     @ if Global.options.output_format = JSON then ["--json"] else []
   in
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);

@@ -4,9 +4,6 @@ import catala.runtime.exception.CatalaError;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.Locale;
 import org.apache.commons.numbers.fraction.BigFraction;
 
 // We probably want to keep this class as-is
@@ -173,17 +170,41 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
 
     @Override
     public String toString() {
-        NumberFormat nf;
-        BigDecimal f = this.asBigDecimal(10, RoundingMode.HALF_UP);
-        if (CatalaGlobals.lang == CatalaGlobals.Language.EN) {
-            nf = NumberFormat.getInstance(Locale.ENGLISH);
+        BigInteger n = this.value.getNumerator();
+        BigInteger d = this.value.getDenominator();
+        BigInteger[] prout = n.divideAndRemainder(d);
+        BigInteger q = prout[0], r = prout[1];
+        StringBuilder s = new StringBuilder();
+        s.append((new CatalaInteger(q)).toString());
+        if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
+            s.append(",");
         } else {
-            nf = NumberFormat.getInstance(Locale.FRENCH);
+            s.append(".");
         }
-        DecimalFormat x = (DecimalFormat) nf;
-        x.setParseBigDecimal(true);
-        x.setMaximumFractionDigits(20);
-        return x.format(f);
+        String bigsep;
+        if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
+            bigsep = " ";
+        } else {
+            bigsep = ",";
+        }
+
+        r = r.abs();
+        for (int i = 0; i < CatalaGlobals.max_decimals; i++) {
+            prout = r.multiply(BigInteger.TEN).divideAndRemainder(d);
+            q = prout[0];
+            r = prout[1];
+            if (i != 0 && i % 3 == 0) {
+                s.append(bigsep);
+            }
+            s.append(q.toString());
+            if (r.equals(BigInteger.ZERO)) {
+                break;
+            }
+        }
+        if (!r.equals(BigInteger.ZERO)) {
+            s.append("…");
+        }
+        return s.toString();
     }
 
     @Override

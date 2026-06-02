@@ -93,8 +93,8 @@ module Decimal_en = Decimal_en
 module Stdlib__1 = struct
   type t = { when__1: date; }
   let rtype = Value.Struct {
-    name = "Stdlib__1";
-    fields = fun t -> [ "when__1", Value.embed (Value.Date) t.when__1; ]
+    name = "Stdlib";
+    fields = fun t -> [ "when", Value.embed (Value.Date) t.when__1; ]
   }
 end
 
@@ -102,7 +102,7 @@ module Test = struct
   type t = { val__1: date; }
   let rtype = Value.Struct {
     name = "Test";
-    fields = fun t -> [ "val__1", Value.embed (Value.Date) t.val__1; ]
+    fields = fun t -> [ "val", Value.embed (Value.Date) t.val__1; ]
   }
 end
 

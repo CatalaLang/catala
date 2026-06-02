@@ -226,7 +226,7 @@ let rec format_typ ?(wildcard = false) ?(diamond = true) ctx ppf (typ : typ) =
       fprintf ppf "CatalaFunction<CatalaTuple,%a>" (format_typ ctx) ret_ty
     else fprintf ppf "CatalaFunction"
   | TTuple _ -> fprintf ppf "CatalaTuple"
-  | TStruct sname when sname == Expr.source_pos_struct ->
+  | TStruct sname when sname == ConstantNames.source_pos_struct ->
     pp_print_string ppf "CatalaPosition"
   | TStruct sname -> format_struct ppf sname
   | TEnum ename -> format_enum ppf ename
@@ -300,8 +300,8 @@ let fill_struct_bindings
     |> StructField.Map.map (fun _ ->
         ( EInj
             {
-              name = Expr.option_enum;
-              cons = Expr.none_constr;
+              name = ConstantNames.option_enum;
+              cons = ConstantNames.none_constr;
               e1 = ELit LUnit, Pos.void;
               expr_typ = TOption (Type.any Pos.void), Pos.void;
             },
@@ -345,7 +345,7 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     if FuncName.Set.mem f global_funcs && not in_globals then
       fprintf ppf "Globals.";
     FuncName.format ppf f
-  | EStruct { name = s; fields } when s == Expr.source_pos_struct ->
+  | EStruct { name = s; fields } when s == ConstantNames.source_pos_struct ->
     fprintf ppf "new CatalaPosition(%a)"
       (pp_print_list ~pp_sep:pp_comma (fun ppf (_struct_field, e) ->
            fprintf ppf "%a" (format_expression ctx) e))
@@ -377,12 +377,12 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EStructFieldAccess { e1; field; _ } ->
     fprintf ppf "(%a).%a" (format_expression ctx) e1 StructField.format field
   | EInj { cons; name = e_name; _ }
-    when EnumName.equal e_name Expr.option_enum
-         && EnumConstructor.equal cons Expr.none_constr ->
+    when EnumName.equal e_name ConstantNames.option_enum
+         && EnumConstructor.equal cons ConstantNames.none_constr ->
     fprintf ppf "CatalaOption.none()"
   | EInj { e1 = e; cons; name = e_name; _ }
-    when EnumName.equal e_name Expr.option_enum
-         && EnumConstructor.equal cons Expr.some_constr ->
+    when EnumName.equal e_name ConstantNames.option_enum
+         && EnumConstructor.equal cons ConstantNames.some_constr ->
     fprintf ppf "@[<hv 2>CatalaOption.some@;<0 -1>(%a)@]"
       (format_expression ctx) e
   | EInj { e1 = ELit LUnit, _; cons; name = enum_name; _ } ->
@@ -471,8 +471,8 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       (format_expression_with_paren ctx)
       arg1 format_op op n
   | EAppOp { op = ConstructorCheck (enum, case), _; args = [arg1]; _ } ->
-    if EnumName.equal enum Expr.option_enum then
-      if EnumConstructor.equal case Expr.none_constr then
+    if EnumName.equal enum ConstantNames.option_enum then
+      if EnumConstructor.equal case ConstantNames.none_constr then
         fprintf ppf "CatalaBool.of(%a.isNone())"
           (format_expression_with_paren ctx)
           arg1
@@ -884,11 +884,12 @@ let format_scope_out_struct_constructor
       vis format_scope scope_name format_scope scope_name
       format_scope_out_constructor_body fields
 
-let format_tests ctx ppf (closures, tests) =
+let format_tests ctx ppf p =
+  let closures, tests = p.tests in
   assert (closures = []);
   pp_skip_line ppf ();
   fprintf ppf "// Automatic Catala tests@\n";
-  fprintf ppf "@[<v 4>public static void main(String[] args) {@\n";
+  fprintf ppf "@[<v 4>public static void main(String[] args) {@,";
   (if tests = [] then
      Message.warning
        "%a@{<magenta>#[test]@}@ attribute@ above@ their@ declaration."
@@ -898,6 +899,37 @@ let format_tests ctx ppf (closures, tests) =
         inputs, and add the "
    else
      let () =
+       fprintf ppf "boolean test_mode = false;";
+       fprintf ppf "@,boolean json_mode = false;";
+       fprintf ppf
+         "@,\
+          java.util.Set<String> enabled_tests = new \
+          java.util.HashSet<String>();";
+       fprintf ppf
+         "@,@[<hov 4>java.util.Set<String> all_tests = java.util.Set.of(%a);@]"
+         (pp_print_list
+            ~pp_sep:(fun ppf () -> fprintf ppf ",@ ")
+            (fun ppf (name, _, _) ->
+              pp_print_string ppf (String.quote (ScopeName.original_base name))))
+         tests;
+       fprintf ppf "@,CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
+         (match p.lang with `En -> "EN" | `Fr -> "FR" | `Pl -> "EN");
+       fprintf ppf "@[<v 4>for (int i = 0; i < args.length; i++) {";
+       fprintf ppf "@,if (args[i].equals(\"--test\")) { test_mode = true; }";
+       fprintf ppf
+         "@,else if (args[i].equals(\"--json\")) { json_mode = true; }";
+       fprintf ppf
+         "@,\
+          else if (all_tests.contains(args[i])) { enabled_tests.add(args[i]); }";
+       fprintf ppf "@,@[<v 4>else {";
+       fprintf ppf "@,System.out.println(\"Available scopes: \");";
+       fprintf ppf "@,System.out.println(all_tests);";
+       fprintf ppf "@,System.out.println(\"Available flags: --test  --json\");";
+       fprintf ppf "@,System.exit(2);";
+       fprintf ppf "@;<1 -4>}@]";
+       fprintf ppf "@;<1 -4>}@]@,"
+     in
+     let () =
        Message.debug "@[<hov 2>Generating entry points for scopes:@ %a@]"
          (Format.pp_print_list ~pp_sep:Format.pp_print_space
             (fun ppf (s, _, _) -> ScopeName.format ppf s))
@@ -905,12 +937,13 @@ let format_tests ctx ppf (closures, tests) =
      in
      let format_test ppf (scope_name, var, block) =
        pp_open_vbox ppf 2;
-       fprintf ppf "{ /* Test for scope %a */@\n" ScopeName.format scope_name;
+       fprintf ppf
+         "if (enabled_tests.isEmpty() || enabled_tests.contains(%s)) {@\n"
+         (String.quote (ScopeName.original_base scope_name));
        pp_open_vbox ppf 2;
        fprintf ppf "try {@\n";
-       fprintf ppf "CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
-         (match Global.options.language with Some Fr -> "FR" | _ -> "EN");
-       fprintf ppf "%a@\nCatalaGlobals.displayResult(args, \"%a\", %s);"
+       fprintf ppf
+         "%a@\nCatalaGlobals.displayResult(\"%a\", %s, test_mode, json_mode);"
          (format_block ~toplevel:true ctx)
          block ScopeName.format_original scope_name (VarName.to_string var);
        pp_close_box ppf ();
@@ -1046,6 +1079,7 @@ let populate_context (p : Ast.program) : context =
   }
 
 let format_structs ctx ppf =
+  (* TODO: register the struct and field original names for consistent printing *)
   let format_struct ppf (sname, fields) =
     if StructField.Map.cardinal fields >= 255 then
       Message.error
@@ -1159,7 +1193,8 @@ let format_enums ctx ppf =
   let enums_to_generate =
     EnumName.Map.filter
       (fun ename _ ->
-        EnumName.path ename = [] && not (EnumName.equal ename Expr.option_enum))
+        EnumName.path ename = []
+        && not (EnumName.equal ename ConstantNames.option_enum))
       ctx.decl_ctx.ctx_enums
     |> EnumName.Map.bindings
   in
@@ -1309,7 +1344,7 @@ let format_globals ctx ppf globals =
       global_funcs = FuncName.Set.of_list funcs;
     }
 
-let format_program ctx ppf { code_items; tests; _ } =
+let format_program ctx ppf p =
   let scopes, globals =
     List.partition_map
       (let open Either in
@@ -1332,7 +1367,7 @@ let format_program ctx ppf { code_items; tests; _ } =
          in
          Left body
        | x -> Right x)
-      code_items
+      p.code_items
   in
   let ctx = format_globals ctx ppf globals in
   format_abstract_types ctx ppf;
@@ -1351,7 +1386,7 @@ let format_program ctx ppf { code_items; tests; _ } =
   pp_print_list_padded ~pp_sep:pp_skip_line
     (fun ppf s -> format_scope ctx ppf s)
     ppf scopes;
-  if snd tests <> [] then format_tests ctx ppf tests
+  if snd p.tests <> [] then format_tests ctx ppf p
 
 let format_program ~is_stdlib ~class_name output_file ppf (p : Ast.program) :
     unit =

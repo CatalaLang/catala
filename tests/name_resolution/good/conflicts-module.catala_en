@@ -75,7 +75,7 @@ module Decimal_en = Decimal_en
 module Closure_scoppe = struct
   type t = { scoppe: bool; }
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_sc/195/184ppe";
+    name = "Closure_sc/195/184ppe";
     fields = fun t -> [ "scoppe", Value.embed (Value.Bool) t.scoppe; ]
   }
 end
@@ -83,7 +83,7 @@ end
 module Closure_scoppe__1 = struct
   type t = { scoppe: bool; }
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_scoppe__1";
+    name = "Closure_scoppe__1";
     fields = fun t -> [ "scoppe", Value.embed (Value.Bool) t.scoppe; ]
   }
 end
@@ -91,7 +91,7 @@ end
 module Closure_scoppe_in = struct
   type t = unit
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_sc/195/184ppe_in";
+    name = "Closure_sc/195/184ppe_in";
     fields = fun t -> [ ]
   }
 end
@@ -99,7 +99,7 @@ end
 module Closure_scoppe__1_in = struct
   type t = unit
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_scoppe__1_in";
+    name = "Closure_scoppe__1_in";
     fields = fun t -> [ ]
   }
 end
@@ -222,7 +222,7 @@ module Decimal_en = Decimal_en
 module Closure_scoppe = struct
   type t = { scoppe: bool; }
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_sc/195/184ppe";
+    name = "Closure_sc/195/184ppe";
     fields = fun t -> [ "scoppe", Value.embed (Value.Bool) t.scoppe; ]
   }
 end
@@ -230,7 +230,7 @@ end
 module Closure_scoppe__1 = struct
   type t = { scoppe: bool; }
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_scoppe__1";
+    name = "Closure_scoppe__1";
     fields = fun t -> [ "scoppe", Value.embed (Value.Bool) t.scoppe; ]
   }
 end
@@ -238,7 +238,7 @@ end
 module Closure_scoppe_in = struct
   type t = unit
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_sc/195/184ppe_in";
+    name = "Closure_sc/195/184ppe_in";
     fields = fun t -> [ ]
   }
 end
@@ -246,7 +246,7 @@ end
 module Closure_scoppe__1_in = struct
   type t = unit
   let rtype = Value.Struct {
-    name = "Conflicts-module.Closure_scoppe__1_in";
+    name = "Closure_scoppe__1_in";
     fields = fun t -> [ ]
   }
 end

@@ -102,45 +102,29 @@ val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
 
 (** User-facing, localised printer *)
 module UserFacing : sig
-  val unit :
-    Global.backend_lang -> Format.formatter -> Catala_runtime.unit -> unit
-
-  val bool :
-    Global.backend_lang -> Format.formatter -> Catala_runtime.bool -> unit
-
-  val integer :
-    Global.backend_lang -> Format.formatter -> Catala_runtime.integer -> unit
-
-  val decimal :
-    Global.backend_lang -> Format.formatter -> Catala_runtime.decimal -> unit
-
-  val money :
-    Global.backend_lang -> Format.formatter -> Catala_runtime.money -> unit
-
-  val date :
-    Global.backend_lang -> Format.formatter -> Catala_runtime.date -> unit
-
-  val duration :
-    Global.backend_lang -> Format.formatter -> Catala_runtime.duration -> unit
-
-  val lit : Global.backend_lang -> Format.formatter -> lit -> unit
-  val lit_to_string : Global.backend_lang -> lit -> string
+  val lit : Format.formatter -> lit -> unit
 
   val value :
     ?fallback:(Format.formatter -> ('a, 't) gexpr -> unit) ->
-    Global.backend_lang ->
     Format.formatter ->
     ('a, 't) gexpr ->
     unit
   (** Prints a value in a localised format, intended to be read by an end-user.
+      The language is selected by [Catala_runtime.Print.set_lang]
 
       @param fallback
         is called upon non-value expressions (by default, [Invalid_argument] is
         raised) *)
 
-  val expr : Global.backend_lang -> Format.formatter -> (_, _) gexpr -> unit
+  val expr : Format.formatter -> (_, _) gexpr -> unit
   (** This combines the user-facing value printer and the generic expression
       printer to handle all AST nodes *)
+
+  val embed_option :
+    (('a any, 'm) gexpr -> Catala_runtime.Value.t) ->
+    EnumConstructor.t ->
+    ('a, 'm) gexpr ->
+    Catala_runtime.Value.t
 end
 
 (**/*)

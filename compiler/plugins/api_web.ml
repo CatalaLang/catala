@@ -297,7 +297,7 @@ module To_jsoo = struct
         =
       if
         (* EnumName.path enum_name <> [] || *)
-        EnumName.equal enum_name Expr.option_enum
+        EnumName.equal enum_name ConstantNames.option_enum
       then ()
       else
         let fmt_enum_name fmt _ = format_enum_name fmt enum_name in

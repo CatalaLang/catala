@@ -327,18 +327,18 @@ module Parser_Pl = ParserAux (Lexer_pl)
 
 let localised_parser : Global.backend_lang -> lexbuf -> Ast.source_file =
   function
-  | En -> Parser_En.commands_or_includes
-  | Fr -> Parser_Fr.commands_or_includes
-  | Pl -> Parser_Pl.commands_or_includes
+  | `En -> Parser_En.commands_or_includes
+  | `Fr -> Parser_Fr.commands_or_includes
+  | `Pl -> Parser_Pl.commands_or_includes
 
 (** Lightweight lexer for dependency *)
 
 let lines (file : File.t) (language : Global.backend_lang) =
   let lex_line =
     match language with
-    | En -> Lexer_en.lex_line
-    | Fr -> Lexer_fr.lex_line
-    | Pl -> Lexer_pl.lex_line
+    | `En -> Lexer_en.lex_line
+    | `Fr -> Lexer_fr.lex_line
+    | `Pl -> Lexer_pl.lex_line
   in
   let input = open_in file in
   try
@@ -671,7 +671,7 @@ let load_modules
     ModuleName.t Ident.Map.t
     * (Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t =
   let stdlib_root_module lang =
-    let lang = if Global.has_localised_stdlib lang then lang else Global.En in
+    let lang = if Global.has_localised_stdlib lang then lang else `En in
     "Stdlib_" ^ Cli.language_code lang
   in
   if stdlib <> None || program.Ast.program_used_modules <> [] then

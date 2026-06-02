@@ -9,6 +9,10 @@ public abstract class CatalaValue<T extends CatalaValue<?>> implements Comparabl
     @Override
     public abstract String toString();
 
+    public String toString(int indent) {
+        return toString();
+    }
+
     public abstract String toJSONString();
 
     /* static method cannot be overridden nor abstract: we must manually

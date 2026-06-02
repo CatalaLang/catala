@@ -484,7 +484,7 @@ and translate_assignment
       | (EArray _ | EStruct _ | EInj _ | ETuple _) as e ->
         let is_option =
           match e with
-          | EInj { name; _ } -> EnumName.equal name Expr.option_enum
+          | EInj { name; _ } -> EnumName.equal name ConstantNames.option_enum
           | _ -> false
         in
         if ctxt.config.no_struct_literals && not is_option then
@@ -785,4 +785,5 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
     code_items = List.rev rev_items;
     module_name = p.module_name;
     tests = List.rev rev_tdefs, List.rev rev_tests;
+    lang = p.lang;
   }

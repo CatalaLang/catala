@@ -269,7 +269,7 @@ and generate_array_encoder (ctx : decl_ctx) typ : Val.t encoding =
 and generate_option_encoder ctx typ =
   let open Val in
   let proj_none = function
-    | V (Enum { name = "Optional"; constr }, v) -> (
+    | V (Enum { name = "Optional" | "Optionnel"; constr }, v) -> (
       match constr v with _, _, None -> Some (V (Unit, ())) | _ -> None)
     | _ -> None
   in
@@ -384,7 +384,7 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
           let rval =
             List.assoc_opt field_s (enc.fields data)
             |> Option.map (function
-              | V (Enum { name = "Optional"; constr }, data) ->
+              | V (Enum { name = "Optional" | "Optionnel"; constr }, data) ->
                 let _, _, x = constr data in
                 x
               | _ -> assert false)
@@ -546,11 +546,11 @@ let rec convert_to_dcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
   | TOption typ, V (Enum { name = "Optional"; constr }, v) -> begin
     match constr v with
     | 0, "Absent", None ->
-      Expr.einj ~name:Expr.option_enum ~cons:Expr.none_constr
+      Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.none_constr
         ~e:(Expr.elit LUnit mark) mark
     | 1, "Present", Some rval ->
-      Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr ~e:(f typ rval)
-        mark
+      Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.some_constr
+        ~e:(f typ rval) mark
     | _ -> assert false
   end
   | TEnum ename, V (Enum { name = _; constr }, v) ->
@@ -621,11 +621,11 @@ let rec convert_to_lcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
     begin
     match constr v with
     | 0, "Absent", None ->
-      Expr.einj ~name:Expr.option_enum ~cons:Expr.none_constr
+      Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.none_constr
         ~e:(Expr.elit LUnit mark) mark
     | 1, "Present", Some rval ->
-      Expr.einj ~name:Expr.option_enum ~cons:Expr.some_constr ~e:(f typ rval)
-        mark
+      Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.some_constr
+        ~e:(f typ rval) mark
     | _ -> assert false
   end
   | TEnum ename, V (Enum { name = _; constr }, v) ->

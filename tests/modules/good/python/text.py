@@ -29,4 +29,4 @@ bar = Text("bąr")
 fortytwo = Text("42")
 
 def of_int(x:Integer) -> Text:
-    return Text(x)
+    return Text(int(x))

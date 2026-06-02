@@ -115,4 +115,5 @@ type program = {
       (** The first element may contain lifted closures. It can be assumed to be
           empty when closure conversion is disabled. *)
   module_name : (ModuleName.t * module_intf_id) option;
+  lang : Global.backend_lang;
 }

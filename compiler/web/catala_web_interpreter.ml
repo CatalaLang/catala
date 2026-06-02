@@ -22,12 +22,12 @@ module File = Catala_utils.File
 
 let stdlib_path = "/static"
 
-let format_results ppf scope language results =
+let format_results ppf scope results =
   Message.results ~ppf ~title:scope
     (List.map
        (fun ((var, _), result) ppf ->
          Format.fprintf ppf "@[<hov 2>%s =@ %a@]" var
-           (Shared_ast.Print.UserFacing.value language)
+           (fun ppf -> Shared_ast.Print.UserFacing.value ppf)
            result)
        results)
 
@@ -122,6 +122,7 @@ let setup_files (js_options : 'a Js.t) =
     with Not_found ->
       Message.error "Unrecognised input locale %S" language_str
   in
+  Catala_runtime.Print.set_lang language;
   (* Create virtual files for modules *)
   List.iter
     (fun (name, content) ->
@@ -296,13 +297,7 @@ let () =
                          (fun ppf ->
                            Format.fprintf ppf "Computation successful!");
                        ]
-                   | _ ->
-                     let results =
-                       List.sort
-                         (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
-                         results
-                     in
-                     format_results ppf scope language results)
+                   | _ -> format_results ppf scope results)
              in
              let warning_diags, _error_notifs = drain_all ~ansi () in
              object%js

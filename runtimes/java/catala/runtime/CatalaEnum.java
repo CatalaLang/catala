@@ -54,7 +54,7 @@ public class CatalaEnum extends CatalaValue<CatalaEnum> {
     }
 
     @Override
-    public String toString() {
+    public String toString(int indent) {
         try {
             StringBuilder b = new StringBuilder();
             Enum<?> k = this.getKind();
@@ -66,12 +66,17 @@ public class CatalaEnum extends CatalaValue<CatalaEnum> {
                 } else {
                     b.append(" content ");
                 }
-                b.append(v.toString());
+                b.append(v.toString(indent + 2));
             }
             return b.toString();
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw CatalaError.error(CatalaError.Error.GenericError, this.getClass().getName() + " is not a valid enum:\n" + e.toString());
         }
+    }
+
+    @Override
+    public String toString() {
+        return toString(0);
     }
 
     @Override

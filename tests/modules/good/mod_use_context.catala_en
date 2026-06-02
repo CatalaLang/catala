@@ -56,14 +56,14 @@ $ catala Typecheck --check-invariants
 $ catala test-scope TestCall
 ┌─[RESULT]─ TestCall ─
 │ o_default =
-│   Mod_def_context.S {
+│   S {
 │     -- ci: 0
 │     -- cm: $0.00
 │     -- cfun1: <function>
 │     -- cfun2: <function>
 │   }
 │ o_override =
-│   Mod_def_context.S {
+│   S {
 │     -- ci: 1
 │     -- cm: $1.00
 │     -- cfun1: <function>

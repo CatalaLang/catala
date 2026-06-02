@@ -288,22 +288,15 @@ let typed = Typed { pos = Pos.void; ty = TLit TUnit, Pos.void }
 
 (* - Predefined types (option) - *)
 
-let option_enum = EnumName.fresh [] ("Optional", Pos.void)
-let option_struct = StructName.fresh [] ("Soption", Pos.void)
-
-(* Warning: order of these definitions is important, binary injection assumes
-   that None is first *)
-let none_constr = EnumConstructor.fresh ("Absent", Pos.void)
-let some_constr = EnumConstructor.fresh ("Present", Pos.void)
-
 (* Enums don't have type variables at the moment, so the correctness is handled
    by the specific TOption type; the below definition is used as placeholder but
    doesn't guarantee consistency by itself. *)
 let option_enum_config =
   EnumConstructor.Map.of_list
-    [none_constr, (TLit TUnit, Pos.void); some_constr, Type.universal Pos.void]
-
-let source_pos_struct = StructName.fresh [] ("SourcePosition", Pos.void)
+    [
+      ConstantNames.none_constr, (TLit TUnit, Pos.void);
+      ConstantNames.some_constr, Type.universal Pos.void;
+    ]
 
 let pos_to_runtime pos =
   {
@@ -1135,6 +1128,7 @@ let detuplify_application args tys mkapp =
         arg (mkapp args) (pos arg))
   | args, _ -> mkapp args
 
+(* Warning: there is a dumbed-down version of this function in [Print.UserFacing]; don't forget to propagate updates *)
 let rec embed_value : type a.
     decl_ctx -> (a, 'm) gexpr -> Catala_runtime.Value.t =
  fun ctx e ->
@@ -1154,12 +1148,15 @@ let rec embed_value : type a.
     V.V
       ( Struct
           {
-            name = StructName.canonical_str None name;
+            name = StructName.original_base name;
             fields =
               List.map (fun (name, e) ->
-                  StructField.to_string name, embed_value ctx e);
+                  StructField.original_string name, embed_value ctx e);
           },
         StructField.Map.bindings fields )
+  | EInj { name; cons; e = payload }
+    when EnumName.equal name ConstantNames.option_enum ->
+    Print.UserFacing.embed_option (embed_value ctx) cons payload
   | EInj { name; cons; e = payload } ->
     let seq_find_index f s =
       (* [Seq.find_index] in OCaml >= 5.01 only *)
@@ -1179,11 +1176,11 @@ let rec embed_value : type a.
     V.V
       ( Enum
           {
-            name = EnumName.canonical_str None name;
+            name = EnumName.original_base name;
             constr =
               (fun (index, cons, payload) ->
                 ( index,
-                  EnumConstructor.to_string cons,
+                  EnumConstructor.original_string cons,
                   match payload with
                   | ELit LUnit, _ -> None
                   | e -> Some (embed_value ctx e) ));
@@ -1196,7 +1193,7 @@ let rec embed_value : type a.
   | ECustom { obj; targs = []; tret = TAbstract tid, _ } ->
     let module E = (val Type.lookup_external tid) in
     V.V (E.rtype, Obj.obj obj)
-  | ECustom { obj; _ } -> V.V (Function, Obj.obj obj)
+  | ECustom { obj; _ } -> V.V (Function, obj)
   | _ -> invalid_arg "embed_value"
 
 let rec distribute_negation pos e =

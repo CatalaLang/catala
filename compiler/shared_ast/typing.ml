@@ -760,8 +760,8 @@ and typecheck_expr_top_down : type a m.
     in
     Expr.estructaccess ~e:e_struct' ~field ~name mark
   | EInj { name; cons; e = e_enum }
-    when Definitions.EnumName.equal name Expr.option_enum ->
-    if Definitions.EnumConstructor.equal cons Expr.some_constr then
+    when Definitions.EnumName.equal name ConstantNames.option_enum ->
+    if Definitions.EnumConstructor.equal cons ConstantNames.some_constr then
       let cell_type = Type.fresh_var (Expr.pos e) in
       let mark = mark_with_tau_and_unify (TOption cell_type, pos_e) in
       let e_enum' = typecheck_expr_top_down ctx env cell_type e_enum in
@@ -783,14 +783,14 @@ and typecheck_expr_top_down : type a m.
     in
     Expr.einj ~e:e_enum' ~cons ~name mark
   | EMatch { e = e1; name; cases }
-    when Definitions.EnumName.equal name Expr.option_enum ->
+    when Definitions.EnumName.equal name ConstantNames.option_enum ->
     let cell_type = Type.fresh_var (Expr.pos e1) in
     let t_arg = TOption cell_type, Expr.pos e1 in
     let cases_ty =
       EnumConstructor.Map.of_list
         [
-          Expr.none_constr, (TLit TUnit, Expr.pos e1);
-          Expr.some_constr, cell_type;
+          ConstantNames.none_constr, (TLit TUnit, Expr.pos e1);
+          ConstantNames.some_constr, cell_type;
         ]
     in
     let t_ret = Type.fresh_var (Expr.pos e) in

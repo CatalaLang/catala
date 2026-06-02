@@ -198,7 +198,9 @@ let detect_unused_enum_constructors (p : program) : unit =
                 enum_constructors_used
           in
           enum_constructors_used_expr e enum_constructors_used)
-        ~init:(EnumConstructor.Set.of_list [Expr.some_constr; Expr.none_constr])
+        ~init:
+          (EnumConstructor.Set.of_list
+             [ConstantNames.some_constr; ConstantNames.none_constr])
         p
     in
     EnumName.Map.iter

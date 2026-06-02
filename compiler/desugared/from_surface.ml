@@ -143,7 +143,10 @@ let translate_binop :
         (Untyped { pos })
     in
     Expr.eappop
-      ~op:(Op.ConstructorCheck (Expr.option_enum, Expr.some_constr), op_pos)
+      ~op:
+        ( Op.ConstructorCheck
+            (ConstantNames.option_enum, ConstantNames.some_constr),
+          op_pos )
       ~args:[find_expr]
       ~tys:[TOption ty_elt, op_pos]
       (Untyped { pos })
@@ -157,7 +160,10 @@ let translate_binop :
         (Untyped { pos })
     in
     Expr.eappop
-      ~op:(Op.ConstructorCheck (Expr.option_enum, Expr.some_constr), op_pos)
+      ~op:
+        ( Op.ConstructorCheck
+            (ConstantNames.option_enum, ConstantNames.some_constr),
+          op_pos )
       ~args:[find_expr]
       ~tys:[TOption ty_elt, op_pos]
       (Untyped { pos })
@@ -185,7 +191,10 @@ let translate_binop :
         (Untyped { pos })
     in
     Expr.eappop
-      ~op:(Op.ConstructorCheck (Expr.option_enum, Expr.none_constr), op_pos)
+      ~op:
+        ( Op.ConstructorCheck
+            (ConstantNames.option_enum, ConstantNames.none_constr),
+          op_pos )
       ~args:[find_expr]
       ~tys:[TOption ty_elt, pos]
       (Untyped { pos })
@@ -231,12 +240,12 @@ let translate_binop :
     in
     Expr.ematch
       (Untyped { pos })
-      ~name:Expr.option_enum ~e:reduced
+      ~name:ConstantNames.option_enum ~e:reduced
       ~cases:
         (EnumConstructor.Map.of_list
            [
-             Expr.none_constr, Expr.thunk_term default;
-             Expr.some_constr, Expr.fun_id (Untyped { pos });
+             ConstantNames.none_constr, Expr.thunk_term default;
+             ConstantNames.some_constr, Expr.fun_id (Untyped { pos });
            ])
   | S.ListSort order ->
     let ty_elt = Type.fresh_var op_pos in
@@ -302,12 +311,12 @@ let translate_unop ((op, op_pos) : S.unop Mark.pos) pos arg : Ast.expr boxed =
         ~tys:[TArrow ([ty; ty], ty), pos; TArray ty, pos]
         ~args:[op_f; arg] m
     in
-    Expr.ematch m ~name:Expr.option_enum ~e:reduced
+    Expr.ematch m ~name:ConstantNames.option_enum ~e:reduced
       ~cases:
         (EnumConstructor.Map.of_list
            [
-             Expr.none_constr, Expr.thunk_term (Expr.elit default m);
-             Expr.some_constr, Expr.fun_id m;
+             ConstantNames.none_constr, Expr.thunk_term (Expr.elit default m);
+             ConstantNames.some_constr, Expr.fun_id m;
            ])
 
 let translate_ternop :
@@ -434,12 +443,12 @@ let translate_ternop :
         pos
     in
     (* match result_opt with Some x -> x.1 | None -> default *)
-    Expr.ematch m ~name:Expr.option_enum ~e:result_opt
+    Expr.ematch m ~name:ConstantNames.option_enum ~e:result_opt
       ~cases:
         (EnumConstructor.Map.of_list
            [
-             Expr.none_constr, Expr.thunk_term default;
-             ( Expr.some_constr,
+             ConstantNames.none_constr, Expr.thunk_term default;
+             ( ConstantNames.some_constr,
                let x = Var.make "result" in
                Expr.make_abs
                  [x, op_pos]
@@ -513,8 +522,10 @@ let rec disambiguate_constructor
     (constructor0 : S.enum_constr Mark.pos list)
     (pos : Pos.t) : EnumName.t * EnumConstructor.t =
   match constructor0 with
-  | [(CBuiltin Present, _)] -> Expr.option_enum, Expr.some_constr
-  | [(CBuiltin Absent, _)] -> Expr.option_enum, Expr.none_constr
+  | [(CBuiltin Present, _)] ->
+    ConstantNames.option_enum, ConstantNames.some_constr
+  | [(CBuiltin Absent, _)] ->
+    ConstantNames.option_enum, ConstantNames.none_constr
   | [] | _ :: _ :: _ ->
     Message.error ~pos
       "The deep pattern matching syntactic sugar is not yet supported."
@@ -1009,8 +1020,8 @@ let rec translate_expr
     let payload = Option.map rec_helper payload in
     let e_uid, c_uid =
       match c with
-      | Present -> Expr.option_enum, Expr.some_constr
-      | Absent -> Expr.option_enum, Expr.none_constr
+      | Present -> ConstantNames.option_enum, ConstantNames.some_constr
+      | Absent -> ConstantNames.option_enum, ConstantNames.none_constr
     in
     Expr.einj
       ~e:

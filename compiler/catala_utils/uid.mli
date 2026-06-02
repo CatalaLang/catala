@@ -73,6 +73,9 @@ module type Id = sig
   val original_info : t -> info
   (** Retrieve the original id info, unaffected by renamings, etc. *)
 
+  val original_string : t -> string
+  (** Retrieve the original id string, unaffected by renamings, etc. *)
+
   val format_original : Format.formatter -> t -> unit
 
   module Set : Set.S with type elt = t

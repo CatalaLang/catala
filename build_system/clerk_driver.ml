@@ -743,10 +743,11 @@ let setup_report_format ?fix_path verbosity diff_command coverage =
 
 let run_artifact config ~backend ~var_bindings ?scope ~test src =
   match backend with
-  | `OCaml -> Clerk_backends.Ocaml.run_artifact ?scope src
-  | `C -> Clerk_backends.C.run_artifact ?scope src
-  | `Python -> Clerk_backends.Python.run_artifact config ~var_bindings src
-  | `Java -> Clerk_backends.Java.run_artifact ~var_bindings ~test src
+  | `OCaml -> Clerk_backends.Ocaml.run_artifact ~test ?scope src
+  | `C -> Clerk_backends.C.run_artifact ~test ?scope src
+  | `Python ->
+    Clerk_backends.Python.run_artifact config ~test ?scope ~var_bindings src
+  | `Java -> Clerk_backends.Java.run_artifact ~var_bindings ~test ?scope src
 
 let backend_to_config = function
   | `Interpret | `OCaml -> Clerk_config.OCaml
@@ -871,7 +872,8 @@ let run_targets
     iter_commands ~build_dir test_targets
     @@ fun item target ->
     let cmd = link_cmd item target in
-    Message.debug "Running command: '%s'..." (String.concat " " cmd);
+    if cmd <> [] then
+      Message.debug "Running command: '%s'..." (String.concat " " cmd);
     match Clerk_cli.run_command_line cmd with
     | 0 -> run_artifact ~test config ~backend ~var_bindings ?scope target
     | n -> n)

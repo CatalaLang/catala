@@ -163,6 +163,6 @@ const Text_Text Text__fortytwo () {
 
 const Text_Text Text__of_int (CATALA_INT x)
 {
-  catala_print(catala_strbuf, embed(catala_type_integer, x));
+  catala_strbuf.printf("%Zd", x);
   return catala_strbuf.flush();
 }

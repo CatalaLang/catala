@@ -116,7 +116,7 @@ public final class CatalaInteger extends CatalaValue<CatalaInteger> {
 
     @Override
     public String toString() {
-        return this.value.toString();
+        return CatalaGlobals.number_format().format(this.value);
     }
 
     @Override

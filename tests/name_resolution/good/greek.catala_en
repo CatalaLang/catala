@@ -1,0 +1,39 @@
+
+```catala-metadata
+declaration enumeration ΑΒΓ:
+  -- Α
+  -- Β
+  -- Γ
+  -- Δ
+
+declaration structure Αβɣ:
+  data α content ΑΒΓ
+  data β content ΑΒΓ
+  data ɣ content ΑΒΓ
+  data δ content ΑΒΓ
+
+#[test]
+declaration scope S:
+  output αβɣ content Αβɣ
+
+scope S:
+  definition αβɣ equals Αβɣ {
+    -- α: Α
+    -- β: Β
+    -- ɣ: Γ
+    -- δ: Δ
+  }
+```
+
+
+```catala-test-cli
+$ catala test-scope S
+┌─[RESULT]─ S ─
+│ αβɣ = Αβɣ {
+│            -- α: Α
+│            -- β: Β
+│            -- ɣ: Γ
+│            -- δ: Δ
+│          }
+└─
+```

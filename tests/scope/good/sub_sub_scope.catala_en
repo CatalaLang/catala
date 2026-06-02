@@ -85,8 +85,8 @@ $ catala test-scope A
 │    │   ‾
 └─ Article
 ┌─[RESULT]─ A ─
-│ u = true
 │ x = 0
+│ u = true
 └─
 ```
 

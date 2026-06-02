@@ -19,10 +19,10 @@ champ d'application S:
 ```catala-test-cli
 $ catala test-scope S
 ┌─[RESULT]─ S ─
-│ dimanche = Dimanche
 │ lundi = Lundi
 │ mardi = Mardi
 │ mercredi = Mercredi
 │ samedi = Samedi
+│ dimanche = Dimanche
 └─
 ```

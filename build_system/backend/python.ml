@@ -42,12 +42,16 @@ let linking_command ~build_dir link_deps item target =
   close_out (open_out (tdir / "__init__.py"));
   []
 
-let run_artifact config ~var_bindings src =
+let run_artifact config ~test ?scope ~var_bindings src =
   let open File in
   let build_dir = config.Clerk_cli.options.global.build_dir in
   let cmd =
     let base = Filename.basename (File.remove_extension src) in
-    Var.get_var var_bindings python @ ["-m"; base ^ "." ^ base]
+    Var.get_var var_bindings python
+    @ ["-m"; base ^ "." ^ base]
+    @ Option.to_list scope
+    @ (if test && not Global.options.debug then ["--test"] else [])
+    @ if Global.options.output_format = JSON then ["--json"] else []
   in
   let pythonpath =
     String.concat ":"

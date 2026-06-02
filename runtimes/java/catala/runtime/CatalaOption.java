@@ -61,16 +61,21 @@ public final class CatalaOption<T extends CatalaValue<?>> extends CatalaValue<Ca
     }
 
     @Override
-    public String toString() {
+    public String toString(int indent) {
         if (this.isNone()) {
             return "Absent";
         } else {
             if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
-                return "Présent contenu " + get().toString();
+                return "Présent contenu " + get().toString(indent + 2);
             } else {
-                return "Present content " + get().toString();
+                return "Present content " + get().toString(indent + 2);
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return toString(0);
     }
 
     @Override
