@@ -1527,23 +1527,27 @@ let json_schema_cmd =
       $ Cli.scope)
 
 let exceptions_cmd =
-  let run config file scope variable =
+  let run config ninja_flags file scope variable =
     (* The exceptions command only needs the desugaring pass — no compiled
        artifacts required. Bypass ninja and call catala directly. *)
     let file = config.Cli.fix_path file in
-    let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
-        ~enabled_backends:[] ~config
-    in
-    let catala_exe = Var.get_var var_bindings Var.catala_exe in
-    let catala_flags = Var.get_var var_bindings Var.catala_flags in
-    let cmd =
-      catala_exe
-      @ ["exceptions"; file; "--scope"; scope; "--variable"; variable]
-      @ catala_flags
-    in
-    Message.debug "Running command: '%s'..." (String.concat " " cmd);
-    Clerk_cli.run_command_line cmd
+    Clerk_rules.run_ninja ~config ~code_coverage:false
+      ~enabled_backends:[(module Clerk_backends.Ocaml.Backend)]
+      ~ninja_flags ~autotest:false ~quiet:true
+      (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
+    |> fun (items, _link_deps, var_bindings) ->
+    match items with
+    | [] -> Message.error "Failed to compile %s dependencies" file
+    | ({ Scan.file_name; _ }, _) :: _ ->
+      let catala_exe = Var.get_var var_bindings Var.catala_exe in
+      let catala_flags = Var.get_var var_bindings Var.catala_flags in
+      let cmd =
+        catala_exe
+        @ ["exceptions"; file_name; "--scope"; scope; "--variable"; variable]
+        @ catala_flags
+      in
+      Message.debug "Running command: '%s'..." (String.concat " " cmd);
+      Clerk_cli.run_command_line cmd
   in
   let doc =
     "Prints the exception tree for the definitions of a particular variable in \
@@ -1553,7 +1557,12 @@ let exceptions_cmd =
   Cmd.v
     (Cmd.info ~doc "exceptions")
     Term.(
-      const run $ Cli.init_term () $ Cli.single_file $ Cli.scope $ Cli.variable)
+      const run
+      $ Cli.init_term ()
+      $ Cli.ninja_flags
+      $ Cli.single_file
+      $ Cli.scope
+      $ Cli.variable)
 
 let main_cmd =
   Cmd.group Cli.info
