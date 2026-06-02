@@ -26,6 +26,7 @@ val base_bindings :
   code_coverage:bool ->
   autotest:bool ->
   enabled_backends:backend list ->
+  inplace:bool ->
   config:Clerk_cli.config ->
   (Var.t * string list) list
 
