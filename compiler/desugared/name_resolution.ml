@@ -831,8 +831,7 @@ let process_enum_decl
   if edecl.enum_decl_cases = [] then
     Message.error
       ~pos:(Mark.get edecl.enum_decl_name)
-      "The enum@ %s@ does@ not@ have@ any@ cases;@ give it some for Catala to \
-       be able to accept it."
+      "No cases defined for enumeration@ %s.@ Please@ define@ at@ least@ one."
       (Mark.remove edecl.enum_decl_name);
   List.fold_left
     (fun ctxt (cdecl, cdecl_pos) ->
@@ -845,10 +844,25 @@ let process_enum_decl
           constructor_idmap =
             Ident.Map.update
               (Mark.remove cdecl.Surface.Ast.enum_decl_case_name)
-              (fun uids ->
-                match uids with
+              (function
                 | None -> Some (EnumName.Map.singleton e_uid c_uid)
-                | Some uids -> Some (EnumName.Map.add e_uid c_uid uids))
+                | Some e_uids ->
+                  let e_uids =
+                    EnumName.Map.update e_uid
+                      (function
+                        | None -> Some c_uid
+                        | Some c_uid0 ->
+                          Message.delayed_error ~kind:Parsing (Some c_uid0) ~pos
+                            ~extra_pos:
+                              [
+                                ( "First seen here:",
+                                  Mark.get (EnumConstructor.get_info c_uid0) );
+                              ]
+                            "Duplicate constructor@ %a@ in@ enumeration@ %a"
+                            EnumConstructor.format c_uid EnumName.format e_uid)
+                      e_uids
+                  in
+                  Some e_uids)
               ctxt.local.constructor_idmap;
         }
       in
@@ -864,7 +878,19 @@ let process_enum_decl
             match cases with
             | None -> Some (EnumConstructor.Map.singleton c_uid typ, visibility)
             | Some (fields, _) ->
-              Some (EnumConstructor.Map.add c_uid typ fields, visibility))
+              let fields =
+                EnumConstructor.Map.update c_uid
+                  (function
+                    | None -> Some typ
+                    | Some typ0 ->
+                      Message.delayed_error ~kind:Parsing (Some typ0)
+                        ~pos:(Mark.get typ)
+                        ~extra_pos:["First seen here", Mark.get typ0]
+                        "Duplicate constructor@ %a@ in@ enumeration@ %a"
+                        EnumName.format e_uid EnumConstructor.format c_uid)
+                  fields
+              in
+              Some (fields, visibility))
           ctxt.enums
       in
       { ctxt with enums })
