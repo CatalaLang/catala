@@ -243,22 +243,23 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
         size;
       List.iter
         (fun (name, ty) ->
-          Format.fprintf ppc ",@,\"%a\", %a" StructField.format_original name
+          Format.fprintf ppc ",@,%s, %a"
+            (String.quote (StructField.original_string name))
             format_rtyp ty)
         fields;
       Format.fprintf ppc ");@]@;<1 -2>}@]")
     else (
       (* Manual array init for unlimited number of fields *)
       Format.fprintf ppc
-        "ty.contents.tstruct.name = \"%s\";@,ty.contents.tstruct.size = %d;"
+        "ty.contents.tstruct.name = %s;@,ty.contents.tstruct.size = %d;"
         (String.quote (StructName.original_base struct_name))
         size;
       if size > 0 then
         Format.fprintf ppc "@,ty.contents.tstruct.fields = fields;";
       List.iteri
         (fun i (name, ty) ->
-          Format.fprintf ppc "@,fields[%d].name = \"%a\";" i
-            StructField.format_original name;
+          Format.fprintf ppc "@,fields[%d].name = %s;" i
+            (String.quote (StructField.original_string name));
           Format.fprintf ppc "@,fields[%d].ty = %a;" i format_rtyp ty)
         fields;
       Format.fprintf ppc "@,ty.kind = STRUCT;@,return ty;@;<1 -2>}@]")
@@ -316,8 +317,8 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
       if size > 0 then Format.fprintf ppc "ty.contents.tenum.cases = cases;";
       List.iteri
         (fun i (name, ty) ->
-          Format.fprintf ppc "@,cases[%d].name = \"%a\";" i
-            EnumConstructor.format_original name;
+          Format.fprintf ppc "@,cases[%d].name = %s;" i
+            (String.quote (EnumConstructor.original_string name));
           Format.fprintf ppc "@,cases[%d].ty = %a;" i format_rtyp ty)
         cases;
       Format.fprintf ppc "@,ty.kind = ENUM;@,return ty;@;<1 -2>}@]")
