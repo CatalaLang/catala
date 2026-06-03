@@ -313,7 +313,7 @@ module Print = struct
     Format.fprintf ppf "%02d" (Z.to_int (Z.abs cents));
     match !lang with
     | `En -> ()
-    | `Fr -> Format.pp_print_string ppf " €"
+    | `Fr -> Format.fprintf ppf " @<1>%s" "€"
     | `Pl -> Format.pp_print_string ppf " PLN"
 
   let decimal ppf r =

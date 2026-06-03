@@ -26,7 +26,9 @@ let format_results ppf scope results =
   Message.results ~ppf ~title:scope
     (List.map
        (fun ((var, _), result) ppf ->
-         Format.fprintf ppf "@[<hov 2>%s =@ %a@]" var
+         Format.fprintf ppf "@[<hov 2>%a =@ %a@]"
+           (fun ppf -> Format.pp_print_as ppf (String.width var))
+           var
            (fun ppf -> Shared_ast.Print.UserFacing.value ppf)
            result)
        results)
