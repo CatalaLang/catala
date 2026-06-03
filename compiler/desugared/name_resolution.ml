@@ -781,9 +781,8 @@ let process_struct_decl
   if sdecl.struct_decl_fields = [] then
     Message.error
       ~pos:(Mark.get sdecl.struct_decl_name)
-      "The struct@ %s@ does@ not@ have@ any@ fields;@ give it some for Catala \
-       to be able to accept it."
-      (Mark.remove sdecl.struct_decl_name);
+      "No fields defined for structure@ %a.@ Please@ define@ at@ least@ one."
+      StructName.format s_uid;
   List.fold_left
     (fun ctxt (fdecl, _) ->
       let name, pos = fdecl.Surface.Ast.struct_decl_field_name in
@@ -795,10 +794,25 @@ let process_struct_decl
           field_idmap =
             Ident.Map.update
               (Mark.remove fdecl.Surface.Ast.struct_decl_field_name)
-              (fun uids ->
-                match uids with
+              (function
                 | None -> Some (StructName.Map.singleton s_uid f_uid)
-                | Some uids -> Some (StructName.Map.add s_uid f_uid uids))
+                | Some s_uids ->
+                  let s_uids =
+                    StructName.Map.update s_uid
+                      (function
+                        | None -> Some f_uid
+                        | Some f_uid0 ->
+                          Message.delayed_error ~kind:Parsing (Some f_uid0) ~pos
+                            ~extra_pos:
+                              [
+                                ( "First seen here:",
+                                  Mark.get (StructField.get_info f_uid0) );
+                              ]
+                            "Duplicate field@ %a@ in@ enumeration@ %a"
+                            StructField.format f_uid StructName.format s_uid)
+                      s_uids
+                  in
+                  Some s_uids)
               ctxt.local.field_idmap;
         }
       in
@@ -831,8 +845,8 @@ let process_enum_decl
   if edecl.enum_decl_cases = [] then
     Message.error
       ~pos:(Mark.get edecl.enum_decl_name)
-      "No cases defined for enumeration@ %s.@ Please@ define@ at@ least@ one."
-      (Mark.remove edecl.enum_decl_name);
+      "No cases defined for enumeration@ %a.@ Please@ define@ at@ least@ one."
+      EnumName.format e_uid;
   List.fold_left
     (fun ctxt (cdecl, cdecl_pos) ->
       let name, pos = cdecl.Surface.Ast.enum_decl_case_name in
