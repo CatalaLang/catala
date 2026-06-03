@@ -208,11 +208,13 @@ let file_url =
       (if column > 1 then Printf.sprintf ":%d" column else "")
 
 let pp_pos_link pos ppf =
-  pp_link
-    ~target:
-      (file_url (Pos.get_file pos) ~line:(Pos.get_start_line pos)
-         ~column:(Pos.get_start_column pos))
-    ppf
+  if pos = Pos.void then Format.fprintf ppf
+  else
+    pp_link
+      ~target:
+        (file_url (Pos.get_file pos) ~line:(Pos.get_start_line pos)
+           ~column:(Pos.get_start_column pos))
+      ppf
 
 let pp_pos ppf pos = pp_pos_link pos ppf "%s" (Pos.to_string_short pos)
 
