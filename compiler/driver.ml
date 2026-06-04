@@ -748,7 +748,9 @@ module Commands = struct
            Message.results
              ~title:(ScopeName.to_string scope_uid)
              ((List.map (fun ((var, _), result) ppf ->
-                   Format.fprintf ppf "@[<hov 2>%s@ =@ %a@]" var
+                   Format.fprintf ppf "@[<hov 2>%a =@ %a@]"
+                     (fun ppf -> Format.pp_print_as ppf (String.width var))
+                     var
                      (if options.Global.debug then Print.expr ~debug:false ()
                       else fun ppf -> Print.UserFacing.value ppf)
                      result))

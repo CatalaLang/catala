@@ -58,7 +58,9 @@ let op_style (fmt : Format.formatter) (s : string) : unit =
   pp_color_uchar Ocolor_types.green fmt s
 
 let literal_op_style (fmt : Format.formatter) (s : string) : unit =
-  pp_color_string Ocolor_types.green fmt s
+  with_color
+    (fun fmt -> Format.pp_print_as fmt (String.width s))
+    Ocolor_types.green fmt s
 
 let lit_style (fmt : Format.formatter) (s : string) : unit =
   pp_color_string Ocolor_types.yellow fmt s
