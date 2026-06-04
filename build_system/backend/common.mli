@@ -31,7 +31,10 @@ module Flags : sig
     string list
 
   val default :
-    code_coverage:bool -> config:Clerk_cli.config -> (Var.t * string list) list
+    code_coverage:bool ->
+    inplace:bool ->
+    config:Clerk_cli.config ->
+    (Var.t * string list) list
 end
 
 module Ninja : sig

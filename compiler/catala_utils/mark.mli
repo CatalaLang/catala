@@ -45,3 +45,7 @@ val equal : ('a -> 'a -> bool) -> ('a, 'm) ed -> ('a, 'm) ed -> bool
 val hash : ('a -> Hash.t) -> ('a, 'm) ed -> Hash.t
 (** Computes the hash of the marked values using the given function
     {b ignoring mark} *)
+
+val pp_link :
+  (Format.formatter -> 'a pos -> unit) -> Format.formatter -> 'a * Pos.t -> unit
+(** Prints the given pos-marked element with a link to its position *)

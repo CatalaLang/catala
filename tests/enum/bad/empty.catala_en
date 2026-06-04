@@ -11,8 +11,7 @@ declaration scope Bar:
 $ catala Typecheck 
 ┌─[ERROR]─
 │
-│  The enum Foo does not have any cases;
-│  give it some for Catala to be able to accept it.
+│  No cases defined for enumeration Foo. Please define at least one.
 │
 ├─➤ tests/enum/bad/empty.catala_en:4.25-28:
 │   │

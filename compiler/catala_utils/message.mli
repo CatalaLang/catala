@@ -119,6 +119,10 @@ val link : ?target:string -> unit -> Format.formatter -> string -> unit
 val pp_pos : Format.formatter -> Pos.t -> unit
 (** Prints the given position with style and, if possible, an hyperlink *)
 
+val pp_pos_link :
+  Pos.t -> Format.formatter -> ('a, Format.formatter, unit) format -> 'a
+(** Wraps the given format with a link to the given pos *)
+
 val file_url : ?line:int -> ?column:int -> string -> string
 (** Helper to build file targets for hyperlinks *)
 

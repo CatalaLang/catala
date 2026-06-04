@@ -249,11 +249,11 @@ let raw_cmd : int Cmd.t =
             else f)
           targets
       in
-      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~quiet
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~quiet ~default:0
         ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
     else (
       Format.eprintf "Available targets:@.";
-      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~quiet
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~quiet ~default:0
         ~ninja_flags:(ninja_flags @ ["-t"; "targets"])
         (fun _ _ _ -> 0))
   in
@@ -288,7 +288,7 @@ let build_clerk_target
   let enabled_backends = normalize_backends backends in
   let install_targets, all_modules_deps =
     Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
-      ~ninja_flags ~quiet ~autotest:false
+      ~ninja_flags ~quiet ~default:([], []) ~autotest:false
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
       try
@@ -469,6 +469,7 @@ let build_direct_targets
     in
     let ninja_targets, exec_targets, var_bindings, link_deps =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ~quiet
+        ~default:([], [], [], fun _ -> assert false)
         ~ninja_flags ~autotest
       @@ fun nin_ppf items var_bindings ->
       let link_deps = linking_dependencies items in
@@ -755,46 +756,72 @@ let backend_to_config = function
   | `Python -> Clerk_config.Python
   | `Java -> Clerk_config.Java
 
-let retrieve_target_items ?(test_only = true) items files_or_folders =
+let retrieve_target_items ~test_only items files_or_folders =
   let open File in
-  List.concat_map
-    (fun file ->
-      let is_dir = try Sys.is_directory file with Sys_error _ -> false in
-      let filter item =
-        if is_dir then
-          String.starts_with ~prefix:(file / "") item.Scan.file_name
-          && ((not test_only) || Lazy.force item.Scan.has_scope_tests)
-        else
-          Option.map Mark.remove item.Scan.module_def
-          = Some (File.basename file)
-          || item.Scan.file_name = file
-          || File.remove_extension item.Scan.file_name = file
-      in
-      let items = List.filter filter items in
-      if items = [] then
-        Message.error
-          "@[<v>@[<hov>No source file or module matching@ %a@ found@]%t@]"
-          format file (fun ppf ->
-            if Sys.file_exists file && (not is_dir) && Scan.get_lang file = None
-            then
-              Format.fprintf ppf
-                "@,\
-                 @[<hov>@{<bold>Hint:@} the specified file exists but doesn't \
-                 have a recognised extension@]");
-      items)
-    files_or_folders
+  let items, missing =
+    List.partition_map
+      (fun file ->
+        let is_dir = try Sys.is_directory file with Sys_error _ -> false in
+        let items =
+          List.filter
+            (fun item ->
+              if is_dir then
+                String.starts_with ~prefix:(file / "") item.Scan.file_name
+              else
+                Option.map Mark.remove item.Scan.module_def
+                = Some (File.basename file)
+                || item.Scan.file_name = file
+                || File.remove_extension item.Scan.file_name = file)
+            items
+        in
+        if items = [] then
+          Message.error
+            "@[<v>@[<hov>No source file or module matching@ %a@ found@]%t@]"
+            format file (fun ppf ->
+              if
+                Sys.file_exists file
+                && (not is_dir)
+                && Scan.get_lang file = None
+              then
+                Format.fprintf ppf
+                  "@,\
+                   @[<hov>@{<bold>Hint:@} the specified file exists but \
+                   doesn't have a recognised extension@]");
+        match test_only with
+        | `No -> Left items
+        | (`Scope | `Cli_or_scope) as t -> (
+          let filter =
+            match t with
+            | `Cli_or_scope ->
+              fun it ->
+                it.Scan.has_inline_tests || Lazy.force it.Scan.has_scope_tests
+            | `Scope -> fun it -> Lazy.force it.Scan.has_scope_tests
+          in
+          match List.filter filter items with
+          | [] -> Right file
+          | items -> Left items))
+      files_or_folders
+  in
+  if missing <> [] then
+    Message.warning
+      "@[<hov 2>No tests found at the following locations, ignoring them:@ %a@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+         File.format)
+      missing;
+  List.flatten items
 
 let build_test_deps
     ~config
     ~backend
-    ?(test_only = true)
+    ~test_only
     files_or_folders
     nin_ppf
     items
     var_bindings =
   let build_dir = config.Cli.options.global.build_dir in
   let target_items = retrieve_target_items ~test_only items files_or_folders in
-  if target_items = [] then Message.error "Nothing to run";
+  if target_items = [] then raise Clerk_rules.Stop_ninja;
   let base_targets =
     List.map (fun it -> it, make_target ~build_dir ~backend it) target_items
   in
@@ -848,23 +875,27 @@ let run_targets
           "Multiple targets found for a single input, please specify a single \
            target."
     in
-    let catala_flags =
-      Var.get_var var_bindings Var.catala_flags
-      @ (match scope with
-        | None -> []
-        | Some scope -> [Printf.sprintf "--scope=%s" scope])
-      @ (match scope_input with
-        | None -> []
-        | Some input ->
-          [Printf.sprintf "--input=%s" (Yojson.Safe.to_string ~std:true input)])
-      @ if whole_program then ["--whole-program"] else []
-    in
-    let exec = Var.get_var var_bindings Var.catala_exe in
-    iter_commands ~build_dir test_targets
-    @@ fun _item target ->
-    let cmd = exec @ [cmd; target] @ catala_flags in
-    Message.debug "Running command: '%s'..." (String.concat " " cmd);
-    Clerk_cli.run_command_line cmd
+    if test_targets = [] then 0
+    else
+      let catala_flags =
+        Var.get_var var_bindings Var.catala_flags
+        @ (match scope with
+          | None -> []
+          | Some scope -> [Printf.sprintf "--scope=%s" scope])
+        @ (match scope_input with
+          | None -> []
+          | Some input ->
+            [
+              Printf.sprintf "--input=%s" (Yojson.Safe.to_string ~std:true input);
+            ])
+        @ if whole_program then ["--whole-program"] else []
+      in
+      let exec = Var.get_var var_bindings Var.catala_exe in
+      iter_commands ~build_dir test_targets
+      @@ fun _item target ->
+      let cmd = exec @ [cmd; target] @ catala_flags in
+      Message.debug "Running command: '%s'..." (String.concat " " cmd);
+      Clerk_cli.run_command_line cmd
   | (`C | `OCaml | `Python | `Java) as backend -> (
     let link_cmd =
       linking_command ~build_dir ~backend ~var_bindings link_deps
@@ -892,10 +923,10 @@ let run_cmd =
       whole_program =
     let test_only =
       match scope_input, backend with
-      | Some _, `Interpret -> false
+      | Some _, `Interpret -> `No
       | Some _, _ ->
         Message.error "JSON input is only supported with the interpret backend."
-      | _ -> true
+      | _ -> `Scope
     in
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     let enabled_backends =
@@ -903,6 +934,7 @@ let run_cmd =
     in
     Clerk_rules.run_ninja ~config ~code_coverage:false ~enabled_backends
       ~ninja_flags ~autotest:false ~quiet
+      ~default:([], (fun _ -> assert false), [])
       (build_test_deps ~config ~backend ~test_only files_or_folders)
     |> fun tests ->
     if prepare_only then Cmd.Exit.ok
@@ -995,7 +1027,8 @@ let typecheck_cmd =
     let exception Nothing_to_do in
     match
       Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends:[]
-        ~autotest:false ~ninja_flags ~quiet (fun nin_ppf items var_bindings ->
+        ~autotest:false ~ninja_flags ~quiet ~default:([], [])
+        (fun nin_ppf items var_bindings ->
           let target_items = retrieve_typecheck_items items files_or_folders in
           if target_items = [] then
             (* Prevents [run_ninja] to fail miserably with an obscure error *)
@@ -1178,31 +1211,26 @@ let run_clerk_test
   in
   if backend <> `Interpret then
     Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
+      ~default:([], (fun _ -> assert false), [])
       ~ninja_flags ~autotest:true ~clean_up_env:true
-      (build_test_deps ~config ~backend files_or_folders)
+      (build_test_deps ~config ~backend ~test_only:`Scope files_or_folders)
     |> run_targets ~test:true config backend "" None None
   else
-    let targets, missing =
-      List.partition_map
-        File.(
-          fun f ->
-            if File.exists f then Either.Left (build_dir / f)
-            else Either.Right f)
-        files_or_folders
-    in
-    if missing <> [] then
-      Message.error "@[<hv 2>Could not find files:@ @[<hov>%a@]@]"
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-           Format.pp_print_string)
-        missing;
     let test_targets =
       Clerk_rules.run_ninja ~code_coverage ~config ~tests:true ~enabled_backends
-        ~ninja_flags ~autotest:false ~quiet ~clean_up_env:true
-        (fun nin_ppf _items _vars ->
-          (* FIXME: remove and warn about files that have no @tests rule *)
-          let test_targets = List.map (fun f -> f ^ "@test") targets in
-          Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
+        ~ninja_flags ~autotest:false ~quiet ~default:[] ~clean_up_env:true
+        (fun nin_ppf items _vars ->
+          (* Check for targets without tests *)
+          if
+            retrieve_target_items ~test_only:`Cli_or_scope items
+              files_or_folders
+            = []
+          then raise Clerk_rules.Stop_ninja;
+          let test_targets =
+            List.map File.(fun f -> (build_dir / f) ^ "@test") files_or_folders
+          in
+          if test_targets <> [] then
+            Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
           test_targets)
     in
     let open Clerk_report in
@@ -1327,6 +1355,23 @@ let runtest_cmd =
       $ Cli.single_file
       $ Cli.whole_program)
 
+let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
+  let default =
+    List.fold_left
+      (fun default_rules (module B : Clerk_backends.Backend.S) ->
+        let rule_stdlib_fr = Format.sprintf "Stdlib_fr@%s-module" B.name in
+        let rule_stdlib_en = Format.sprintf "Stdlib_en@%s-module" B.name in
+        let runtime_rule = Format.sprintf "@runtime-%s" B.name in
+        runtime_rule :: rule_stdlib_fr :: rule_stdlib_en :: default_rules)
+      ["Stdlib_fr@src"; "Stdlib_en@src"]
+      enabled_backends
+  in
+  Clerk_rules.run_ninja ~include_dir:false ~code_coverage:false ~quiet
+    ~default:0 ~config ~enabled_backends ~autotest:false ~ninja_flags
+    (fun nin_ppf _ _ ->
+      Nj.format_def nin_ppf (Nj.Default (Nj.Default.make default));
+      cont ())
+
 let start_cmd =
   let run config quiet (ninja_flags : string list) =
     let targets = config.Cli.options.targets in
@@ -1335,20 +1380,7 @@ let start_cmd =
       List.concat_map (fun target -> target.backends) targets
       |> normalize_backends
     in
-    let default =
-      List.fold_left
-        (fun default_rules (module B : Clerk_backends.Backend.S) ->
-          let rule_stdlib_fr = Format.sprintf "Stdlib_fr@%s-module" B.name in
-          let rule_stdlib_en = Format.sprintf "Stdlib_en@%s-module" B.name in
-          let runtime_rule = Format.sprintf "@runtime-%s" B.name in
-          runtime_rule :: rule_stdlib_fr :: rule_stdlib_en :: default_rules)
-        ["Stdlib_fr@src"; "Stdlib_en@src"]
-        enabled_backends
-    in
-    Clerk_rules.run_ninja ~include_dir:false ~code_coverage:false ~quiet ~config
-      ~enabled_backends ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
-        Nj.format_def nin_ppf (Nj.Default (Nj.Default.make default));
-        0)
+    run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends (fun () -> 0)
   in
   let doc =
     "This command prepares the local build environment of the project with \
@@ -1472,7 +1504,7 @@ let list_vars_cmd =
   let run config =
     let var_bindings =
       Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
-        ~enabled_backends:Clerk_rules.all_backends ~config
+        ~enabled_backends:Clerk_rules.all_backends ~config ~inplace:false
     in
     Format.eprintf "Defined variables:@.";
     Format.open_vbox 0;
@@ -1491,24 +1523,19 @@ let list_vars_cmd =
   Cmd.v (Cmd.info ~doc "list-vars") Term.(const run $ Cli.init_term ())
 
 let json_schema_cmd =
-  let run config ninja_flags quiet file scope =
+  let run config file scope =
     let file = config.Cli.fix_path file in
-    Clerk_rules.run_ninja ~config ~code_coverage:false
-      ~enabled_backends:[(module Clerk_backends.Ocaml.Backend)]
-      ~ninja_flags ~autotest:false ~quiet
-      (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
-    |> fun (items, _link_deps, var_bindings) ->
+    let var_bindings =
+      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+        ~enabled_backends:[] ~config ~inplace:true
+    in
     let catala_exe = Var.get_var var_bindings Var.catala_exe in
     let catala_flags = Var.get_var var_bindings Var.catala_flags in
-    match items with
-    | [] ->
-      Message.error "Found no valid compiled target to extract JSON schema"
-    | ({ Scan.file_name; _ }, _) :: _ ->
-      let cmd =
-        catala_exe @ ["json-schema"; file_name; "--scope"; scope] @ catala_flags
-      in
-      Message.debug "Running command: '%s'..." (String.concat " " cmd);
-      Clerk_cli.run_command_line cmd
+    let cmd =
+      catala_exe @ ["json-schema"; file; "--scope"; scope] @ catala_flags
+    in
+    Message.debug "Running command: '%s'..." (String.concat " " cmd);
+    Clerk_cli.run_command_line cmd
   in
   let doc =
     "Display the JSON-schema of the input and output JSON objects of the given \
@@ -1518,36 +1545,27 @@ let json_schema_cmd =
   in
   Cmd.v
     (Cmd.info ~doc "json-schema")
-    Term.(
-      const run
-      $ Cli.init_term ()
-      $ Cli.ninja_flags
-      $ Cli.quiet
-      $ Cli.single_file
-      $ Cli.scope)
+    Term.(const run $ Cli.init_term () $ Cli.single_file $ Cli.scope)
 
 let exceptions_cmd =
-  let run config ninja_flags file scope variable =
-    (* The exceptions command only needs the desugaring pass — no compiled
-       artifacts required. Bypass ninja and call catala directly. *)
+  let run config file scope variable =
+    (* The exceptions command only needs the desugaring pass — no compiled artifacts
+       required. Bypass ninja and call catala directly from the project root
+       instead of the build dir (with [inplace:true]) *)
     let file = config.Cli.fix_path file in
-    Clerk_rules.run_ninja ~config ~code_coverage:false
-      ~enabled_backends:[(module Clerk_backends.Ocaml.Backend)]
-      ~ninja_flags ~autotest:false ~quiet:true
-      (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
-    |> fun (items, _link_deps, var_bindings) ->
-    match items with
-    | [] -> Message.error "Failed to compile %s dependencies" file
-    | ({ Scan.file_name; _ }, _) :: _ ->
-      let catala_exe = Var.get_var var_bindings Var.catala_exe in
-      let catala_flags = Var.get_var var_bindings Var.catala_flags in
-      let cmd =
-        catala_exe
-        @ ["exceptions"; file_name; "--scope"; scope; "--variable"; variable]
-        @ catala_flags
-      in
-      Message.debug "Running command: '%s'..." (String.concat " " cmd);
-      Clerk_cli.run_command_line cmd
+    let var_bindings =
+      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+        ~enabled_backends:[] ~config ~inplace:true
+    in
+    let catala_exe = Var.get_var var_bindings Var.catala_exe in
+    let catala_flags = Var.get_var var_bindings Var.catala_flags in
+    let cmd =
+      catala_exe
+      @ ["exceptions"; file; "--scope"; scope; "--variable"; variable]
+      @ catala_flags
+    in
+    Message.debug "Running command: '%s'..." (String.concat " " cmd);
+    Clerk_cli.run_command_line cmd
   in
   let doc =
     "Prints the exception tree for the definitions of a particular variable in \
@@ -1557,12 +1575,7 @@ let exceptions_cmd =
   Cmd.v
     (Cmd.info ~doc "exceptions")
     Term.(
-      const run
-      $ Cli.init_term ()
-      $ Cli.ninja_flags
-      $ Cli.single_file
-      $ Cli.scope
-      $ Cli.variable)
+      const run $ Cli.init_term () $ Cli.single_file $ Cli.scope $ Cli.variable)
 
 let main_cmd =
   Cmd.group Cli.info

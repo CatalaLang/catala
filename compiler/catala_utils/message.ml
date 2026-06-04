@@ -163,15 +163,15 @@ let get_ppf = function
 (**{3 Markers}*)
 
 let print_time_marker =
-  let time : float ref = ref (Unix.gettimeofday ()) in
+  let time : float ref = ref (Sys.time ()) in
   fun ppf () ->
-    let new_time = Unix.gettimeofday () in
+    let new_time = Sys.time () in
     let old_time = !time in
     time := new_time;
     let delta = (new_time -. old_time) *. 1000. in
-    if delta > 150. then
+    if delta > 130. then
       Format.fprintf ppf
-        "[@{<bold;magenta>DEBUG@}] @{<bold;black>- %.0fms elapsed -@}@," delta
+        "[@{<bold;magenta>DEBUG@}] @{<hi_black>- %.0fms elapsed -@}@," delta
 
 let pp_marker ?extra_label target ppf =
   let open Ocolor_types in
@@ -208,11 +208,13 @@ let file_url =
       (if column > 1 then Printf.sprintf ":%d" column else "")
 
 let pp_pos_link pos ppf =
-  pp_link
-    ~target:
-      (file_url (Pos.get_file pos) ~line:(Pos.get_start_line pos)
-         ~column:(Pos.get_start_column pos))
-    ppf
+  if pos = Pos.void then Format.fprintf ppf
+  else
+    pp_link
+      ~target:
+        (file_url (Pos.get_file pos) ~line:(Pos.get_start_line pos)
+           ~column:(Pos.get_start_column pos))
+      ppf
 
 let pp_pos ppf pos = pp_pos_link pos ppf "%s" (Pos.to_string_short pos)
 

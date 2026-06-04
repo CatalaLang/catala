@@ -69,13 +69,24 @@ module Flags = struct
            ])
          include_dirs
 
-  let default ~code_coverage ~config =
+  let default ~code_coverage ~inplace ~config =
     let options = config.Clerk_cli.options in
     let open Clerk_config in
+    let options =
+      if inplace then
+        {
+          options with
+          global = { options.global with build_dir = Filename.current_dir_name };
+        }
+      else options
+    in
     let catala_flags =
-      ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
-      :: ("--directory=" ^ Var.(!builddir))
-      :: options.global.catala_opts
+      if inplace then
+        ("--stdlib=" ^ Lazy.force Poll.stdlib_dir) :: options.global.catala_opts
+      else
+        ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
+        :: ("--directory=" ^ Var.(!builddir))
+        :: options.global.catala_opts
     in
     let includes = includes options.global.include_dirs in
     let test_flags = config.Clerk_cli.test_flags in

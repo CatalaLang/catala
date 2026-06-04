@@ -2,6 +2,8 @@
 
 ## Checklist
 
+* [ ] Update the CHANGELOG.md
+
 ### If this PR adds a feature or has breaking changes
 
 * [ ] Complete or update the documentation for the feature on the Catala book at https://github.com/CatalaLang/catala-book.

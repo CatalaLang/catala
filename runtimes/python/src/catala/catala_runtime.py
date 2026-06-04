@@ -15,7 +15,7 @@ from fractions import Fraction
 import dates
 from typing import NewType, List, Generic, Callable, Tuple, TypeVar, Iterable, Union, Any, overload, override, ClassVar
 from functools import reduce
-from enum import Enum, IntEnum, nonmember, auto
+from enum import Enum, StrEnum, nonmember, auto
 import copy
 import json
 import functools
@@ -78,9 +78,8 @@ class Value:
     def __hash__(self) -> int:
         return super().__hash__()
 
-    def to_json(self):
-        # Default place-holder, this is work in progress
-        return json.dumps(str(self), ensure_ascii=False)
+    def to_json(self) -> str:
+        return json.dumps(self, ensure_ascii=False)
 
     @classmethod
     def from_json(cls, str, pos: SourcePosition | None = None):
@@ -154,6 +153,11 @@ class SourcePosition(Value):
                     self.start_column == other.start_column and
                     self.end_line == other.end_line and
                     self.end_column == other.end_column)
+
+    def to_json(self) -> str:
+        return '{{"file":"%s","start":{{"line":%d,"character":%d}},"end":{{"line":%d,"character":%d}}}}' % (
+            self.filename, self.start_line, self.start_column, self.end_line, self.end_column
+        )
 
 class CatalaError(Exception):
     __slots__ = ( 'message', 'source_positions', 'note' )
@@ -277,6 +281,9 @@ class Array[T: Value](Value, tuple):  #type:ignore[misc]
     def length(self: Array[Alpha]) -> Integer:
         return Integer(len(self))
 
+    def to_json(self) -> str:
+        return "[" + ",".join([x.to_json() for x in self]) + "]"
+
 
 class CatalaTuple[*T](Value):
     __slots__ = ( 'value' )
@@ -304,6 +311,9 @@ class CatalaTuple[*T](Value):
 
     def __str__(self, indent: int = 0) -> str:
         return "({})".format(', '.join([x.__str__(indent + 1) for x in self.value]))
+
+    def to_json(self) -> str:
+        return "[" + ",".join([x.to_json() for x in self.value]) + "]"
 
 class CatalaStruct(Value):
     name: ClassVar[str]
@@ -336,6 +346,12 @@ class CatalaStruct(Value):
                       for fld, label in self.fields.items() ]),
             f"{'':>{indent}}"
         )
+
+    def to_json(self) -> str:
+        return ("{" +
+                ",".join([json.dumps(label, ensure_ascii=False) + ':' + getattr(self, fld).to_json()
+                          for fld, label in self.fields.items()]) +
+                "}")
 
 class CatalaEnum(Value):
     __slots__ = ('code', 'payload')
@@ -380,6 +396,9 @@ class CatalaEnum(Value):
               {Lang.En: "content", Lang.Fr: "contenu", Lang.Pl: "typu"}[lang]
             )
 
+    def to_json(self) -> str:
+        return "{" + json.dumps(self.code.label, ensure_ascii=False) + ":" + self.payload.to_json() + "}"
+
 class Function[Targs, TRet](Value):
     __slots__ = ('value')
     value: function
@@ -397,6 +416,9 @@ class Function[Targs, TRet](Value):
         raise UncomparableValues(pos)
 
     def __str__(self, indent: int = 0):
+        return "<function>"
+
+    def to_json(self) -> str:
         return "<function>"
 
 # ============
@@ -426,11 +448,14 @@ class Bool(Value):
     def __sub__(self, other) -> int:
         return self.value - other.value
 
-    def __str__(self, indent: int = 0):
+    def __str__(self, indent: int = 0) -> str:
         if self.value:
             return {Lang.En: "true", Lang.Fr: "vrai", Lang.Pl: "prawda"}[lang]
         else:
             return {Lang.En: "false", Lang.Fr: "faux", Lang.Pl: "falsz"}[lang]
+
+    def to_json(self) -> str:
+        return json.dumps(self.value);
 
 true = Bool(True)
 false = Bool(False)
@@ -460,12 +485,14 @@ class Integer(Value, int): #type:ignore[misc]
             x = x // 1000
         return  (
             ('-' if int(self) < 0 else '') +
-            bigsep().join([ (f'%0d' if c < 1000 else f'%03d') % (c % 1000) for c in reversed(chunks) ])
+            bigsep().join([ ('%0d' if c < 1000 else '%03d') % (c % 1000) for c in reversed(chunks) ])
         )
 
     def __repr__(self) -> str:
         return f"Integer({int(self)})"
 
+    def to_json(self) -> str:
+        return f'"{str(int(self))}"'
 
 class Decimal(Value, Fraction): #type:ignore[misc]
     def __new__(cls, value: object, *args) -> Decimal:
@@ -504,6 +531,12 @@ class Decimal(Value, Fraction): #type:ignore[misc]
 
     def round(self) -> Decimal:
         return Decimal(round(self))
+
+    def to_json(self) -> str:
+        if self.denominator == 1:
+            return f'"{self.numerator}"'
+        else:
+            return f'"{self.numerator}/{self.denominator}"'
 
 class Money(Value, int): #type:ignore[misc]
     def __new__(cls, value: object) -> Money:
@@ -544,7 +577,7 @@ class Money(Value, int): #type:ignore[misc]
             ('$' if lang == Lang.En else '') +
             Integer(int(n) // 100).__str__(indent) +
             decsep() +
-            f'%02d' % (n % 100) +
+            '%02d' % (n % 100) +
             (' €' if lang == Lang.Fr else
              ' PLN' if lang == Lang.Pl else '')
         )
@@ -560,6 +593,15 @@ class Money(Value, int): #type:ignore[misc]
 
     def round(self) -> Money:
         return Money(Integer(self))
+
+    def to_json(self) -> str:
+        n = abs(self)
+        return (
+            ('"-' if int(self) < 0 else '"') +
+            str(int(n) // 100) +
+            "." +
+            '%02d"' % (int(n) % 100)
+        )
 
 class Date(Value):
     __slots__ = ( 'value' )
@@ -620,6 +662,10 @@ class Date(Value):
 
     def __repr__(self) -> str:
         return f"Date({self.value.__repr__()})"
+
+    def to_json(self) -> str:
+        return f'"{self.value.year:04d}-{self.value.month:02d}-{self.value.day:02d}"'
+
 
 class Duration(Value):
     __slots__ = ( 'value' )
@@ -685,7 +731,7 @@ class Duration(Value):
             label = r[lang]
             if abs(x) > 1 and lang != Lang.Pl and label[-1] != 's':
                 label = label + 's'
-            return f'%d %s' % (x, label)
+            return '%d %s' % (x, label)
         label_year = { Lang.En: 'year', Lang.Fr: 'an', Lang.Pl: 'rok' }
         label_month = { Lang.En: 'month', Lang.Fr: 'mois', Lang.Pl: 'miesiac' }
         label_day = { Lang.En: 'day', Lang.Fr: 'jour', Lang.Pl: 'dzien' }
@@ -694,12 +740,16 @@ class Duration(Value):
             pr(self.value.months, label_month),
             pr(self.value.days, label_day)
         ]))
-        if str == "": str = f'0 %s' % label_day[lang]
+        if str == "": str = '0 %s' % label_day[lang]
         return ('[' + str + ']')
 
     def __repr__(self) -> str:
         return f"Duration({self.value.__repr__()})"
 
+    def to_json(self) -> str:
+        return '{"years":%d,"months":%d,"days":%d}' % (
+            self.value.years, self.value.months, self.value.days
+        )
 
 class Unit(Value):
     def __new__(cls) -> Unit:
@@ -716,6 +766,9 @@ class Unit(Value):
 
     def __repr__(self) -> str:
         return "Unit()"
+
+    def to_json(self) -> str:
+        return '{}'
 
 class Option[T: Value](Value):
     __slots__ = ( 'value' )
@@ -754,6 +807,12 @@ class Option[T: Value](Value):
 
     def __repr__(self) -> str:
         return f"Option({self.value.__repr__()})"
+
+    def to_json(self) -> str:
+        if self.value is None:
+            return '"Absent"'
+        else:
+            return ('{"Present":' + self.value.to_json() + "}")
 
 # ============================
 # Constructors and conversions

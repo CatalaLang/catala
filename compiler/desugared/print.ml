@@ -32,13 +32,13 @@ let conditions_of_vertex (v : Dependency.ExceptionVertex.t) : Ast.expr list =
    in the expression printer produce the same ANSI sequences as the outer
    formatter; this preserves syntax highlighting in the condition text. *)
 let render_condition_lines width fmt_outer e =
-  let buf = Buffer.create 80 in
+  let buf = Buffer.create 180 in
   let inner = Format.formatter_of_buffer buf in
   Format.pp_set_formatter_stag_functions inner
     (Format.pp_get_formatter_stag_functions fmt_outer ());
   Format.pp_set_tags inner true;
   Format.pp_set_margin inner (max 20 width);
-  Print.UserFacing.expr inner e;
+  Message.pp_pos_link (Expr.pos e) inner "%a" Print.UserFacing.expr e;
   Format.pp_print_flush inner ();
   String.split_on_char '\n' (Buffer.contents buf)
 
@@ -58,7 +58,9 @@ let rec print_exception_node
     | Leaf l -> l.Dependency.ExceptionVertex.label, l, []
     | Node (children, l) -> l.Dependency.ExceptionVertex.label, l, children
   in
-  Format.fprintf fmt "\"%a\"" LabelName.format label;
+  Message.pp_pos_link
+    (Mark.get (LabelName.get_info label))
+    fmt "\"%a\"" LabelName.format label;
   (* For nodes with children, run a │ bar down through all condition lines to
      visually connect the label to the child connectors below. For leaves, use
      plain spaces. Continuation lines of multi-line conditions align under [. *)
@@ -130,7 +132,7 @@ let format_exception_forest ~is_condition fmt trees =
 let pos_to_json (pos : Pos.t) : Yojson.Safe.t =
   `Assoc
     [
-      "filename", `String (File.make_absolute (Pos.get_file pos));
+      "filename", `String (Pos.get_file pos);
       "start_line", `Int (Pos.get_start_line pos);
       "start_column", `Int (Pos.get_start_column pos);
       "end_line", `Int (Pos.get_end_line pos);
