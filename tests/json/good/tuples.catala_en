@@ -10,5 +10,5 @@ scope S:
 
 ```catala-test-cli
 $ catala test-scope S --input {"x":[1,2,3]} -F json
-{ "r": [ 1.0, 2.0, 3.0 ] }
+{"r":["1","2","3"]}
 ```

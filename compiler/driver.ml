@@ -755,34 +755,24 @@ module Commands = struct
                       else fun ppf -> Print.UserFacing.value ppf)
                      result))
                 results)
-         | [], JSON ->
-           Format.fprintf (Message.std_ppf ()) "%a@."
-             (Yojson.Safe.pretty_print ~std:true)
-             (`Assoc [])
-         | (_, f_e) :: _, JSON ->
+         | [], JSON -> Format.fprintf (Message.std_ppf ()) "{}@."
+         | (_, (_, m)) :: _, JSON ->
            let { out_struct_name; _ } =
              ScopeName.Map.find scope_uid ctx.ctx_scopes
            in
-           let struct_result =
+           let json =
              let fields =
                List.fold_left
                  (fun m (sf_s, e) ->
                    StructField.Map.add (StructField.fresh sf_s) (Expr.box e) m)
                  StructField.Map.empty results
              in
-             Expr.estruct ~name:out_struct_name ~fields (Mark.get f_e)
+             Expr.estruct ~name:out_struct_name ~fields m
              |> Expr.unbox
-             |> Encoding.convert_from_gexpr ctx
+             |> Expr.embed_value ctx
+             |> Catala_runtime.Json.runtime_value
            in
-           let encoding =
-             Encoding.make_encoding ctx
-               (Mark.add Pos.void (TStruct out_struct_name))
-           in
-           let module Enc = Json_encoding.Make (Json_repr.Yojson) in
-           let json = Enc.construct encoding struct_result in
-           Format.fprintf (Message.std_ppf ()) "%a@."
-             (Yojson.Safe.pretty_print ~std:true)
-             json);
+           Format.fprintf (Message.std_ppf ()) "%s@." json);
       true
     with
     | Message.CompilerError content ->
