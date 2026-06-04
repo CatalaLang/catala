@@ -104,3 +104,30 @@ steps:
       - opam install . --ignore-constraints-on=catala --ignore-pin-depends --with-test -y
       - dune runtest --root .
 
+  - name: artifacts
+    image: *catala_image
+    depends_on: [doc, tests]
+    when:
+      - event: push
+        branch: master
+      - event: push
+        branch: test-woodpecker
+      - event: manual # While testing
+    commands:
+      - sudo apt install tree
+      - mkdir artifacts
+      - mv catala/_build/default/_doc/_html artifacts/api-doc
+      - mv catala/doc/syntax/syntax.pdf artifacts/
+      - mv catala/_build/default/*.html artifacts/
+      - mv catala/_build/default/compiler/web/catala_web_interpreter.bc.js artifacts/catala_web_interpreter.js
+      - cd artifacts
+      - tree -H . -L 1 --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
+
+  - name: publish
+    image: woodpeckerci/plugin-release
+    depends_on: [artifacts]
+    settings:
+      files: artifacts/*
+      draft: true
+      prerelease: true
+      title: "Latest artifacts for ${CI_REPO_DEFAULT_BRANCH}"
