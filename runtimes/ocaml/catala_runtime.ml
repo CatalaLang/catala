@@ -776,8 +776,6 @@ module BufferedJson = struct
     if Q.den d = Z.one then Z.bprint buf (Q.num d)
     else Printf.bprintf buf "%a/%a" Z.bprint (Q.num d) Z.bprint (Q.den d)
 
-  (* Note: the output format is made for transition with what Yojson gave us,
-     but we could change it to something nicer (e.g. objects for structures) *)
   let rec runtime_value buf = function
     | Value.V (Unit, ()) -> Buffer.add_string buf "{}"
     | V (Bool, b) -> Buffer.add_string buf (string_of_bool b)
