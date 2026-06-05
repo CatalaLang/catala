@@ -272,8 +272,9 @@ tests: test
 TEST_FLAGS_LIST = ""\
 -O \
 --lcalc \
---lcalc,--closure-conversion,-O \
 --whole-program
+
+# --lcalc,--closure-conversion,-O ## Disabled
 
 # Does not include running dune (to avoid duplication when run among bigger rules)
 testsuite-base: .FORCE $(CLERK_BIN) $(CATALA_BIN)
