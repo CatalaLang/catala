@@ -19,9 +19,10 @@ steps:
   - name: build
     image: *catala_image
     environment: *build_env
+    pull: true
     commands:
       - eval $(opam env)
-      - make dependencies-python pygments
+      - ln -s /home/ocaml/catala/_python_venv .
       - make build prepare-install
 
   - name: promoted
@@ -98,13 +99,13 @@ steps:
         branch: test-woodpecker
       - event: manual # While testing
     commands:
-      - sudo apt install tree
+      - sudo apk add tree
       - mkdir artifacts
-      - mv catala/_build/default/_doc/_html artifacts/api-doc
-      - mv catala/doc/syntax/syntax.pdf artifacts/
-      - mv catala/_build/default/*.html artifacts/
-      - mv catala/_build/default/compiler/web/catala_web_interpreter.bc.js artifacts/catala_web_interpreter.js
       - cd artifacts
+      - mv ../_build/default/_doc/_html ./api-doc
+      - mv ../doc/syntax/syntax.pdf ./
+      - mv ../_build/default/*.html ./
+      - mv ../_build/default/compiler/web/catala_web_interpreter.bc.js ./catala_web_interpreter.js
       - tree -H . -L 1 --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
 
   - name: publish

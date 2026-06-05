@@ -32,6 +32,12 @@ RUN sudo apk add py3-pip py3-pygments groff bash
 RUN opam --cli=2.2 switch create . --deps-only --with-test --with-doc --with-dev-setup && \
     opam clean
 
+ADD --chown=ocaml:ocaml runtimes/python/pyproject.toml runtimes/python/pyproject.toml
+ADD --chown=ocaml:ocaml deps/dates-calc/lib_python/pyproject.toml deps/dates-calc/lib_python/pyproject.toml
+ADD --chown=ocaml:ocaml Makefile .
+ADD --chown=ocaml:ocaml syntax_highlighting syntax_highlighting
+RUN opam exec -- make dependencies-python pygments
+
 ENV OPAMSWITCH="/home/ocaml/catala"
 ENV PATH="/home/ocaml/catala/_opam/bin:$PATH"
 
@@ -39,13 +45,6 @@ ENV PATH="/home/ocaml/catala/_opam/bin:$PATH"
 # STAGE 2: get the whole repo and build
 #
 FROM dev-build-context
-
-# Prepare extra local dependencies (doing this first allows caching)
-ADD --chown=ocaml:ocaml runtimes/python/pyproject.toml runtimes/python/pyproject.toml
-ADD --chown=ocaml:ocaml deps/dates-calc/lib_python/pyproject.toml deps/dates-calc/lib_python/pyproject.toml
-ADD --chown=ocaml:ocaml Makefile .
-ADD --chown=ocaml:ocaml syntax_highlighting syntax_highlighting
-RUN opam exec -- make dependencies-python pygments
 
 # Get the full repo
 ADD --chown=ocaml:ocaml . .
