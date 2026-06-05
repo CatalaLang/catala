@@ -8,7 +8,7 @@ when:
   - event: manual
 
 variables:
-  - &catala_image registry.gitlab.inria.fr/catala/registry:g${CI_COMMIT_SHA}
+  - &catala_image registry.gitlab.inria.fr/catala/registry:20260605
   - &build_env
     OCAMLRUNPARAM: b
     DUNE_PROFILE: check
@@ -16,22 +16,7 @@ variables:
     # Ensures the side-by-side diff isn't truncated to less than 80 cols
 
 steps:
-  - name: image
-    image: woodpeckerci/plugin-docker-buildx
-    settings:
-      registry: registry.gitlab.inria.fr
-      repo: registry.gitlab.inria.fr/catala/registry
-      username:
-        from_secret: inria-registry-login
-      password:
-        from_secret: inria-registry-pass
-      cache_images:
-        - registry.gitlab.inria.fr/catala/registry:cache
-      tags: g${CI_COMMIT_SHA}
-      target: dev-build-context
-
   - name: build
-    depends_on: image
     image: *catala_image
     environment: *build_env
     commands:
@@ -41,7 +26,6 @@ steps:
 
   - name: promoted
     image: *catala_image
-    depends_on: image
     commands:
       - eval $(opam env)
       - git clone $${CI_WORKSPACE} /tmp/catala
@@ -126,6 +110,12 @@ steps:
   - name: publish
     image: woodpeckerci/plugin-release
     depends_on: [artifacts]
+    when:
+      - event: push
+        branch: master
+      - event: push
+        branch: test-woodpecker
+      - event: manual # While testing
     settings:
       files: artifacts/*
       draft: true
