@@ -102,7 +102,7 @@ let run_pandoc_on_file
     (file_in : Global.file)
     (file_out : Global.file)
     language
-    (backend : [ `Html | `Latex | `Pdf ]) : unit =
+    (backend : [ `Html | `Latex | `Pdf | `Markdown ]) : unit =
   let pandoc = "pandoc" in
   let temp_syntax_file = Filename.temp_file "catala_syntax" "xml" in
   let syntax_definition =
@@ -126,7 +126,12 @@ let run_pandoc_on_file
         (match backend with
         | `Html -> "html"
         | `Latex -> "latex"
-        | `Pdf -> "pdf");
+        | `Pdf -> "pdf"
+        | `Markdown ->
+          (* gfm stands for Github Flavored Markdown,
+             the -raw_html is to forbid raw html in
+             the produced markdown *)
+          "gfm-raw_html");
         "-o";
         file_out;
       ]

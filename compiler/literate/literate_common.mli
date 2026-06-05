@@ -49,7 +49,7 @@ val run_pandoc_on_file :
   Global.file ->
   Global.file ->
   Global.backend_lang ->
-  [ `Html | `Latex | `Pdf ] ->
+  [ `Html | `Latex | `Pdf | `Markdown ] ->
   unit
 (** Runs the [pandoc] on a file to pretty-print markdown features into the
     desired format. *)

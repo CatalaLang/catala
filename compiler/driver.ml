@@ -460,7 +460,7 @@ module Commands = struct
         $ Cli.Flags.print_only_law
         $ Cli.Flags.wrap_weaved_output)
 
-  let markdown options output print_only_law wrap_weaved_output =
+  let common_markdown options output print_only_law wrap_weaved_output =
     let prg = Passes.surface options in
     Message.debug "Weaving literate program into HTML";
     get_output_format options ~ext:"html" output
@@ -474,6 +474,32 @@ module Commands = struct
       Literate.Md.wrap_markdown prg.Surface.Ast.program_source_files language
         fmt (fun fmt -> weave_output fmt prg)
     else weave_output fmt prg
+
+  let markdown options output print_only_law wrap_weaved_output =
+    File.with_temp_file "catala_markdown" "md"
+    @@ fun temp_file_in ->
+    let raw_file = Global.raw_file temp_file_in in
+    let () =
+      common_markdown options (Some raw_file) print_only_law wrap_weaved_output
+    in
+    let language =
+      Cli.file_lang (Global.input_src_file options.Global.input_src)
+    in
+    get_output_format options ~ext:"pdf" output
+    @@ fun output_file _fmt ->
+    let output_file = Option.value ~default:"-" output_file in
+    Literate.Literate_common.run_pandoc_on_file temp_file_in output_file
+      language `Markdown;
+    (* For unknown reason, pandoc append new line on summary when choosing the markdown target.
+       So we just remove it to keep the markdown clean *)
+    let sed_command =
+      Format.sprintf {|sed -i -z "s/<summary>\n/<summary>/g" %s|} output_file
+    in
+    let return_code = Sys.command sed_command in
+    if return_code <> 0 then
+      Message.error
+        "Weaving failed: sed command \"%s\" returned with error code %d"
+        sed_command return_code
 
   let md_cmd =
     Cmd.v
@@ -535,7 +561,7 @@ module Commands = struct
     @@ fun temp_file_in ->
     let raw_file = Global.raw_file temp_file_in in
     let () =
-      markdown options (Some raw_file) print_only_law wrap_weaved_output
+      common_markdown options (Some raw_file) print_only_law wrap_weaved_output
     in
     let language =
       Cli.file_lang (Global.input_src_file options.Global.input_src)
