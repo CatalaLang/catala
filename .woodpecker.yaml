@@ -91,7 +91,11 @@ steps:
 
   - name: artifacts
     image: *catala_image
-    depends_on: [doc, tests]
+    depends_on: [check-examples, lsp]
+    environment:
+      GIT_AUTHOR_NAME: Catala CI
+      GIT_COMMITTER_NAME: Catala CI
+      EMAIL: ci@catala-lang.org
     when:
       - event: push
         branch: master
@@ -101,15 +105,18 @@ steps:
     commands:
       - sudo apk add tree
       - mkdir artifacts
+      - mv _build/default/_doc/_html artifacts/api-doc
+      - mv doc/syntax/syntax.pdf artifacts/
+      - mv _build/default/*.html artifacts/
+      - mv _build/default/compiler/web/catala_web_interpreter.bc.js artifacts/catala_web_interpreter.js
       - cd artifacts
-      - mv ../_build/default/_doc/_html ./api-doc
-      - mv ../doc/syntax/syntax.pdf ./
-      - mv ../_build/default/*.html ./
-      - mv ../_build/default/compiler/web/catala_web_interpreter.bc.js ./catala_web_interpreter.js
       - tree -H . -L 1 --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
+      - git init -b gh-pages
+      - git add .
+      - git commit -m "Artifacts as of +$$(date %Y-%m-%d), $$GIT_COMMIT_HASH"
 
-  - name: publish
-    image: woodpeckerci/plugin-release
+  - name: publish-assets
+    image: appleboy/drone-git-push
     depends_on: [artifacts]
     when:
       - event: push
@@ -118,7 +125,6 @@ steps:
         branch: test-woodpecker
       - event: manual # While testing
     settings:
-      files: artifacts/*
-      draft: true
-      prerelease: true
-      title: "Latest artifacts for ${CI_REPO_DEFAULT_BRANCH}"
+      path: artifacts
+      branch: gh-pages
+      force: true
