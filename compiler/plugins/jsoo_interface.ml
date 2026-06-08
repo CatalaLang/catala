@@ -139,7 +139,7 @@ let format_code_items_js
                 let _v, typ, bctx = Bindlib.unmbind_in bctx tb in
                 aux bctx typ
               | _ ->
-                Format.fprintf ppjs "@[<v 2>%a: %s@]" format_var var
+                Format.fprintf ppjs "@[<v 2>%a: %s,@]@," format_var var
                   (snd @@ format_typ_example_js ctx typ)
             in
             aux Bindlib.empty_ctxt typ
@@ -153,7 +153,7 @@ let format_js_template ppjs name (p : 'm Ast.program) : unit =
     "// Mock for the catala external: %s\n\
      //\n\
      // This file must be loaded before the js file containing the call to the \
-     external contract (with a <script> balise or a require).\n"
+     external contract (with a <script> balise or a require).\n\n"
     name;
   pp [ppjs] "//@ts-check";
   Option.fold
