@@ -1,3 +1,6 @@
+labels:
+  platform: linux/amd64
+
 when:
   - event: push
     branch: master
@@ -60,7 +63,7 @@ steps:
       - make syntax
       - make doc
 
-  - name: check-examples
+  - name: examples
     image: *catala_image
     depends_on: tests
     environment: *build_env
@@ -91,7 +94,7 @@ steps:
 
   - name: artifacts
     image: *catala_image
-    depends_on: [check-examples, lsp]
+    depends_on: [examples, lsp]
     environment:
       GIT_AUTHOR_NAME: Catala CI
       GIT_COMMITTER_NAME: Catala CI
@@ -104,16 +107,18 @@ steps:
       - event: manual # While testing
     commands:
       - sudo apk add tree
-      - mkdir artifacts
-      - mv _build/default/_doc/_html artifacts/api-doc
-      - mv doc/syntax/syntax.pdf artifacts/
-      - mv _build/default/*.html artifacts/
-      - mv _build/default/compiler/web/catala_web_interpreter.bc.js artifacts/catala_web_interpreter.js
-      - cd artifacts
+      - mkdir /tmp/artifacts
+      - mv _build/default/_doc/_html /tmp/artifacts/api-doc
+      - mv doc/syntax/syntax.pdf /tmp/artifacts/
+      - mv _build/default/*.html /tmp/artifacts/
+      - mv _build/default/compiler/web/catala_web_interpreter.bc.js /tmp/artifacts/catala_web_interpreter.js
+      - git config --global --add safe.directory ${CI_WORKSPACE}
+      - git checkout --orphan gh-pages
+      - git rm -rf .
+      - mv /tmp/artifacts/* .
       - tree -H . -L 1 --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
-      - git init -b gh-pages
       - git add .
-      - git commit -m "Artifacts as of +$$(date %Y-%m-%d), $$GIT_COMMIT_HASH"
+      - git commit -m "Artifacts as of +$$(date %Y-%m-%d), ${GIT_COMMIT_HASH}"
 
   - name: publish-assets
     image: appleboy/drone-git-push
@@ -125,6 +130,6 @@ steps:
         branch: test-woodpecker
       - event: manual # While testing
     settings:
-      path: artifacts
       branch: gh-pages
       force: true
+      remote_name: origin

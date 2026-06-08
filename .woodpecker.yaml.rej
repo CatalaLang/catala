@@ -1,9 +1,0 @@
-diff a/.woodpecker.yaml b/.woodpecker.yaml	(rejected hunks)
-@@ -50,7 +50,6 @@ steps:
- 
-   - name: tests
-     image: *catala_image
--    depends_on: build
-     environment: *build_env
-     commands:
-       - eval $(opam env)

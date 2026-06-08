@@ -1,0 +1,60 @@
+labels:
+  platform: windows/amd64
+  backend: local
+
+when:
+  - event: push
+    branch: master
+  - event: push
+    branch: test-woodpecker
+  - event: manual
+
+variables:
+  - &env
+    OPAMCONFIRMLEVEL: unsafe-yes
+    OPAMSWITCH: ${CI_WORKSPACE}
+    OCAMLRUNPARAM: b
+    DUNE_PROFILE: check
+    COLUMNS: "165"
+    # Ensures the side-by-side diff isn't truncated to less than 80 cols
+    CI: "true"
+    # Otherwise 're' fails to build with dune errors
+
+steps:
+
+  - name: opam
+    image: powershell
+    commands:
+      - winget install Git.Git OCaml.opam
+
+  - name: ocaml
+    image: powershell
+    environment: *env
+    commands:
+      - opam init --bare
+      - opam switch create 5.3.0
+      - opam install conf-pkg-config
+
+  - name: install
+    image: powershell
+    environment: *env
+    commands:
+      - opam install ./catala.opam
+
+  - name: test
+    image: powershell
+    environment: *env
+    commands:
+      - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
+      - dune exec -- clerk test tests doc
+      - dune exec -- clerk test tests --backend ocaml -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc
+
+  - name: examples
+    image: powershell
+    environment: *env
+    commands:
+      - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
+      - git clone https://github.com/CatalaLang/catala-examples --depth 1 -b "$${GIT_COMMIT_SOURCE_BRANCH:-$$GIT_COMMIT_BRANCH}" ||
+        git clone https://github.com/CatalaLang/catala-examples --depth 1
+      - cd catala-examples
+      - clerk test
