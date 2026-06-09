@@ -12,6 +12,7 @@ when:
 variables:
   - &env
     OPAMCONFIRMLEVEL: unsafe-yes
+    OPAMERRLOGLEN: 0
 #    OPAMROOT: C:\Users\CI\woodpecker\opam
     OCAMLRUNPARAM: b
     DUNE_PROFILE: check
@@ -41,8 +42,9 @@ steps:
     image: powershell
     environment: *env
     commands:
-      - New-Item -Value C:\Users\ci\woodpecker\opam -ItemType SymbolicLink -Path $${CI_WORKSPACE}\.opam
-      - opam switch create ./catala.opam
+      - New-Item -Value C:\Users\ci\woodpecker\opam -ItemType SymbolicLink -Path $env:HOME\.opam
+      - opam switch create . --empty
+      - opam install ./catala.opam
 
   - name: test
     image: powershell

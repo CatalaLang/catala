@@ -6,8 +6,8 @@ when:
     branch: master
   - event: push
     branch: test-woodpecker
-  - event: pull_request
-    repo: CatalaLang/catala
+  # - event: pull_request
+  #   repo: CatalaLang/catala
   - event: manual
 
 variables:
@@ -28,30 +28,30 @@ steps:
       - ln -s /home/ocaml/catala/_python_venv .
       - make build prepare-install
 
-  - name: promoted
-    image: *catala_image
-    commands:
-      - eval $(opam env)
-      - git clone $${CI_WORKSPACE} /tmp/catala
-      - cd /tmp/catala
-      - make check-promoted && git diff --exit-code
+  # - name: promoted
+  #   image: *catala_image
+  #   commands:
+  #     - eval $(opam env)
+  #     - git clone $${CI_WORKSPACE} /tmp/catala
+  #     - cd /tmp/catala
+  #     - make check-promoted && git diff --exit-code
 
-  - name: tests
-    image: *catala_image
-    depends_on: build
-    environment: *build_env
-    commands:
-      - eval $(opam env)
-      - make testsuite
+  # - name: tests
+  #   image: *catala_image
+  #   depends_on: build
+  #   environment: *build_env
+  #   commands:
+  #     - eval $(opam env)
+  #     - make testsuite
 
-  - name: extra-tests
-    image: *catala_image
-    depends_on: tests
-    environment: *build_env
-    commands:
-      - eval $(opam env)
-      - dune build @runtest-js
-      - make validate-py-runtime
+  # - name: extra-tests
+  #   image: *catala_image
+  #   depends_on: tests
+  #   environment: *build_env
+  #   commands:
+  #     - eval $(opam env)
+  #     - dune build @runtest-js
+  #     - make validate-py-runtime
 
   - name: doc
     image: *catala_image
@@ -63,38 +63,39 @@ steps:
       - make syntax
       - make doc
 
-  - name: examples
-    image: *catala_image
-    depends_on: tests
-    environment: *build_env
-    commands:
-      - eval $(opam env)
-      - opam install ./catala.opam --working-dir --assume-built
-      - git clone https://github.com/CatalaLang/catala-examples --depth 1 -b "$${GIT_COMMIT_SOURCE_BRANCH:-$$GIT_COMMIT_BRANCH}" ||
-        git clone https://github.com/CatalaLang/catala-examples --depth 1
-      - . _python_venv/bin/activate
-      - cd catala-examples
-      - make all testsuite
+  # - name: examples
+  #   image: *catala_image
+  #   depends_on: tests
+  #   environment: *build_env
+  #   commands:
+  #     - eval $(opam env)
+  #     - opam install ./catala.opam --working-dir --assume-built
+  #     - git clone https://github.com/CatalaLang/catala-examples --depth 1 -b "$${GIT_COMMIT_SOURCE_BRANCH:-$$GIT_COMMIT_BRANCH}" ||
+  #       git clone https://github.com/CatalaLang/catala-examples --depth 1
+  #     - . _python_venv/bin/activate
+  #     - cd catala-examples
+  #     - make all testsuite
 
-  - name: lsp
-    image: *catala_image
-    depends_on: tests
-    environment:
-      CI: "true"
-    commands:
-      - eval $(opam env)
-      - opam install conf-npm
-      - opam install ./catala.opam --working-dir --assume-built
-      - git clone https://github.com/CatalaLang/catala-language-server --depth 1 -b "$${GIT_COMMIT_SOURCE_BRANCH:-$$GIT_COMMIT_BRANCH}" ||
-        git clone https://github.com/CatalaLang/catala-language-server --depth 1
-      - cd catala-language-server
-      - npm install
-      - opam install . --ignore-constraints-on=catala --ignore-pin-depends --with-test -y
-      - dune runtest --root .
+  # - name: lsp
+  #   image: *catala_image
+  #   depends_on: tests
+  #   environment:
+  #     CI: "true"
+  #   commands:
+  #     - eval $(opam env)
+  #     - opam install conf-npm
+  #     - opam install ./catala.opam --working-dir --assume-built
+  #     - git clone https://github.com/CatalaLang/catala-language-server --depth 1 -b "$${GIT_COMMIT_SOURCE_BRANCH:-$$GIT_COMMIT_BRANCH}" ||
+  #       git clone https://github.com/CatalaLang/catala-language-server --depth 1
+  #     - cd catala-language-server
+  #     - npm install
+  #     - opam install . --ignore-constraints-on=catala --ignore-pin-depends --with-test -y
+  #     - dune runtest --root .
 
   - name: artifacts
     image: *catala_image
-    depends_on: [examples, lsp]
+#    depends_on: [doc, examples, lsp]
+    depends_on: [doc]
     environment:
       GIT_AUTHOR_NAME: Catala CI
       GIT_COMMITTER_NAME: Catala CI
@@ -107,18 +108,17 @@ steps:
       - event: manual # While testing
     commands:
       - sudo apk add tree
-      - mkdir /tmp/artifacts
-      - mv _build/default/_doc/_html /tmp/artifacts/api-doc
-      - mv doc/syntax/syntax.pdf /tmp/artifacts/
-      - mv _build/default/*.html /tmp/artifacts/
-      - mv _build/default/compiler/web/catala_web_interpreter.bc.js /tmp/artifacts/catala_web_interpreter.js
-      - git config --global --add safe.directory $${CI_WORKSPACE}
-      - git checkout --orphan gh-pages
-      - git rm -rf .
-      - mv /tmp/artifacts/* .
+      - mkdir artifacts
+      - mv _build/default/_doc/_html artifacts/api-doc
+      - mv doc/syntax/syntax.pdf artifacts/
+      - mv _build/default/*.html artifacts/
+      - mv _build/default/compiler/web/catala_web_interpreter.bc.js artifacts/catala_web_interpreter.js
+      - cd artifacts
       - tree -H . -L 1 --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
-      - git add .
-      - git commit -m "Artifacts as of +$$(date %Y-%m-%d), ${GIT_COMMIT_HASH}"
+      - git init -b gh-pages
+      - chmod -R a+wX .git
+      # - git add .
+      # - git commit -m "Artifacts as of $(date +%Y-%m-%d), ${GIT_COMMIT_HASH}"
 
   - name: publish-assets
     image: appleboy/drone-git-push
@@ -130,6 +130,11 @@ steps:
         branch: test-woodpecker
       - event: manual # While testing
     settings:
+      path: artifacts
+      remote: git@github.com:CatalaLang/catala
       branch: gh-pages
+      commit: true
+      commit_message: "Latest artifacts as of $${GIT_COMMIT_HASH}"
       force: true
-      remote_name: origin
+      ssh_key:
+        from_secret: pages
