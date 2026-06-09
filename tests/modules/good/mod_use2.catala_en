@@ -50,5 +50,6 @@ $ catala test-scope T2
 │ o2 = Maybe
 │ o3 = $1,000.00
 │ o4 = 5.0
+│ o5 = Something content 10
 └─
 ```

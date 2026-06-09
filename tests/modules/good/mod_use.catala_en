@@ -10,20 +10,20 @@
   output o2 content Mod_def
   output o3 content money
   output o4 content decimal
+  output o5 content Mod_def.Mod_def
 
 scope T2:
   definition o1 equals No
   definition o2 equals t1.e1
   definition o3 equals t1.sr
   definition o4 equals Mod_def.half of 10
+  definition o5 equals Something content 10
   assertion (Mod_def.Str1 { -- fld1: No -- fld2: 1 }).fld1 = No
   assertion o1 = Mod_def.Mod_def.No
   assertion o2 = Maybe
   assertion o3 = $1000
   assertion o4 = 5.0
 ```
-
-
 
 ```catala-test-cli
 $ catala Typecheck --check-invariants
@@ -42,5 +42,17 @@ $ catala test-scope T2
 │ o2 = Maybe
 │ o3 = $1,000.00
 │ o4 = 5.0
+│ o5 = Something content 10
 └─
+```
+
+```catala-test-cli
+$ catala test-scope T2 -F json
+┌─[ERROR]─
+│
+│  Unexpected error: Invalid_argument("Json_encoding.construct: consequence
+│  of bad union")
+│
+└─
+#return code 125#
 ```

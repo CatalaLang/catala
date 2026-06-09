@@ -7,6 +7,7 @@ declaration enumeration Mod_def:
   -- Yes
   -- No
   -- Maybe
+  -- Something content integer
 
 declaration structure Str1:
   data fld1 content Mod_def
@@ -123,12 +124,14 @@ module Mod_def = struct
     | Yes
     | No
     | Maybe
+    | Something of integer
   let rtype = Value.Enum {
     name = "Mod_def";
     constr = function
       | Yes -> 0, "Yes", None
       | No -> 1, "No", None
       | Maybe -> 2, "Maybe", None
+      | Something x -> 3, "Something", Some (Value.embed (Value.Integer) x)
   }
 end
 
@@ -163,19 +166,19 @@ end
 (* Toplevel def loc *)
 let loc : code_location array =
   [|{filename="tests/modules/good/mod_def.catala_en";
-     start_line=16; start_column=10; end_line=16; end_column=12;
-     law_headings=["Test modules + inclusions 1"]};
-    {filename="tests/modules/good/mod_def.catala_en";
      start_line=17; start_column=10; end_line=17; end_column=12;
      law_headings=["Test modules + inclusions 1"]};
     {filename="tests/modules/good/mod_def.catala_en";
-     start_line=21; start_column=10; end_line=21; end_column=43;
+     start_line=18; start_column=10; end_line=18; end_column=12;
      law_headings=["Test modules + inclusions 1"]};
     {filename="tests/modules/good/mod_def.catala_en";
-     start_line=29; start_column=24; end_line=29; end_column=30;
+     start_line=22; start_column=10; end_line=22; end_column=43;
      law_headings=["Test modules + inclusions 1"]};
     {filename="tests/modules/good/mod_def.catala_en";
-     start_line=30; start_column=24; end_line=30; end_column=29;
+     start_line=30; start_column=24; end_line=30; end_column=30;
+     law_headings=["Test modules + inclusions 1"]};
+    {filename="tests/modules/good/mod_def.catala_en";
+     start_line=31; start_column=24; end_line=31; end_column=29;
      law_headings=["Test modules + inclusions 1"]}|]
 
 (* Scope S *)
