@@ -112,7 +112,7 @@ steps:
       - mv doc/syntax/syntax.pdf /tmp/artifacts/
       - mv _build/default/*.html /tmp/artifacts/
       - mv _build/default/compiler/web/catala_web_interpreter.bc.js /tmp/artifacts/catala_web_interpreter.js
-      - git config --global --add safe.directory ${CI_WORKSPACE}
+      - git config --global --add safe.directory $${CI_WORKSPACE}
       - git checkout --orphan gh-pages
       - git rm -rf .
       - mv /tmp/artifacts/* .
