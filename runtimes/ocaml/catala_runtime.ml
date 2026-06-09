@@ -1373,9 +1373,9 @@ let check_module m h =
 let lookup_value qid =
   try Hashtbl.find values_table qid
   with Not_found ->
-    failwith ("Could not resolve reference to " ^ fst qid ^ "." ^ snd qid)
+    failwith ("Could not resolve reference value to " ^ fst qid ^ "." ^ snd qid)
 
 let lookup_type qid =
   try Hashtbl.find types_table qid
   with Not_found ->
-    failwith ("Could not resolve reference to " ^ fst qid ^ "." ^ snd qid)
+    failwith ("Could not resolve reference type to " ^ fst qid ^ "." ^ snd qid)
