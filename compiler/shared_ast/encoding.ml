@@ -463,14 +463,23 @@ and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
   let enc =
     if List.for_all (fun (_, typ) -> Mark.remove typ = TLit TUnit) bdgs then
       (* This simplifies the JSON schema *)
-      string_enum
-        (List.mapi
-           (fun idx (cstr, _) ->
-             let cstr_s = EnumConstructor.to_string cstr in
-             ( cstr_s,
-               V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, None))
-             ))
-           bdgs)
+      let bdgs_idx = List.mapi (fun i x -> i, x) bdgs in
+      conv
+        (function
+          | V (Enum { constr; _ }, x) ->
+            let idx, _, _ = constr x in
+            idx
+          | _ -> assert false)
+        (fun idx ->
+          let cstr, _ = List.assoc idx bdgs_idx in
+          let cstr_s = EnumConstructor.to_string cstr in
+          V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, None)))
+        (string_enum
+           (List.mapi
+              (fun idx (cstr, _) ->
+                let cstr_s = EnumConstructor.to_string cstr in
+                cstr_s, idx)
+              bdgs))
     else List.mapi make_constructor_case bdgs |> union
   in
   def (Format.asprintf "%a" EnumName.format_shortpath ename) enc

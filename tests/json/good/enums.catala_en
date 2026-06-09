@@ -45,35 +45,17 @@ $ catala test-scope T --input {"e":{"C":"Z"}}
 
 ```catala-test-cli
 $ catala test-scope T --input {"e":{"A":0}} -F json
-┌─[ERROR]─
-│
-│  Unexpected error: Invalid_argument("Json_encoding.construct: consequence
-│  of non exhaustive Json_encoding.string_enum. Strings are: 'X' 'Y' 'Z'")
-│
-└─
-#return code 125#
+{ "r": "X" }
 ```
 
 ```catala-test-cli
 $ catala test-scope T --input {"e":"B"} -F json
-┌─[ERROR]─
-│
-│  Unexpected error: Invalid_argument("Json_encoding.construct: consequence
-│  of non exhaustive Json_encoding.string_enum. Strings are: 'X' 'Y' 'Z'")
-│
-└─
-#return code 125#
+{ "r": "Z" }
 ```
 
 ```catala-test-cli
 $ catala test-scope T --input {"e":{"C":"Z"}} -F json
-┌─[ERROR]─
-│
-│  Unexpected error: Invalid_argument("Json_encoding.construct: consequence
-│  of non exhaustive Json_encoding.string_enum. Strings are: 'X' 'Y' 'Z'")
-│
-└─
-#return code 125#
+{ "r": "Z" }
 ```
 
 ```catala-test-cli
