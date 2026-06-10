@@ -465,7 +465,7 @@ let format_ctx
          <1 -2>else@;\
          <1 0>@[<hv 2>match (%a) with@;\
          <1 0>%a@;\
-         <1 0>| _ -> invalid_arg \"unknown case\"@]@]@;\
+         <1 0>| _ -> invalid_arg \"unknown case %a\"@]@]@;\
          <1 -2>end@]@,\
          @,"
         type_printer variants Format.pp_print_if_newline ()
@@ -512,7 +512,7 @@ let format_ctx
                     else Format.fprintf fmt "Some _c"))
                content_cons_variants To_ocaml.format_enum_cons_name enum_cons
                format_typ_of enum_cons_type))
-        content_cons_variants)
+        content_cons_variants EnumName.format enum_name)
   in
   let is_in_type_ordering s =
     List.exists
