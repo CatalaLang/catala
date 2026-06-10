@@ -29,21 +29,21 @@ steps:
   #   commands:
   #     - winget install Git.Git OCaml.opam
 
-  # # This takes 20 minutes; maybe try to reuse a shared opam root from the host ?
-  # - name: ocaml
-  #   image: powershell
-  #   environment: *env
-  #   commands:
-  #     - opam init --bare
-  #     - opam switch create 5.3.0
-  #     - opam install conf-pkg-config
+  # This takes 20 minutes; maybe try to reuse a shared opam root from the host ?
+  - name: ocaml
+    image: powershell
+    environment: *env
+    commands:
+      - opam init --bare
+      - opam switch create 5.3.0
+      - opam install conf-pkg-config
 
   - name: install
     image: powershell
     environment: *env
     commands:
-      - New-Item -Value C:\Users\ci\woodpecker\opam -ItemType SymbolicLink -Path $env:HOME\.opam
-      - opam switch create . --empty
+      # - New-Item -Value C:\Users\ci\woodpecker\opam -ItemType SymbolicLink -Path $env:HOME\.opam
+      # - opam switch create . --empty
       - opam install ./catala.opam
 
   - name: test
