@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>index (catala.index)</title><meta charset="utf-8"/><link rel="stylesheet" href="../odoc.support/odoc.css"/><meta name="generator" content="odoc 3.1.0"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../index.html">Index</a> &#x00BB; catala</nav><header class="odoc-preamble"><h1 id="the-catala-compiler"><a href="#the-catala-compiler" class="anchor"></a>The Catala compiler</h1></header><div class="odoc-tocs"><nav class="odoc-toc odoc-local-toc"><ul><li><a href="#architecture">Architecture</a></li><li><a href="#list-of-top-level-modules">List of top-level modules</a></li></ul></nav></div><div class="odoc-content"><h2 id="architecture"><a href="#architecture" class="anchor"></a>Architecture</h2><p>The architecture of the Catala compiler is inspired by <a href="https://compcert.org/">CompCert</a> or the <a href="https://nanopass.org/">Nanopass</a> framework, and is structured around many intermediate representations connected by successive translations passes.</p><p>Here is the recap picture of the different intermediate representations of the Catala compiler. This process is gathered inside <a href="Driver/index.html"><code>Driver</code></a>.</p><pre>                             |
+surface/                     |   Parsing
+  .                          |   Separate code from legislation
+  .                          v
+                     +---------------+
+                     |               |
+                     |  Surface AST  |----------&gt; HTML, pdf
+                     |               |
+                     +---------------+
+                             |
+                             v
+desugared/                   |   Name resolution
+  .                          |   Remove syntactic sugar
+  .                          |   Disambiguation
+                             v
+                   +------------------+
+                   |                  |
+                   |  Desugared AST   |
+                   |                  |
+                   +------------------+
+                             |
+                             |   Build rule trees for each definition
+                             |   Intra-scope dependency analysis
+                             v
+scopelang/                   |   Overload resolution
+  .                          |   Thunking of subscope arguments
+  .                          v
+                  +--------------------+
+                  |                    |
+                  | Scope language AST |
+                  |                    |
+                  +--------------------+
+                             |
+                             |   Inter-scope dependency analysis
+                             |   Typing
+                             v
+dcalc/                       |   Convert scopes into functions
+  .                          v
+  .              +----------------------+
+                 |                      |
+                 | Default calculus AST |-------&gt; (interpret)
+                 |                      |
+                 +----------------------+
+                             |
+                             |   Invariant checks
+                             |   Automatic backend test generation
+                             v
+lcalc/                       |   Compile the default terms
+  .                          |   Expansion of assertions
+  .                          v
+                 +----------------------+
+                 |                      |
+                 | Lambda calculus AST  |----+--&gt; (interpret)
+                 |                      |    |
+                 +----------------------+    +--&gt; OCaml
+                             |
+                             |   (optional) closure conversion
+                             |   (optional) monomorphisation
+                             |   Reification of positions
+                             |   Collision-free renaming
+                             v
+scalc/                       |   Turn expressions into statements
+  .                          v
+  .            +--------------------------+
+               |                          |
+               |  Statement calculus AST  |--+--&gt; Python
+               |                          |  |
+               +--------------------------+  +--&gt; C
+                                             |
+                                             +--&gt; Java</pre><h2 id="list-of-top-level-modules"><a href="#list-of-top-level-modules" class="anchor"></a>List of top-level modules</h2><p>Each of those intermediate representation is bundled into its own <code>dune</code> bundle module. Click on the items below if you want to dive straight into the signatures.</p><ul class="modules"><li><a href="Surface/index.html"><code>Surface</code></a> </li><li><a href="Desugared/index.html"><code>Desugared</code></a> </li><li><a href="Scopelang/index.html"><code>Scopelang</code></a> </li><li><a href="Dcalc/index.html"><code>Dcalc</code></a> </li><li><a href="Lcalc/index.html"><code>Lcalc</code></a> </li><li><a href="Scalc/index.html"><code>Scalc</code></a> </li></ul><p>More documentation can be found on each intermediate representations here.</p><ul><li><a href="surface.html">The surface representation</a></li><li><a href="desugared.html">The desugared representation</a></li><li><a href="scopelang.html">The scope language</a></li><li><a href="dcalc.html">The default calculus</a></li><li><a href="lcalc.html">The lambda calculus</a></li><li><a href="scalc.html">The statement calculus</a></li></ul><p>Most of these intermediate representations use a <a href="shared_ast.html">shared AST libary</a>. The main compilation chain is defined in <a href="Driver/index.html"><code>Driver</code></a>.</p><ul class="modules"><li><a href="Shared_ast/index.html"><code>Shared_ast</code></a> </li><li><a href="Driver/index.html"><code>Driver</code></a> </li></ul><p>Additionally, the compiler features a verification plugin that generates verification condition for proof backends. More information can be found here:</p><ul><li><a href="verification.html">Verification</a></li></ul><p>Two more modules contain additional features for the compiler:</p><ul><li><a href="literate.html">Literate programming</a></li><li><a href="catala_utils.html">Compiler utilities</a></li></ul><p>The Catala runtimes documentation is available here:</p><ul class="modules"><li><code>Runtime</code> </li><li><code>Runtime_jsoo.Runtime</code> </li></ul><p>Last, it is possible to customize the backend to the compiler using a plugin mechanism. The API is defined inside the following module:</p><p><a href="Driver/Plugin/index.html"><code>Driver.Plugin</code></a></p><p>See the examples in the <code>plugins/</code> subdirectory:</p><ul><li><a href="plugins.html">Backend plugin examples</a></li></ul></div></body></html>
