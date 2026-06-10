@@ -163,15 +163,15 @@ let get_ppf = function
 (**{3 Markers}*)
 
 let print_time_marker =
-  let time : float ref = ref (Unix.gettimeofday ()) in
+  let time : float ref = ref (Sys.time ()) in
   fun ppf () ->
-    let new_time = Unix.gettimeofday () in
+    let new_time = Sys.time () in
     let old_time = !time in
     time := new_time;
     let delta = (new_time -. old_time) *. 1000. in
-    if delta > 150. then
+    if delta > 130. then
       Format.fprintf ppf
-        "[@{<bold;magenta>DEBUG@}] @{<bold;black>- %.0fms elapsed -@}@," delta
+        "[@{<bold;magenta>DEBUG@}] @{<hi_black>- %.0fms elapsed -@}@," delta
 
 let pp_marker ?extra_label target ppf =
   let open Ocolor_types in
