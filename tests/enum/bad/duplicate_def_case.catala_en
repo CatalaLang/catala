@@ -1,0 +1,88 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2 content boolean
+  -- Case1
+
+declaration enumeration E2:
+  -- X1
+  -- X2
+  -- X2
+
+declaration enumeration E3:
+  -- X1
+  -- X2 content integer
+  -- X2 content integer
+  -- X2 content integer
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[ERROR]─ 1/4 ─
+│
+│  Duplicate constructor Case1 in enumeration E
+│
+├─➤ tests/enum/bad/duplicate_def_case.catala_en:7.6-11:
+│   │
+│ 7 │   -- Case1
+│   │      ‾‾‾‾‾
+├─ Article
+│
+│ First seen here:
+├─➤ tests/enum/bad/duplicate_def_case.catala_en:5.6-11:
+│   │
+│ 5 │   -- Case1 content integer
+│   │      ‾‾‾‾‾
+└─ Article
+┌─[ERROR]─ 2/4 ─
+│
+│  Duplicate constructor X2 in enumeration E2
+│
+├─➤ tests/enum/bad/duplicate_def_case.catala_en:12.6-8:
+│    │
+│ 12 │   -- X2
+│    │      ‾‾
+├─ Article
+│
+│ First seen here:
+├─➤ tests/enum/bad/duplicate_def_case.catala_en:11.6-8:
+│    │
+│ 11 │   -- X2
+│    │      ‾‾
+└─ Article
+┌─[ERROR]─ 3/4 ─
+│
+│  Duplicate constructor X2 in enumeration E3
+│
+├─➤ tests/enum/bad/duplicate_def_case.catala_en:17.6-8:
+│    │
+│ 17 │   -- X2 content integer
+│    │      ‾‾
+├─ Article
+│
+│ First seen here:
+├─➤ tests/enum/bad/duplicate_def_case.catala_en:16.6-8:
+│    │
+│ 16 │   -- X2 content integer
+│    │      ‾‾
+└─ Article
+┌─[ERROR]─ 4/4 ─
+│
+│  Duplicate constructor X2 in enumeration E3
+│
+├─➤ tests/enum/bad/duplicate_def_case.catala_en:18.6-8:
+│    │
+│ 18 │   -- X2 content integer
+│    │      ‾‾
+├─ Article
+│
+│ First seen here:
+├─➤ tests/enum/bad/duplicate_def_case.catala_en:16.6-8:
+│    │
+│ 16 │   -- X2 content integer
+│    │      ‾‾
+└─ Article
+#return code 123#
+```
