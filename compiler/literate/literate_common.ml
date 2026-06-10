@@ -98,6 +98,51 @@ let run_pandoc (s : string) (backend : [ `Html | `Latex ]) : string =
   Sys.remove tmp_file_out;
   tmp_file_as_string
 
+let run_pandoc_on_file
+    (file_in : Global.file)
+    (file_out : Global.file)
+    language
+    (backend : [ `Html | `Latex | `Pdf | `Markdown ]) : unit =
+  let pandoc = "pandoc" in
+  let temp_syntax_file = Filename.temp_file "catala_syntax" "xml" in
+  let syntax_definition =
+    let syntaxes = "catala_" ^ Cli.language_code language ^ ".xml" in
+    match Pandoc_highlight.read syntaxes with
+    | None -> []
+    | Some content ->
+      let oc = open_out temp_syntax_file in
+      output_string oc content;
+      close_out oc;
+      ["--syntax-definition"; temp_syntax_file]
+  in
+  let pandoc_args =
+    syntax_definition
+    @ [
+        "-s";
+        "-f";
+        "markdown+multiline_tables+tex_math_dollars+markdown_in_html_blocks+fenced_code_blocks";
+        "--mathjax";
+        "-t";
+        (match backend with
+        | `Html -> "html"
+        | `Latex -> "latex"
+        | `Pdf -> "pdf"
+        | `Markdown ->
+          (* gfm stands for Github Flavored Markdown,
+             the -raw_html is to forbid raw html in
+             the produced markdown *)
+          "gfm-raw_html");
+        "-o";
+        file_out;
+      ]
+  in
+  let cmd =
+    Format.sprintf "%s %s %s" pandoc (String.concat " " pandoc_args) file_in
+  in
+  let return_code = Sys.command cmd in
+  if return_code <> 0 then raise_failed_pandoc cmd return_code;
+  Sys.remove temp_syntax_file
+
 let check_exceeding_lines
     ?(max_len = 80)
     (start_line : int)
@@ -113,6 +158,45 @@ let check_exceeding_lines
             (Pos.from_info filename (start_line + i) (max_len + 1)
                (start_line + i) (len_s + 1))
           "This line is exceeding @{<bold;red>%d@} characters" max_len)
+
+let split_a_line max_len exceeding_line =
+  let full_line_splitted = String.split_on_char ' ' exceeding_line in
+  let base_line, line =
+    let rec retrieve_spaces_starts base_line l =
+      match l with
+      | [] -> base_line, []
+      | "#" :: rem -> retrieve_spaces_starts ("#" :: base_line) rem
+      | "" :: rem -> retrieve_spaces_starts ("" :: base_line) rem
+      | remaining -> base_line, remaining
+    in
+    retrieve_spaces_starts [] full_line_splitted
+  in
+  let with_size = List.map (fun s -> String.length s, s) line in
+  let rec aux remaining current_line cpt acc =
+    match remaining with
+    | [] ->
+      let current_line = String.concat " " (List.rev current_line) in
+      current_line :: acc
+    | (len, word) :: rem ->
+      if cpt + len + (List.length current_line - 1) > max_len then
+        if current_line = [] then aux rem base_line 0 (word :: acc)
+        else
+          let current_line = String.concat " " (List.rev current_line) in
+          aux remaining base_line 0 (current_line :: acc)
+      else aux rem (word :: current_line) (cpt + len) acc
+  in
+  aux with_size base_line 0 []
+
+let remove_exceeding_lines ?(max_len = 80) content =
+  let contents = String.split_on_char '\n' content in
+  let res =
+    List.fold_left
+      (fun acc content ->
+        let line_splitted = split_a_line max_len content in
+        line_splitted @ acc)
+      [] contents
+  in
+  String.concat "\n" (List.rev res)
 
 let with_pygmentize_lexer lang f =
   let lexer_py =
