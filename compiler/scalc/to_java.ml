@@ -386,7 +386,7 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "@[<hv 2>CatalaOption.some@;<0 -1>(%a)@]"
       (format_expression ctx) e
   | EInj { e1 = ELit LUnit, _; cons; name = enum_name; _ } ->
-    fprintf ppf "%a.make%a()" format_enum enum_name EnumConstructor.format cons
+    fprintf ppf "%a.%a" format_enum enum_name EnumConstructor.format cons
   | EInj { e1 = e; cons; name = enum_name; _ } ->
     fprintf ppf "%a.make%a(%a)" format_enum enum_name EnumConstructor.format
       cons (format_expression ctx) e
@@ -1130,15 +1130,18 @@ let format_enums ctx ppf =
         let is_unit =
           match Mark.remove typ with TLit TUnit -> true | _ -> false
         in
-        let format_arg ppf =
-          if is_unit then () else fprintf ppf "%a v" (format_typ ctx) typ
-        in
-        fprintf ppf
-          "@[<v 4>public static %a make%a(%t) {@ return new %a(Kind.%a, %s);@;\
-           <1 -4>}@]"
-          format_enum ename EnumConstructor.format cstr format_arg format_enum
-          ename EnumConstructor.format cstr
-          (if is_unit then "CatalaUnit.INSTANCE" else "v")
+        if is_unit then
+          fprintf ppf
+            "public final static %a %a = new %a(Kind.%a, CatalaUnit.INSTANCE);"
+            format_enum ename EnumConstructor.format cstr format_enum ename
+            EnumConstructor.format cstr
+        else
+          let format_arg ppf = fprintf ppf "%a v" (format_typ ctx) typ in
+          fprintf ppf
+            "@[<v 4>public static %a make%a(%t) {@ return new %a(Kind.%a, v);@;\
+             <1 -4>}@]"
+            format_enum ename EnumConstructor.format cstr format_arg format_enum
+            ename EnumConstructor.format cstr
       in
       fprintf ppf
         "@[<v 4>private %a(Kind k, CatalaValue<?> contents) {@ this.kind = k;@ \
