@@ -463,6 +463,7 @@ type Pos.attr +=
   | ImplicitPosArg
   | ErrorMessage of string
   | JsonPayload of string
+  | Label of string
 
 (** {2 Markings} *)
 

@@ -277,6 +277,26 @@ let translate_attr ~context = function
           "Unknown implicit_position_argument sub-attribute \"%s\""
           (String.concat "." ps);
         None)
+    | "label" -> (
+      match ps with
+      | [] -> (
+        match context with
+        | ConstructorDecl -> (
+          match v with
+          | String (s, _) -> Some (Label s)
+          | _ ->
+            Message.warning ~pos
+              "Invalid value for the @{<magenta>#[label]@} attribute: expecting \
+               a string";
+            None)
+        | _ ->
+          Message.warning ~pos
+            "Attribute @{<magenta>#[label]@} is not allowed in this context";
+          None)
+      | ps ->
+        Message.warning ~pos:ppos "Unknown label sub-attribute \"%s\""
+          (String.concat "." ps);
+        None)
     | "passthrough" ->
       (* This special case is used for internal testing: the rest of the
          attribute is kept as Src. See
