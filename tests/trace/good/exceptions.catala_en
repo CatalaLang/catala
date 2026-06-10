@@ -1,0 +1,149 @@
+```catala-metadata
+declaration ffalse content boolean depends on x content integer equals
+  false
+declaration ftrue content boolean depends on x content integer equals
+  true
+
+declaration scope T:
+  output result content integer
+
+scope T:
+  label base
+  definition result equals if ffalse of 0 then 1 else 2
+
+  label level1
+  exception base
+  definition result under condition (ffalse of 1) consequence equals 10
+
+  label level1
+  exception base
+  definition result under condition (ffalse of 0) consequence equals 11
+
+  label level2
+  exception level1
+  definition result under condition (ffalse of 0) consequence equals 20
+```
+
+
+```catala-test-cli
+$ catala interpret -s T --trace
+Trace context:
+(ROOT) ScopeCall(T)<exceptions:7.19-7.20> => [value: T { -- result: 2}]:
+  (NODE) ScopeVarDef(result)<exceptions:8.10-8.16> => [value: 2]:
+    (NODE) Exception(label:level2<exceptions:22.9-22.15>)<exceptions:24.37-24.50> => [value: false]:
+      (LEAF) FunCall<exceptions:24.37-24.50> => [value: false]
+    (NODE) Exception(label:level1<exceptions:14.9-14.15>)<exceptions:16.37-16.50> => [value: false]:
+      (LEAF) FunCall<exceptions:16.37-16.50> => [value: false]
+    (NODE) Exception(label:level1<exceptions:18.9-18.15>)<exceptions:20.37-20.50> => [value: false]:
+      (LEAF) FunCall<exceptions:20.37-20.50> => [value: false]
+    (LEAF) Exception(label:base<exceptions:11.9-11.13>)<exceptions:12.14-12.20> => [value: true]
+    (NODE) BranchingCondition<exceptions:12.31-12.42> => [value: false]:
+      (LEAF) FunCall<exceptions:12.31-12.42> => [value: false]
+    (LEAF) IfBranching<exceptions:12.55-12.56> 
+┌─[RESULT]─ T ─
+│ result = 2
+└─
+```
+
+```catala-test-cli
+$ catala dcalc --s-expr --trace
+
+type T_in = {  }
+
+type T = { result: integer; }
+
+let topval ffalse : integer → bool =
+  Abs([ Var(x#168) ], LitBool<false>)
+
+let scope T (T_in: T_in): T =
+  let set result : integer =
+    AppOp( Log(ScopeVarDef(result),exceptions:8.10-16),
+     [ ErrorOnEmpty(
+        Default(
+         [ Default(
+            [ Default(
+               [ Default([  ],
+                  AppOp( Log(Exception(level2<exceptions:22.9-15>),exceptions:24.37-50),
+                   [ AppOp( Log(FunCall(ffalse<exceptions:2.13-19>),exceptions:24.37-50),
+                      [ App(Var(ffalse#167), [ LitInt<0> ]) ]) ]),
+                  PureDefault(LitInt<20>)) ], LitBool<false>, Empty) ],
+            LitBool<true>,
+            Default(
+             [ Default([  ],
+                AppOp( Log(Exception(level1<exceptions:14.9-15>),exceptions:16.37-50),
+                 [ AppOp( Log(FunCall(ffalse<exceptions:2.13-19>),exceptions:16.37-50),
+                    [ App(Var(ffalse#167), [ LitInt<1> ]) ]) ]),
+                PureDefault(LitInt<10>)),
+               Default([  ],
+                AppOp( Log(Exception(level1<exceptions:18.9-15>),exceptions:20.37-50),
+                 [ AppOp( Log(FunCall(ffalse<exceptions:2.13-19>),exceptions:20.37-50),
+                    [ App(Var(ffalse#167), [ LitInt<0> ]) ]) ]),
+                PureDefault(LitInt<11>)) ], LitBool<false>, Empty)) ],
+         LitBool<true>,
+         Default(
+          [ Default([  ],
+             AppOp( Log(Exception(base<exceptions:11.9-13>),exceptions:12.14-20),
+              [ LitBool<true> ]),
+             PureDefault(
+              IF(AppOp( Log(BranchingCondition,exceptions:12.31-42),
+                  [ AppOp( Log(FunCall(ffalse<exceptions:2.13-19>),exceptions:12.31-42),
+                     [ App(Var(ffalse#167), [ LitInt<0> ]) ]) ]),
+               AppOp( Log(IfBranching,exceptions:12.48-49), [ LitInt<1> ]),
+               AppOp( Log(IfBranching,exceptions:12.55-56), [ LitInt<2> ])))) ],
+          LitBool<false>, Empty))) ])
+  in
+  return Struct<T>({ result: Var(result#171) })
+
+let topval ftrue : integer → bool =
+  Abs([ Var(x#173) ], LitBool<true>)
+
+type T_in = {  }
+
+type T = { result: integer; }
+
+let topval ffalse : integer → bool =
+  Abs([ Var(x#175) ], LitBool<false>)
+
+let scope T (T_in: T_in): T =
+  let set result : integer =
+    AppOp( Log(ScopeVarDef(result),exceptions:8.10-16),
+     [ ErrorOnEmpty(
+        Default(
+         [ Default(
+            [ Default(
+               [ Default([  ],
+                  AppOp( Log(Exception(level2<exceptions:22.9-15>),exceptions:24.37-50),
+                   [ AppOp( Log(FunCall(ffalse<exceptions:2.13-19>),exceptions:24.37-50),
+                      [ App(Var(ffalse#174), [ LitInt<0> ]) ]) ]),
+                  PureDefault(LitInt<20>)) ], LitBool<false>, Empty) ],
+            LitBool<true>,
+            Default(
+             [ Default([  ],
+                AppOp( Log(Exception(level1<exceptions:14.9-15>),exceptions:16.37-50),
+                 [ AppOp( Log(FunCall(ffalse<exceptions:2.13-19>),exceptions:16.37-50),
+                    [ App(Var(ffalse#174), [ LitInt<1> ]) ]) ]),
+                PureDefault(LitInt<10>)),
+               Default([  ],
+                AppOp( Log(Exception(level1<exceptions:18.9-15>),exceptions:20.37-50),
+                 [ AppOp( Log(FunCall(ffalse<exceptions:2.13-19>),exceptions:20.37-50),
+                    [ App(Var(ffalse#174), [ LitInt<0> ]) ]) ]),
+                PureDefault(LitInt<11>)) ], LitBool<false>, Empty)) ],
+         LitBool<true>,
+         Default(
+          [ Default([  ],
+             AppOp( Log(Exception(base<exceptions:11.9-13>),exceptions:12.14-20),
+              [ LitBool<true> ]),
+             PureDefault(
+              IF(AppOp( Log(BranchingCondition,exceptions:12.31-42),
+                  [ AppOp( Log(FunCall(ffalse<exceptions:2.13-19>),exceptions:12.31-42),
+                     [ App(Var(ffalse#174), [ LitInt<0> ]) ]) ]),
+               AppOp( Log(IfBranching,exceptions:12.48-49), [ LitInt<1> ]),
+               AppOp( Log(IfBranching,exceptions:12.55-56), [ LitInt<2> ])))) ],
+          LitBool<false>, Empty))) ])
+  in
+  return Struct<T>({ result: Var(result#178) })
+
+let topval ftrue : integer → bool =
+  Abs([ Var(x#180) ], LitBool<true>)
+
+```

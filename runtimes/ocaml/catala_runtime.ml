@@ -733,7 +733,7 @@ type trace_kind =
   | IfBranching
   | MatchBranching of { constructor_name : string }
   | Assertion
-  | Exception
+  | Exception of { label : (string * code_location) option }
   | Error of { message : string }
 
 and trace_var_def = { var_name : string; pos : code_location }
@@ -836,9 +836,12 @@ let format_trace_context ppf (tctx : trace_context) =
     | FunCall _ -> fprintf ppf "FunCall"
     | BranchingCondition -> fprintf ppf "BranchingCondition"
     | IfBranching -> fprintf ppf "IfBranching"
-    | MatchBranching _ -> fprintf ppf "MatchBranching"
+    | MatchBranching { constructor_name } ->
+      fprintf ppf "MatchBranching(%s)" constructor_name
     | Assertion -> fprintf ppf "Assertion"
-    | Exception -> fprintf ppf "Exception"
+    | Exception { label = None } -> fprintf ppf "Exception"
+    | Exception { label = Some (l, p) } ->
+      fprintf ppf "Exception(label:%s<%a>)" l format_code_location p
     | Error _ -> fprintf ppf "Error"
   in
   let rec format_trace_node ppf { kind; pos; sub_rev_nodes; value; parent } =
@@ -863,12 +866,11 @@ let format_trace_context ppf (tctx : trace_context) =
     in
     match sub_rev_nodes with
     | [] ->
-      fprintf ppf "@[<h>(LEAF) %a<%a> %t@]" format_kind kind
-        format_code_location pos format_value
+      fprintf ppf "@[<h>- %a<%a> %t@]" format_kind kind format_code_location pos
+        format_value
     | rev_nodes ->
-      fprintf ppf "@[<v 2>%s %a<%a> %t:@ %a@]"
-        (if parent = None then "(ROOT)" else "(NODE)")
-        format_kind kind format_code_location pos format_value
+      fprintf ppf "@[<v 2>- %a<%a> %t:@ %a@]" format_kind kind
+        format_code_location pos format_value
         (pp_print_list ~pp_sep:pp_print_space format_trace_node)
         (List.rev rev_nodes)
   in
@@ -887,9 +889,10 @@ let format_trace_positions ppf (tctx : trace_context) =
     | FunCall _ -> fprintf ppf "FunCall"
     | BranchingCondition -> fprintf ppf "BranchingCondition"
     | IfBranching -> fprintf ppf "IfBranching"
-    | MatchBranching _ -> fprintf ppf "MatchBranching"
+    | MatchBranching { constructor_name } ->
+      fprintf ppf "MatchBranching(%s)" constructor_name
     | Assertion -> fprintf ppf "Assertion"
-    | Exception -> fprintf ppf "Exception"
+    | Exception _ -> fprintf ppf "Exception"
     | Error _ -> fprintf ppf "Error"
   in
   let format_code_location

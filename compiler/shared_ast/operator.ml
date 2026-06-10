@@ -127,7 +127,8 @@ let compare_log_entries l1 l2 =
   | Branching None, Branching (Some _) -> -1
   | Branching None, Branching None -> 0
   | Branching (Some c1), Branching (Some c2) -> Ident.compare c1 c2
-  | Exception, Exception -> 0
+  | Exception { label = l }, Exception { label = l' } ->
+    Option.compare MarkedIdent.compare l l'
   | ScopeCall _, _ -> 1
   | _, ScopeCall _ -> -1
   | ScopeVarDef _, _ -> 1
@@ -142,8 +143,8 @@ let compare_log_entries l1 l2 =
   | _, BranchingCondition -> -1
   | Branching _, _ -> 1
   | _, Branching _ -> -1
-  | Exception, _ -> .
-  | _, Exception -> .
+  | Exception _, _ -> .
+  | _, Exception _ -> .
 
 let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   match[@ocamlformat "disable"] t1, t2 with

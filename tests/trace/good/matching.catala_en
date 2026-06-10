@@ -1,0 +1,40 @@
+
+```catala-metadata
+declaration enumeration E:
+  -- A
+  -- B content integer
+
+declaration proj content integer depends on x content E
+  equals match x with pattern -- A : 0 -- B content i : i
+
+declaration scope T:
+  output r1 content integer
+  output r2 content integer
+
+scope T:
+  definition r1 equals
+    proj of A
+  definition r2 equals
+    proj of B content 2
+```
+
+
+```catala-test-cli
+$ catala interpret -s T --trace -O
+LitInt<0>
+LitInt<2>
+Trace context:
+(ROOT) ScopeCall(T)<matching:10.19-10.20> => [value: T { -- r1: 0 -- r2: 2}]:
+  (NODE) ScopeVarDef(r1)<matching:11.10-11.12> => [value: 0]:
+    (NODE) FunCall<matching:16.5-16.14> => [value: 0]:
+      (LEAF) BranchingCondition<matching:8.16-8.17> => [value: A]
+      (LEAF) MatchBranching(A)<matching:8.38-8.39> 
+  (NODE) ScopeVarDef(r2)<matching:12.10-12.12> => [value: 2]:
+    (NODE) FunCall<matching:18.5-18.24> => [value: 2]:
+      (LEAF) BranchingCondition<matching:8.16-8.17> => [value: B content 2]
+      (LEAF) MatchBranching(B)<matching:8.57-8.58> 
+┌─[RESULT]─ T ─
+│ r1 = 0
+│ r2 = 2
+└─
+```

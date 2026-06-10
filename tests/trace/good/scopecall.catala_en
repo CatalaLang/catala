@@ -1,0 +1,34 @@
+
+```catala-metadata
+declaration scope S:
+  input i content integer
+  output r content integer
+
+scope S:
+  definition r equals
+    if 42 > 42 then
+      -i
+    else
+      i
+
+declaration scope T:
+  output result content integer
+
+scope T:
+  definition result equals (output of S with { -- i : 123 }).r
+```
+
+
+```catala-test-cli
+$ catala interpret -s T --trace -O
+Trace context:
+(ROOT) ScopeCall(T)<scopecall:14.19-14.20> => [value: T { -- result: 123}]:
+  (NODE) ScopeVarDef(result)<scopecall:15.10-15.16> => [value: 123]:
+    (NODE) ScopeCall(S)<scopecall:18.28-18.61> => [value: S_in { -- i_in: 123}]:
+      (NODE) ScopeVarDef(r)<scopecall:5.10-5.11> => [value: 123]:
+        (LEAF) BranchingCondition<scopecall:9.8-9.15> => [value: false]
+        (LEAF) IfBranching<scopecall:12.7-12.8> 
+┌─[RESULT]─ T ─
+│ result = 123
+└─
+```

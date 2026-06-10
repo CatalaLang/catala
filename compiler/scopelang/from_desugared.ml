@@ -468,7 +468,16 @@ let rec rule_tree_to_expr
                    (* Here we insert the logging command that records when a
                       decision is taken for the value of a variable. *)
                    (* TODO: refine this *)
-                 ~just:(tag_with_log_entry base_just Exception)
+                 ~just:
+                   (tag_with_log_entry base_just
+                      (Exception
+                         {
+                           label =
+                             (match base_rule.rule_label with
+                             | D.ExplicitlyLabeled (l, p) ->
+                               Some (LabelName.to_string l, p)
+                             | D.Unlabeled -> None);
+                         }))
                  ~cons
                  (Expr.no_attrs (Mark.get cons))
                :: acc)

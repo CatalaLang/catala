@@ -227,7 +227,9 @@ let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   | BranchingCondition -> Format.fprintf fmt "BranchingCondition"
   | Branching None -> Format.fprintf fmt "IfBranching"
   | Branching (Some cstr) -> Format.fprintf fmt "MatchBranching(%s)" cstr
-  | Exception -> Format.fprintf fmt "Exception"
+  | Exception { label = Some lbl } ->
+    Format.fprintf fmt "Exception(%a)" pp_marked_ident lbl
+  | Exception { label = None } -> Format.fprintf fmt "Exception"
 
 let operator_to_string : type a. a Op.t -> string =
   let open Op in

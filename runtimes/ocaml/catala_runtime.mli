@@ -235,7 +235,7 @@ type trace_kind =
   | IfBranching
   | MatchBranching of { constructor_name : string }
   | Assertion
-  | Exception
+  | Exception of { label : (string * code_location) option }
   | Error of { message : string }
 
 and trace_var_def = { var_name : string; pos : code_location }

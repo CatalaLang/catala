@@ -1,0 +1,107 @@
+## Article
+
+```catala
+declaration f
+  content boolean
+  depends on x content integer
+  equals
+    if x = 0 then false else true
+
+declaration scope ScopeA:
+  input i content boolean
+  output f_scope_a content boolean depends on x content integer
+  output a_scopeA content boolean
+
+scope ScopeA:
+  definition f_scope_a of x equals
+    match (if x = 3 then Absent else Present content 3) with pattern
+    -- Absent : false
+    -- anything : true
+  definition a_scopeA equals i
+
+declaration scope ScopeB:
+  output a_scopeB content boolean
+  ssv scope ScopeA
+  internal g content boolean depends on x content integer
+  output res content ScopeA
+
+scope ScopeB:
+  definition ssv.i equals let zzz equals 333 in true
+
+  label base
+  definition a_scopeB equals ssv.a_scopeA
+
+  label one exception base
+  definition a_scopeB
+  under condition 42 = 42
+  consequence equals
+    not ssv.a_scopeA
+
+  label two exception one
+  definition a_scopeB
+  under condition 43 > 43
+  consequence equals
+    not (ssv.f_scope_a of 2 or ssv.a_scopeA)
+
+  definition g of x equals
+    match (if x = 3 then Absent else Present content 3) with pattern
+    -- Absent : false
+    -- anything : true
+
+  definition res equals
+    output of ScopeA with { -- i: f of 2 or g of 3 }
+
+  assertion 42 = 42
+```
+
+```catala-test-cli
+$ catala interpret -s ScopeB --trace
+LitBool<false>
+LitBool<false>
+Trace context:
+- ScopeCall(ScopeB)<bit_of_everything:22.19-22.25> => [value: ScopeB { -- a_scopeB: false -- res: ScopeA { -- f_scope_a: <function> -- a_scopeA: true }}]:
+  - ScopeVarDef(ssv)<bit_of_everything:24.3-24.6> => [value: ScopeA { -- f_scope_a: <function> -- a_scopeA: true}]:
+    - Exception<bit_of_everything:29.14-29.19> => [value: true]
+    - LocalVarDef(zzz)<bit_of_everything:29.27-29.53> => [value: true]
+    - ScopeCall(ScopeA)<bit_of_everything:24.3-24.6> => [value: ScopeA_in { -- i_in: true}]:
+      - Exception<bit_of_everything:29.14-29.19> => [value: true]
+      - LocalVarDef(zzz)<bit_of_everything:29.27-29.53> => [value: true]
+      - ScopeVarDef(f_scope_a)<bit_of_everything:12.10-12.19> => [value: <function>]
+      - ScopeVarDef(a_scopeA)<bit_of_everything:13.10-13.18> => [value: true]:
+        - Exception<bit_of_everything:20.14-20.22> => [value: true]
+  - ScopeVarDef(a_scopeB)<bit_of_everything:23.10-23.18> => [value: false]:
+    - Exception(label:two<bit_of_everything:40.9-40.12>)<bit_of_everything:42.19-42.26> => [value: false]
+    - Exception(label:one<bit_of_everything:34.9-34.12>)<bit_of_everything:36.19-36.26> => [value: true]
+  - ScopeVarDef(g)<bit_of_everything:25.12-25.13> => [value: <function>]
+  - ScopeVarDef(res)<bit_of_everything:26.10-26.13> => [value: ScopeA { -- f_scope_a: <function> -- a_scopeA: true}]:
+    - Exception<bit_of_everything:51.14-51.17> => [value: true]
+    - FunCall<bit_of_everything:52.35-52.41> => [value: true]:
+      - BranchingCondition<bit_of_everything:8.8-8.13> => [value: false]
+      - IfBranching<bit_of_everything:8.30-8.34> 
+    - FunCall<bit_of_everything:52.45-52.51> => [value: false]:
+      - Exception<bit_of_everything:46.14-46.15> => [value: true]
+      - BranchingCondition<bit_of_everything:47.11-47.56> => [value: Absent]:
+        - BranchingCondition<bit_of_everything:47.15-47.20> => [value: true]
+        - IfBranching<bit_of_everything:47.26-47.32> 
+      - MatchBranching(Absent)<bit_of_everything:48.17-48.22> 
+    - ScopeCall(ScopeA)<bit_of_everything:52.5-52.53> => [value: ScopeA_in { -- i_in: true}]:
+      - FunCall<bit_of_everything:52.35-52.41> => [value: true]:
+        - BranchingCondition<bit_of_everything:8.8-8.13> => [value: false]
+        - IfBranching<bit_of_everything:8.30-8.34> 
+      - FunCall<bit_of_everything:52.45-52.51> => [value: false]:
+        - Exception<bit_of_everything:46.14-46.15> => [value: true]
+        - BranchingCondition<bit_of_everything:47.11-47.56> => [value: Absent]:
+          - BranchingCondition<bit_of_everything:47.15-47.20> => [value: true]
+          - IfBranching<bit_of_everything:47.26-47.32> 
+        - MatchBranching(Absent)<bit_of_everything:48.17-48.22> 
+      - ScopeVarDef(f_scope_a)<bit_of_everything:12.10-12.19> => [value: <function>]
+      - ScopeVarDef(a_scopeA)<bit_of_everything:13.10-13.18> => [value: true]:
+        - Exception<bit_of_everything:20.14-20.22> => [value: true]
+┌─[RESULT]─ ScopeB ─
+│ a_scopeB = false
+│ res = ScopeA {
+│         -- f_scope_a: <function>
+│         -- a_scopeA: true
+│       }
+└─
+```

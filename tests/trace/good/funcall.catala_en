@@ -1,0 +1,31 @@
+
+```catala-metadata
+declaration abs content integer depends on x content integer
+  equals if x > 0 then x else -x
+
+declaration scope T:
+  output result content integer
+
+scope T:
+  definition result equals
+    if 1 > 0 then
+      abs of -42
+    else
+      abs of -32
+```
+
+
+```catala-test-cli
+$ catala interpret -s T --trace -O
+Trace context:
+(ROOT) ScopeCall(T)<funcall:6.19-6.20> => [value: T { -- result: 42}]:
+  (NODE) ScopeVarDef(result)<funcall:7.10-7.16> => [value: 42]:
+    (LEAF) BranchingCondition<funcall:11.8-11.13> => [value: true]
+    (NODE) IfBranching<funcall:12.7-12.17> :
+      (NODE) FunCall<funcall:12.7-12.17> => [value: 42]:
+        (LEAF) BranchingCondition<funcall:4.13-4.18> => [value: false]
+        (LEAF) IfBranching<funcall:4.31-4.33> 
+┌─[RESULT]─ T ─
+│ result = 42
+└─
+```

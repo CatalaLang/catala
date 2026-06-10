@@ -343,7 +343,7 @@ type log_entry =
   | FunCall of MarkedIdent.t (* ?? *)
   | BranchingCondition
   | Branching of Ident.t option
-  | Exception (* label? *)
+  | Exception of { label : MarkedIdent.t option }
 
 module Op = struct
   (** Classification of operators on how they should be typed *)

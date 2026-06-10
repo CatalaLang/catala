@@ -885,11 +885,18 @@ let rec evaluate_expr : type d r.
         (MatchBranching { constructor_name })
         (Expr.pos_to_runtime pos)
         (fun () -> None, evaluate_expr ctx lang e)
-    | Exception, _ ->
-      (* ?? *)
-      (* evaluate_expr ctx lang e *)
-      Runtime.with_trace Exception (Expr.pos_to_runtime pos) (fun () ->
-          None, evaluate_expr ctx lang e)
+    | Exception { label }, _ ->
+      let label =
+        match label with
+        | None -> None
+        | Some (l, p) -> Some (l, Expr.pos_to_runtime p)
+      in
+      Runtime.with_trace
+        (Exception { label })
+        (Expr.pos_to_runtime pos)
+        (fun () ->
+          let e = evaluate_expr ctx lang e in
+          Some (Expr.embed_value ctx e), e)
     | entry, _ ->
       Message.warning "Unmatched trace logging: %a" Print.log_entry entry;
       evaluate_expr ctx lang e)
