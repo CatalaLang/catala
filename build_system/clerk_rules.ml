@@ -413,11 +413,14 @@ let ninja_version =
        |> List.map int_of_string
      with Exit | Failure _ -> [])
 
+exception Stop_ninja
+
 let with_ninja_process
     ~config
     ~clean_up_env
     ~ninja_flags
     ~quiet
+    ~default
     (callback : Format.formatter -> 'a) =
   let env = if clean_up_env then cleaned_up_env () else Unix.environment () in
   let fname =
@@ -449,7 +452,8 @@ let with_ninja_process
         else Unix.stdout
       in
       Fun.protect
-        ~finally:(fun () -> if quiet then Unix.close out)
+        ~finally:(fun () ->
+          if quiet then try Unix.close out with Unix.Unix_error _ -> ())
         (fun () ->
           Unix.create_process_env ninja_exec (Array.of_list cmdline) env nin_fd
             out Unix.stderr)
@@ -459,46 +463,53 @@ let with_ninja_process
       | _, Unix.WEXITED n -> n
       | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
       | exception Unix.Unix_error (Unix.EINTR, _, _) -> wait ()
+      | exception Unix.Unix_error (Unix.ECHILD, _, _) -> 130
     in
     ( npid,
       fun () ->
         match wait () with 0 -> () | n -> raise (Catala_utils.Cli.Exit_with n) )
   in
   match fname with
-  | Some fname ->
-    let ret = File.with_formatter_of_file fname callback in
-    let _, wait = ninja_process fname Unix.stdin in
-    wait ();
-    ret
+  | Some fname -> (
+    match File.with_formatter_of_file fname callback with
+    | ret ->
+      let _, wait = ninja_process fname Unix.stdin in
+      wait ();
+      ret
+    | exception Stop_ninja -> default)
   | None when Sys.os_type = "Win32" ->
     (* ninja requires the name of the file on the cli. No /dev/stdin on
        Windows *)
-    File.with_temp_file "clerk_build_" ".ninja"
-    @@ fun fname ->
-    let ret = File.with_formatter_of_file fname callback in
-    let _, wait = ninja_process fname Unix.stdin in
-    wait ();
-    ret
-  | None ->
+    File.with_temp_file "clerk_build_" ".ninja" (fun fname ->
+        match File.with_formatter_of_file fname callback with
+        | ret ->
+          let _, wait = ninja_process fname Unix.stdin in
+          wait ();
+          ret
+        | exception Stop_ninja -> default)
+  | None -> (
     let ninja_in, clerk_out = Unix.pipe ~cloexec:true () in
     let npid, wait = ninja_process "/dev/stdin" ninja_in in
-    let callback_ret =
-      try
-        Unix.close ninja_in;
-        File.with_formatter_of_out_channel
-          (Unix.out_channel_of_descr clerk_out)
-          callback
-      with e ->
-        let bt = Printexc.get_raw_backtrace () in
-        Message.debug "Exception caught, killing the ninja sub-process";
-        Unix.kill npid Sys.sigkill;
-        (try wait () with _ -> ());
-        Unix.close clerk_out;
-        Printexc.raise_with_backtrace e bt
-    in
-    Unix.close clerk_out;
-    wait ();
-    callback_ret
+    Unix.close ninja_in;
+    match
+      File.with_formatter_of_out_channel
+        (Unix.out_channel_of_descr clerk_out)
+        callback
+    with
+    | exception Stop_ninja ->
+      Unix.kill npid Sys.sigkill;
+      (try wait () with _ -> ());
+      default
+    | exception e ->
+      let bt = Printexc.get_raw_backtrace () in
+      Message.debug "Exception caught, killing the ninja sub-process";
+      Unix.kill npid Sys.sigkill;
+      (try wait () with _ -> ());
+      Printexc.raise_with_backtrace e bt
+    | callback_ret ->
+      Unix.close clerk_out;
+      wait ();
+      callback_ret)
 
 let run_ninja
     ?(include_dir = true)
@@ -506,6 +517,7 @@ let run_ninja
     ?(tests = false)
     ?(enabled_backends = all_backends)
     ~quiet
+    ~default
     ~code_coverage
     ~autotest
     ?(clean_up_env = false)
@@ -514,7 +526,8 @@ let run_ninja
   let var_bindings =
     base_bindings ~code_coverage ~config ~enabled_backends ~autotest
   in
-  with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet (fun nin_ppf ->
+  with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet ~default
+    (fun nin_ppf ->
       let insource = Lazy.force Poll.catala_source_tree_root <> None in
       let stdlib_dir = Lazy.force Poll.stdlib_dir in
       let stdlib_tree =
