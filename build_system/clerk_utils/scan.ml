@@ -145,3 +145,45 @@ let target_file_name t =
   let open File in
   let dir = if t.is_stdlib then libcatala else File.dirname t.file_name in
   dir / target_basename t
+
+let linking_tree (tree : (string * string list * item list) Seq.t) =
+  let modules =
+    Seq.fold_left
+      (fun acc (dir, sub_dir, items) ->
+        List.fold_left
+          (fun acc it ->
+            match it.module_def with
+            | Some m -> String.Map.add (Mark.remove m) (dir, sub_dir, it) acc
+            | None -> acc)
+          acc items)
+      String.Map.empty tree
+  in
+  let rem_dups l =
+    let rec aux seen = function
+      | (dir, sub_dirs, it) :: r ->
+        if String.Set.mem it.file_name seen then aux seen r
+        else (dir, sub_dirs, it) :: aux (String.Set.add it.file_name seen) r
+      | [] -> []
+    in
+    aux String.Set.empty l
+  in
+  fun used_modules ->
+    let rec traverse acc used_modules =
+      List.fold_left
+        (fun acc (mname, pos) ->
+          let it = String.Map.find_opt mname modules in
+          match it with
+          | None ->
+            Message.error
+              ~extra_pos:["Module required from", pos]
+              "Required module not found: @{<blue>%s@}" mname
+          | Some (dir, sub_dir, it) ->
+            traverse ((dir, sub_dir, it) :: acc) it.used_modules)
+        acc used_modules
+    in
+    rem_dups (traverse [] used_modules)
+
+let linking_dependencies (items : item list) item =
+  let tree = Seq.cons ("", [], items) Seq.empty in
+  let items = linking_tree tree item.used_modules in
+  List.map (fun (_, _, it) -> it) items

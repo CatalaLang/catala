@@ -63,6 +63,13 @@ module Backend = struct
   let runtime_targets ~only_source =
     [(if only_source then "@runtime-" ^ name ^ "-src" else "@runtime-" ^ name)]
 
+  let copy_to_target ~build_dir ~prefix_dir ~target ~install_targets =
+    Common.copy_to_target ~prefix_dir ~sub_dir:name
+      ~backend:Clerk_lib.Clerk_config.C ~install_targets;
+    Common.copy_runtime ~prefix_dir ~build_dir ~src_extensions ~obj_extensions
+      ~sub_dir:name
+      ~include_objects:target.Clerk_lib.Clerk_config.include_objects
+
   module Flags = struct
     let default
         ~variables
@@ -99,7 +106,7 @@ module Backend = struct
       ]
   end
 
-  let[@ocamlformat "disable"] static_base_rules =
+  let[@ocamlformat "disable"] static_base_rules _ =
   [
     Nj.rule "catala-c"
       ~command:[!catala_exe; name; !catala_flags; !catala_flags_c;
@@ -192,7 +199,12 @@ module Backend = struct
 
   let includes = Common.Flags.include_flags ~backend:name
 
-  let build_object ~include_dirs ~same_dir_modules ~item has_scope_tests =
+  let build_object
+      ~externls:_
+      ~include_dirs
+      ~same_dir_modules
+      ~item
+      has_scope_tests =
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
     let implicit_modules = List.map (module_target same_dir_modules) modules in
@@ -231,4 +243,7 @@ module Backend = struct
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
+
+  let extra_rules ~stdlib_tree:_ ~project_tree:_ _module_targets = []
+  let extra_default = []
 end

@@ -123,11 +123,28 @@ module Backend = struct
     let bdir f = (name / "catala" / "stdlib" / f) ^ ext in
     !Var.tdir / bdir !Var.dst
 
-  let modfile ~is_stdlib same_dir_modules ext modname =
+  let modfile ~is_stdlib ?(suffix = "") same_dir_modules ext modname =
     match List.assoc_opt modname same_dir_modules with
     | Some _ when is_stdlib ->
-      (!Var.tdir / name / "catala" / "stdlib" / String.to_id modname) ^ ext
-    | _ -> Ninja.modfile ~backend:name same_dir_modules ext modname
+      ((!Var.tdir / name / "catala" / "stdlib" / String.to_id modname) ^ suffix)
+      ^ ext
+    | _ -> Ninja.modfile ~backend:name ~suffix same_dir_modules ext modname
+
+  let copy_to_target ~build_dir ~prefix_dir ~target ~install_targets =
+    let open File in
+    Common.copy_to_target ~prefix_dir ~backend:Clerk_lib.Clerk_config.Java
+      ~sub_dir:name ~install_targets;
+    let include_objects = target.Clerk_lib.Clerk_config.include_objects in
+    let runtime_dir = build_dir / Scan.libcatala / name in
+    let prefix_dir = prefix_dir / name in
+    List.iter
+      (fun java_dir ->
+        copy_dir ()
+          ~filter:(fun f ->
+            Filename.check_suffix f ".java"
+            || (include_objects && Filename.check_suffix f ".class"))
+          ~src:(runtime_dir / java_dir) ~dst:(prefix_dir / java_dir))
+      ["catala"; "org"]
 
   module Flags = struct
     let default
@@ -150,7 +167,7 @@ module Backend = struct
       ]
   end
 
-  let[@ocamlformat "disable"] static_base_rules =
+  let[@ocamlformat "disable"] static_base_rules _ =
     [
       Nj.rule "catala-java"
         ~command:[!catala_exe; name; !catala_flags; !catala_flags_java;
@@ -239,7 +256,12 @@ module Backend = struct
               else Ninja.target ~backend:name "java");
            ])
 
-  let build_object ~include_dirs ~same_dir_modules ~item _has_scope_tests =
+  let build_object
+      ~externls:_
+      ~include_dirs
+      ~same_dir_modules
+      ~item
+      _has_scope_tests =
     let modules = List.rev_map Mark.remove item.Scan.used_modules in
     let java_class_path =
       String.concat ":"
@@ -271,4 +293,7 @@ module Backend = struct
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
+
+  let extra_rules ~stdlib_tree:_ ~project_tree:_ _module_targets = []
+  let extra_default = []
 end

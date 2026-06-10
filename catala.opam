@@ -48,6 +48,7 @@ depends: [
   "otoml" {>= "1.0"}
   "json-data-encoding" { >= "1.0.1" }
   "odoc" {with-doc}
+  "ocamlformat-lib" { = "0.28.1" }
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.28.1"}
   "obelisk" {?cataladevmode & cataladevmode}
   "conf-ninja" {post}

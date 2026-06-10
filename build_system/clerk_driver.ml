@@ -35,33 +35,36 @@ let iter_commands ~build_dir targets f =
       max code (f item target))
     0 targets
 
-let linking_dependencies items =
-  let modules =
-    List.fold_left
-      (fun acc it ->
-        match it.Scan.module_def with
-        | Some m -> String.Map.add (Mark.remove m) it acc
-        | None -> acc)
-      String.Map.empty items
-  in
-  let rem_dups l =
-    let rec aux seen = function
-      | it :: r ->
-        if String.Set.mem it.Scan.file_name seen then aux seen r
-        else it :: aux (String.Set.add it.Scan.file_name seen) r
-      | [] -> []
+let re_var =
+  let open Re in
+  seq [str "${"; group (rep1 (diff any (char '}'))); char '}']
+
+let rec get_var =
+  (* replaces ${var} with its value, recursively *)
+  let re_single_var = Re.(compile (whole_string re_var)) in
+  fun var_bindings v ->
+    let s =
+      try List.assoc v var_bindings
+      with Not_found ->
+        Message.error
+          "Clerk configuration error: variable @{<blue;bold>$%s@} is undefined"
+          (Nj.Var.name v)
     in
-    aux String.Set.empty l
-  in
-  fun item ->
-    let rec traverse acc item =
-      List.fold_left
-        (fun acc m ->
-          let it = String.Map.find (Mark.remove m) modules in
-          traverse (it :: acc) it)
-        acc item.Scan.used_modules
-    in
-    rem_dups (traverse [] item)
+    let get_var = get_var (List.remove_assoc v var_bindings) in
+    List.concat_map
+      (fun s ->
+        match Re.exec_opt re_single_var s with
+        | Some g -> get_var (Var.make (Re.Group.get g 1))
+        | None -> [expand_vars var_bindings s])
+      s
+
+and expand_vars =
+  let re_var = Re.(compile re_var) in
+  fun var_bindings s ->
+    Re.replace ~all:true re_var
+      ~f:(fun g ->
+        String.concat " " (get_var var_bindings (Var.make (Re.Group.get g 1))))
+      s
 
 let all_backends_with_config :
     (Clerk_config.backend * (module Clerk_backends.Backend.S)) list =
@@ -70,6 +73,7 @@ let all_backends_with_config :
     Clerk_config.C, (module Clerk_backends.C.Backend);
     Clerk_config.Python, (module Clerk_backends.Python.Backend);
     Clerk_config.Java, (module Clerk_backends.Java.Backend);
+    Clerk_config.Jsoo, (module Clerk_backends.Jsoo.Backend);
   ]
 
 let backend_src_extensions =
@@ -281,14 +285,14 @@ let build_clerk_target
   Message.debug "Building target @{<cyan>[%s]@}" target.tname;
   let target_dir = config.Cli.options.global.target_dir in
   let build_dir = config.Cli.options.global.build_dir in
-  let local_runtime_dir bk =
-    File.(build_dir / Scan.libcatala / backend_subdir bk)
+  let local_runtime_dir backend_sub_dir =
+    File.(build_dir / Scan.libcatala / backend_sub_dir)
   in
   let backends = target.backends in
   let enabled_backends = normalize_backends backends in
   let install_targets, all_modules_deps =
     Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
-      ~ninja_flags ~quiet ~autotest:false
+      ~ninja_flags ~quiet ~autotest:false ~module_targets:target.tmodules
     @@ fun nin_ppf items _var_bindings ->
     let find_module_item module_name =
       try
@@ -313,7 +317,7 @@ let build_clerk_target
           Suggestions.(best_candidates all_module_names module_name)
     in
     let module_items = List.map find_module_item target.tmodules in
-    let get_deps = linking_dependencies items in
+    let get_deps = Scan.linking_dependencies items in
     let all_modules_deps =
       module_items @ List.concat_map get_deps module_items
     in
@@ -325,9 +329,7 @@ let build_clerk_target
               let open File in
               let base =
                 if module_item.Scan.is_stdlib then
-                  local_runtime_dir bk
-                  / "catala"
-                  / "stdlib"
+                  local_runtime_dir (backend_subdir bk)
                   / Scan.target_basename module_item
                 else
                   build_dir
@@ -383,41 +385,20 @@ let build_clerk_target
           if _item.Scan.is_stdlib then None else Some (bk, file))
         all_target_files
     in
-    Nj.format_def nin_ppf (Nj.Default (Nj.Default.make all_targets));
+    let extra_rules =
+      List.concat_map
+        (fun (module B : Clerk_backends.Backend.S) -> B.extra_default)
+        enabled_backends
+    in
+    Nj.format_def nin_ppf
+      (Nj.Default (Nj.Default.make (all_targets @ extra_rules)));
     install_targets, all_modules_deps
   in
   let open File in
   let prefix_dir = target_dir / target.tname in
-  List.iter
-    (fun (bk, src) ->
-      let dir = prefix_dir / backend_subdir bk in
-      ensure_dir dir;
-      copy_in ~dir ~src)
-    install_targets;
-  target.Config.backends
-  |> List.iter (fun bk ->
-      let dir = prefix_dir / backend_subdir bk in
-      let extensions =
-        if target.include_objects then List.assoc bk backend_extensions
-        else List.assoc bk backend_src_extensions
-      in
-      match bk with
-      | Clerk_config.Java ->
-        List.iter
-          (fun subdir ->
-            copy_dir ()
-              ~filter:(fun f ->
-                Filename.check_suffix f ".java"
-                || (target.include_objects && Filename.check_suffix f ".class"))
-              ~src:(local_runtime_dir bk / subdir)
-              ~dst:(dir / subdir))
-          ["catala"; "org"]
-      | bk ->
-        List.iter
-          (fun ext ->
-            let src = (local_runtime_dir bk / "catala_runtime") -.- ext in
-            if File.exists src then copy_in ~dir ~src)
-          extensions);
+  enabled_backends
+  |> List.iter (fun (module B : Clerk_backends.Backend.S) ->
+      B.copy_to_target ~build_dir ~prefix_dir ~target ~install_targets);
   if target.Config.include_sources then
     all_modules_deps
     |> List.map (fun it -> it.Scan.file_name)
@@ -469,9 +450,9 @@ let build_direct_targets
     in
     let ninja_targets, exec_targets, var_bindings, link_deps =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ~quiet
-        ~ninja_flags ~autotest
+        ~ninja_flags ~autotest ~module_targets:direct_targets
       @@ fun nin_ppf items var_bindings ->
-      let link_deps = linking_dependencies items in
+      let link_deps = Scan.linking_dependencies items in
       let build_dir = config.Cli.options.global.build_dir in
       let ensure_target_dir dname t =
         if lastdirname t = dname then t else dirname t / dname / basename t
@@ -597,7 +578,14 @@ let build_direct_targets
       let final_ninja_targets =
         List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
       in
-      Nj.format_def nin_ppf (Nj.Default (Nj.Default.make final_ninja_targets));
+      let extra_default_rules =
+        List.concat_map
+          (fun (module B : Clerk_backends.Backend.S) -> B.extra_default)
+          enabled_backends
+      in
+      Nj.format_def nin_ppf
+        (Nj.Default
+           (Nj.Default.make (final_ninja_targets @ extra_default_rules)));
       ninja_targets, exec_targets, var_bindings, link_deps
     in
     let link_cmd = linking_command ~build_dir ~var_bindings link_deps in
@@ -798,7 +786,7 @@ let build_test_deps
   let base_targets =
     List.map (fun it -> it, make_target ~build_dir ~backend it) target_items
   in
-  let link_deps = linking_dependencies items in
+  let link_deps = Scan.linking_dependencies items in
   let runtime_targets = backend_runtime_targets [backend_to_config backend] in
   let ninja_targets =
     let backend =
