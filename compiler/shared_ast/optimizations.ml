@@ -28,17 +28,25 @@ let binder_vars_used_at_most_once
   (not (Array.exists Fun.id (Bindlib.mbinder_occurs binder)))
   ||
   let vars, body = Bindlib.unmbind binder in
-  let rec vars_count (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) : int array =
+  let credit = ref 14 in
+  (* Raises [Exit] on either var used twice, or credit exhausted *)
+  let rec used_vars (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) =
+    if !credit <= 0 then raise Exit;
+    decr credit;
     match e with
-    | EVar v, _ ->
-      Array.map (fun vi -> if Bindlib.eq_vars v vi then 1 else 0) vars
+    | EVar v, _ when Array.mem v vars -> Var.Set.singleton v
     | e ->
       Expr.shallow_fold
-        (fun e' acc -> Array.map2 (fun x y -> x + y) (vars_count e') acc)
-        e
-        (Array.make (Array.length vars) 0)
+        (fun e' acc ->
+          let s1 = used_vars e' in
+          if Var.Set.disjoint s1 acc then Var.Set.union s1 acc
+          else raise Exit (* same var used twice *))
+        e Var.Set.empty
   in
-  not (Array.exists (fun c -> c > 1) (vars_count body))
+  try
+    let _ = used_vars body in
+    true
+  with Exit -> false
 
 (* beta reduction when variables not used, and for variable aliases and
    literal *)
@@ -51,10 +59,10 @@ let simplified_apply f args tys =
     (* Do not inline unpure expressions *)
     EApp { f; args; tys }
   | (EAbs { binder; _ }, _), _
-    when binder_vars_used_at_most_once binder
-         || List.for_all
-              (function (EVar _ | ELit _), _ -> true | _ -> false)
-              args ->
+    when List.for_all
+           (function (EVar _ | ELit _), _ -> true | _ -> false)
+           args
+         || binder_vars_used_at_most_once binder ->
     Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
   | _ -> EApp { f; args; tys }
 
