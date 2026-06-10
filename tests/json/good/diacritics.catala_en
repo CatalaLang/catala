@@ -1,0 +1,148 @@
+```catala-metadata
+declaration enumeration DümmyÉnum:
+  -- Â
+  -- Ö
+
+declaration structure MŷStruçtûre:
+  data mŷfìéld content integer
+  data mŷøtherfìéld content DümmyÉnum
+
+declaration enumeration MŷÉnum:
+  -- MÿÇase content MŷStruçtûre
+
+declaration scope MŷScøpè:
+  input înpût content MŷÉnum
+  output rèsult_enum content MŷÉnum
+  output rèsult_struct content MŷStruçtûre
+  output rèsult_int content integer
+
+scope MŷScøpè:
+  definition rèsult_enum equals înpût
+  definition rèsult_struct equals
+    match înpût with pattern -- MÿÇase content struct : struct
+  definition rèsult_int equals
+    match înpût with pattern -- MÿÇase content struct : struct.mŷfìéld
+```
+
+```catala-test-cli
+$ catala test-scope MŷScøpè --input {"input":{"MyCase":{"myfield":3,"myotherfield":"A"}}} -F json --disable-warnings
+{
+  "result_enum": { "MyCase": { "myfield": 3.0, "myotherfield": "A" } },
+  "result_struct": { "myfield": 3.0, "myotherfield": "A" },
+  "result_int": 3.0
+}
+```
+
+```catala-test-cli
+$ catala test-scope MŷScøpè --input {"input":{"MyCase":{"myfield":3,"myotherfield":"A"}}} -F human --disable-warnings
+┌─[RESULT]─ MŷScøpè ─
+│ rèsult_enum =
+│   MÿÇase content MŷStruçtûre { -- mŷfìéld: 3 -- mŷøtherfìéld: Â }
+│ rèsult_int = 3
+│ rèsult_struct = MŷStruçtûre { -- mŷfìéld: 3 -- mŷøtherfìéld: Â }
+└─
+```
+
+```catala-test-cli
+$ catala json-schema --scope MŷScøpè --disable-warnings
+[
+  {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scope MŷScøpè input",
+    "description": "Input structure of scope MŷScøpè",
+    "$ref": "#/definitions/MyScope_in",
+    "definitions": {
+      "DummyEnum": { "type": "string", "enum": [ "A", "O" ] },
+      "MyEnum": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "MyCase": { "$ref": "#/definitions/MyStructure" }
+            },
+            "required": [ "MyCase" ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "MyScope_in": {
+        "type": "object",
+        "properties": { "input": { "$ref": "#/definitions/MyEnum" } },
+        "required": [ "input" ],
+        "additionalProperties": false
+      },
+      "MyStructure": {
+        "type": "object",
+        "properties": {
+          "myfield": { "$ref": "#/definitions/integer" },
+          "myotherfield": { "$ref": "#/definitions/DummyEnum" }
+        },
+        "required": [ "myotherfield", "myfield" ],
+        "additionalProperties": false
+      },
+      "integer": {
+        "title": "Catala Integer",
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": -9007199254740992.0,
+            "maximum": 9007199254740992.0
+          },
+          { "type": "string" }
+        ]
+      }
+    }
+  },
+  {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scope MŷScøpè output",
+    "description": "Output structure of scope MŷScøpè",
+    "$ref": "#/definitions/MyScope",
+    "definitions": {
+      "DummyEnum": { "type": "string", "enum": [ "A", "O" ] },
+      "MyEnum": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "MyCase": { "$ref": "#/definitions/MyStructure" }
+            },
+            "required": [ "MyCase" ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "MyScope": {
+        "type": "object",
+        "properties": {
+          "result_enum": { "$ref": "#/definitions/MyEnum" },
+          "result_struct": { "$ref": "#/definitions/MyStructure" },
+          "result_int": { "$ref": "#/definitions/integer" }
+        },
+        "required": [ "result_int", "result_struct", "result_enum" ],
+        "additionalProperties": false
+      },
+      "MyStructure": {
+        "type": "object",
+        "properties": {
+          "myfield": { "$ref": "#/definitions/integer" },
+          "myotherfield": { "$ref": "#/definitions/DummyEnum" }
+        },
+        "required": [ "myotherfield", "myfield" ],
+        "additionalProperties": false
+      },
+      "integer": {
+        "title": "Catala Integer",
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": -9007199254740992.0,
+            "maximum": 9007199254740992.0
+          },
+          { "type": "string" }
+        ]
+      }
+    }
+  }
+]
+```
