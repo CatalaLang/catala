@@ -1220,10 +1220,12 @@ let run_clerk_test
       Clerk_rules.run_ninja ~code_coverage ~config ~tests:true ~enabled_backends
         ~ninja_flags ~autotest:false ~quiet ~default:[] ~clean_up_env:true
         (fun nin_ppf items _vars ->
-          ignore
-            (retrieve_target_items ~test_only:`Cli_or_scope items
-               files_or_folders);
-          (* the above checks for specified files with missing tests *)
+          (* Check for targets without tests *)
+          if
+            retrieve_target_items ~test_only:`Cli_or_scope items
+              files_or_folders
+            = []
+          then raise Clerk_rules.Stop_ninja;
           let test_targets =
             List.map File.(fun f -> (build_dir / f) ^ "@test") files_or_folders
           in
