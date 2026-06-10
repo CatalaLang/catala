@@ -13,6 +13,8 @@ variables:
   - &build_env
     OCAMLRUNPARAM: b
     DUNE_PROFILE: check
+    CATALA_COLOR: "always"
+    OPAMCOLOR: "always"
     COLUMNS: "165"
     # Ensures the side-by-side diff isn't truncated to less than 80 cols
 
@@ -95,7 +97,10 @@ steps:
     image: *catala_image
     depends_on: [doc]
     when:
-      - branch: master
+      - event: push
+        branch: master
+      - event: manual
+        branch: master
     commands:
       - sudo apk add tree
       - mkdir artifacts
@@ -115,6 +120,7 @@ steps:
       - event: push
         branch: master
       - event: manual
+        branch: master
     settings:
       path: artifacts
       remote: git@github.com:CatalaLang/catala
