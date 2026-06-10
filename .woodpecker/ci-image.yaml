@@ -3,6 +3,7 @@ labels:
 
 when:
   - event: manual
+    evaluate: '"REBUILD_IMAGE" in $env'
 
 steps:
   - name: build-image
@@ -22,11 +23,14 @@ steps:
   - name: set-usage
     image: alpine:3.22
     commands:
-      - sed -i "s#&catala_image .*#\&catala_image ${CI_REGISTRY}:${CI_PIPELINE_STARTED}#" .woodpecker.yaml
+      - sed -i "s#&catala_image .*#\&catala_image ${CI_REGISTRY}:${CI_PIPELINE_STARTED}#" .woodpecker/main.yaml
 
   - name: commit-usage
     image: appleboy/drone-git-push
     settings:
-      branch: ${GIT_COMMIT_BRANCH}
+      remote: ${CI_REPO_CLONE_SSH_URL}
+      branch: ${CI_COMMIT_BRANCH}
       commit: true
       commit_message: "CI: update to new base image tag"
+      ssh_key:
+        from_secret: pages

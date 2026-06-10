@@ -4,16 +4,15 @@ labels:
 
 when:
   - event: push
-    branch: master
-  - event: push
-    branch: test-woodpecker
+    branch: ${CI_REPO_DEFAULT_BRANCH}
   - event: manual
+    evaluate: 'not("REBUILD_IMAGE" in $env)'
 
 variables:
   - &env
     OPAMCONFIRMLEVEL: unsafe-yes
     OPAMERRLOGLEN: 0
-#    OPAMROOT: C:\Users\CI\woodpecker\opam
+    # OPAMROOT: C:\Users\CI\woodpecker\opam
     OCAMLRUNPARAM: b
     DUNE_PROFILE: check
     COLUMNS: "165"
@@ -34,7 +33,8 @@ steps:
     image: powershell
     environment: *env
     commands:
-      - opam init --bare
+      - mkdir $env:HOME/.opam # Workaround a bug in opam
+      - opam init --bare --debug
       - opam switch create 5.3.0
       - opam install conf-pkg-config
 
@@ -42,7 +42,7 @@ steps:
     image: powershell
     environment: *env
     commands:
-      # - New-Item -Value C:\Users\ci\woodpecker\opam -ItemType SymbolicLink -Path $env:HOME\.opam
+      # - mkdir $env:HOME/.opam # Workaround a bug in opam
       # - opam switch create . --empty
       - opam install ./catala.opam
 
@@ -51,15 +51,15 @@ steps:
     environment: *env
     commands:
       - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
-      - clerk test tests doc
-      - clerk test tests --backend ocaml -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc
+      - dune exec -- clerk test tests doc
+      - dune exec -- clerk test tests --backend ocaml -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc
 
   - name: examples
     image: powershell
     environment: *env
     commands:
       - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
-      - git clone https://github.com/CatalaLang/catala-examples --depth 1 -b "$${GIT_COMMIT_SOURCE_BRANCH:-$$GIT_COMMIT_BRANCH}";
+      - git clone https://github.com/CatalaLang/catala-examples --depth 1 -b "$${CI_COMMIT_SOURCE_BRANCH:-$${CI_COMMIT_BRANCH}}";
         if (!$?) { git clone https://github.com/CatalaLang/catala-examples --depth 1 }
       - cd catala-examples
       - clerk test

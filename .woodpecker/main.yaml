@@ -3,10 +3,11 @@ labels:
 
 when:
   - event: push
-    branch: master
+    branch: ${CI_REPO_DEFAULT_BRANCH}
   - event: pull_request
     repo: CatalaLang/catala
   - event: manual
+    evaluate: 'not("REBUILD_IMAGE" in $env)'
 
 variables:
   - &catala_image registry.gitlab.inria.fr/catala/registry:20260605
@@ -15,6 +16,8 @@ variables:
     DUNE_PROFILE: check
     CATALA_COLOR: "always"
     OPAMCOLOR: "always"
+    OPAMUTF8: "always"
+    CLICOLOR_FORCE: "1" # For dune
     COLUMNS: "165"
     # Ensures the side-by-side diff isn't truncated to less than 80 cols
 
@@ -71,7 +74,7 @@ steps:
     commands:
       - eval $(opam env)
       - opam install ./catala.opam --working-dir --assume-built
-      - git clone https://github.com/CatalaLang/catala-examples --depth 1 -b "$${GIT_COMMIT_SOURCE_BRANCH:-$$GIT_COMMIT_BRANCH}" ||
+      - git clone https://github.com/CatalaLang/catala-examples --depth 1 -b "$${CI_COMMIT_SOURCE_BRANCH:-$${CI_COMMIT_BRANCH}}" ||
         git clone https://github.com/CatalaLang/catala-examples --depth 1
       - . _python_venv/bin/activate
       - cd catala-examples
@@ -86,7 +89,7 @@ steps:
       - eval $(opam env)
       - opam install conf-npm
       - opam install ./catala.opam --working-dir --assume-built
-      - git clone https://github.com/CatalaLang/catala-language-server --depth 1 -b "$${GIT_COMMIT_SOURCE_BRANCH:-$$GIT_COMMIT_BRANCH}" ||
+      - git clone https://github.com/CatalaLang/catala-language-server --depth 1 -b "$${CI_COMMIT_SOURCE_BRANCH:-$${CI_COMMIT_BRANCH}}" ||
         git clone https://github.com/CatalaLang/catala-language-server --depth 1
       - cd catala-language-server
       - npm install
@@ -98,9 +101,9 @@ steps:
     depends_on: [doc]
     when:
       - event: push
-        branch: master
+        branch: ${CI_REPO_DEFAULT_BRANCH}
       - event: manual
-        branch: master
+        branch: ${CI_REPO_DEFAULT_BRANCH}
     commands:
       - sudo apk add tree
       - mkdir artifacts
@@ -110,6 +113,7 @@ steps:
       - mv _build/default/compiler/web/catala_web_interpreter.bc.js artifacts/catala_web_interpreter.js
       - cd artifacts
       - tree -H . -L 1 --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
+      - echo assets.catala-lang.org > CNAME
       - git init -b gh-pages
       - chmod -R a+wX .git
 
@@ -118,12 +122,12 @@ steps:
     depends_on: [artifacts, examples]
     when:
       - event: push
-        branch: master
+        branch: ${CI_REPO_DEFAULT_BRANCH}
       - event: manual
-        branch: master
+        branch: ${CI_REPO_DEFAULT_BRANCH}
     settings:
       path: artifacts
-      remote: git@github.com:CatalaLang/catala
+      remote: ${CI_REPO_CLONE_SSH_URL}
       branch: gh-pages
       commit: true
       commit_message: "Latest artifacts"
