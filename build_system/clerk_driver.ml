@@ -1564,7 +1564,8 @@ let exceptions_cmd =
     Clerk_rules.run_ninja ~config ~code_coverage:false
       ~enabled_backends:[(module Clerk_backends.Ocaml.Backend)]
       ~ninja_flags ~autotest:false ~quiet:true
-      (build_test_deps ~config ~backend:`Interpret ~test_only:false [file])
+      ~default:([], (fun _ -> assert false), [])
+      (build_test_deps ~config ~backend:`Interpret ~test_only:`No [file])
     |> fun (items, _link_deps, var_bindings) ->
     match items with
     | [] -> Message.error "Failed to compile %s dependencies" file
