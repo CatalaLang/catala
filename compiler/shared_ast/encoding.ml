@@ -333,7 +333,7 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
       ctx.ctx_scopes
   in
   let rename_field f =
-    let field_s = StructField.to_string f in
+    let field_s = StructField.original_string f in
     if
       is_input_scope_struct
       && String.ends_with ~suffix:"_in" field_s
@@ -346,7 +346,8 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
       (fun _ -> ())
       (fun () ->
         V
-          ( Struct { name = StructName.to_string sname; fields = (fun _ -> []) },
+          ( Struct
+              { name = StructName.original_base sname; fields = (fun _ -> []) },
             () ))
       empty
   in
@@ -432,9 +433,9 @@ and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
   let open Val in
   let enum = EnumName.Map.find ename ctx.ctx_enums in
   let bdgs = EnumConstructor.Map.bindings enum in
-  let ename_s = EnumName.to_string ename in
+  let ename_s = EnumName.original_base ename in
   let make_constructor_case idx (cstr, typ) : t case =
-    let cstr_s = EnumConstructor.to_string cstr in
+    let cstr_s = EnumConstructor.original_string cstr in
     match Mark.remove typ with
     | TLit TUnit ->
       case (constant cstr_s)
@@ -451,7 +452,10 @@ and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
           V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, None)))
     | _ ->
       case
-        (obj1 (req (EnumConstructor.to_string cstr) (generate_encoder ctx typ)))
+        (obj1
+           (req
+              (EnumConstructor.original_string cstr)
+              (generate_encoder ctx typ)))
         (function
           | V (Enum { name; constr }, rval) ->
             let _, cstr_s', v = constr rval in
@@ -463,14 +467,23 @@ and generate_enum_encoder (ctx : decl_ctx) (ename : EnumName.t) =
   let enc =
     if List.for_all (fun (_, typ) -> Mark.remove typ = TLit TUnit) bdgs then
       (* This simplifies the JSON schema *)
-      string_enum
-        (List.mapi
-           (fun idx (cstr, _) ->
-             let cstr_s = EnumConstructor.to_string cstr in
-             ( cstr_s,
-               V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, None))
-             ))
-           bdgs)
+      let bdgs_idx = List.mapi (fun i x -> i, x) bdgs in
+      conv
+        (function
+          | V (Enum { constr; _ }, x) ->
+            let idx, _, _ = constr x in
+            idx
+          | _ -> assert false)
+        (fun idx ->
+          let cstr, _ = List.assoc idx bdgs_idx in
+          let cstr_s = EnumConstructor.original_string cstr in
+          V (Enum { name = ename_s; constr = Fun.id }, (idx, cstr_s, None)))
+        (string_enum
+           (List.mapi
+              (fun idx (cstr, _) ->
+                let cstr_s = EnumConstructor.original_string cstr in
+                cstr_s, idx)
+              bdgs))
     else List.mapi make_constructor_case bdgs |> union
   in
   def (Format.asprintf "%a" EnumName.format_shortpath ename) enc
@@ -558,7 +571,8 @@ let rec convert_to_dcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
     let cons, typ_v =
       let enum = EnumName.Map.find ename ctx.ctx_enums in
       EnumConstructor.Map.bindings enum
-      |> List.find (fun (cstr', _) -> EnumConstructor.to_string cstr' = cstr)
+      |> List.find (fun (cstr', _) ->
+          EnumConstructor.original_string cstr' = cstr)
     in
     let e = match v with None -> Expr.elit LUnit mark | Some v -> f typ_v v in
     Expr.einj ~name:ename ~cons ~e mark
@@ -567,7 +581,9 @@ let rec convert_to_dcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
       let struc = StructName.Map.find sname ctx.ctx_structs in
       let struc_fields = StructField.Map.bindings struc in
       let lookup_field sf =
-        List.find (fun (sf', _) -> StructField.to_string sf' = sf) struc_fields
+        List.find
+          (fun (sf', _) -> StructField.original_string sf' = sf)
+          struc_fields
       in
       List.fold_left
         (fun sfm (sf, v) ->
@@ -633,7 +649,8 @@ let rec convert_to_lcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
     let cons, typ_v =
       let enum = EnumName.Map.find ename ctx.ctx_enums in
       EnumConstructor.Map.bindings enum
-      |> List.find (fun (cstr', _) -> EnumConstructor.to_string cstr' = cstr)
+      |> List.find (fun (cstr', _) ->
+          EnumConstructor.original_string cstr' = cstr)
     in
     let e = match v with None -> Expr.elit LUnit mark | Some v -> f typ_v v in
     Expr.einj ~name:ename ~cons ~e mark
@@ -642,7 +659,9 @@ let rec convert_to_lcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
       let struc = StructName.Map.find sname ctx.ctx_structs in
       let struc_fields = StructField.Map.bindings struc in
       let lookup_field sf =
-        List.find (fun (sf', _) -> StructField.to_string sf' = sf) struc_fields
+        List.find
+          (fun (sf', _) -> StructField.original_string sf' = sf)
+          struc_fields
       in
       List.fold_left
         (fun sfm (sf, v) ->
