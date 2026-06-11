@@ -64,27 +64,30 @@ let ocaml_libdir : File.t Lazy.t =
     try Some (String.trim (File.process_out cmd args)) with Failure _ -> None
   in
   lazy
-    (match
-       if Sys.getenv_opt "OPAM_SWITCH_PREFIX" <> None then
-         try_cmd "opam" ["var"; "lib"]
-       else None
-     with
+    (match Sys.getenv_opt "CATALA_OCAML_LIBDIR" with
     | Some d -> d
     | None -> (
-      match try_cmd "ocamlc" ["-where"] with
-      | Some d ->
-        (* Detect a relocated opam switch (libdir = PFX/lib) *)
-        let upper = File.dirname d in
-        if File.(basename upper = "lib" && exists (upper / "findlib.conf")) then
-          upper
-        else d (* A system switch: libdir = PFX/lib/ocaml *)
+      match
+        if Sys.getenv_opt "OPAM_SWITCH_PREFIX" <> None then
+          try_cmd "opam" ["var"; "lib"]
+        else None
+      with
+      | Some d -> d
       | None -> (
-        match File.(check_directory (exec_dir /../ "lib")) with
-        | Some d -> d
-        | None ->
-          Message.error
-            "Could not locate the OCaml library directory, make sure OCaml or \
-             opam is installed")))
+        match try_cmd "ocamlc" ["-where"] with
+        | Some d ->
+          (* Detect a relocated opam switch (libdir = PFX/lib) *)
+          let upper = File.dirname d in
+          if File.(basename upper = "lib" && exists (upper / "findlib.conf"))
+          then upper
+          else d (* A system switch: libdir = PFX/lib/ocaml *)
+        | None -> (
+          match File.(check_directory (exec_dir /../ "lib")) with
+          | Some d -> d
+          | None ->
+            Message.error
+              "Could not locate the OCaml library directory, make sure OCaml \
+               or opam is installed"))))
 
 (** Locates the directory containing the OCaml runtime to link to *)
 let runtime_dir : File.t Lazy.t =
