@@ -410,6 +410,15 @@ help_clerk:
 help_catala:
 	$(CATALA_BIN) --help
 
+CI_REGISTRY = registry.gitlab.inria.fr/catala/registry
+CI_IMAGE_TAG = $(shell date +%Y%m%d)
+
+rebuild-ci-image:
+	docker login "$(CI_REGISTRY)"
+	docker build . --tag "$(CI_REGISTRY):$(CI_IMAGE_TAG)" --target dev-build-context
+	docker push "$(CI_REGISTRY):$(CI_IMAGE_TAG)"
+	sed -i "s#&catala_image .*#\&catala_image $(CI_REGISTRY):$(CI_IMAGE_TAG)#" .woodpecker/main.yaml
+
 ##########################################
 # Special targets
 ##########################################
