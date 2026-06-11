@@ -1,0 +1,136 @@
+labels:
+  platform: linux/amd64
+
+when:
+  - event: push
+    branch: ${CI_REPO_DEFAULT_BRANCH}
+  - event: pull_request
+    repo: CatalaLang/catala
+  - event: manual
+    evaluate: 'not("REBUILD_IMAGE" in $env)'
+
+variables:
+  - &catala_image registry.gitlab.inria.fr/catala/registry:20260605
+  - &build_env
+    OCAMLRUNPARAM: b
+    DUNE_PROFILE: check
+    CATALA_COLOR: "always"
+    OPAMCOLOR: "always"
+    OPAMUTF8: "always"
+    CLICOLOR_FORCE: "1" # For dune
+    COLUMNS: "165"
+    # Ensures the side-by-side diff isn't truncated to less than 80 cols
+
+steps:
+  - name: build
+    image: *catala_image
+    environment: *build_env
+    pull: true
+    commands:
+      - eval $(opam env)
+      - ln -s /home/ocaml/catala/_python_venv .
+      - make build prepare-install
+
+  - name: promoted
+    image: *catala_image
+    commands:
+      - eval $(opam env)
+      - git clone $${CI_WORKSPACE} /tmp/catala
+      - cd /tmp/catala
+      - make check-promoted && git diff --exit-code
+
+  - name: tests
+    image: *catala_image
+    depends_on: build
+    environment: *build_env
+    commands:
+      - eval $(opam env)
+      - make testsuite
+
+  - name: extra-tests
+    image: *catala_image
+    depends_on: tests
+    environment: *build_env
+    commands:
+      - eval $(opam env)
+      - dune build @runtest-js
+      - make validate-py-runtime
+
+  - name: doc
+    image: *catala_image
+    depends_on: build
+    environment: *build_env
+    commands:
+      - eval $(opam env)
+      # The following takes some time, maybe move into the base image (or a descendant ?)
+      - sudo apk add typst texlive-xetex texmf-dist-latexextra texmf-dist-binextra texmf-dist-pictures texmf-dist-fontsrecommended font-dejavu groff libpng
+      - make syntax
+      - make doc
+
+  - name: examples
+    image: *catala_image
+    depends_on: tests
+    environment: *build_env
+    commands:
+      - eval $(opam env)
+      - opam install ./catala.opam --working-dir --assume-built
+      - git clone https://github.com/CatalaLang/catala-examples --depth 1 -b "$${CI_COMMIT_SOURCE_BRANCH:-$${CI_COMMIT_BRANCH}}" ||
+        git clone https://github.com/CatalaLang/catala-examples --depth 1
+      - . _python_venv/bin/activate
+      - cd catala-examples
+      - make all testsuite
+
+  - name: lsp
+    image: *catala_image
+    depends_on: tests
+    environment:
+      CI: "true"
+    commands:
+      - eval $(opam env)
+      - opam install conf-npm
+      - opam install ./catala.opam --working-dir --assume-built
+      - git clone https://github.com/CatalaLang/catala-language-server --depth 1 -b "$${CI_COMMIT_SOURCE_BRANCH:-$${CI_COMMIT_BRANCH}}" ||
+        git clone https://github.com/CatalaLang/catala-language-server --depth 1
+      - cd catala-language-server
+      - npm install
+      - opam install . --ignore-constraints-on=catala --ignore-pin-depends --with-test -y
+      - dune runtest --root .
+
+  - name: artifacts
+    image: *catala_image
+    depends_on: [doc]
+    when:
+      - event: push
+        branch: ${CI_REPO_DEFAULT_BRANCH}
+      - event: manual
+        branch: ${CI_REPO_DEFAULT_BRANCH}
+    commands:
+      - sudo apk add tree
+      - mkdir artifacts
+      - mv _build/default/_doc/_html artifacts/api-doc
+      - mv doc/syntax/syntax.pdf artifacts/
+      - mv _build/default/*.html artifacts/
+      - mv _build/default/compiler/web/catala_web_interpreter.bc.js artifacts/catala_web_interpreter.js
+      - cd artifacts
+      - tree -H . -L 1 --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
+      - echo assets.catala-lang.org > CNAME
+      - git init -b gh-pages
+      - chmod -R a+wX .git
+
+  - name: publish-assets
+    image: appleboy/drone-git-push
+    depends_on: [artifacts, examples]
+    when:
+      - event: push
+        branch: ${CI_REPO_DEFAULT_BRANCH}
+      - event: manual
+        branch: ${CI_REPO_DEFAULT_BRANCH}
+    settings:
+      path: artifacts
+      remote: ${CI_REPO_CLONE_SSH_URL}
+      branch: gh-pages
+      commit: true
+      commit_message: "Latest artifacts"
+      force: true
+      ssh_key:
+        from_secret: pages
