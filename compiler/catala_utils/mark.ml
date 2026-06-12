@@ -31,3 +31,4 @@ let fold2 f (x, _) (y, _) = f x y
 let compare cmp a b = fold2 cmp a b
 let equal eq a b = fold2 eq a b
 let hash f (x, _) = f x
+let pp_link pp ppf ((_, pos) as x) = Message.pp_pos_link pos ppf "%a" pp x
