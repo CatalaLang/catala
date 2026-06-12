@@ -1,0 +1,29 @@
+> Using Text_dict as Dict
+> Using Text
+> Using Mod_def
+
+```catala
+#[test]
+declaration scope S:
+  internal dict content Dict.Text_dict
+  output o content (optional of Mod_def, optional of Mod_def, optional of Mod_def)
+
+declaration dict_of_list content Dict.Text_dict
+  depends on bindings content list of (Text, Mod_def)
+  equals
+  combine all (k, v) among bindings in dict initially Dict.empty
+    with Dict.store of dict, k, v
+
+scope S:
+  definition dict equals dict_of_list of [
+    (#[json="\"1\""]Text, Mod_def.Yes);
+    (#[json="\"2\""]Text, Mod_def.No);
+    (#[json="\"3\""]Text, Mod_def.Maybe);
+    (#[json="\"4\""]Text, Mod_def.Maybe);
+    (#[json="\"5\""]Text, Mod_def.Maybe);
+    (#[json="\"6\""]Text, Mod_def.Maybe);
+    (#[json="\"12\""]Text, Mod_def.Maybe)
+  ]
+
+  definition o equals ((Dict.find of dict, #[json="\"3\""]Text), (Dict.find of dict, #[json="\"7\""]Text), (Dict.find of dict, #[json="\"1\""]Text))
+```
