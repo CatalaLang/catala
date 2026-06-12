@@ -1528,7 +1528,6 @@ let list_vars_cmd =
 
 let json_schema_cmd =
   let run config file scope =
-    let file = config.Cli.fix_path file in
     let var_bindings =
       Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
         ~enabled_backends:[] ~config ~inplace:true
@@ -1539,6 +1538,7 @@ let json_schema_cmd =
       catala_exe @ ["json-schema"; file; "--scope"; scope] @ catala_flags
     in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
+    Sys.chdir File.original_cwd;
     Clerk_cli.run_command_line cmd
   in
   let doc =
@@ -1556,7 +1556,6 @@ let exceptions_cmd =
     (* The exceptions command only needs the desugaring pass — no compiled artifacts
        required. Bypass ninja and call catala directly from the project root
        instead of the build dir (with [inplace:true]) *)
-    let file = config.Cli.fix_path file in
     let var_bindings =
       Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
         ~enabled_backends:[] ~config ~inplace:true
@@ -1569,6 +1568,7 @@ let exceptions_cmd =
       @ catala_flags
     in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
+    Sys.chdir File.original_cwd;
     Clerk_cli.run_command_line cmd
   in
   let doc =
