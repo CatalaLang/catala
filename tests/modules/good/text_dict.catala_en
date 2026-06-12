@@ -1,0 +1,19 @@
+> Using Text
+> Using Mod_def
+
+> Module Text_dict external
+
+```catala-metadata
+declaration type Text_dict: external
+
+declaration empty content Text_dict
+
+declaration store content Text_dict
+  depends on dict content Text_dict,
+             key content Text,
+             value content Mod_def
+
+declaration find content optional of Mod_def
+  depends on dict content Text_dict,
+             key content Text
+```
