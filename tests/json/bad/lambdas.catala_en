@@ -32,12 +32,9 @@ $ catala test-scope S --input {}
 #return code 123#
 ```
 
+The following doesn't pass with closure conversion, hence it doesn't use `test-scope`
+
 ```catala-test-cli
-$ catala test-scope S2 -F json
-┌─[ERROR]─
-│
-│  Cannot convert functional values from JSON
-│
-└─
-#return code 123#
+$ catala interpret -s S2 -F json
+{"r":{"f":"<function>"}}
 ```
