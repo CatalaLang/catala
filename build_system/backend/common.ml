@@ -76,7 +76,13 @@ module Flags = struct
       if inplace then
         {
           options with
-          global = { options.global with build_dir = Filename.current_dir_name };
+          global =
+            {
+              options.global with
+              build_dir =
+                File.make_relative_to ~dir:File.original_cwd
+                  Filename.current_dir_name;
+            };
         }
       else options
     in
