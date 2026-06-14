@@ -7,6 +7,9 @@
 #
 # (only depends on the opam files)
 FROM ocamlpro/ocaml:4.14-2025-11-30 AS dev-build-context
+
+# sanity marker for build traceability
+RUN echo "build-hostname=$(hostname) build-user=$(whoami) build-time=$(date -u +%Y%m%dT%H%M%SZ)" > /tmp/build_marker && cat /tmp/build_marker
 # Image from https://hub.docker.com/r/ocamlpro/ocaml
 
 RUN mkdir catala
