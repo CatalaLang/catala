@@ -8,10 +8,7 @@
 
 open Catala_runtime
 
-module Dictionnary : sig
-  type t
-end
-
+module Dictionnary : CatalaType
 
 (** Toplevel definition empty *)
 val empty : Dictionnary.t

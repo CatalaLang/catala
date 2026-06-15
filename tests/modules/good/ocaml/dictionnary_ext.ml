@@ -8,23 +8,30 @@
 
 open Catala_runtime
 
-module Dictionnary = struct
-  module M = Map.Make(Z)
+module M = Map.Make(Z)
+
+module Dictionnary = ExternalType(struct
   type t = money M.t
-end
+  let name = "Dictionnary"
+  let equal _ = M.equal (=)
+  let compare pos = M.compare Stdlib.compare
+  let print t = "<Text_dict>"
+  let to_json t = Printf.sprintf "%S" (print t)
+  let from_json pos t = assert false
+end)
 
 (* Toplevel def empty *)
-let empty : Dictionnary.t =  Dictionnary.M.empty
+let empty : Dictionnary.t =  M.empty
 
 (* Toplevel def store *)
 let store : Dictionnary.t -> integer -> money -> Dictionnary.t =
   fun (d: Dictionnary.t) (k: integer) (v: money) ->
-  Dictionnary.M.add k v d
+  M.add k v d
 
 (* Toplevel def find *)
 let find : Dictionnary.t -> integer -> money Optional.t =
   fun (d: Dictionnary.t) (k: integer) ->
-  match Dictionnary.M.find_opt k d with
+  match M.find_opt k d with
   | Some v -> Optional.Present v
   | None -> Optional.Absent
 

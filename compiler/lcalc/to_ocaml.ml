@@ -672,19 +672,15 @@ let format_ctx
         "@,include CatalaType with type t := t@;<1 -2>end@]@,@,")
   in
   let format_abstract_decl name =
-    Format.fprintf ppml "@[<v 2>module %a = Value.ExternalType(struct"
+    Format.fprintf ppml "@[<v 2>module %a = ExternalType(struct"
       format_to_module_name (`Aname name);
     Format.fprintf ppml "@,type t = ..";
     Format.fprintf ppml "@,let name = \"%a\"" AbstractType.format_original name;
     Format.fprintf ppml "@,let equal t1 t2 = t1 = t2";
     Format.fprintf ppml "@,let compare t1 t2 = Stdlib.compare t1 t2";
-    Format.fprintf ppml
-      "@,\
-       let to_expr t = assert false (* This must output a valid OCaml \
-       expression that encodes t *)";
     Format.fprintf ppml "@,let print t = \"<%a>\"" AbstractType.format_original
       name;
-    Format.fprintf ppml "@,let to_json t = Printf.sprintf \"%%S\" (to_string t)";
+    Format.fprintf ppml "@,let to_json t = Printf.sprintf \"%%S\" (print t)";
     Format.fprintf ppml "@,let from_json pos t = assert false";
     Format.fprintf ppml "@;<1 -2>end)@]@,@,";
     if TypeIdent.(Set.mem (Abstract name) ctx.ctx_public_types) then
@@ -872,18 +868,19 @@ let catala_test_commands = if commands = [] then test_scopes else commands
 let check_and_reexport_used_modules ppml ppi ~hashf modules =
   List.iter
     (fun (m, intf_id) ->
-      pp [ppml]
-        "@[<hv 2>let () =@ @[<hov 2>match Catala_runtime.check_module %S \
-         \"%a\"@ with@]@,\
-         | Ok () -> ()@,\
-         @[<hv 2>| Error h -> failwith \"Hash mismatch for module %a, it may \
-         need recompiling\"@]@]@,"
-        (ModuleName.to_string m)
-        (fun ppf h ->
-          if intf_id.is_external then
-            Format.pp_print_string ppf Hash.external_placeholder
-          else Hash.format ppf h)
-        (hashf intf_id.hash) ModuleName.format m;
+      if not Global.options.gen_external then
+        pp [ppml]
+          "@[<hv 2>let () =@ @[<hov 2>match Catala_runtime.check_module %S \
+           \"%a\"@ with@]@,\
+           | Ok () -> ()@,\
+           @[<hv 2>| Error h -> failwith \"Hash mismatch for module %a, it may \
+           need recompiling\"@]@]@,"
+          (ModuleName.to_string m)
+          (fun ppf h ->
+            if intf_id.is_external then
+              Format.pp_print_string ppf Hash.external_placeholder
+            else Hash.format ppf h)
+          (hashf intf_id.hash) ModuleName.format m;
       pp [ppml; ppi] "@[<hv 2>module %a@ = %a@]@," ModuleName.format
         (ModuleName.normalise m) ModuleName.format (ModuleName.normalise m))
     modules;
@@ -954,11 +951,10 @@ let format_program
   @@ fun intf_file ppi ->
   pp [ppml; ppi] "@[<v>";
   pp [ppml; ppi] "%s" (header ());
-  if not Global.options.gen_external then
-    check_and_reexport_used_modules ppml ppi ~hashf
-      (List.map
-         (fun (m, intf) -> m, intf.intf_id)
-         (ModuleName.Map.bindings p.decl_ctx.ctx_modules));
+  check_and_reexport_used_modules ppml ppi ~hashf
+    (List.map
+       (fun (m, intf) -> m, intf.intf_id)
+       (ModuleName.Map.bindings p.decl_ctx.ctx_modules));
   format_ctx type_ordering ppml ppi p.decl_ctx (Option.map fst p.module_name);
   let exports = format_code_items p.decl_ctx ppml ppi p.code_items in
   p.module_name

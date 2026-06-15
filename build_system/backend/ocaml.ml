@@ -274,23 +274,7 @@ module Backend = struct
           ~vars:
             [
               Var.includes, includes include_dirs;
-              ( ocaml_flags,
-                [
-                  Var.(!ocaml_flags);
-                  "-opaque";
-                  "-w";
-                  "@1..3@5..28@31..39@43@46..47@49..57@61..62@67@69-40";
-                  "-strict-sequence";
-                  "-strict-formats";
-                  "-short-paths";
-                  "-keep-locs";
-                  "-warn-error";
-                  "-a+8";
-                  "-w";
-                  "-67";
-                  "-bin-annot";
-                  "-no-alias-deps";
-                ] );
+              ocaml_flags, [Var.(!ocaml_flags); "-opaque"; "-no-alias-deps"];
             ];
         Nj.build "ocaml-natobject"
           ~inputs:[target ~backend:name "ml"]

@@ -333,9 +333,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
   in
   let format_abstract_decl ppfs tid =
     let id = AbstractType.base tid in
-    pp ppfs
-      "@[<v 2>typedef const void* %s; /* The type must be a pointer to const \
-       */@]@,"
+    pp ppfs "@[<v 2>typedef const void %s; /* The type must be immutable */@]@,"
       id;
     Format.fprintf ppc
       "@,\
