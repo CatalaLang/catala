@@ -277,26 +277,33 @@ let translate_attr ~context = function
           "Unknown implicit_position_argument sub-attribute \"%s\""
           (String.concat "." ps);
         None)
-    | "description" -> (
+    | ("description" | "label") as p1 -> (
       match ps with
       | [] -> (
         match context with
-        | ConstructorDecl | FieldDecl | ScopeDecl | StructDecl | EnumDecl
-        | Topdef | AbstractTypeDecl -> (
+        | ScopeDecl | StructDecl | EnumDecl | AbstractTypeDecl | Topdef
+        | ScopeDef | FieldDecl | ConstructorDecl | FunctionArgument | Assertion
+          -> (
           match v with
-          | String (s, _) -> Some (Description s)
+          | String (s, _) ->
+            Some
+              (match p1 with
+              | "description" -> Description s
+              | "label" -> Label s
+              | _ -> assert false)
           | _ ->
             Message.warning ~pos
               "Invalid value for the @{<magenta>#[description]@} attribute: \
-               expecting a string";
+               expecting a string. This will be ignored.";
             None)
         | _ ->
           Message.warning ~pos
-            "Attribute @{<magenta>#[description]@} is not allowed in this \
-             context";
+            "Attribute @{<magenta>#[description]@} is only allowed for item \
+             declarations; it will be ignored here.";
           None)
       | ps ->
-        Message.warning ~pos:ppos "Unknown description sub-attribute \"%s\""
+        Message.warning ~pos:ppos
+          "Unknown description sub-attribute: \"%s\". It will be ignored."
           (String.concat "." ps);
         None)
     | "passthrough" ->
