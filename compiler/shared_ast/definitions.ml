@@ -464,6 +464,7 @@ type Pos.attr +=
   | ErrorMessage of string
   | JsonPayload of string
   | Description of string
+  | Label of string
 
 (** {2 Markings} *)
 
