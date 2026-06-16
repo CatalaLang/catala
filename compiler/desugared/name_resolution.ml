@@ -277,6 +277,28 @@ let translate_attr ~context = function
           "Unknown implicit_position_argument sub-attribute \"%s\""
           (String.concat "." ps);
         None)
+    | "description" -> (
+      match ps with
+      | [] -> (
+        match context with
+        | ConstructorDecl | FieldDecl | ScopeDecl | StructDecl | EnumDecl
+        | Topdef | AbstractTypeDecl -> (
+          match v with
+          | String (s, _) -> Some (Description s)
+          | _ ->
+            Message.warning ~pos
+              "Invalid value for the @{<magenta>#[description]@} attribute: \
+               expecting a string";
+            None)
+        | _ ->
+          Message.warning ~pos
+            "Attribute @{<magenta>#[description]@} is not allowed in this \
+             context";
+          None)
+      | ps ->
+        Message.warning ~pos:ppos "Unknown description sub-attribute \"%s\""
+          (String.concat "." ps);
+        None)
     | "passthrough" ->
       (* This special case is used for internal testing: the rest of the
          attribute is kept as Src. See
