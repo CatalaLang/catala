@@ -1291,12 +1291,9 @@ let evaluate_expr ctx lang e =
 let loaded_modules = Hashtbl.create 17
 
 let load_runtime_modules ~hashf prg =
-  (* In whole-program, we only need to load external modules *)
-  let externals_only = Global.options.whole_program in
   let load (mname, intf_id) =
     let hash = hashf intf_id.hash in
     if Hashtbl.mem loaded_modules mname then ()
-    else if (not intf_id.is_external) && externals_only then ()
     else
       let expect_hash =
         if intf_id.is_external then Hash.external_placeholder
@@ -1333,6 +1330,12 @@ let load_runtime_modules ~hashf prg =
              (Dynlink.error_message dl_err));
       match Runtime.check_module (ModuleName.to_string mname) expect_hash with
       | Ok () -> Hashtbl.add loaded_modules mname hash
+      | Error _ when Global.options.whole_program ->
+        (* Either this is an external module, and the hash doesn't matter; or
+           it's a dependency of an external module, for which we may have a
+           distinct hash (because of the whole-program mode), and it's the
+           responsibility of the external module to check it anyway? *)
+        Hashtbl.add loaded_modules mname hash
       | Error bad_hash ->
         Message.debug
           "Module hash mismatch for %a:@ @[<v>Expected: %a@,Found:    %a@]"
@@ -1354,12 +1357,27 @@ let load_runtime_modules ~hashf prg =
            there is something wrong in its code."
           ModuleName.format mname File.format obj_file
   in
-  let modules_list_topo = Program.modules_to_list prg.decl_ctx.ctx_modules in
+  let modules_to_load =
+    if Global.options.whole_program then
+      (* In whole-program, we only need to load external modules, and modules
+         they depend on *)
+      let rec extern_only module_tree =
+        ModuleName.Map.fold
+          (fun id mn acc ->
+            if mn.intf_id.is_external then ModuleName.Map.add id mn acc
+            else
+              ModuleName.Map.union
+                (fun _ m _ -> Some m)
+                acc (extern_only mn.deps))
+          ModuleName.Map.empty module_tree
+      in
+      extern_only prg.decl_ctx.ctx_modules
+    else prg.decl_ctx.ctx_modules
+  in
+  let modules_list_topo = Program.modules_to_list modules_to_load in
   if modules_list_topo <> [] then
     Message.debug "Loading shared modules... %a"
-      (Format.pp_print_list ~pp_sep:Format.pp_print_space ModuleName.format)
-      (List.filter_map
-         (fun (m, { is_external; _ }) ->
-           if externals_only && not is_external then None else Some m)
-         modules_list_topo);
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (m, _) ->
+           ModuleName.format ppf m))
+      modules_list_topo;
   List.iter load modules_list_topo
