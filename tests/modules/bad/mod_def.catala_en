@@ -1,0 +1,10 @@
+> Module Mod_def
+
+
+```catala
+declaration enumeration E:
+  -- C content integer
+
+declaration scope S:
+  context output x content integer
+```

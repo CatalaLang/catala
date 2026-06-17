@@ -1,0 +1,17 @@
+> Using Mod_def
+
+
+```catala
+declaration scope Test:
+  context output x content Mod_def.E
+
+scope Test:
+  definition x equals Mod_def.E.C content 1
+```
+
+
+```catala-test-cli
+$ catala interpret --scope Test
+> This should fail, since the enumeration is not <
+>         properly exposed in Mod_def.           <
+```

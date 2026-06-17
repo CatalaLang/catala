@@ -268,8 +268,10 @@ let print_diff ppf p1 p2 =
       (* Account for "\r\n" *)
         else pos.Lexing.pos_cnum
     in
-    seek_in ic (pos_char pstart);
-    really_input_string ic (pend.Lexing.pos_cnum - pstart.Lexing.pos_cnum)
+    try
+      seek_in ic (max 0 (pos_char pstart));
+      really_input_string ic (pend.Lexing.pos_cnum - pstart.Lexing.pos_cnum)
+    with Sys_error _ | End_of_file -> "<could not read file>"
   in
   match Lazy.force diff_command with
   | `Stringdiff f -> f ppf (get_str p1) (get_str p2)
