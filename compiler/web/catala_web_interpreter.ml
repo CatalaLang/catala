@@ -294,7 +294,7 @@ let () =
                Message.pp_to_string ~ansi (fun ppf ->
                    match results with
                    | [] ->
-                     Message.results ~ppf
+                     Message.results ~ppf ~title:scope
                        [
                          (fun ppf ->
                            Format.fprintf ppf "Computation successful!");

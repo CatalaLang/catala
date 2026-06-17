@@ -743,7 +743,10 @@ module Commands = struct
        end
        else
          match results, options.Global.output_format with
-         | [], Human -> Message.result "Computation successful!"
+         | [], Human ->
+           Message.results
+             ~title:(ScopeName.to_string scope_uid)
+             [(fun ppf -> Format.pp_print_string ppf "Computation successful!")]
          | _ :: _, Human ->
            Message.results
              ~title:(ScopeName.to_string scope_uid)
