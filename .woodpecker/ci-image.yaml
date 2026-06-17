@@ -1,0 +1,36 @@
+labels:
+  backend: docker
+
+when:
+  - event: manual
+    evaluate: '"REBUILD_IMAGE" in $env'
+
+steps:
+  - name: build-image
+    image: woodpeckerci/plugin-docker-buildx
+    settings:
+      registry: registry.gitlab.inria.fr
+      repo: registry.gitlab.inria.fr/catala/registry
+      username:
+        from_secret: inria-registry-login
+      password:
+        from_secret: inria-registry-pass
+      cache_images:
+        - registry.gitlab.inria.fr/catala/registry:cache
+      tags: ${CI_PIPELINE_CREATED}
+      target: dev-build-context
+
+  - name: set-usage
+    image: alpine:3.22
+    commands:
+      - sed -i "s#&catala_image .*#\&catala_image registry.gitlab.inria.fr/catala/registry:$${CI_PIPELINE_CREATED}#" .woodpecker/main.yaml
+
+  - name: commit-usage
+    image: appleboy/drone-git-push
+    settings:
+      remote: ${CI_REPO_CLONE_SSH_URL}
+      branch: ${CI_COMMIT_BRANCH}
+      commit: true
+      commit_message: "CI: update to new base image tag"
+      ssh_key:
+        from_secret: pages
