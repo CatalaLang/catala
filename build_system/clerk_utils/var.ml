@@ -62,6 +62,8 @@ let re_var =
   let open Re in
   seq [str "${"; group (rep1 (diff any (char '}'))); char '}']
 
+type bindings = (t * string list) list
+
 let rec get_var =
   (* replaces ${var} with its value, recursively *)
   let re_single_var = Re.(compile (whole_string re_var)) in
