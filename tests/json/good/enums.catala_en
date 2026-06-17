@@ -45,17 +45,17 @@ $ catala test-scope T --input {"e":{"C":"Z"}}
 
 ```catala-test-cli
 $ catala test-scope T --input {"e":{"A":0}} -F json
-{ "r": "X" }
+{"r":"X"}
 ```
 
 ```catala-test-cli
 $ catala test-scope T --input {"e":"B"} -F json
-{ "r": "Z" }
+{"r":"Z"}
 ```
 
 ```catala-test-cli
 $ catala test-scope T --input {"e":{"C":"Z"}} -F json
-{ "r": "Z" }
+{"r":"Z"}
 ```
 
 ```catala-test-cli

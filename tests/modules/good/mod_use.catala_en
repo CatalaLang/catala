@@ -48,11 +48,5 @@ $ catala test-scope T2
 
 ```catala-test-cli
 $ catala test-scope T2 -F json
-{
-  "o1": "No",
-  "o2": "Maybe",
-  "o3": 1000.0,
-  "o4": 5.0,
-  "o5": { "Something": 10.0 }
-}
+{"o1":"No","o2":"Maybe","o3":"1000.00","o4":"5","o5":{"Something":"10"}}
 ```
