@@ -82,6 +82,7 @@ module Set = struct
   let diff s1 s2 = diff s1 s2
   let iter f s = iter (fun x -> f (get x)) s
   let is_empty s = is_empty s
+  let disjoint s1 s2 = disjoint s1 s2
 
   (* Add more as needed *)
 end
