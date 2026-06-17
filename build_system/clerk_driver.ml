@@ -922,11 +922,15 @@ let run_cmd =
       prepare_only
       whole_program =
     let test_only =
-      match scope_input, backend with
-      | Some _, `Interpret -> `No
-      | Some _, _ ->
+      match scope_input, scope, backend with
+      | _, Some _, `Interpret -> `No
+      | Some _, None, _ ->
+        Message.error
+          "A scope must be specified when providing a JSON input. See --scope \
+           option."
+      | Some _, Some _, _ ->
         Message.error "JSON input is only supported with the interpret backend."
-      | _ -> `Scope
+      | _ -> (* backends only offers entrypoints for test scopes *) `Scope
     in
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
     let enabled_backends =
