@@ -59,7 +59,6 @@ steps:
     environment: *env
     commands:
       - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
-      - git clone https://github.com/CatalaLang/catala-examples --depth 1 -b "$${CI_COMMIT_SOURCE_BRANCH:-$${CI_COMMIT_BRANCH}}";
-        if (!$?) { git clone https://github.com/CatalaLang/catala-examples --depth 1 }
+      - git clone https://github.com/CatalaLang/catala-examples --depth 1
       - cd catala-examples
       - clerk test
