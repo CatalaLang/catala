@@ -678,5 +678,3 @@ let rec convert_to_lcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
     Message.error
       "Cannot convert runtime value to lcalc: expected value of type %a, got %a"
       Print.typ typ format r
-
-let convert_from_gexpr = Expr.embed_value

@@ -38,12 +38,12 @@ $ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y"
 
 ```catala-test-cli
 $ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} -F json
-{ "r": { "x": 2.0, "y": false } }
+{"r":{"x":"2","y":false}}
 ```
 
 ```catala-test-cli
 $ catala test-scope T --input {"e":"B","s":{"a":{"x":1,"y":false},"b":{"x":2,"y":false}}} -F json
-{ "r": { "x": 2.0, "y": false } }
+{"r":{"x":"2","y":false}}
 ```
 
 ```catala-test-cli
