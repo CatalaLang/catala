@@ -127,9 +127,8 @@ public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<Cat
                 List<T> l = new ArrayList<>();
                 l.add(value);
                 m.put(k, l);
-
             } else {
-                curr.addLast(value);
+                curr.add(value);
             }
         }
         return new CatalaArray<>(m.values().stream().flatMap(Collection::stream));
@@ -147,13 +146,13 @@ public final class CatalaArray<T extends CatalaValue<?>> extends CatalaValue<Cat
 
     @Override
     public CatalaBool equalsTo(CatalaPosition p, CatalaArray<T> v) {
-        if (v instanceof CatalaArray<T> other_array
-                && other_array.getClass().isAssignableFrom(this.getClass())) {
-            if (other_array.values.length != this.values.length) {
+        if (v instanceof CatalaArray<T>
+                && v.getClass().isAssignableFrom(this.getClass())) {
+            if (v.values.length != this.values.length) {
                 return CatalaBool.FALSE;
             } else {
                 for (int i = 0; i < this.values.length; i++) {
-                    if (!(this.values[i].equalsTo(p, other_array.values[i]).asBoolean())) {
+                    if (!(this.values[i].equalsTo(p, v.values[i]).asBoolean())) {
                         return CatalaBool.FALSE;
                     }
                 }
