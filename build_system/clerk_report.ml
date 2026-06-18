@@ -556,7 +556,7 @@ let summary ~build_dir tests =
       if disp_flags.coverage then
         box.print_line
           "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
-           @{<hi_magenta;bold>%13d %%@}"
+           @{<bold>%a@}"
           "lines covered"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
@@ -565,11 +565,8 @@ let summary ~build_dir tests =
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
-          total_reached_lines total_reachable_lines
-          (int_of_float
-             (float_of_int total_reached_lines
-             /. float_of_int total_reachable_lines
-             *. 100.)));
+          total_reached_lines total_reachable_lines ratio
+          (total_reached_lines, total_reachable_lines));
   Format.pp_close_box ppf ();
   Format.pp_print_flush ppf ();
   success = total
