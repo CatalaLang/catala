@@ -1,10 +1,18 @@
 > Module Mod_def
 
+```catala-metadata
+declaration structure Public:
+  data z content integer
+```
 
 ```catala
+declaration structure Mod_def:
+  data foo content Public
+
 declaration enumeration E:
   -- C content integer
 
 declaration scope S:
+  internal i content Mod_def
   context output x content integer
 ```

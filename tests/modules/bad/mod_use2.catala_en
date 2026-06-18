@@ -1,0 +1,43 @@
+> Using Mod_def
+
+
+```catala
+declaration scope Test:
+  output v content Mod_def.Public
+  output w content Mod_def
+
+scope Test:
+  definition v equals Mod_def.Public { --z: 3 }
+  definition w equals Mod_def { --foo: v }
+```
+
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[ERROR]─ 1/2 ─
+│
+│  Type Mod_def is private and cannot be used here.
+│
+├─➤ tests/modules/bad/mod_use2.catala_en:7.20-27:
+│   │
+│ 7 │   output w content Mod_def
+│   │                    ‾‾‾‾‾‾‾
+│
+│ The type definition is private because it is inside a ```catala block and
+│ not a ```catala-metadata block:
+├─➤ tests/modules/bad/mod_def.catala_en:9.23-30:
+│   │
+│ 9 │ declaration structure Mod_def:
+│   │                       ‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  "v": unknown identifier for a variable of scope Test
+│
+├─➤ tests/modules/bad/mod_use2.catala_en:10.14-15:
+│    │
+│ 10 │   definition v equals Mod_def.Public { --z: 3 }
+│    │              ‾
+└─
+#return code 123#
+```
