@@ -282,7 +282,7 @@ let format_loc_text_parts
         let match_num_cols = String.width matched_substring in
         Format.fprintf ppf "@{<blue>%*d │@} %a" nspaces line_no
           (fun ppf -> Format.pp_print_as ppf (String.width line))
-          line;
+          (Re.replace_string ~by:"        " Re.(compile (char '\t')) line);
         Format.pp_print_cut ppf ();
         if line_no >= sline && line_no <= eline then
           Format.fprintf ppf "@{<blue>%*s │@} %*s@{<bold;red>%t@}" nspaces ""

@@ -164,6 +164,8 @@ let colordiff_str s1 s2 =
   in
   pr_left, pr_right
 
+let no_tabs s = Re.(replace_string ~by:"        " (compile (char '\t')) s)
+
 let diff_command =
   lazy begin match disp_flags.diff_command with
   | None ->
@@ -173,7 +175,7 @@ let diff_command =
     let stringdiff ppf s1 s2 =
       let width = Message.terminal_columns () - 5 in
       let mid = (width - 1) / 2 in
-      let cut s = String.cut_at_width s mid in
+      let cut s = String.cut_at_width (no_tabs s) mid in
       let pad s =
         let s = cut s in
         Printf.sprintf "%s%*s" s (mid - String.width s) ""
