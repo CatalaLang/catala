@@ -12,9 +12,10 @@ variables:
   - &env
     OPAMCONFIRMLEVEL: unsafe-yes
     OPAMERRLOGLEN: 0
-    # OPAMROOT: C:\Users\CI\woodpecker\opam
+    OPAMROOT: C:\Users\CI\woodpecker\opam
     OCAMLRUNPARAM: b
     DUNE_PROFILE: check
+    DUNE_CACHE: disabled
     COLUMNS: "165"
     # Ensures the side-by-side diff isn't truncated to less than 80 cols
     CI: "true"
@@ -28,23 +29,21 @@ steps:
   #   commands:
   #     - winget install Git.Git OCaml.opam
 
-  # This takes 20 minutes; maybe try to reuse a shared opam root from the host ?
   - name: ocaml
     image: powershell
     environment: *env
     commands:
       - mkdir $env:HOME/.opam # Workaround a bug in opam
-      - opam init --bare --debug
-      - opam switch create 5.3.0
-      - opam install conf-pkg-config
+      - opam switch create . --empty
+      - opam install ./catala.opam --deps-only
 
   - name: install
     image: powershell
     environment: *env
     commands:
-      # - mkdir $env:HOME/.opam # Workaround a bug in opam
-      # - opam switch create . --empty
-      - opam install ./catala.opam
+      - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
+      - dune build --only-packages catala
+      - opam install ./catala.opam --working-dir --assume-built
 
   - name: test
     image: powershell
