@@ -271,8 +271,8 @@ let detect_dead_code (p : program) : unit =
       let emit_unused_warning vx =
         Message.warning
           ~pos:(Mark.get (Dependency.Vertex.info vx))
-          "Unused variable:@ %a@ does@ not@ contribute@ to@ computing@ any@ \
-           of@ scope@ %a@ outputs.@ Did you forget something?"
+          "@[<hov>Unused variable:@ %a@ does@ not@ contribute@ to@ computing@ \
+           any@ of@ scope@ %a@ outputs.@]@ Did you forget something?"
           Dependency.Vertex.format vx ScopeName.format scope_name
       in
       Dependency.ScopeDependencies.iter_vertex
