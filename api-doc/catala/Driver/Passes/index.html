@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Passes (catala.Driver.Passes)</title><meta charset="utf-8"/><link rel="stylesheet" href="../../../odoc.support/odoc.css"/><meta name="generator" content="odoc 3.1.0"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../../index.html">Index</a> &#x00BB; <a href="../../index.html">catala</a> &#x00BB; <a href="../index.html">Driver</a> &#x00BB; Passes</nav><header class="odoc-preamble"><h1>Module <code><span>Driver.Passes</span></code></h1><p>Compiler passes</p><p>Each pass takes only its cli options, then calls upon its dependent passes (forwarding their options as needed)</p></header><div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-surface"><a href="#val-surface" class="anchor"></a><code><span><span class="keyword">val</span> surface : <span><a href="../../Catala_utils/Global/index.html#type-options">Catala_utils.Global.options</a> <span class="arrow">&#45;&gt;</span></span> <a href="../../Surface/Ast/index.html#type-program">Surface.Ast.program</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-desugared"><a href="#val-desugared" class="anchor"></a><code><span><span class="keyword">val</span> desugared : 
+  <span><span class="optlabel">?allow_external</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><a href="../../Catala_utils/Global/index.html#type-options">Catala_utils.Global.options</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">includes</span>:<span><a href="../../Catala_utils/Global/index.html#type-raw_file">Catala_utils.Global.raw_file</a> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">stdlib</span>:<span><a href="../../Catala_utils/Global/index.html#type-raw_file">Catala_utils.Global.raw_file</a> option</span> <span class="arrow">&#45;&gt;</span></span>
+  <a href="../../Desugared/Ast/index.html#type-program">Desugared.Ast.program</a> * <a href="../../Desugared/Name_resolution/index.html#type-context">Desugared.Name_resolution.context</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-scopelang"><a href="#val-scopelang" class="anchor"></a><code><span><span class="keyword">val</span> scopelang : 
+  <span><span class="optlabel">?allow_external</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><a href="../../Catala_utils/Global/index.html#type-options">Catala_utils.Global.options</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">includes</span>:<span><a href="../../Catala_utils/Global/index.html#type-raw_file">Catala_utils.Global.raw_file</a> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">stdlib</span>:<span><a href="../../Catala_utils/Global/index.html#type-raw_file">Catala_utils.Global.raw_file</a> option</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><a href="../../Shared_ast/index.html#type-untyped">Shared_ast.untyped</a> <a href="../../Scopelang/Ast/index.html#type-program">Scopelang.Ast.program</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-dcalc"><a href="#val-dcalc" class="anchor"></a><code><span><span class="keyword">val</span> dcalc : 
+  <span><a href="../../Catala_utils/Global/index.html#type-options">Catala_utils.Global.options</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">includes</span>:<span><a href="../../Catala_utils/Global/index.html#type-raw_file">Catala_utils.Global.raw_file</a> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">stdlib</span>:<span><a href="../../Catala_utils/Global/index.html#type-raw_file">Catala_utils.Global.raw_file</a> option</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">optimize</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">check_invariants</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">autotest</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">typed</span>:<span><span class="type-var">'m</span> <a href="../../Shared_ast/index.html#type-mark">Shared_ast.mark</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'m</span> <a href="../../Dcalc/Ast/index.html#type-program">Dcalc.Ast.program</a></span> * <span><a href="../../Shared_ast/TypeIdent/index.html#type-t">Shared_ast.TypeIdent.t</a> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-lcalc"><a href="#val-lcalc" class="anchor"></a><code><span><span class="keyword">val</span> lcalc : 
+  <span><a href="../../Catala_utils/Global/index.html#type-options">Catala_utils.Global.options</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">includes</span>:<span><a href="../../Catala_utils/Global/index.html#type-raw_file">Catala_utils.Global.raw_file</a> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">stdlib</span>:<span><a href="../../Catala_utils/Global/index.html#type-raw_file">Catala_utils.Global.raw_file</a> option</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">optimize</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">check_invariants</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">autotest</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">typed</span>:<span><span class="type-var">'m</span> <a href="../../Shared_ast/index.html#type-mark">Shared_ast.mark</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">closure_conversion</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">keep_special_ops</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">monomorphize_types</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">renaming</span>:<span><a href="../../Shared_ast/Renaming/index.html#type-t">Shared_ast.Renaming.t</a> option</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">lift_pos</span>:
+    <span><span>(<span><span><a href="../../Shared_ast/index.html#type-lcalc">Shared_ast.lcalc</a> <a href="../../Shared_ast/Op/index.html#type-t">Shared_ast.Op.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><a href="../../Shared_ast/index.html#type-naked_typ">Shared_ast.naked_typ</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> option</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><a href="../../Shared_ast/index.html#type-typed">Shared_ast.typed</a> <a href="../../Lcalc/Ast/index.html#type-program">Lcalc.Ast.program</a></span>
+  * <span><a href="../../Shared_ast/TypeIdent/index.html#type-t">Shared_ast.TypeIdent.t</a> list</span>
+  * <span><a href="../../Shared_ast/Renaming/index.html#type-context">Shared_ast.Renaming.context</a> option</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-scalc"><a href="#val-scalc" class="anchor"></a><code><span><span class="keyword">val</span> scalc : 
+  <span><a href="../../Catala_utils/Global/index.html#type-options">Catala_utils.Global.options</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">includes</span>:<span><a href="../../Catala_utils/Global/index.html#type-raw_file">Catala_utils.Global.raw_file</a> list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">stdlib</span>:<span><a href="../../Catala_utils/Global/index.html#type-raw_file">Catala_utils.Global.raw_file</a> option</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">optimize</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">check_invariants</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">autotest</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">closure_conversion</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">keep_special_ops</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">dead_value_assignment</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">no_struct_literals</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">keep_module_names</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">monomorphize_types</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">renaming</span>:<span><a href="../../Shared_ast/Renaming/index.html#type-t">Shared_ast.Renaming.t</a> option</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">lift_pos</span>:
+    <span><span>(<span><span><a href="../../Shared_ast/index.html#type-lcalc">Shared_ast.lcalc</a> <a href="../../Shared_ast/Op/index.html#type-t">Shared_ast.Op.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><a href="../../Shared_ast/index.html#type-naked_typ">Shared_ast.naked_typ</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> option</span> <span class="arrow">&#45;&gt;</span></span>
+  <a href="../../Scalc/Ast/index.html#type-program">Scalc.Ast.program</a> * <span><a href="../../Shared_ast/TypeIdent/index.html#type-t">Shared_ast.TypeIdent.t</a> list</span> * <a href="../../Shared_ast/Renaming/index.html#type-context">Shared_ast.Renaming.context</a></span></code></div></div></div></body></html>
