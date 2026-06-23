@@ -33,8 +33,8 @@ $ catala test-scope Test
 └─
 ┌─[WARNING]─
 │
-│  Unused variable: y does not contribute to computing any of scope A
-│  outputs. Did you forget something?
+│  Unused variable: y does not contribute to computing any of scope A outputs.
+│  Did you forget something?
 │
 ├─➤ tests/default/good/undef_internal.catala_en:4.12-13:
 │   │
