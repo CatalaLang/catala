@@ -71,8 +71,7 @@ let static_base_rules ~tests enabled_backends =
           ~description:["<catala>"; "tests"; "⇐"; !input];
         Nj.rule "dir-tests"
           ~command:
-            (if Sys.win32 then
-               ["cmd"; "/c"; "copy /by >nul"; !cat_files; !output]
+            (if Sys.win32 then [!clerk_exe; "copy"; "-o"; !output; !input]
              else ["cat"; !input; ">"; !output])
           ~description:["<test>"; !test_id];
       ]

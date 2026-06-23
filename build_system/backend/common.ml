@@ -138,8 +138,9 @@ module Ninja = struct
       Nj.rule "copy"
         ~command:
           (if Sys.win32 then
-             ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
-             (* The "+nul" forces the timestamp of the new file to be updated *)
+             (* Use clerk itself rather than a shell: avoids spawning cmd.exe
+                per file, and needs no `cp` *)
+             [!clerk_exe; "copy"; "-o"; !output; !input]
            else ["cp"; "-f"; !input; !output])
         ~description:["<copy>"; !input];
     ]

@@ -1359,6 +1359,38 @@ let runtest_cmd =
       $ Cli.single_file
       $ Cli.whole_program)
 
+let copy_cmd =
+  (* Internal command used by the generated build rules to copy a file (or
+     concatenate several input files into one) without going through a shell.
+     This avoids spawning [cmd.exe] per file on Windows (there is no [cp]), and
+     works the same way on opam-based installs that ship no [cp]/[cat]. *)
+  let run out_file in_files =
+    File.with_out_channel out_file (fun oc ->
+        List.iter (fun src -> output_string oc (File.contents src)) in_files);
+    0
+  in
+  let doc =
+    "Internal command: copy a single file, or concatenate several input files, \
+     into the output file given by $(b,-o). Used by clerk's build rules in \
+     place of a shell so that no external $(b,cp)/$(b,cat)/$(b,copy) is needed."
+  in
+  let out_file =
+    Arg.(
+      required
+      & opt (some string) None
+      & info ["o"; "output"] ~docv:"FILE" ~doc:"Destination file.")
+  in
+  let in_files =
+    (* [value], not [non_empty]: a dir-tests aggregation may have zero inputs
+       (a test directory containing no tests, e.g. a module-only subdir). Zero
+       inputs yields an empty output file, matching the Unix [cat] of no files
+       that the non-Windows rule uses; [non_empty] would instead abort the whole
+       build with "required argument FILE is missing". *)
+    Arg.(
+      value & pos_all file [] & info [] ~docv:"FILE" ~doc:"Source file(s).")
+  in
+  Cmd.v (Cmd.info ~doc "copy") Term.(const run $ out_file $ in_files)
+
 let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
   let default =
     List.fold_left
@@ -1592,6 +1624,7 @@ let main_cmd =
       clean_cmd;
       ci_cmd;
       runtest_cmd;
+      copy_cmd;
       report_cmd;
       raw_cmd;
       list_vars_cmd;
