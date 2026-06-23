@@ -41,6 +41,7 @@ type target = {
   backends : backend list;
   include_sources : bool;
   include_objects : bool;
+  dependencies : string list;
 }
 
 type doc = {
