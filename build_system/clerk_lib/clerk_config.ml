@@ -36,6 +36,7 @@ let registered_backends () = !registered_backends
 type doc_backend = Html | Latex
 
 type global = {
+  project_name : string option;
   include_dirs : File.t list;
   build_dir : File.t;
   target_dir : File.t;
@@ -79,6 +80,7 @@ type t = config_file
 
 let default_global =
   {
+    project_name = None;
     include_dirs = [];
     catala_exe = None;
     catala_opts = [];
@@ -100,6 +102,7 @@ let project_encoding =
   let open Clerk_toml_encoding in
   conv
     (fun {
+           project_name;
            include_dirs;
            catala_exe;
            catala_opts;
@@ -107,13 +110,15 @@ let project_encoding =
            build_dir;
            target_dir;
          } ->
-      ( proj_empty_list include_dirs,
+      ( project_name,
+        proj_empty_list include_dirs,
         catala_exe,
         proj_empty_list catala_opts,
         proj_empty_list default_targets,
         build_dir,
         target_dir ))
-    (fun ( include_dirs,
+    (fun ( project_name,
+           include_dirs,
            catala_exe,
            catala_opts,
            default_targets,
@@ -121,6 +126,7 @@ let project_encoding =
            target_dir )
        ->
       {
+        project_name;
         include_dirs = inj_empty_list include_dirs;
         catala_exe;
         catala_opts = inj_empty_list catala_opts;
@@ -128,7 +134,8 @@ let project_encoding =
         build_dir;
         target_dir;
       })
-  @@ obj6
+  @@ obj7
+       (opt_field ~name:"name" @@ string)
        (opt_field ~name:"include_dirs" @@ list string)
        (opt_field ~name:"catala_exe" @@ string)
        (opt_field ~name:"catala_opts" @@ list string)
