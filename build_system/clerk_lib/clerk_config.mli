@@ -25,6 +25,7 @@ val registered_backends : unit -> (string * backend) list
 type doc_backend = Html | Latex
 
 type global = {
+  project_name : string option;
   include_dirs : File.t list;
   build_dir : File.t;
   target_dir : File.t;
