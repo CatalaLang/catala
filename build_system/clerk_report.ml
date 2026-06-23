@@ -164,6 +164,8 @@ let colordiff_str s1 s2 =
   in
   pr_left, pr_right
 
+let no_tabs s = Re.(replace_string ~by:"        " (compile (char '\t')) s)
+
 let diff_command =
   lazy begin match disp_flags.diff_command with
   | None ->
@@ -173,7 +175,7 @@ let diff_command =
     let stringdiff ppf s1 s2 =
       let width = Message.terminal_columns () - 5 in
       let mid = (width - 1) / 2 in
-      let cut s = String.cut_at_width s mid in
+      let cut s = String.cut_at_width (no_tabs s) mid in
       let pad s =
         let s = cut s in
         Printf.sprintf "%s%*s" s (mid - String.width s) ""
@@ -268,8 +270,10 @@ let print_diff ppf p1 p2 =
       (* Account for "\r\n" *)
         else pos.Lexing.pos_cnum
     in
-    seek_in ic (pos_char pstart);
-    really_input_string ic (pend.Lexing.pos_cnum - pstart.Lexing.pos_cnum)
+    try
+      seek_in ic (max 0 (pos_char pstart));
+      really_input_string ic (pend.Lexing.pos_cnum - pstart.Lexing.pos_cnum)
+    with Sys_error _ | End_of_file -> "<could not read file>"
   in
   match Lazy.force diff_command with
   | `Stringdiff f -> f ppf (get_str p1) (get_str p2)
@@ -554,7 +558,7 @@ let summary ~build_dir tests =
       if disp_flags.coverage then
         box.print_line
           "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
-           @{<hi_magenta;bold>%13d %%@}"
+           @{<bold>%a@}"
           "lines covered"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
@@ -563,11 +567,8 @@ let summary ~build_dir tests =
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
-          total_reached_lines total_reachable_lines
-          (int_of_float
-             (float_of_int total_reached_lines
-             /. float_of_int total_reachable_lines
-             *. 100.)));
+          total_reached_lines total_reachable_lines ratio
+          (total_reached_lines, total_reachable_lines));
   Format.pp_close_box ppf ();
   Format.pp_print_flush ppf ();
   success = total

@@ -661,7 +661,7 @@ let register_content_as_delayed_error
     | None -> true
   in
   if register_error then (
-    let bt = Printexc.get_raw_backtrace () in
+    let bt = Printexc.get_callstack 12 in
     if Global.options.stop_on_error then
       Printexc.raise_with_backtrace (CompilerError m) bt;
     global_errors.rev_delayed_errors <-

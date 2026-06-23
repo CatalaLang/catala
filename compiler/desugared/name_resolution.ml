@@ -581,8 +581,29 @@ let is_type_cond ((typ, _) : Surface.Ast.typ) =
     true
   | _ -> false
 
+let tdef_is_public ctxt ident =
+  match Ident.Map.find_opt ident ctxt.local.typedefs with
+  | Some (TStruct s_uid) -> (
+    match StructName.Map.find_opt s_uid ctxt.structs with
+    | Some (_, Public) -> true
+    | _ -> false)
+  | Some (TEnum e_uid) -> (
+    match EnumName.Map.find_opt e_uid ctxt.enums with
+    | Some (_, Public) -> true
+    | _ -> false)
+  | Some (TAbstract t_uid) -> (
+    match AbstractType.Map.find_opt t_uid ctxt.abstract_types with
+    | Some Public -> true
+    | _ -> false)
+  | Some (TScope (_, scope_str)) -> (
+    match StructName.Map.find_opt scope_str.out_struct_name ctxt.structs with
+    | Some (_, Public) -> true
+    | _ -> false)
+  | None -> false
+
 (** Process a basic type (all types except function types) *)
 let rec process_base_typ
+    ~toplevel
     ~rev_path
     ~vars
     (ctxt : context)
@@ -592,19 +613,19 @@ let rec process_base_typ
   | Surface.Ast.Condition -> TLit TBool, typ_pos
   | Surface.Ast.Data (Surface.Ast.Collection t) ->
     ( TArray
-        (process_base_typ ~rev_path ~vars ctxt
+        (process_base_typ ~toplevel ~rev_path ~vars ctxt
            (Surface.Ast.Data (Mark.remove t), Mark.get t)),
       typ_pos )
   | Surface.Ast.Data (Surface.Ast.Option t) ->
     ( TOption
-        (process_base_typ ~rev_path ~vars ctxt
+        (process_base_typ ~toplevel ~rev_path ~vars ctxt
            (Surface.Ast.Data (Mark.remove t), Mark.get t)),
       typ_pos )
   | Surface.Ast.Data (Surface.Ast.TTuple tl) ->
     ( TTuple
         (List.map
            (fun t ->
-             process_base_typ ~rev_path ~vars ctxt
+             process_base_typ ~toplevel ~rev_path ~vars ctxt
                (Surface.Ast.Data (Mark.remove t), Mark.get t))
            tl),
       typ_pos )
@@ -624,24 +645,67 @@ let rec process_base_typ
         | [], x -> (match rev_path with m :: _ -> [m] | [] -> []), x
         | path, x -> [List.hd (List.rev path)], x
       in
+      let private_error ?(delayed = true) (_, pos) pp_id id =
+        let fmt_pos =
+          [
+            ( (fun ppf ->
+                Format.fprintf ppf
+                  "@[<hov>The type definition is private because it is inside \
+                   a@ @{<yellow;bold>```catala@}@ block@ and@ not@ a@ \
+                   @{<yellow;bold>```catala-metadata@}@ block:@]"),
+              pos );
+          ]
+        in
+        let fmt =
+          format_of_string "Type %a@ is@ private@ and@ cannot@ be@ used@ here."
+        in
+        if delayed then
+          Message.delayed_error () ~kind:Parsing ~pos:typ_pos ~fmt_pos fmt pp_id
+            id
+        else Message.error ~pos:typ_pos ~fmt_pos fmt pp_id id
+      in
       match Ident.Map.find_opt ident ctxt.local.typedefs with
       | Some (TStruct s_uid) ->
+        if not (toplevel || tdef_is_public ctxt ident) then
+          private_error (StructName.get_info s_uid) StructName.format s_uid;
         let s_uid = StructName.map_info fix_path s_uid in
         TStruct s_uid, typ_pos
       | Some (TEnum e_uid) ->
+        if not (toplevel || tdef_is_public ctxt ident) then
+          private_error (EnumName.get_info e_uid) EnumName.format e_uid;
         let e_uid = EnumName.map_info fix_path e_uid in
         TEnum e_uid, typ_pos
       | Some (TAbstract t_uid) ->
+        if not (toplevel || tdef_is_public ctxt ident) then
+          private_error (AbstractType.get_info t_uid) AbstractType.format t_uid;
         let t_uid = AbstractType.map_info fix_path t_uid in
         TAbstract t_uid, typ_pos
-      | Some (TScope (_, scope_str)) ->
-        let s_uid = StructName.map_info fix_path scope_str.out_struct_name in
+      | Some (TScope (_, { out_struct_name = s_uid; _ })) ->
+        if not (toplevel || tdef_is_public ctxt ident) then
+          private_error (StructName.get_info s_uid) StructName.format s_uid;
+        let s_uid = StructName.map_info fix_path s_uid in
         TStruct s_uid, typ_pos
-      | None ->
-        Message.error ~pos:typ_pos
-          "Unknown type @{<yellow>\"%s\"@}, not a struct or enum previously \
-           declared"
-          ident)
+      | None -> (
+        match
+          Ident.Map.find_opt ident ctxt.local.used_modules
+          |> Option.map (fun m -> m, ModuleName.Map.find m ctxt.modules)
+        with
+        | Some (m, mctx) when Ident.Map.mem ident mctx.typedefs ->
+          let pos =
+            match Ident.Map.find ident mctx.typedefs with
+            | TStruct id -> Mark.get (StructName.get_info id)
+            | TEnum id -> Mark.get (EnumName.get_info id)
+            | TAbstract id -> Mark.get (AbstractType.get_info id)
+            | TScope (id, _) -> Mark.get (ScopeName.get_info id)
+          in
+          private_error ~delayed:false ((), pos) ModuleName.format m;
+          assert false
+        | _ ->
+          Message.error ~pos:typ_pos
+            "Unknown type \"@{<cyan>%s@}\":@ no@ declaration@ for@ a@ \
+             structure,@ enumeration,@ scope@ or@ external@ type@ by this name \
+             was@ found."
+            ident))
     | Surface.Ast.Named ((modul, mpos) :: path, id) -> (
       match Ident.Map.find_opt modul ctxt.local.used_modules with
       | None ->
@@ -655,7 +719,7 @@ let rec process_base_typ
           | mname :: _ ->
             ModuleName.map_info (fun (s, _) -> s, mpos) mname :: rev_path
         in
-        process_base_typ ~rev_path ~vars
+        process_base_typ ~toplevel:false ~rev_path ~vars
           { ctxt with local = mod_ctxt }
           Surface.Ast.(Data (Primitive (Named (path, id))), typ_pos))
     | Surface.Ast.Var None ->
@@ -669,7 +733,8 @@ let rec process_base_typ
           "Specifying type `anything` is not allowed at this point"))
 
 let process_base_typ ~vars (ctxt : context) ty =
-  process_base_typ ~rev_path:ctxt.local.current_revpath ~vars ctxt ty
+  let rpath = ctxt.local.current_revpath in
+  process_base_typ ~toplevel:true ~rev_path:rpath ~vars ctxt ty
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
@@ -804,6 +869,7 @@ let process_data_decl
 (** Process a struct declaration *)
 let process_struct_decl
     ?(visibility = Public)
+    ?scope
     (ctxt : context)
     (sdecl : Surface.Ast.struct_decl) : context =
   let s_uid = get_struct ctxt sdecl.struct_decl_name in
@@ -847,19 +913,25 @@ let process_struct_decl
       in
       let ctxt = { ctxt with local } in
       let structs =
+        let typ =
+          match scope with
+          | None -> process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ
+          | Some s -> (
+            match
+              Ident.Map.find name (ScopeName.Map.find s ctxt.scopes).var_idmap
+            with
+            | ScopeVar v -> (ScopeVar.Map.find v ctxt.var_typs).var_sig_typ
+            | SubScope (v, sub) ->
+              let struc =
+                (ScopeName.Map.find sub ctxt.scopes).scope_out_struct
+              in
+              TStruct struc, Mark.get (ScopeVar.get_info v))
+        in
         StructName.Map.update s_uid
           (function
-            | None ->
-              Some
-                ( StructField.Map.singleton f_uid
-                    (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ),
-                  visibility )
+            | None -> Some (StructField.Map.singleton f_uid typ, visibility)
             | Some (fields, _) ->
-              Some
-                ( StructField.Map.add f_uid
-                    (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ)
-                    fields,
-                  visibility ))
+              Some (StructField.Map.add f_uid typ fields, visibility))
           ctxt.structs
       in
       { ctxt with structs })
@@ -1064,7 +1136,7 @@ let process_scope_decl
     }
   else
     let ctxt =
-      process_struct_decl ~visibility ctxt
+      process_struct_decl ~scope:scope_uid ~visibility ctxt
         {
           struct_decl_name = decl.scope_decl_name;
           struct_decl_fields = output_fields;
@@ -1602,8 +1674,9 @@ let form_context (surface, mod_uses) surface_modules : context =
                      Period_en as Period` to expose type `Period_en.Period` as
                      `Period`. *)
                   if
-                    defname = ModuleName.to_string modl
-                    || module_content.Surface.Ast.module_is_stdlib
+                    (defname = ModuleName.to_string modl
+                    || module_content.Surface.Ast.module_is_stdlib)
+                    && tdef_is_public { ctxt with local = mctx } defname
                   then Some tdef
                   else None)
               mod_uses
@@ -1669,8 +1742,9 @@ let form_context (surface, mod_uses) surface_modules : context =
         | Some tdef ->
           let defname, _ = typedef_info tdef in
           if
-            defname = ModuleName.to_string modl
-            || module_content.Surface.Ast.module_is_stdlib
+            (defname = ModuleName.to_string modl
+            || module_content.Surface.Ast.module_is_stdlib)
+            && tdef_is_public { ctxt with local = mctx } defname
           then Some tdef
           else None (* some *))
       mod_uses

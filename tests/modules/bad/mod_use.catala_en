@@ -1,0 +1,34 @@
+> Using Mod_def
+
+
+```catala
+declaration scope Test:
+  output v content Mod_def.Public
+  output x content Mod_def.E
+
+scope Test:
+  definition v equals Mod_def.Public { --z: 3 }
+  definition x equals Mod_def.E.C content 1
+```
+
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[ERROR]─
+│
+│  Type Mod_def.E is private and cannot be used here.
+│
+├─➤ tests/modules/bad/mod_use.catala_en:7.20-29:
+│   │
+│ 7 │   output x content Mod_def.E
+│   │                    ‾‾‾‾‾‾‾‾‾
+│
+│ The type definition is private because it is inside a ```catala block and
+│ not a ```catala-metadata block:
+├─➤ tests/modules/bad/mod_def.catala_en:12.25-26:
+│    │
+│ 12 │ declaration enumeration E:
+│    │                         ‾
+└─
+#return code 123#
+```

@@ -42,7 +42,7 @@ let scope B (B_in: B_in): B =
 
 ```catala-test-cli
 $ catala test-scope B
-┌─[RESULT]─
+┌─[RESULT]─ B ─
 │ Computation successful!
 └─
 ```
