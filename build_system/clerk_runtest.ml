@@ -43,6 +43,11 @@ let out_line output_buf str =
       pos_bol = pos_cnum;
     }
 
+(* Strips trailing line endings. Notably, on Windows catala's stdout is in text
+   mode, so lines we parse below arrive with "\r\n"; [input_line] only drops the
+   "\n", leaving a '\r' that would defeat the [whole_string] matches. *)
+let re_endline = Re.(compile @@ seq [rep (set "\r\n")])
+
 let sanitize =
   let re_endtest = Re.(compile @@ seq [bol; str "```"]) in
   let re_modhash =
@@ -59,7 +64,6 @@ let sanitize =
              char '"';
            ])
   in
-  let re_endline = Re.(compile @@ seq [rep (set "\r\n")]) in
   let re_backslash = Re.(compile (repn (char '\\') 1 (Some 2))) in
   fun str ->
     str
@@ -208,7 +212,10 @@ let run_catala_test_scopes
   in
   Unix.close cmd_out_wr;
   let out_lines =
-    Seq.of_dispenser (fun () -> In_channel.input_line command_ic)
+    Seq.of_dispenser (fun () ->
+        Option.map
+          (Re.replace_string re_endline ~by:"")
+          (In_channel.input_line command_ic))
   in
   let parse_error line =
     let re_error =
