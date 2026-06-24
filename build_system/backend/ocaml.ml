@@ -26,6 +26,14 @@ let ocamlopt_exe = Var.make "OCAMLOPT_EXE"
 let ocaml_flags = Var.make "OCAML_FLAGS"
 let ocaml_include = Var.make "OCAML_INCLUDE"
 
+(* Double-quote a path that contains spaces so it survives as a single argument
+   once ninja expands it into a command line. Ninja's own [$ ] escaping only
+   protects its parser; after variable expansion the space reappears in the
+   executed command and ocamlc/CreateProcess split on it (e.g. an install under
+   [C:\Program Files\...] or a user home with a space). This is correct only for
+   command arguments, not for ninja [build]/output lines. *)
+let quote_if_space s = if String.contains s ' ' then "\"" ^ s ^ "\"" else s
+
 module Flags = struct
   let ocaml_include_and_lib : (string list * string list) Lazy.t =
     lazy
@@ -44,7 +52,7 @@ module Flags = struct
                  File.(Lazy.force Poll.ocaml_libdir / lib)
                  lib
              | Some d ->
-               ( ["-I"; d],
+               ( ["-I"; quote_if_space d],
                  String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa" ))
            link_libs
        in
