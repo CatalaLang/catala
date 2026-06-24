@@ -513,6 +513,175 @@ let with_ninja_process
       wait ();
       callback_ret)
 
+type module_info = {
+  name: string Mark.pos;
+  item: Scan.item;
+  (* extra_items: Scan.item list; (* e.g. included files *) *)
+  targets: String.Set.t;
+}
+
+module G =
+  Graph.Persistent.Digraph.ConcreteBidirectional(struct
+    include String
+    let hash = Stdlib.String.hash
+  end)
+
+let organise_modules ~config items =
+  let module_g, modmap =
+    Seq.fold_left (fun (mg, modmap) item ->
+        match item.Scan.module_def with
+        | None -> (mg, modmap)
+        | Some (modname, pos) ->
+          let info = {
+            name = modname, pos;
+            item;
+            targets = String.Set.empty;
+          } in
+          let modmap = String.Map.update modname
+              (function None -> Some info
+                      | Some conflict ->
+                        (* Note: until now this was allowed. However, targets
+                           select their contents by module name only, so this
+                           could only be for local modules ? We could switch to
+                           UIDs to support this, or somehow namespace the
+                           modules by dir.
+
+                           We need to implement something else than picking
+                           randomly, in any case *)
+                        Message.error
+                          ~pos ~extra_pos:["", Mark.get conflict.name]
+                          "Conflicting module name @{<yellow>%s@}" modname)
+              modmap
+          in
+          let mg =
+            List.fold_left (fun g (m, _mpos) ->
+                G.add_edge g modname m
+              )
+              mg item.Scan.used_modules
+          in
+          mg, modmap)
+      (G.empty, String.Map.empty)
+      items
+  in
+  let target_g, modmap, tmap =
+    List.fold_left (fun (tg, modmap, tmap) t ->
+        let tname = t.Clerk_config.tname in
+        let tmap = String.Map.add tname t tmap in
+        let modmap =
+          List.fold_left (fun modmap m ->
+              String.Map.update m
+                (function
+                  | Some i ->
+                    Some { i with targets = String.Set.add tname i.targets }
+                  | None -> assert false)
+                modmap)
+            modmap t.tmodules
+        in
+        let tg =
+          List.fold_left (fun tg dep ->
+              if not (List.exists (fun t -> t.Clerk_config.tname = dep)
+                        config.Clerk_config.targets)
+              then Message.error "Clerk target @{<yellow>%s@}@ lists@ @{<yellow>%s@}@ as@ dependency,@ but@ that@ target@ was@ not@ found." tname dep;
+              G.add_edge tg t.Clerk_config.tname dep
+            )
+            tg t.dependencies
+        in
+        tg, modmap, tmap
+      )
+      (G.empty, modmap, String.Map.empty) config.targets
+  in
+  let check_cycles label g =
+    let module SCC = Graph.Components.Make (G) in
+    let sccs = SCC.scc_list g in
+    match List.find_opt (function [] | [_] -> false | _ -> true) sccs with
+    | None | Some [] -> ()
+    | Some (v::vs) ->
+      Message.error "@[<v>@[Dependency between the following %s is cyclic:@]@,%a@]" label
+        (Format.pp_print_list ~pp_sep:(fun ppf () -> Format.fprintf ppf " depends on@,")
+           (fun ppf v -> Format.fprintf ppf "@{<yellow>%s@}" v))
+        (v :: vs @ [v])
+  in
+  check_cycles "targets" target_g;
+  check_cycles "modules" module_g;
+  let module Op = Graph.Oper.P(G) in
+  let target_g = Op.transitive_closure target_g in
+  let module_g = Op.transitive_closure module_g in
+  let leaves g =
+    G.fold_vertex (fun t set ->
+        if G.out_degree target_g t = 0 then String.Set.add t set else set)
+      g String.Set.empty
+  in
+  let subgraph g set =
+    if String.Set.is_empty set then G.empty
+    else
+      G.fold_vertex (fun v g ->
+          if String.Set.mem v set then g else G.remove_vertex g v)
+        g g
+  in
+  let modmap =
+    String.Map.fold (fun m info new_modmap ->
+        let dependents = G.pred module_g m in
+        let targets =
+          List.fold_left (fun targets dm ->
+              String.Set.union targets (String.Map.find dm modmap).targets)
+            info.targets
+            dependents
+        in
+        let dep_target_graph = subgraph target_g targets in
+        let base_targets = String.Set.union (leaves dep_target_graph) info.targets in
+        Message.debug "Module @{<blue>%s@} (%s %a) to be attached to targets %a."
+          m (if String.Set.is_empty info.targets then "no explicit target" else "targets")
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf s -> Format.fprintf ppf "@{<yellow>%s@}" s))
+          (String.Set.elements info.targets)
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf s -> Format.fprintf ppf "@{<yellow>%s@}" s))
+          (String.Set.elements base_targets);
+        if String.Set.is_empty base_targets && not (Lazy.force info.item.has_scope_tests) then
+          Message.warning "The module @{<blue>%s@} belongs to no target and appears to be unused" m;
+        let _, conflict_targets =
+          (* We allow a module to get attached to multiple targets
+             (`base_targets`). However, this creates a conflict between any two
+             indepenednt users of the same module. The fix would be to attach
+             the given module to a target that is a shared dependency of the
+             using targets *)
+          String.Set.fold (fun t (seen, conflicts) ->
+              let depend_on_t = String.Set.of_list (G.pred target_g t) in
+              let clash =
+                leaves (subgraph target_g (String.Set.inter seen depend_on_t))
+              in
+              String.Set.union seen depend_on_t,
+              String.Set.union conflicts clash)
+            base_targets (String.Set.empty, String.Set.empty)
+        in
+        let conflict_err cflt =
+          let bases = String.Set.inter (String.Set.of_list (cflt :: G.succ target_g cflt)) base_targets in
+          Message.error
+            "@[<v>@[<hov>Target conflict error in@ @{<yellow>%s@}:@ module@ @{<blue>%s@}@ would@ be@ included@ multiple@ times.@]@,\
+             @[<hov>The following targets require it (either explicitely, or because one of@ their@ modules@ uses@ it):@]@,\
+            \    %a@,@,\
+             @[<hov>@{<bold>Hint:@} @{<blue>%s@} should be included in a single target that all its users depend on."
+            cflt m
+            (Format.pp_print_list (fun ppf t -> Format.fprintf ppf "- @{<yellow>%s@}" t))
+            (String.Set.elements bases)
+            cflt
+        in
+        Option.iter conflict_err (String.Set.choose_opt conflict_targets);
+        String.Map.add m { info with targets = base_targets } new_modmap
+      )
+      modmap modmap
+  in
+  let tmap =
+    String.Map.fold (fun m info tmap ->
+        String.Set.fold (fun t tmap ->
+            String.Map.update t (function
+                | Some target -> Some { target with Clerk_config.tmodules = m :: target.Clerk_config.tmodules }
+                | None -> assert false
+              ) tmap)
+          info.targets tmap)
+      modmap tmap
+    |> String.Map.map (fun target -> { target with Clerk_config.tmodules = List.sort_uniq String.compare target.Clerk_config.tmodules })
+  in
+  modmap, tmap
+
 let run_ninja
     ?(include_dir = true)
     ~config
