@@ -34,7 +34,7 @@ let scope B (B_in: B_in): B =
       A { A_in x_in = error_empty ⟨ ⟨true ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩; }
     in
     let result1 : A = { A y = result.y; } in
-    if true then result1 else result1
+    result1
   in
   let assert assert__1 : unit = assert (a.y = 1) in
   return {B}

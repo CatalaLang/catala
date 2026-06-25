@@ -136,7 +136,7 @@ let scope TestSubDefault
         cfun2 = λ (param0: integer) → result.cfun2 param0;
       }
     in
-    if true then result1 else result1
+    result1
   in
   let set ci : integer = error_empty ⟨ ⟨true ⊢ ⟨sub.ci⟩⟩ | false ⊢ ∅ ⟩ in
   let set cm : money = error_empty ⟨ ⟨true ⊢ ⟨sub.cm⟩⟩ | false ⊢ ∅ ⟩ in
