@@ -43,17 +43,6 @@ type ctx = {
   var_mapping : (D.expr, untyped Ast.expr Var.t) Var.Map.t;
 }
 
-let tag_with_log_entry
-    (e : untyped Ast.expr boxed)
-    (l : log_entry)
-    (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
-  if Global.options.trace <> None then
-    Expr.eappop
-      ~op:(Log (l, markings), Expr.pos e)
-      ~tys:[Type.any (Expr.pos e)]
-      ~args:[e] (Mark.get e)
-  else e
-
 (* Once implicit arguments have been inserted, the tag should be removed because
    it changes the behaviour of the typer on function applications *)
 let untag_implicit_args targs =
@@ -469,7 +458,18 @@ let rec rule_tree_to_expr
                  ~excepts:[]
                    (* Here we insert the logging command that records when a
                       decision is taken for the value of a variable. *)
-                 ~just:(tag_with_log_entry base_just PosRecordIfTrueBool [])
+                 ~just:
+                   (Expr.etag
+                      (Exception
+                         {
+                           label =
+                             (match base_rule.rule_label with
+                             | D.ExplicitlyLabeled (l, p) ->
+                               Some (LabelName.to_string l, p)
+                             | D.Unlabeled -> None);
+                           cons_pos = Expr.pos cons;
+                         })
+                      base_just)
                  ~cons
                  (Expr.no_attrs (Mark.get cons))
                :: acc)

@@ -1,0 +1,446 @@
+```catala-metadata
+declaration abs_f
+  content integer
+  depends on x content integer
+  equals
+    if x > 0 then x else -x
+
+declaration scope S:
+  input i content integer
+  context ic content integer
+  context output oc content integer
+  output sr content integer
+
+scope S:
+  definition ic equals abs_f of 10
+  definition oc equals abs_f of 100
+  definition sr equals i + ic + oc
+
+#[test]
+declaration scope T:
+  output r content integer
+
+scope T:
+  definition r equals (output of S with { -- i: 1 }).sr
+
+#[test]
+declaration scope T2:
+  output r content integer
+
+scope T2:
+  definition r equals (output of S with { -- i: 2 -- ic: abs_f of 20 -- oc: 200 }).sr
+```
+
+```catala-test-cli
+$ catala interpret -s T --trace
+→ Entering scope T
+─➤ tests/trace/good/var_context.catala_en:20.19-20:
+   │
+20 │ declaration scope T:
+   │                   ‾
+  ≔ Scope variable definition r: 111
+  ─➤ tests/trace/good/var_context.catala_en:21.10-11:
+     │
+  21 │   output r content integer
+     │          ‾
+    ⊕ Definition fulfilled
+    ─➤ tests/trace/good/var_context.catala_en:24.14-15:
+       │
+    24 │   definition r equals (output of S with { -- i: 1 }).sr
+       │              ‾
+    ⊸ Consequence:
+    ─➤ tests/trace/good/var_context.catala_en:24.23-56:
+       │
+    24 │   definition r equals (output of S with { -- i: 1 }).sr
+       │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    → Entering scope S
+    ─➤ tests/trace/good/var_context.catala_en:24.23-53:
+       │
+    24 │   definition r equals (output of S with { -- i: 1 }).sr
+       │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+      ≔ Scope input variable definition i: 1
+      ─➤ tests/trace/good/var_context.catala_en:9.9-10:
+        │
+      9 │   input i content integer
+        │         ‾
+      ≔ Scope context variable definition ic: 10
+      ─➤ tests/trace/good/var_context.catala_en:10.11-13:
+         │
+      10 │   context ic content integer
+         │           ‾‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/var_context.catala_en:15.14-16:
+           │
+        15 │   definition ic equals abs_f of 10
+           │              ‾‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/var_context.catala_en:15.24-35:
+           │
+        15 │   definition ic equals abs_f of 10
+           │                        ‾‾‾‾‾‾‾‾‾‾‾
+        → Applying function abs_f
+        ─➤ tests/trace/good/var_context.catala_en:2.13-18:
+          │
+        2 │ declaration abs_f
+          │             ‾‾‾‾‾
+          ⊡ Condition evaluated to true
+          ─➤ tests/trace/good/var_context.catala_en:6.8-13:
+            │
+          6 │     if x > 0 then x else -x
+            │        ‾‾‾‾‾
+          ⊸ Branch taken
+          ─➤ tests/trace/good/var_context.catala_en:6.19-20:
+            │
+          6 │     if x > 0 then x else -x
+            │                   ‾
+        ← Function abs_f applied: 10
+      ≔ Scope context variable definition oc: 100
+      ─➤ tests/trace/good/var_context.catala_en:11.18-20:
+         │
+      11 │   context output oc content integer
+         │                  ‾‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/var_context.catala_en:16.14-16:
+           │
+        16 │   definition oc equals abs_f of 100
+           │              ‾‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/var_context.catala_en:16.24-36:
+           │
+        16 │   definition oc equals abs_f of 100
+           │                        ‾‾‾‾‾‾‾‾‾‾‾‾
+        → Applying function abs_f
+        ─➤ tests/trace/good/var_context.catala_en:2.13-18:
+          │
+        2 │ declaration abs_f
+          │             ‾‾‾‾‾
+          ⊡ Condition evaluated to true
+          ─➤ tests/trace/good/var_context.catala_en:6.8-13:
+            │
+          6 │     if x > 0 then x else -x
+            │        ‾‾‾‾‾
+          ⊸ Branch taken
+          ─➤ tests/trace/good/var_context.catala_en:6.19-20:
+            │
+          6 │     if x > 0 then x else -x
+            │                   ‾
+        ← Function abs_f applied: 100
+      ≔ Scope variable definition sr: 111
+      ─➤ tests/trace/good/var_context.catala_en:12.10-12:
+         │
+      12 │   output sr content integer
+         │          ‾‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/var_context.catala_en:17.14-16:
+           │
+        17 │   definition sr equals i + ic + oc
+           │              ‾‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/var_context.catala_en:17.24-35:
+           │
+        17 │   definition sr equals i + ic + oc
+           │                        ‾‾‾‾‾‾‾‾‾‾‾
+    ← Exiting Scope S: S {
+                           -- oc: 100
+                           -- sr: 111
+                         }
+← Exiting Scope T: T {
+                       -- r: 111
+                     }
+┌─[RESULT]─ T ─
+│ r = 111
+└─
+```
+
+```catala-test-cli
+$ catala interpret -s T2 --trace
+→ Entering scope T2
+─➤ tests/trace/good/var_context.catala_en:27.19-21:
+   │
+27 │ declaration scope T2:
+   │                   ‾‾
+  ≔ Scope variable definition r: 222
+  ─➤ tests/trace/good/var_context.catala_en:28.10-11:
+     │
+  28 │   output r content integer
+     │          ‾
+    ⊕ Definition fulfilled
+    ─➤ tests/trace/good/var_context.catala_en:31.14-15:
+       │
+    31 │   definition r equals (output of S with { -- i: 2 -- ic: abs_f of 20 -- oc: 200 }).sr
+       │              ‾
+    ⊸ Consequence:
+    ─➤ tests/trace/good/var_context.catala_en:31.23-86:
+       │
+    31 │   definition r equals (output of S with { -- i: 2 -- ic: abs_f of 20 -- oc: 200 }).sr
+       │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    → Entering scope S
+    ─➤ tests/trace/good/var_context.catala_en:31.23-83:
+       │
+    31 │   definition r equals (output of S with { -- i: 2 -- ic: abs_f of 20 -- oc: 200 }).sr
+       │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+      → Applying function abs_f
+      ─➤ tests/trace/good/var_context.catala_en:2.13-18:
+        │
+      2 │ declaration abs_f
+        │             ‾‾‾‾‾
+        ⊡ Condition evaluated to true
+        ─➤ tests/trace/good/var_context.catala_en:6.8-13:
+          │
+        6 │     if x > 0 then x else -x
+          │        ‾‾‾‾‾
+        ⊸ Branch taken
+        ─➤ tests/trace/good/var_context.catala_en:6.19-20:
+          │
+        6 │     if x > 0 then x else -x
+          │                   ‾
+      ← Function abs_f applied: 20
+      ≔ Scope input variable definition i: 2
+      ─➤ tests/trace/good/var_context.catala_en:9.9-10:
+        │
+      9 │   input i content integer
+        │         ‾
+      ≔ Scope context variable definition ic: 20
+      ─➤ tests/trace/good/var_context.catala_en:10.11-13:
+         │
+      10 │   context ic content integer
+         │           ‾‾
+      ≔ Scope context variable definition oc: 200
+      ─➤ tests/trace/good/var_context.catala_en:11.18-20:
+         │
+      11 │   context output oc content integer
+         │                  ‾‾
+      ≔ Scope variable definition sr: 222
+      ─➤ tests/trace/good/var_context.catala_en:12.10-12:
+         │
+      12 │   output sr content integer
+         │          ‾‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/var_context.catala_en:17.14-16:
+           │
+        17 │   definition sr equals i + ic + oc
+           │              ‾‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/var_context.catala_en:17.24-35:
+           │
+        17 │   definition sr equals i + ic + oc
+           │                        ‾‾‾‾‾‾‾‾‾‾‾
+    ← Exiting Scope S: S {
+                           -- oc: 200
+                           -- sr: 222
+                         }
+← Exiting Scope T2: T2 {
+                        -- r: 222
+                      }
+┌─[RESULT]─ T2 ─
+│ r = 222
+└─
+```
+
+```catala-test-cli
+$ catala interpret -s T --trace --lcalc
+→ Entering scope T
+─➤ tests/trace/good/var_context.catala_en:20.19-20:
+   │
+20 │ declaration scope T:
+   │                   ‾
+  ≔ Scope variable definition r: 111
+  ─➤ tests/trace/good/var_context.catala_en:21.10-11:
+     │
+  21 │   output r content integer
+     │          ‾
+    ⊕ Definition fulfilled
+    ─➤ tests/trace/good/var_context.catala_en:24.14-15:
+       │
+    24 │   definition r equals (output of S with { -- i: 1 }).sr
+       │              ‾
+    ⊸ Consequence:
+    ─➤ tests/trace/good/var_context.catala_en:24.23-56:
+       │
+    24 │   definition r equals (output of S with { -- i: 1 }).sr
+       │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    → Entering scope S
+    ─➤ tests/trace/good/var_context.catala_en:24.23-53:
+       │
+    24 │   definition r equals (output of S with { -- i: 1 }).sr
+       │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+      ≔ Scope input variable definition i: 1
+      ─➤ tests/trace/good/var_context.catala_en:9.9-10:
+        │
+      9 │   input i content integer
+        │         ‾
+      ≔ Scope context variable definition ic:
+        Present content (10, tests/trace/good/var_context.catala_en:15.24-15-35)
+      ─➤ tests/trace/good/var_context.catala_en:10.11-13:
+         │
+      10 │   context ic content integer
+         │           ‾‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/var_context.catala_en:15.14-16:
+           │
+        15 │   definition ic equals abs_f of 10
+           │              ‾‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/var_context.catala_en:15.24-35:
+           │
+        15 │   definition ic equals abs_f of 10
+           │                        ‾‾‾‾‾‾‾‾‾‾‾
+        → Applying function abs_f
+        ─➤ tests/trace/good/var_context.catala_en:2.13-18:
+          │
+        2 │ declaration abs_f
+          │             ‾‾‾‾‾
+          ⊡ Condition evaluated to true
+          ─➤ tests/trace/good/var_context.catala_en:6.8-13:
+            │
+          6 │     if x > 0 then x else -x
+            │        ‾‾‾‾‾
+          ⊸ Branch taken
+          ─➤ tests/trace/good/var_context.catala_en:6.19-20:
+            │
+          6 │     if x > 0 then x else -x
+            │                   ‾
+        ← Function abs_f applied: 10
+      ≔ Scope context variable definition oc: 100
+      ─➤ tests/trace/good/var_context.catala_en:11.18-20:
+         │
+      11 │   context output oc content integer
+         │                  ‾‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/var_context.catala_en:16.14-16:
+           │
+        16 │   definition oc equals abs_f of 100
+           │              ‾‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/var_context.catala_en:16.24-36:
+           │
+        16 │   definition oc equals abs_f of 100
+           │                        ‾‾‾‾‾‾‾‾‾‾‾‾
+        → Applying function abs_f
+        ─➤ tests/trace/good/var_context.catala_en:2.13-18:
+          │
+        2 │ declaration abs_f
+          │             ‾‾‾‾‾
+          ⊡ Condition evaluated to true
+          ─➤ tests/trace/good/var_context.catala_en:6.8-13:
+            │
+          6 │     if x > 0 then x else -x
+            │        ‾‾‾‾‾
+          ⊸ Branch taken
+          ─➤ tests/trace/good/var_context.catala_en:6.19-20:
+            │
+          6 │     if x > 0 then x else -x
+            │                   ‾
+        ← Function abs_f applied: 100
+      ≔ Scope variable definition sr: 111
+      ─➤ tests/trace/good/var_context.catala_en:12.10-12:
+         │
+      12 │   output sr content integer
+         │          ‾‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/var_context.catala_en:17.14-16:
+           │
+        17 │   definition sr equals i + ic + oc
+           │              ‾‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/var_context.catala_en:17.24-35:
+           │
+        17 │   definition sr equals i + ic + oc
+           │                        ‾‾‾‾‾‾‾‾‾‾‾
+    ← Exiting Scope S: S {
+                           -- oc: 100
+                           -- sr: 111
+                         }
+← Exiting Scope T: T {
+                       -- r: 111
+                     }
+┌─[RESULT]─ T ─
+│ r = 111
+└─
+```
+
+```catala-test-cli
+$ catala interpret -s T2 --trace --lcalc
+→ Entering scope T2
+─➤ tests/trace/good/var_context.catala_en:27.19-21:
+   │
+27 │ declaration scope T2:
+   │                   ‾‾
+  ≔ Scope variable definition r: 222
+  ─➤ tests/trace/good/var_context.catala_en:28.10-11:
+     │
+  28 │   output r content integer
+     │          ‾
+    ⊕ Definition fulfilled
+    ─➤ tests/trace/good/var_context.catala_en:31.14-15:
+       │
+    31 │   definition r equals (output of S with { -- i: 2 -- ic: abs_f of 20 -- oc: 200 }).sr
+       │              ‾
+    ⊸ Consequence:
+    ─➤ tests/trace/good/var_context.catala_en:31.23-86:
+       │
+    31 │   definition r equals (output of S with { -- i: 2 -- ic: abs_f of 20 -- oc: 200 }).sr
+       │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    → Entering scope S
+    ─➤ tests/trace/good/var_context.catala_en:31.23-83:
+       │
+    31 │   definition r equals (output of S with { -- i: 2 -- ic: abs_f of 20 -- oc: 200 }).sr
+       │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+      → Applying function abs_f
+      ─➤ tests/trace/good/var_context.catala_en:2.13-18:
+        │
+      2 │ declaration abs_f
+        │             ‾‾‾‾‾
+        ⊡ Condition evaluated to true
+        ─➤ tests/trace/good/var_context.catala_en:6.8-13:
+          │
+        6 │     if x > 0 then x else -x
+          │        ‾‾‾‾‾
+        ⊸ Branch taken
+        ─➤ tests/trace/good/var_context.catala_en:6.19-20:
+          │
+        6 │     if x > 0 then x else -x
+          │                   ‾
+      ← Function abs_f applied: 20
+      ≔ Scope input variable definition i: 2
+      ─➤ tests/trace/good/var_context.catala_en:9.9-10:
+        │
+      9 │   input i content integer
+        │         ‾
+      ≔ Scope context variable definition ic:
+        Present content (20, tests/trace/good/var_context.catala_en:31.58-31-69)
+      ─➤ tests/trace/good/var_context.catala_en:10.11-13:
+         │
+      10 │   context ic content integer
+         │           ‾‾
+      ≔ Scope context variable definition oc: 200
+      ─➤ tests/trace/good/var_context.catala_en:11.18-20:
+         │
+      11 │   context output oc content integer
+         │                  ‾‾
+      ≔ Scope variable definition sr: 222
+      ─➤ tests/trace/good/var_context.catala_en:12.10-12:
+         │
+      12 │   output sr content integer
+         │          ‾‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/var_context.catala_en:17.14-16:
+           │
+        17 │   definition sr equals i + ic + oc
+           │              ‾‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/var_context.catala_en:17.24-35:
+           │
+        17 │   definition sr equals i + ic + oc
+           │                        ‾‾‾‾‾‾‾‾‾‾‾
+    ← Exiting Scope S: S {
+                           -- oc: 200
+                           -- sr: 222
+                         }
+← Exiting Scope T2: T2 {
+                        -- r: 222
+                      }
+┌─[RESULT]─ T2 ─
+│ r = 222
+└─
+```

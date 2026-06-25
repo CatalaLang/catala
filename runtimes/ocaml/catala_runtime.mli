@@ -193,134 +193,78 @@ end
 
 module ExternalType (Spec : ExternalTypeSpec) : CatalaType with type t = Spec.t
 
-(** {1 Logging} *)
+(** {1 Execution traces} *)
 
-(** {2 Global process} *)
+(** The trace construction mechanism is a stateful process (i.e., non-reentrant)
+    that collect traces emitted by the generated trace constructors defined
+    below.
 
-(** The logging is constituted of two phases:
+    The built trace is organized as a tree where each node represent a trace
+    element (e.g., a variable definition, a branching, etc.) which may have
+    sub-traces. For instance, a function that defines local variable definitions
+    will be represented as a [FunCall] node with a [sub_trace] containing these
+    [LocalVarDef] sub-nodes.
 
-    - The first one consists of collecting {i raw} events (see
-      {!type:raw_event}) during the program execution (see {!val:retrieve_log})
-      throught {!instruments}.
-    - The second one consists in parsing the collected raw events into
-      {i structured} ones (see {!type: event}). *)
+    Conceptually, whenever we reach a trace event, we open a scope, evaluate the
+    sub-expression potentially yielding new traces that will be its sub-nodes,
+    close the scope and finalize this trace node with the computed
+    sub-expression value.
 
-(** {2 Data structures} *)
+    Whenever a runtime error is triggered, we insert an [Error] node as a
+    sub-trace of the currently opened scope and re-raise this error. This is
+    automatically performed by the [with_trace] wrapper.
 
-type information = string list
-(** Represents information about a name in the code -- i.e. variable name,
-    subscope name, etc...
+    The global trace state can be retrieved using the [retrieve_trace] accessor
+    and cleared using [reset_trace]. *)
 
-    It's a list of strings with a length varying from 2 to 3, where:
+(** {2 Traces types} *)
 
-    - the first string is the name of the current scope -- starting with a
-      capitalized letter [Scope_name],
-    - the second string is either: the name of a scope variable or, the name of
-      a subscope input variable -- [a_subscope_var.input_var]
-    - the third string is either: a subscope name (starting with a capitalized
-      letter [Subscope_name] or, the [input] (resp. [output]) string -- which
-      corresponds to the input (resp. the output) of a function. *)
-
-(** {3 The raw events} *)
-
-type raw_event =
-  | BeginCall of information  (** Subscope or function call. *)
-  | EndCall of information  (** End of a subscope or a function call. *)
-  | VariableDefinition of information * io_log * Value.t
-      (** Definition of a variable or a function argument. *)
-  | DecisionTaken of code_location  (** Source code position of an event. *)
-
-(** {3 The structured events} *)
-
-(** The corresponding grammar of the {!type: event} type, is the following:
-
-    {v
-    <event> := <fun_call>
-         | <subscope_call>
-         | <var_def>
-         | <var_def_with_fun>
-         | VariableDefinition
-
-    <fun_call> :=
-        VariableDefinition                      (function input)
-        <fun_call_beg>
-            <event>*
-            (<var_def> | <var_def_with_fun>)    (function output)
-        EndCall
-
-    <var_def_with_fun> :=
-           /-- DecisionTaken
-    pos of |   <fun_call>+                      (function calls needed to compute the variable value)
-           \-> VariableDefinition
-
-    <subscope_call> :=
-        <sub_var_def>*          (sub-scope attributes def)
-        <sub_call_beg>
-            <event>+
-        EndCall
-
-    <var_def> := DecisionTaken VariableDefinition(info, _)
-      (when info.length = 2 && info[1] == "id")
-
-    <sub_var_def> := DecisionTaken VariableDefinition(info, _)
-      (when info.length = 3)
-
-    <fun_call_beg> := BeginCall(info)
-      (when info.length = 2)
-
-    <sub_call_beg> := BeginCall(info)
-      (when info.length = 2 and '.' in info[1])
-    v} *)
-
-type event =
-  | VarComputation of var_def
-  | FunCall of fun_call
-  | SubScopeCall of {
-      name : information;
-      inputs : var_def list;
-      body : event list;
+type trace_kind =
+  | ScopeCall of trace_ident_decl
+  | ScopeVarDef of { var : trace_ident_decl; io : io_log }
+  | LocalVarDef of string
+  | LocalTupDef of string list
+  | FunCall of trace_ident_decl
+  | BranchingCondition
+  | IfBranching
+  | MatchBranching of { constructor_name : string }
+  | Assertion
+  | Exception of {
+      label : (string * code_location) option;
+      cons_pos : code_location;
+    }
+  | Error of {
+      error : error;
+      locs : code_location list;
+      message : string option;
     }
 
-and var_def = {
-  pos : code_location option;
-  name : information;
-  io : io_log;
-  value : Value.t;
-  fun_calls : fun_call list option;
+and trace_ident_decl = { name : string; decl_pos : code_location }
+
+type trace = trace_element list
+
+and trace_element = {
+  kind : trace_kind;
+  pos : code_location;
+  value : Value.t option;
+  sub_trace : trace;
 }
 
-and fun_call = {
-  fun_name : information;
-  fun_inputs : var_def list;
-  body : event list;
-  output : var_def;
-}
+(** {2 Trace constructors} *)
 
-(** {2 Parsing} *)
+val single_trace : trace_kind -> code_location -> unit
+val begin_trace : trace_kind -> code_location -> unit
+val end_trace : ?value:Value.t -> unit -> unit
 
-val retrieve_log : unit -> raw_event list
-(** [retrieve_log ()] returns the current list of collected [raw_event].*)
+val with_trace :
+  embed:('a -> Value.t) -> trace_kind -> code_location -> (unit -> 'a) -> 'a
 
-module EventParser : sig
-  val parse_raw_events : raw_event list -> event list
-  (** [parse_raw_events raw_events] parses raw events into {i structured} ones.
-  *)
-end
+(** {2 Trace accessors} *)
 
-(** {2 Helping functions} *)
+val retrieve_trace : unit -> trace
+val reset_trace : unit -> unit
 
-(** {3:instruments Logging instruments} *)
-
-val reset_log : unit -> unit
-val log_begin_call : string list -> 'a -> 'a
-val log_end_call : string list -> 'a -> 'a
-
-val log_variable_definition :
-  string list -> io_log -> ('a -> Value.t) -> 'a -> 'a
-
-val log_decision_taken : code_location -> bool -> bool
-
-(** {3 Pretty printers} *)
+(** {1 Pretty printers} *)
 
 (** This module is for setting options and internals, use [Value.format] to
     print values *)
@@ -338,23 +282,12 @@ module Print : sig
   val get_precision : unit -> int
 end
 
-(** {4 Conversions to JSON} *)
+(** {1 JSON printers} *)
+
 module Json : sig
-  (* val io_input: io_input -> string *)
-  val io_log : io_log -> string
   val runtime_value : Value.t -> string
-
-  (* val information: information -> string *)
-  val event : event -> string
-  val raw_event : raw_event -> string
+  val trace : trace -> string
 end
-
-val pp_events : ?is_first_call:bool -> Format.formatter -> event list -> unit
-(** [pp_events ~is_first_call ppf events] pretty prints in [ppf] the string
-    representation of [events].
-
-    If [is_first_call] is set to true, the formatter will be flush at the end.
-    By default, [is_first_call] is set to false. *)
 
 (**{1 Constructors and conversions} *)
 

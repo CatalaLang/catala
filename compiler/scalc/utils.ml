@@ -73,7 +73,7 @@ let rec subst_stmt v e stmt =
         ifd with
         func = { ifd.func with func_body = subst_block v e ifd.func.func_body };
       }
-  | SLocalDecl _ -> stmt
+  | SLocalDecl _ | SBeginTrace _ | SEndTrace _ -> stmt
   | SLocalInit li -> SLocalInit { li with expr = subst_expr v e li.expr }
   | SLocalDef ld -> SLocalDef { ld with expr = subst_expr v e ld.expr }
   | SFatalError fe ->

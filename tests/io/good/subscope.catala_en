@@ -40,7 +40,7 @@ let scope B (B_in: B_in): B =
       A { A_in a_in = ∅; b_in = error_empty ⟨ ⟨true ⊢ ⟨2⟩⟩ | false ⊢ ∅ ⟩; }
     in
     let result1 : A = { A c = result.c; } in
-    if true then result1 else result1
+    result1
   in
   let assert assert__1 : unit = assert (a.c = 3) in
   return {B}

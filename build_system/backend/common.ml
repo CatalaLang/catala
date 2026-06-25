@@ -69,7 +69,12 @@ module Flags = struct
            ])
          include_dirs
 
-  let default ~code_coverage ~inplace ~config =
+  let default
+      ~code_coverage
+      ~(trace : [ `FileName of Catala_utils.Global.raw_file | `Stdout ] option)
+      ~(trace_format : Catala_utils.Global.format_enum option)
+      ~inplace
+      ~config =
     let options = config.Clerk_cli.options in
     let open Clerk_config in
     let options =
@@ -87,12 +92,18 @@ module Flags = struct
       else options
     in
     let catala_flags =
-      if inplace then
-        ("--stdlib=" ^ Lazy.force Poll.stdlib_dir) :: options.global.catala_opts
-      else
-        ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
-        :: ("--directory=" ^ Var.(!builddir))
-        :: options.global.catala_opts
+      ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
+      :: ("--directory=" ^ Var.(!builddir))
+      :: (if inplace then ["--stdlib=" ^ Lazy.force Poll.stdlib_dir] else [])
+      @ (match trace with
+        | None -> []
+        | Some (`FileName f) -> ["--trace=" ^ (f :> string)]
+        | Some `Stdout -> ["--trace"])
+      @ (match trace_format with
+        | None -> []
+        | Some Human -> ["--trace-format=human"]
+        | Some JSON -> ["--trace-format=json"])
+      @ options.global.catala_opts
     in
     let includes = includes options.global.include_dirs in
     let test_flags = config.Clerk_cli.test_flags in

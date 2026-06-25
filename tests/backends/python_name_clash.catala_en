@@ -88,10 +88,7 @@ def b(b_in:BIn) -> B:
         raise NoValue(loc[2])
     result = (some_name(SomeNameIn(i_in = result__1)))
     result__3 = (SomeName(o = result.o))
-    if Bool(True):
-        some_name__1 = (result__3)
-    else:
-        some_name__1 = (result__3)
+    some_name__1 = (result__3)
     return B(some_name = some_name__1)
 
 # Automatic Catala tests

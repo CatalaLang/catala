@@ -62,74 +62,119 @@ $ catala Interpret -t -s HousingComputation --debug
   Duration_en MonthYear_en Period_internal Period_en Money_internal Money_en
   Integer_en Decimal_internal Decimal_en Stdlib_en
 [DEBUG] Starting interpretation...
-[LOG] ≔  HousingComputation.f: <function>
-[LOG] ☛ Definition applied:
-      ─➤ tests/scope/good/scope_call3.catala_en:8.14-20:
+→ Entering scope HousingComputation
+─➤ tests/scope/good/scope_call3.catala_en:2.27-45:
+  │
+2 │ #[test] declaration scope HousingComputation:
+  │                           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  ≔ Scope variable definition f: <function>
+  ─➤ tests/scope/good/scope_call3.catala_en:3.10-11:
+    │
+  3 │   output f content integer depends on x content integer
+    │          ‾
+  ≔ Scope variable definition result: 3
+  ─➤ tests/scope/good/scope_call3.catala_en:4.10-16:
+    │
+  4 │   output result content integer
+    │          ‾‾‾‾‾‾
+    ⊕ Definition fulfilled
+    ─➤ tests/scope/good/scope_call3.catala_en:8.14-20:
+      │
+    8 │   definition result equals f of 1
+      │              ‾‾‾‾‾‾
+    ⊸ Consequence:
+    ─➤ tests/scope/good/scope_call3.catala_en:8.28-34:
+      │
+    8 │   definition result equals f of 1
+      │                            ‾‾‾‾‾‾
+    → Applying function f
+    ─➤ tests/scope/good/scope_call3.catala_en:8.28-29:
+      │
+    8 │   definition result equals f of 1
+      │                            ‾
+      ⊕ Definition fulfilled
+      ─➤ tests/scope/good/scope_call3.catala_en:7.14-15:
         │
-      8 │   definition result equals f of 1
-        │              ‾‾‾‾‾‾
-[LOG] →  HousingComputation.f
-[LOG]   ≔  HousingComputation.f.input0: 1
-[LOG]   ☛ Definition applied:
-        ─➤ tests/scope/good/scope_call3.catala_en:7.14-15:
-          │
-        7 │   definition f of x equals (output of RentComputation).f of x
-          │              ‾
-[LOG]   →  RentComputation.direct
-[LOG]     ≔  RentComputation.direct.input: RentComputation_in {}
-[LOG]     ≔  RentComputation.g: <function>
-[LOG]     ≔  RentComputation.f: <function>
-[LOG]     ☛ Definition applied:
-          ─➤ tests/scope/good/scope_call3.catala_en:7.28-55:
-            │
-          7 │   definition f of x equals (output of RentComputation).f of x
-            │                            ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-[LOG]     ≔  RentComputation.direct.
-      output: RentComputation {   -- f: <function> }
-[LOG]   ←  RentComputation.direct
-[LOG]   →  RentComputation.f
-[LOG]     ≔  RentComputation.f.input0: 1
-[LOG]     ☛ Definition applied:
-          ─➤ tests/scope/good/scope_call3.catala_en:16.14-15:
-             │
-          16 │   definition f of x equals g of (x + 1)
-             │              ‾
-[LOG]     →  RentComputation.g
-[LOG]       ≔  RentComputation.g.input0: 2
-[LOG]       ☛ Definition applied:
-            ─➤ tests/scope/good/scope_call3.catala_en:15.14-15:
-               │
-            15 │   definition g of x equals x + 1
-               │              ‾
-[LOG]       ≔  RentComputation.g.output: 3
-[LOG]     ←  RentComputation.g
-[LOG]     ≔  RentComputation.f.output: 3
-[LOG]   ←  RentComputation.f
-[LOG]   ≔  HousingComputation.f.output: 3
-[LOG] ←  HousingComputation.f
-[LOG] ≔  HousingComputation.result: 3
+      7 │   definition f of x equals (output of RentComputation).f of x
+        │              ‾
+      ⊸ Consequence:
+      ─➤ tests/scope/good/scope_call3.catala_en:7.28-62:
+        │
+      7 │   definition f of x equals (output of RentComputation).f of x
+        │                            ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+      → Entering scope RentComputation
+      ─➤ tests/scope/good/scope_call3.catala_en:7.28-55:
+        │
+      7 │   definition f of x equals (output of RentComputation).f of x
+        │                            ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+        ≔ Scope variable definition g: <function>
+        ─➤ tests/scope/good/scope_call3.catala_en:11.12-13:
+           │
+        11 │   internal g content integer depends on x content integer
+           │            ‾
+        ≔ Scope variable definition f: <function>
+        ─➤ tests/scope/good/scope_call3.catala_en:12.10-11:
+           │
+        12 │   output f content integer depends on x content integer
+           │          ‾
+      ← Exiting Scope RentComputation: RentComputation {
+                                           -- f: <function>
+                                         }
+      ⊕ Definition fulfilled
+      ─➤ tests/scope/good/scope_call3.catala_en:16.14-15:
+         │
+      16 │   definition f of x equals g of (x + 1)
+         │              ‾
+      ⊸ Consequence:
+      ─➤ tests/scope/good/scope_call3.catala_en:16.28-40:
+         │
+      16 │   definition f of x equals g of (x + 1)
+         │                            ‾‾‾‾‾‾‾‾‾‾‾‾
+      → Applying function g
+      ─➤ tests/scope/good/scope_call3.catala_en:16.28-29:
+         │
+      16 │   definition f of x equals g of (x + 1)
+         │                            ‾
+        ⊕ Definition fulfilled
+        ─➤ tests/scope/good/scope_call3.catala_en:15.14-15:
+           │
+        15 │   definition g of x equals x + 1
+           │              ‾
+        ⊸ Consequence:
+        ─➤ tests/scope/good/scope_call3.catala_en:15.28-33:
+           │
+        15 │   definition g of x equals x + 1
+           │                            ‾‾‾‾‾
+      ← Function g applied: 3
+    ← Function f applied: 3
+← Exiting Scope HousingComputation:
+  HousingComputation {
+    -- f: <function>
+    -- result: 3
+  }
 [DEBUG] End of interpretation
 ┌─[RESULT]─ HousingComputation ─
 │ f = λ (x: integer) →
 │   error_empty
 │     ⟨ ⟨true
 │        ⊢ ⟨(let result : RentComputation =
-│              (λ (RentComputation_in: RentComputation_in) →
-│               let g : integer → integer =
-│                 λ (x1: integer) →
-│                 error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩
-│               in
-│               let f : integer → integer =
-│                 λ (x1: integer) →
-│                 error_empty ⟨ ⟨true ⊢ ⟨g (x1 + 1)⟩⟩ | false ⊢ ∅ ⟩
-│               in
-│               { RentComputation f = f; })
+│              let RentComputation_in : RentComputation_in =
 │                {RentComputation_in}
+│              in
+│              let g : integer → integer =
+│                λ (x1: integer) →
+│                error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩
+│              in
+│              let f : integer → integer =
+│                λ (x1: integer) →
+│                error_empty ⟨ ⟨true ⊢ ⟨g (x1 + 1)⟩⟩ | false ⊢ ∅ ⟩
+│              in
+│              { RentComputation f = f; }
 │            in
 │            let result1 : RentComputation =
 │              { RentComputation f = λ (param0: integer) → result.f param0; }
 │            in
-│            if true then result1 else result1).
+│            result1).
 │             f
 │             x⟩⟩
 │     | false ⊢ ∅ ⟩

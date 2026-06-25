@@ -477,7 +477,7 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
 
 let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
-  | Log (_entry, _infos) -> assert false
+  | Tag _ -> Message.error "Traces in C are not yet implemented"
   | FromClosureEnv | ToClosureEnv -> assert false
   | Add_dat_dur _ -> assert false (* needs specific printing *)
   | op -> Format.fprintf fmt "@{<blue;bold>%s@}" (Operator.name op)
@@ -874,6 +874,7 @@ let rec format_statement
       Format.pp_close_box fmt ()
   | SReturn e1 ->
     Format.fprintf fmt "@,@[<hov 2>return %a;@]" (format_expression ctx env) e1
+  | SBeginTrace _ | SEndTrace _ -> (* Not yet implemented *) ()
   | _ -> .
 
 and format_ite (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
