@@ -239,7 +239,7 @@ let interpret_program (prg : (dcalc, 'm) gexpr program) (scope : ScopeName.t) :
   in
   let scope_v, scope_arg_struct = ScopeName.Map.find scope scopes in
   let { contents = e, env } = Env.find scope_v all_env in
-  let e = Expr.unbox (Expr.remove_logging_calls (Interpreter.addcustom e)) in
+  let e = Expr.unbox (Expr.remove_tags (Interpreter.addcustom e)) in
   log "=====================";
   log "%a" (Print.expr ~debug:true ()) e;
   log "=====================";
