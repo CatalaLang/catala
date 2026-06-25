@@ -175,7 +175,7 @@ module Flags = struct
           ~env:(Cmd.Env.info "CATALA_TRACE")
           ~doc:
             "Displays a trace of the interpreter's computation or generates \
-             logging instructions in translated programs. If set as a flag, \
+             trace instructions in translated programs. If set as a flag, \
              outputs trace to stdout. If $(docv) is defined, outputs the trace \
              to a file while interpreting.\n\
              Defining a filename does not affect code generation. Cannot use \
@@ -647,6 +647,8 @@ module Flags = struct
            schema for a given scope."
 
   let output_format = Global.output_format
+  let trace = Global.trace
+  let trace_format = Global.trace_format
 end
 
 (* Retrieve current version from dune *)
