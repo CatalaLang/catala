@@ -332,10 +332,6 @@ let map
   | ELit l -> elit l m
   | EApp { f = e1; args; tys } ->
     eapp ~f:(f e1) ~args:(List.map f args) ~tys:(List.map typ tys) m
-  | EAppOp { op = Op.Log (VarDef vd, infos), pos; tys; args } ->
-    let log_typ = Mark.remove (typ (Mark.add Pos.void vd.log_typ)) in
-    let op = fop (Op.Log (VarDef { vd with log_typ }, infos), pos) in
-    eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EAppOp { op = Op.ValueFromJson (ty, str), pos; tys; args } ->
     let op = fop (Op.ValueFromJson (typ ty, str), pos) in
     eappop ~op ~tys:(List.map typ tys) ~args:(List.map f args) m
@@ -878,12 +874,12 @@ let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
 (* This function is first defined in [Print], only for dependency reasons *)
 let skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = Print.skip_wrappers
 
-let remove_logging_calls e =
+let remove_tags e =
   let rec f e =
     let e, m = map ~f ~op:Fun.id e in
     ( Bindlib.box_apply
         (function
-          | EAppOp { op = Log _, _; args = [(arg, _)]; _ } -> arg | e -> e)
+          | EAppOp { op = Tag _, _; args = [(arg, _)]; _ } -> arg | e -> e)
         e,
       m )
   in
@@ -1067,6 +1063,28 @@ let make_puredefault e =
 
 let make_pos p m0 = epos p (with_ty m0 ~pos:p (TLit TPos, p))
 
+let etag
+    (type m)
+    ?pos:epos
+    (tag : tag)
+    (e : (< polymorphic : yes ; .. >, m) boxed_gexpr) : ('a, m) boxed_gexpr =
+  if Global.options.trace <> None then
+    let pos = Option.value ~default:(pos e) epos in
+    let m = map_mark (fun _ -> pos) (fun _ -> Type.any pos) (Mark.get e) in
+    eappop ~op:(Tag tag, pos) ~tys:[Type.any pos] ~args:[e] m
+  else e
+
+let etag_nobox
+    (type m)
+    ?pos:epos
+    (tag : tag)
+    (e : (< polymorphic : yes ; .. >, m) gexpr) : ('a, m) gexpr =
+  if Global.options.trace <> None then
+    let pos = Option.value ~default:(pos e) epos in
+    let m = map_mark (fun _ -> pos) (fun _ -> Type.any pos) (Mark.get e) in
+    Mark.add m (EAppOp { op = Tag tag, pos; tys = [Type.any pos]; args = [e] })
+  else e
+
 let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
   let x = Var.make var_name in
   make_abs
@@ -1128,7 +1146,8 @@ let detuplify_application args tys mkapp =
         arg (mkapp args) (pos arg))
   | args, _ -> mkapp args
 
-(* Warning: there is a dumbed-down version of this function in [Print.UserFacing]; don't forget to propagate updates *)
+(* Warning: there is a dumbed-down version of this function in
+   [Print.UserFacing]; don't forget to propagate updates *)
 let rec embed_value : type a.
     decl_ctx -> (a, 'm) gexpr -> Catala_runtime.Value.t =
  fun ctx e ->

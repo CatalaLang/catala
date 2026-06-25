@@ -330,19 +330,16 @@ type date = Catala_runtime.date
 type date_rounding = Catala_runtime.date_rounding
 type duration = Catala_runtime.duration
 
-type var_def_log = {
-  log_typ : naked_typ;
-  log_io_input : Catala_runtime.io_input;
-  log_io_output : bool;
-}
-
-type log_entry =
-  | VarDef of var_def_log
-      (** During code generation, we need to know the type of the variable being
-          logged for embedding as well as its I/O properties. *)
-  | BeginCall
-  | EndCall
-  | PosRecordIfTrueBool
+type tag =
+  | ScopeCall of ScopeName.t
+  | ScopeVarDef of { var : ScopeVar.t; io : Catala_runtime.io_log }
+  | LocalVarDef of { name : Ident.t }
+  | LocalTupDef of { names : Ident.t list }
+  | FunCall of TopdefName.t
+  | BranchingCondition
+  | Branching of Ident.t option
+  | Assertion
+  | Exception of { label : MarkedIdent.t option; cons_pos : Pos.t }
 
 module Op = struct
   (** Classification of operators on how they should be typed *)
@@ -370,7 +367,7 @@ module Op = struct
     | ValueFromJson : typ * string -> < monomorphic ; .. > t
     (* * polymorphic *)
     | Length : < polymorphic ; .. > t
-    | Log : log_entry * Uid.MarkedString.info list -> < polymorphic ; .. > t
+    | Tag : tag -> < polymorphic ; .. > t
     | ToClosureEnv : < polymorphic ; .. > t
     | FromClosureEnv : < polymorphic ; .. > t
     | ArrayAccess : int -> < polymorphic ; .. > t

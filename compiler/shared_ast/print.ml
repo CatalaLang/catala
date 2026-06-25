@@ -212,12 +212,39 @@ let lit (fmt : Format.formatter) (l : lit) : unit =
   | LDate d -> lit_style fmt ("|" ^ Catala_runtime.date_to_string d ^ "|")
   | LDuration d -> lit_style fmt (Catala_runtime.duration_to_string d)
 
-let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
+let tag (fmt : Format.formatter) (entry : tag) : unit =
   match entry with
-  | VarDef _ -> Format.fprintf fmt "@{<blue>@<1>%s @}" "≔"
-  | BeginCall -> Format.fprintf fmt "@{<yellow>@<1>%s @}" "→"
-  | EndCall -> Format.fprintf fmt "@{<yellow>@<1>%s @}" "←"
-  | PosRecordIfTrueBool -> Format.fprintf fmt "@{<green>@<1>%s @}" "☛"
+  | LocalVarDef { name } -> Format.fprintf fmt "LocalVarDef(%s)" name
+  | LocalTupDef { names } ->
+    Format.fprintf fmt "LocalTupDef(%a)"
+      Format.(
+        pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ",") pp_print_string)
+      names
+  | ScopeVarDef { var; _ } ->
+    Format.fprintf fmt "ScopeVarDef(%s)" (ScopeVar.to_string var)
+  | ScopeCall scope ->
+    Format.fprintf fmt "ScopeCall(%a)" ScopeName.format_original scope
+  | FunCall f -> Format.fprintf fmt "FunCall(%a)" TopdefName.format_original f
+  | BranchingCondition -> Format.fprintf fmt "BranchingCondition"
+  | Branching None -> Format.fprintf fmt "IfBranching"
+  | Branching (Some cstr) -> Format.fprintf fmt "MatchBranching(%s)" cstr
+  | Exception { label = Some (lbl, _); cons_pos = _ } ->
+    Format.fprintf fmt "Exception(%s)" lbl
+  | Exception { label = None; cons_pos = _ } -> Format.fprintf fmt "Exception"
+  | Assertion -> Format.fprintf fmt "Assertion"
+
+let tag_to_runtime (k : tag) =
+  match k with
+  | ScopeCall _ -> "ScopeCall"
+  | ScopeVarDef _ -> "ScopeVarDef"
+  | LocalVarDef _ -> "LocalVarDef"
+  | LocalTupDef _ -> "LocalTupDef"
+  | FunCall _ -> "FunCall"
+  | BranchingCondition -> "BranchingCondition"
+  | Branching None -> "IfBranching"
+  | Branching (Some _) -> "MatchBranching"
+  | Assertion -> "Assertion"
+  | Exception _ -> "Exception"
 
 let operator_to_string : type a. a Op.t -> string =
   let open Op in
@@ -236,7 +263,7 @@ let operator_to_string : type a. a Op.t -> string =
   | Round -> "round"
   | Round_rat -> "round_rat"
   | Round_mon -> "round_mon"
-  | Log _ -> "Log"
+  | Tag t -> Format.asprintf "#{%a}" tag t
   | Minus -> "-"
   | Minus_int -> "-!"
   | Minus_rat -> "-."
@@ -308,7 +335,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | ToRat_int | ToRat_mon | ToRat -> "to_rat"
   | ToMoney_rat | ToMoney_int | ToMoney -> "to_mon"
   | Round_rat | Round_mon | Round -> "round"
-  | Log _ -> "Log"
+  | Tag _ -> "#"
   | Minus_int | Minus_rat | Minus_mon | Minus_dur | Minus -> "-"
   | And -> "&&"
   | Or -> "||"
@@ -363,13 +390,7 @@ let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
  fun ?(debug = true) fmt op ->
   let open Op in
   match op with
-  | Log (entry, infos) ->
-    Format.fprintf fmt "@{<blue>#{@}%a%a@{<blue>}@}" log_entry entry
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> punctuation fmt ".")
-         (fun fmt info ->
-           Format.fprintf fmt "@{<blue>%s@}" (Uid.MarkedString.to_string info)))
-      infos
+  | Tag t -> Format.fprintf fmt "@{<blue>#{@}%a@{<blue>}@}" tag t
   | op ->
     literal_op_style fmt
       (if debug then operator_to_string op else operator_to_shorter_string op)
@@ -401,7 +422,7 @@ module Precedence = struct
     | ELit _ -> Contained (* Todo: unop if < 0 *)
     | EAppOp { op; _ } -> (
       match Mark.remove op with
-      | Not | Length | Log _ | Minus | Minus_int | Minus_rat | Minus_mon
+      | Not | Length | Tag _ | Minus | Minus_int | Minus_rat | Minus_mon
       | Minus_dur | ToInt | ToInt_rat | ToInt_mon | ToRat | ToRat_int
       | ToRat_mon | ToMoney | ToMoney_int | ToMoney_rat | Round | Round_rat
       | Round_mon ->
@@ -643,7 +664,7 @@ module ExprGen (C : EXPR_PARAM) = struct
             (paren ~context:e ~colors ~rhs:false exprc)
             arg2
         | e -> Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator Not (rhs exprc) e)
-      | EAppOp { op = (Log _ as op), _; args = [arg1]; _ } ->
+      | EAppOp { op = (Tag _ as op), _; args = [arg1]; _ } ->
         Format.fprintf fmt "@[<hv 0>%a@ %a@]" operator op (rhs exprc) arg1
       | EAppOp { op = op0, _; args = [_; _]; _ } ->
         let prec = Precedence.expr e in
@@ -843,7 +864,7 @@ module ExprConciseParam = struct
   let lit = lit
 
   let rec pre_map : type a. (a, 't) gexpr -> (a, 't) gexpr = function
-    | EAppOp { op = Log _, _; args = [e]; _ }, _ -> pre_map e
+    | EAppOp { op = Tag _, _; args = [e]; _ }, _ -> pre_map e
     | e -> e
 end
 
@@ -1033,8 +1054,8 @@ let program ?(debug = false) fmt p =
 (* This function is re-exported from module [Expr], but defined here where it's
    first needed *)
 let rec skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = function
-  | EAppOp { op = Log _, _; args = [e]; tys = _ }, _ -> skip_wrappers e
-  | EApp { f = EAppOp { op = Log _, _; args = [f]; _ }, _; args; tys }, m ->
+  | EAppOp { op = Tag _, _; args = [e]; tys = _ }, _ -> skip_wrappers e
+  | EApp { f = EAppOp { op = Tag _, _; args = [f]; _ }, _; args; tys }, m ->
     skip_wrappers (EApp { f; args; tys }, m)
   | EErrorOnEmpty e, _ -> skip_wrappers e
   | EDefault { excepts = []; just = ELit (LBool true), _; cons = e }, _ ->
@@ -1220,6 +1241,10 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
   | ELit (LDate d) -> pf fmt "LitDate<%a>" Dates_calc.format_date d
   | ELit (LDuration d) -> pf fmt "LitDur<%a>" Dates_calc.format_period d
   | EApp { f; args; _ } -> pf fmt "@[<hov 1>App(%a,@ %a)@]" s_expr f ppl args
+  | EAppOp { op = Tag entry, m_op; args; _ } ->
+    pf fmt "@[<hov 1>AppOp( Tag(%a,%s),@ %a)@]" tag entry
+      (Pos.to_string_shorter m_op)
+      ppl args
   | EAppOp { op; args; _ } ->
     pf fmt "@[<hov 1>AppOp( %s,@ %a)@]"
       (operator_to_string (Mark.remove op))
@@ -1285,10 +1310,122 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
     pf fmt "FatalError<%s>" (Catala_runtime.error_to_string error)
   | EPos p -> pf fmt "Pos<%s>" (Pos.to_string_shorter p)
   | EDefault { excepts; just; cons } ->
-    pf fmt "@[<hov 1>Default(%a,@ %a,@ %a)@]" ppl excepts s_expr just s_expr
+    pf fmt "@[<hov 1>Default(@,%a,@ %a,@ %a)@]" ppl excepts s_expr just s_expr
       cons
-  | EPureDefault e -> pf fmt "@[<hov 1>PureDefault(%a)@]" s_expr e
+  | EPureDefault e -> pf fmt "@[<hov 1>PureDefault(@,%a)@]" s_expr e
   | EEmpty -> pf fmt "Empty"
-  | EErrorOnEmpty e -> pf fmt "@[<hov 1>ErrorOnEmpty(%a)@]" s_expr e
+  | EErrorOnEmpty e -> pf fmt "@[<hov 1>ErrorOnEmpty(@,%a)@]" s_expr e
   | ECustom _ -> pf fmt "Custom<..>"
   | EBad -> pf fmt "Bad"
+
+let runtime_to_pos rpos =
+  let pos =
+    let open Catala_runtime in
+    Pos.from_info rpos.filename rpos.start_line rpos.start_column rpos.end_line
+      rpos.end_column
+  in
+  Pos.overwrite_law_info pos rpos.law_headings
+
+let rec trace (ppf : Format.formatter) (trace : Catala_runtime.trace) =
+  Format.fprintf ppf "@[<v>%a@]"
+    Format.(pp_print_list ~pp_sep:pp_print_cut trace_element)
+    trace
+
+and trace_element =
+  let last_printed_pos = ref None in
+  fun (ppf : Format.formatter)
+    ({ kind; pos; value; sub_trace } : Catala_runtime.trace_element)
+  ->
+    let pp_pos ppf p =
+      let rp = runtime_to_pos p in
+      match !last_printed_pos with
+      | None ->
+        last_printed_pos := Some rp;
+        (Pos.format_loc_text ~pp_file:Message.pp_pos ()) ppf (runtime_to_pos p)
+      | Some rp' when rp <> rp' ->
+        last_printed_pos := Some rp;
+        (Pos.format_loc_text ~pp_file:Message.pp_pos ()) ppf (runtime_to_pos p)
+      | _ -> ()
+    in
+    let open Catala_runtime in
+    let open Format in
+    let pp_value ppf value =
+      match value with
+      | None -> pp_print_string ppf "∅"
+      | Some v -> fprintf ppf "@{<magenta>%a@}" Value.format v
+    in
+    let pp_sub_trace ppf =
+      if sub_trace = [] then () else fprintf ppf "@ %a" trace sub_trace
+    in
+    match kind with
+    | ScopeCall { name = scope_name; decl_pos = _ } ->
+      fprintf ppf "→ Entering scope @{<cyan3>%s@}@ " scope_name;
+      fprintf ppf "@[<v 2>%a%t@]@ " pp_pos pos pp_sub_trace;
+      fprintf ppf "@[<hov 2>← Exiting Scope %s:@ @[%a@]@]" scope_name pp_value
+        value
+    | ScopeVarDef { var; io } ->
+      fprintf ppf "@[<hov 2>≔ Scope%s variable definition %a:@ @[%a@]@]@ "
+        (if io.io_input = Reentrant then " context"
+         else if io.io_input = OnlyInput then " input"
+         else "")
+        lit_style var.name pp_value value;
+      fprintf ppf "@[<v 2>%a%t@]" pp_pos var.decl_pos pp_sub_trace
+    | LocalVarDef var_name ->
+      fprintf ppf "@[<hov 2>≔ Local variable %a definition:@ @[%a@]@]@ "
+        lit_style var_name pp_value value;
+      fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
+    | LocalTupDef names ->
+      fprintf ppf "@[<hov 2>≔ Local variables (%a) definition:@ @[%a@]@]@ "
+        (pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ",") lit_style)
+        names pp_value value;
+      fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
+    | FunCall { name = func_name; decl_pos } ->
+      fprintf ppf "→ Applying function %a@ " lit_style func_name;
+      fprintf ppf "@[<v 2>%a%t@]@ " pp_pos decl_pos pp_sub_trace;
+      fprintf ppf "@[<hov 2>← Function %a applied:@ @[%a@]@]" lit_style
+        func_name pp_value value
+    | BranchingCondition ->
+      fprintf ppf "⊡ Condition evaluated to %a@," pp_value value;
+      fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
+    | IfBranching ->
+      fprintf ppf "⊸ Branch taken@ ";
+      fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
+    | MatchBranching { constructor_name } ->
+      fprintf ppf "⊸ Branch taken: case %a@," lit_style constructor_name;
+      fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
+    | Assertion ->
+      fprintf ppf "⊹ Assertion@,";
+      fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
+    | Exception { label; cons_pos } ->
+      let is_fulfilled =
+        match value with
+        | Some (Catala_runtime.Value.V (Bool, true)) -> true
+        | _ (* should only ever be true/false *) -> false
+      in
+      let format_decision ppf =
+        if is_fulfilled then fprintf ppf "@{<green>fulfilled@}"
+        else fprintf ppf "@{<brown>not fulfilled@}"
+      in
+      let format_label ppf =
+        Option.iter (fun (lbl, _pos) -> fprintf ppf " %a" lit_style lbl) label
+      in
+      fprintf ppf "⊕ Definition%t %t@ " format_label format_decision;
+      if is_fulfilled then (
+        fprintf ppf "%a@ ⊸ Consequence:@ " pp_pos pos;
+        fprintf ppf "@[<v 2>%a%t@]" pp_pos cons_pos pp_sub_trace)
+      else fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
+    | Error { error; locs; message } ->
+      fprintf ppf "@{<red;bold>⨉ Error: %s%t@}"
+        (Catala_runtime.error_message error) (fun ppf ->
+          match message with
+          | Some message -> Format.fprintf ppf " (%s)" message
+          | None -> ());
+      fprintf ppf "%a" pp_pos pos;
+      if locs = [] then ()
+      else begin
+        pp_print_cut ppf ();
+        fprintf ppf "@[<v 2>Related locations:@ %a@]"
+          (pp_print_list ~pp_sep:pp_print_cut pp_pos)
+          locs
+      end;
+      pp_sub_trace ppf

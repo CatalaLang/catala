@@ -534,7 +534,7 @@ let rec translate_op :
     failwith "[Z3 encoding] application of binary operator Filter not supported"
   | Not, _ -> app1 Boolean.mk_not
   (* Omitting the log from the VC *)
-  | Log _, [e1] -> translate_expr ctx e1
+  | Tag _, [e1] -> translate_expr ctx e1
   | Length, [e1] ->
     (* For now, an array is only its symbolic length. We simply return it *)
     translate_expr ctx e1

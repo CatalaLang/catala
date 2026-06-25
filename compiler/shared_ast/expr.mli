@@ -193,6 +193,19 @@ val ecustom :
 
 val ebad : 'm mark -> ('a any, 'm) boxed_gexpr
 
+val etag :
+  ?pos:Pos.t ->
+  tag ->
+  ((< polymorphic : yes ; .. > as 'a), 'm) boxed_gexpr ->
+  ('a, 'm) boxed_gexpr
+(** Wraps the given expression with a [Tag] unary operator application. *)
+
+val etag_nobox :
+  ?pos:Pos.t ->
+  tag ->
+  ((< polymorphic : yes ; .. > as 'a), 'm) gexpr ->
+  ('a, 'm) gexpr
+
 val fun_id : ?var_name:string -> 'm mark -> ('a any, 'm) boxed_gexpr
 (** The type of the mark, if typed, is assumed to correspond to the argument
     type, not the function type *)
@@ -441,9 +454,9 @@ val make_tupleaccess :
 val skip_wrappers : ('a, 'm) gexpr -> ('a, 'm) gexpr
 (** Removes surface logging calls and [EErrorOnEmpty] nodes. Shallow function *)
 
-val remove_logging_calls :
+val remove_tags :
   ((< polymorphic : yes ; .. > as 'a), 'm) gexpr -> ('a, 'm) boxed_gexpr
-(** Removes all calls to [Log] unary operators in the AST, replacing them by
+(** Removes all calls to [Tag] unary operators in the AST, replacing them by
     their argument. *)
 
 val detuplify_application :

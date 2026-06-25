@@ -73,15 +73,6 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
     Format.fprintf fmt "duration_of_numbers %a %a %a" pint years pint months
       pint days
 
-let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
-    : unit =
-  Format.fprintf fmt "@[<hov 2>[%a]@]"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-       (fun fmt info ->
-         Format.fprintf fmt "\"%a\"" Uid.MarkedString.format info))
-    uids
-
 let op_needs_pos (type a) (op : a Op.t) ty =
   match op with
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_int | Div_mon_rat
@@ -327,6 +318,18 @@ let rec needs_parens ?context (e : 'm expr) : bool =
     false
   | _ -> true
 
+let format_code_location fmt (p : Pos.t) =
+  Format.fprintf fmt
+    "@[<hov 2>{filename = %S;@,\
+     start_line=%d;@,\
+     start_column=%d;@,\
+     end_line=%d;@,\
+     end_column=%d;@,\
+     law_headings=%a}@]"
+    (Pos.get_file p) (Pos.get_start_line p) (Pos.get_start_column p)
+    (Pos.get_end_line p) (Pos.get_end_column p) format_string_list
+    (Pos.get_law_info p)
+
 let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     unit =
   let format_expr = format_expr ctx in
@@ -368,8 +371,6 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
          (fun fmt e -> Format.fprintf fmt "%a" format_with_parens e))
       es
-  (* | ETupleAccess { e = ETuple es, _; index; _ } ->
-   *   format_expr fmt (List.nth es index) *)
   | ETupleAccess { e; index; size } ->
     Format.fprintf fmt "@[<hv 2>@[<hv 2>let @[<hov>%a@] =@ %a@]@;<1 -2>in x@]"
       (Format.pp_print_list
@@ -443,43 +444,13 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
          (fun fmt (x, tau) ->
            Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
       xs_tau format_expr body
-  | EApp
-      {
-        f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _;
-        args;
-        _;
-      }
-    when Global.options.trace <> None ->
-    Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
-      format_with_parens f
-      (Format.pp_print_list ~pp_sep:Format.pp_print_space format_with_parens)
-      args
-  | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1]; _ }
+  | EAppOp { op = Tag t, log_pos; args = [f]; _ }
     when Global.options.trace <> None ->
     Format.fprintf fmt
-      "(log_variable_definition@ %a@ {io_input=%s;@ io_output=%b}@ (%a)@ %a)"
-      format_uid_list info
-      (match var_def_info.log_io_input with
-      | NoInput -> "NoInput"
-      | OnlyInput -> "OnlyInput"
-      | Reentrant -> "Reentrant")
-      var_def_info.log_io_output format_embedding
-      (var_def_info.log_typ, Pos.void)
-      format_with_parens arg1
-  | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    let pos = Expr.pos e in
-    Format.fprintf fmt
-      "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
-       start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a)"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos) format_with_parens arg1
-  | EAppOp { op = Log (EndCall, info), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
-      format_with_parens arg1
-  | EAppOp { op = Log _, _; args = [arg1]; _ } ->
+      "@[<hov 2>(with_trace ~embed:(%a)@ %a@ %a (fun () ->@\n%a))@]"
+      format_embedding (Expr.ty f) format_trace_tag t format_code_location
+      log_pos format_with_parens f
+  | EAppOp { op = Tag _, _; args = [arg1]; _ } ->
     Format.fprintf fmt "%a" format_with_parens arg1
   | EApp { f; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_with_parens f
@@ -550,7 +521,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       | TLit TUnit, _ -> ""
       | _ -> " _")
   | EAppOp { op = ((Eq | Lt | Lte | Gt | Gte) as op), _; args = [a1; a2]; _ } ->
-    (* [op_needs_pos] is fine-tuned so that this applies only to primitive types where it's safe to use OCaml polymorphic comparisons *)
+    (* [op_needs_pos] is fine-tuned so that this applies only to primitive types
+       where it's safe to use OCaml polymorphic comparisons *)
     Format.fprintf fmt "@[<hov 2>%a@ %s %a@]" format_with_parens a1
       (Print.operator_to_string op)
       format_with_parens a2
@@ -586,6 +558,49 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       "Attempting to compile a EBad node which should have been previously \
        filtered."
   | _ -> .
+
+and format_trace_tag fmt tag =
+  let tag_s = Print.tag_to_runtime tag in
+  let format_trace_var_def fmt (s, pos) =
+    Format.fprintf fmt "{name=%S;decl_pos=%a}" s format_code_location pos
+  in
+  match tag with
+  | ScopeCall scope_name ->
+    let decl_pos = Mark.get (ScopeName.get_info scope_name) in
+    Format.fprintf fmt "(%s@ {name=%S;@ decl_pos=%a})" tag_s
+      (ScopeName.original_base scope_name)
+      format_code_location decl_pos
+  | ScopeVarDef { var; io } ->
+    let format_io fmt =
+      let io_input =
+        match io.io_input with
+        | Runtime.NoInput -> "NoInput"
+        | Runtime.OnlyInput -> "OnlyInput"
+        | Runtime.Reentrant -> "Reentrant"
+      in
+      Format.fprintf fmt "{io_input=%s;io_output=%b}" io_input io.io_output
+    in
+    Format.fprintf fmt "(%s@ {var=%a;@ io=%t})" tag_s format_trace_var_def
+      (ScopeVar.get_info var) format_io
+  | LocalVarDef { name } -> Format.fprintf fmt "(%s@ %S)" tag_s name
+  | FunCall topdef ->
+    Format.fprintf fmt "(%s@ %a)" tag_s format_trace_var_def
+      (TopdefName.get_info topdef)
+  | LocalTupDef { names } ->
+    Format.fprintf fmt "(%s@ %a)" tag_s format_string_list names
+  | BranchingCondition | Branching None | Assertion ->
+    Format.fprintf fmt "%s" tag_s
+  | Branching (Some c) ->
+    Format.fprintf fmt "(%s {constructor_name=%S})" tag_s c
+  | Exception { label; cons_pos } ->
+    let pp_label fmt =
+      match label with
+      | None -> Format.fprintf fmt "None"
+      | Some (lbl, pos) ->
+        Format.fprintf fmt "Some (%S,%a)" lbl format_code_location pos
+    in
+    Format.fprintf fmt "(%s {label=%t;cons_pos=%a})" tag_s pp_label
+      format_code_location cons_pos
 
 let format_ctx
     (type_ordering : TypeIdent.t list)
@@ -805,13 +820,13 @@ let format_scope_exec_args
       Format.fprintf fmt "  %S;\n" (ScopeName.original_base scope))
     tests;
   Format.pp_print_string fmt "]\n";
-
   Format.pp_print_string fmt
     {|
 let catala_test_flags, commands =
   Stdlib.List.partition_map (function
     | "--test" -> Left `Test
     | "--json" -> Left `Json
+    | "--trace" -> Left `Trace
     | c when Stdlib.List.mem c test_scopes -> Right c
     | c ->
       Stdlib.print_endline
@@ -821,7 +836,8 @@ let catala_test_flags, commands =
         test_scopes;
       Stdlib.print_endline
         "Allowed flags:\n  --test\tcheck without printing results\n\
-        \  --json\toutput results in JSON";
+        \  --json\toutput results in JSON\n\
+        \  --trace\toutput trace in JSON";
       Stdlib.exit 1)
     (Stdlib.List.tl (Stdlib.Array.to_list Stdlib.Sys.argv))
 
@@ -837,18 +853,34 @@ let catala_test_commands = if commands = [] then test_scopes else commands
   Format.pp_open_vbox fmt 0;
   Format.fprintf fmt "open Catala_runtime@,";
   Format.fprintf fmt "open %s@,@," modname;
+  let format_initial_call_trace fmt (scope, _e) =
+    let scope_info = ScopeName.Map.find scope p.decl_ctx.ctx_scopes in
+    if Global.options.trace <> None then
+      let out_typ = TStruct scope_info.out_struct_name, Pos.void in
+      let decl_pos = Mark.get (ScopeName.get_info scope) in
+      Format.fprintf fmt
+        "@[<hov 2>with_trace ~embed:(%a)@,\
+         @[<hov 2>(ScopeCall { name = %S; decl_pos=%a })@ %a@] @@@@ fun () \
+         ->@]@,"
+        format_embedding out_typ
+        (ScopeName.original_base scope)
+        format_code_location decl_pos format_code_location decl_pos
+  in
   List.iter
     (fun (scope, e) ->
       Format.fprintf fmt
         "@[<v 2>let () =@ Print.set_lang `%s; if Stdlib.List.mem %S \
          catala_test_commands then (@ @[<hv>@[<hov 2>let result =@ \
-         @[<hv>%a@]@]@,\
-         in@,\
+         @[<hv>%a%a@]@] in@,\
+         @[<hv 2>if Stdlib.List.mem `Trace catala_test_flags then@ \
+         print_endline (Catala_runtime.Json.trace \
+         (Catala_runtime.retrieve_trace ()));@]@,\
          @[<v 2>Format.eprintf \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
          successfully.@@.\";@]@,"
         (match p.lang with `En -> "En" | `Fr -> "Fr" | _ -> "En")
         (ScopeName.original_base scope)
-        (format_expr p.decl_ctx) e ScopeName.format_original scope;
+        format_initial_call_trace (scope, e) (format_expr p.decl_ctx) e
+        ScopeName.format_original scope;
       let struct_name =
         (ScopeName.Map.find scope p.decl_ctx.ctx_scopes).out_struct_name
       in
@@ -861,7 +893,7 @@ let catala_test_commands = if commands = [] then test_scopes else commands
          Catala_runtime.Value.format@ (Catala_runtime.Value.embed %a.rtype \
          result)@]"
         StructName.format struct_name StructName.format struct_name;
-      Format.fprintf fmt "@]@]@,)@,")
+      Format.fprintf fmt "@]@]@,)@]@,")
     tests;
   Format.pp_close_box fmt ()
 

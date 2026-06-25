@@ -698,8 +698,10 @@ let rec translate_expr
     check_formula op e2;
     translate_binop op pos (rec_helper e1) (rec_helper e2)
   | IfThenElse (e_if, e_then, e_else) ->
-    Expr.eifthenelse (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
-      emark
+    let e_if = Expr.etag BranchingCondition (rec_helper e_if) in
+    let e_then = Expr.etag (Branching None) (rec_helper e_then) in
+    let e_else = Expr.etag (Branching None) (rec_helper e_else) in
+    Expr.eifthenelse e_if e_then e_else emark
   | Ternop (op, e1, e2, e3) ->
     translate_ternop op pos (rec_helper e1) (rec_helper e2) (rec_helper e3)
   | Binop ((S.Neq, posn), e1, e2) ->
@@ -943,10 +945,18 @@ let rec translate_expr
     let tys = List.map (fun x -> Type.any (Mark.get x)) xs in
     (* This type will be resolved in Scopelang.Desambiguation *)
     let f = Expr.make_abs m_xs (rec_helper ~local_vars e2) tys pos in
-    Expr.detuplify_application
-      [rec_helper e1]
-      tys
-      (fun args -> Expr.eapp ~f ~args ~tys emark)
+    let e1 =
+      let e = rec_helper e1 in
+      match xs with
+      | [] -> e
+      | [(name, decl_pos)] -> Expr.etag ~pos:decl_pos (LocalVarDef { name }) e
+      | vs ->
+        let names, lpos = List.split vs in
+        let tup_pos = List.fold_left Pos.join (List.hd lpos) (List.tl lpos) in
+        Expr.etag ~pos:tup_pos (LocalTupDef { names }) e
+    in
+    Expr.detuplify_application [e1] tys (fun args ->
+        Expr.eapp ~f ~args ~tys emark)
   | StructReplace (e, fields) ->
     let fields =
       fold_left_catch_errors
@@ -1085,7 +1095,7 @@ let rec translate_expr
         Message.error ~pos "Enum %s does not contain case %s."
           (Mark.remove enum) (Mark.remove constructor)))
   | MatchWith (e1, (cases, _cases_pos)) ->
-    let e1 = rec_helper e1 in
+    let e1 = Expr.etag BranchingCondition @@ rec_helper e1 in
     let cases_d, e_uid =
       disambiguate_match_and_build_expression scope inside_definition_of ctxt
         local_vars ~no_wildcard_warning cases
@@ -1191,11 +1201,12 @@ let rec translate_expr
       (String.concat "_" (List.map Mark.remove ids))
       varpos
   | Assert (e1, e2, apos) ->
+    let pos = Pos.set_attrs apos (Pos.attrs pos) in
     Expr.make_let_in
       (Var.make "_", Mark.get e1)
       (TLit TUnit, Mark.get e1)
-      (Expr.eassert (rec_helper e1)
-         (Untyped { pos = Pos.set_attrs apos (Pos.attrs pos) }))
+      (Expr.etag ~pos Shared_ast.Assertion
+         (Expr.eassert (rec_helper e1) (Untyped { pos })))
       (rec_helper e2) apos
 
 and disambiguate_match_and_build_expression
@@ -1281,8 +1292,10 @@ and disambiguate_match_and_build_expression
           local_vars binding
       in
       let case_body =
-        translate_expr scope inside_definition_of ctxt local_vars
-          case.S.match_case_expr
+        Expr.etag
+          (Branching (Some (EnumConstructor.to_string c_uid)))
+          (translate_expr scope inside_definition_of ctxt local_vars
+             case.S.match_case_expr)
       in
       let e_binder = Expr.bind (Array.of_list param_var) case_body in
       let pos_binder =
@@ -1355,6 +1368,11 @@ and disambiguate_match_and_build_expression
         (* For each missing cases, binds the wildcard payload. *)
         EnumConstructor.Map.fold
           (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
+            let case_body =
+              Expr.etag
+                (Branching (Some (EnumConstructor.to_string c_uid)))
+                case_body
+            in
             let case_expr =
               bind_case_body c_uid e_uid ctxt case_body e_binder pos_binder
             in

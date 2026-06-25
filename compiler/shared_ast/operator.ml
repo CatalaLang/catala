@@ -21,7 +21,7 @@ include Definitions.Op
 let name : type a. a t -> string = function
   | Not -> "o_not"
   | Length -> "o_length"
-  | Log _ -> "o_log"
+  | Tag _ -> "o_tag"
   | Minus -> "o_minus"
   | Minus_int -> "o_minus_int"
   | Minus_rat -> "o_minus_rat"
@@ -102,40 +102,48 @@ let name : type a. a t -> string = function
   | ValueFromJson (_ty, str) -> Printf.sprintf "from_json(%s)" str
   | DebugPrint str -> Printf.sprintf "debug_print(%s)" str
 
-let compare_log_entries l1 l2 =
-  match l1, l2 with
-  | VarDef t1, VarDef t2 ->
-    let tcompare = Type.compare (t1.log_typ, Pos.void) (t2.log_typ, Pos.void) in
-    if tcompare = 0 then
-      let ocompare = Bool.compare t1.log_io_output t2.log_io_output in
-      if ocompare = 0 then
-        match t1.log_io_input, t2.log_io_input with
-        | NoInput, NoInput | OnlyInput, OnlyInput | Reentrant, Reentrant -> 0
-        | NoInput, _ -> 1
-        | _, NoInput -> -1
-        | OnlyInput, _ -> 1
-        | _, OnlyInput -> -1
-      else ocompare
-    else tcompare
-  | BeginCall, BeginCall
-  | EndCall, EndCall
-  | PosRecordIfTrueBool, PosRecordIfTrueBool ->
-    0
-  | VarDef _, _ -> -1
-  | _, VarDef _ -> 1
-  | BeginCall, _ -> -1
-  | _, BeginCall -> 1
-  | EndCall, _ -> -1
-  | _, EndCall -> 1
-  | PosRecordIfTrueBool, _ -> .
-  | _, PosRecordIfTrueBool -> .
+let compare_tag t1 t2 =
+  match t1, t2 with
+  | ScopeCall s1, ScopeCall s2 -> ScopeName.compare s1 s2
+  | ScopeVarDef { var = v1; _ }, ScopeVarDef { var = v2; _ } ->
+    ScopeVar.compare v1 v2
+  | LocalVarDef { name = v1 }, LocalVarDef { name = v2 } -> Ident.compare v1 v2
+  | FunCall v1, FunCall v2 -> TopdefName.compare v1 v2
+  | LocalTupDef { names = t1 }, LocalTupDef { names = t2 } ->
+    List.compare Ident.compare t1 t2
+  | BranchingCondition, BranchingCondition -> 0
+  | Branching (Some _), Branching None -> 1
+  | Branching None, Branching (Some _) -> -1
+  | Branching None, Branching None -> 0
+  | Branching (Some c1), Branching (Some c2) -> Ident.compare c1 c2
+  | Assertion, Assertion -> 0
+  | ( Exception { label = l; cons_pos = cp1 },
+      Exception { label = l'; cons_pos = cp2 } ) ->
+    let cmp = Option.compare MarkedIdent.compare l l' in
+    if cmp = 0 then Pos.compare cp1 cp2 else cmp
+  | ScopeCall _, _ -> 1
+  | _, ScopeCall _ -> -1
+  | ScopeVarDef _, _ -> 1
+  | _, ScopeVarDef _ -> -1
+  | LocalVarDef _, _ -> 1
+  | _, LocalVarDef _ -> -1
+  | LocalTupDef _, _ -> 1
+  | _, LocalTupDef _ -> -1
+  | FunCall _, _ -> 1
+  | _, FunCall _ -> -1
+  | BranchingCondition, _ -> 1
+  | _, BranchingCondition -> -1
+  | Branching _, _ -> 1
+  | _, Branching _ -> -1
+  | Assertion, _ -> 1
+  | _, Assertion -> -1
+  | Exception _, _ -> .
+  | _, Exception _ -> .
 
 let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   match[@ocamlformat "disable"] t1, t2 with
-  | Log (l1, info1), Log (l2, info2) -> (
-    match compare_log_entries l1 l2 with
-    | 0 -> List.compare Uid.MarkedString.compare info1 info2
-    | n -> n)
+  | Tag (t1), Tag (t2) -> (
+     compare_tag t1 t2 )
   | Add_dat_dur l, Add_dat_dur r -> Stdlib.compare l r
   | Sub_dat_dur l, Sub_dat_dur r -> Stdlib.compare l r
   | Not, Not
@@ -210,7 +218,7 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
      | n -> n)
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
-  | Log _, _ -> -1 | _, Log _ -> 1
+  | Tag _, _ -> -1 | _, Tag _ -> 1
   | Minus, _ -> -1 | _, Minus -> 1
   | Minus_int, _ -> -1 | _, Minus_int -> 1
   | Minus_rat, _ -> -1 | _, Minus_rat -> 1
@@ -293,7 +301,7 @@ let kind_dispatch : type a.
      ?(resolved = fun _ -> assert false) op ->
   match op with
   | ((Not | And | Or | Xor | ValueFromJson _), _) as op -> monomorphic op
-  | ( ( Log _ | Length | Eq | Concat | Map | Filter | Find | Reduce | Sort _
+  | ( ( Tag _ | Length | Eq | Concat | Map | Filter | Find | Reduce | Sort _
       | Map2 | Fold | Lt | Lte | Gt | Gte | HandleExceptions | FromClosureEnv
       | ToClosureEnv | ArrayAccess _ | ConstructorCheck _ | DebugPrint _ ),
       _ ) as op ->
@@ -322,7 +330,7 @@ type 'a no_overloads =
 
 let translate (t : 'a no_overloads t Mark.pos) : 'b no_overloads t Mark.pos =
   match t with
-  | ( ( Not | And | Or | Xor | HandleExceptions | Log _ | Length | Eq | Lt | Gt
+  | ( ( Not | And | Or | Xor | HandleExceptions | Tag _ | Length | Eq | Lt | Gt
       | Lte | Gte | Concat | Map | Filter | Find | Reduce | Sort _ | Map2 | Fold
       | Minus_int | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToInt_mon
       | ToRat_int | ToRat_mon | ToMoney_rat | ToMoney_int | Round_rat
@@ -502,7 +510,7 @@ let is_pure : type a. a t -> bool = function
     (* basically, operators that take a position in the backends, and their
        overloaded counterparts: those are the ones that can raise *)
     false
-  | Log _ | DebugPrint _ -> false
+  | Tag _ | DebugPrint _ -> false
   | Not | Length | ToClosureEnv | FromClosureEnv | ArrayAccess _
   | ConstructorCheck _ | Minus | Minus_int | Minus_rat | Minus_mon | Minus_dur
   | ToInt | ToInt_mon | ToInt_rat | ToRat | ToRat_int | ToRat_mon | ToMoney

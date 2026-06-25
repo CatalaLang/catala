@@ -28,48 +28,7 @@ module Runtime = Catala_runtime
 let is_empty_error : type a. (a, 'm) gexpr -> bool =
  fun e -> match Mark.remove e with EEmpty -> true | _ -> false
 
-(* TODO: we should provide a generic way to print logs, that work across the
-   different backends: python, ocaml, javascript, and interpreter *)
-
 (** {1 Evaluation} *)
-
-let print_log ppf _lang level entry =
-  let pp_infos =
-    Format.(
-      pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ".@,") pp_print_string)
-  in
-  let logprintf level entry fmt =
-    if ppf == Message.std_ppf () then Format.fprintf ppf "[@{<bold;grey>LOG@}] ";
-    Format.fprintf ppf
-      ("@[<hov>%*s%a" ^^ fmt ^^ "@]@,")
-      (level * 2) "" Print.log_entry entry
-  in
-  match entry with
-  | Runtime.BeginCall infos ->
-    logprintf level BeginCall " %a" pp_infos infos;
-    level + 1
-  | Runtime.EndCall infos ->
-    let level = max 0 (level - 1) in
-    logprintf level EndCall " %a" pp_infos infos;
-    level
-  | Runtime.VariableDefinition (infos, io, value) ->
-    logprintf level
-      (VarDef
-         {
-           log_typ = TVar (Type.Var.fresh ());
-           log_io_input = io.Runtime.io_input;
-           log_io_output = io.Runtime.io_output;
-         })
-      " %a: @{<green>%s@}" pp_infos infos
-      (Message.unformat (fun ppf -> Runtime.Value.format ppf value));
-    level
-  | Runtime.DecisionTaken rtpos ->
-    let pos = Expr.runtime_to_pos rtpos in
-    logprintf level PosRecordIfTrueBool
-      "@[<v -2>@{<green>Definition applied@}:@,@{<cyan>%a@}@]@,"
-      (Pos.format_loc_text ~pp_file:Message.pp_pos ())
-      pos;
-    level
 
 let handle_eq ctx pos e1 e2 =
   Runtime.Value.equal (Expr.pos_to_runtime pos) (Expr.embed_value ctx e1)
@@ -157,26 +116,7 @@ let rec evaluate_operator
   match op, args with
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
-  | Log (entry, infos), [(e, m)] when Global.options.trace <> None -> (
-    let rtinfos = List.map Uid.MarkedString.to_string infos in
-    match entry with
-    | BeginCall -> Runtime.log_begin_call rtinfos e
-    | EndCall -> Runtime.log_end_call rtinfos e
-    | PosRecordIfTrueBool ->
-      (match e with
-      | ELit (LBool b) ->
-        Runtime.log_decision_taken (Expr.pos_to_runtime pos) b |> ignore
-      | _ -> ());
-      e
-    | VarDef def ->
-      Mark.remove
-      @@ Runtime.log_variable_definition rtinfos
-           {
-             Runtime.io_input = def.log_io_input;
-             io_output = def.log_io_output;
-           }
-           (Expr.embed_value ctx) (e, m))
-  | Log _, [(e', _)] -> e'
+  | Tag _, [(e', _)] -> e'
   | (FromClosureEnv | ToClosureEnv), [e'] ->
     (* [FromClosureEnv] and [ToClosureEnv] are just there to bypass the need for
        existential types when typing code after closure conversion. There are
@@ -266,7 +206,7 @@ let rec evaluate_operator
         weighted
     in
     EArray (List.map fst sorted)
-  | ( ( Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce
+  | ( ( Length | Tag _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce
       | Find | Sort _ ),
       _ ) ->
     err ()
@@ -653,6 +593,34 @@ and val_to_runtime : type d r.
       "Could not convert value of type %a@ to@ runtime:@ %a" Print.typ ty
       Expr.format v
 
+let tag_to_runtime = function
+  | ScopeCall scope_name ->
+    let name = ScopeName.original_base scope_name in
+    let _, decl_pos = ScopeName.get_info scope_name in
+    Runtime.ScopeCall { name; decl_pos = Expr.pos_to_runtime decl_pos }
+  | ScopeVarDef { var; io } ->
+    let name = ScopeVar.to_string var in
+    let _, decl_pos = ScopeVar.get_info var in
+    Runtime.ScopeVarDef
+      { var = { name; decl_pos = Expr.pos_to_runtime decl_pos }; io }
+  | LocalVarDef { name } -> Runtime.LocalVarDef name
+  | LocalTupDef { names } -> Runtime.LocalTupDef names
+  | FunCall topdef ->
+    let name = TopdefName.original_base topdef in
+    let _, decl_pos = TopdefName.get_info topdef in
+    Runtime.FunCall { name; decl_pos = Expr.pos_to_runtime decl_pos }
+  | BranchingCondition -> BranchingCondition
+  | Branching None -> IfBranching
+  | Branching (Some constructor_name) -> MatchBranching { constructor_name }
+  | Exception { label; cons_pos } ->
+    let label =
+      match label with
+      | None -> None
+      | Some (l, p) -> Some (l, Expr.pos_to_runtime p)
+    in
+    Exception { label; cons_pos = Expr.pos_to_runtime cons_pos }
+  | Assertion -> Assertion
+
 let rec handle_assert : type d r.
     eval_expr:
       (((d, r, yes) interpr_kind, 't) gexpr ->
@@ -684,9 +652,22 @@ let rec handle_assert : type d r.
     (match Mark.remove partially_evaluated_assertion_failure_expr with
     | ELit (LBool false) ->
       if Global.options.no_fail_on_assert then Message.warning ~pos "%t." msg
+      else if Global.options.trace <> None then
+        let msg = Format.asprintf "%t" msg in
+        (* We raise a runtime error so that the trace builder catches
+           its expected type of error. *)
+        raise
+          Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos], Some msg))
       else Message.delayed_error ~kind:AssertFailure () ~pos "%t." msg
     | _ ->
       (if Global.options.no_fail_on_assert then Message.warning
+       else if Global.options.trace <> None then
+         let msg = Format.asprintf "%t" msg in
+         (* We raise a runtime error so that the trace builder catches
+            its expected type of error. *)
+         raise
+           Runtime.(
+             Error (AssertionFailed, [Expr.pos_to_runtime pos], Some msg))
        else Message.delayed_error ~kind:AssertFailure ())
         ~pos "@[<hv>%t:@ @[<hv 4>%a@]@]" msg Print.UserFacing.expr
         partially_evaluated_assertion_failure_expr);
@@ -853,6 +834,11 @@ let rec evaluate_expr : type d r.
           if Global.options.debug then Format.fprintf ppf ":@ %a" Expr.format e
           else ())
         e1)
+  | EAppOp { op = Tag t, _; args = [e]; _ } when Global.options.trace <> None ->
+    let pos = Expr.pos e in
+    let kind = tag_to_runtime t in
+    Runtime.with_trace ~embed:(Expr.embed_value ctx) kind
+      (Expr.pos_to_runtime pos) (fun () -> evaluate_expr ctx lang e)
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
     evaluate_operator ctx (evaluate_expr ctx lang) op m args
@@ -924,7 +910,10 @@ let rec evaluate_expr : type d r.
           "%a" Format.pp_print_text
           "Error during match: two different enums found";
       let f, tys =
-        match EnumConstructor.Map.find_opt cons cases with
+        match
+          Option.map (evaluate_expr ctx lang)
+            (EnumConstructor.Map.find_opt cons cases)
+        with
         | Some ((EAbs { tys; _ }, _) as f) -> f, tys
         | _ ->
           Message.error ~internal:true ~pos:(Expr.pos e) "Match branch error"
@@ -1013,54 +1002,49 @@ let rec evaluate_expr : type d r.
 
 let evaluate_expr_trace : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
+    ?disable_trace:bool ->
     decl_ctx ->
     Global.backend_lang ->
+    ScopeName.t ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
     ((d, r, yes) interpr_kind, 't) gexpr =
- fun ?on_expr ctx lang e ->
-  Runtime.reset_log ();
+ fun ?on_expr ?(disable_trace = false) ctx lang s e ->
   Fun.protect
-    (fun () -> evaluate_expr ?on_expr ctx lang e)
+    (fun () ->
+      let f () = evaluate_expr ?on_expr ctx lang e in
+      if (not disable_trace) && Global.options.trace <> None then
+        let scope_pos = Expr.pos_to_runtime (snd (ScopeName.get_info s)) in
+        (* [ScopeCall] tags are defined at call-sites, we must add an
+           artificial one here. *)
+        Runtime.with_trace ~embed:(Expr.embed_value ctx)
+          (ScopeCall { name = ScopeName.original_base s; decl_pos = scope_pos })
+          scope_pos f
+      else f ())
     ~finally:(fun () ->
       match Global.options.trace with
       | None -> ()
+      | Some _ when disable_trace -> ()
       | Some (lazy ppf) ->
-        let trace = Runtime.retrieve_log () in
-        if trace = [] then
-          (* FIXME: we call evaluate twice: once to generate the scope function
-             and once for the actual call scope call. A proper fix would be to
-             disable the trace for the the first pass. *)
-          ()
-        else
-          let output_trace fmt =
-            match Global.options.trace_format with
-            | Human ->
-              Format.pp_open_vbox ppf 0;
-              ignore @@ List.fold_left (print_log ppf lang) 0 trace;
-              Format.pp_close_box ppf ()
-            | JSON ->
-              Format.fprintf fmt "@[<v 2>[@,";
-              Format.pp_print_list
-                ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@,")
-                Format.pp_print_string fmt
-                (List.map Runtime.Json.raw_event trace);
-              Format.fprintf fmt "]@]@."
-          in
-          Fun.protect
-            (fun () -> output_trace ppf)
-            ~finally:(fun () -> Format.pp_print_flush ppf ()))
+        let trace = Runtime.retrieve_trace () in
+        let output_trace ppf =
+          match Global.options.trace_format with
+          | Human -> Format.fprintf ppf "%a@\n" Print.trace trace
+          | JSON -> Format.fprintf ppf "%s@\n" (Runtime.Json.trace trace)
+        in
+        Fun.protect
+          (fun () -> output_trace ppf)
+          ~finally:(fun () -> Format.pp_print_flush ppf ()))
 
 let evaluate_expr_safe : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
+    ?disable_trace:bool ->
     decl_ctx ->
     Global.backend_lang ->
+    ScopeName.t ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
     ((d, r, yes) interpr_kind, 't) gexpr =
- fun ?on_expr ctx lang e ->
-  try
-    let r = evaluate_expr_trace ?on_expr ctx lang e in
-    Message.report_delayed_errors_if_any ();
-    r
+ fun ?on_expr ?disable_trace ctx lang s e ->
+  try evaluate_expr_trace ?on_expr ?disable_trace ctx lang s e
   with Runtime.Error (err, rpos, note) ->
     Message.error
       ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
@@ -1149,7 +1133,7 @@ let interpret_program_lcalc ?input p s :
     (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   let e = Expr.unbox @@ Program.to_expr p s in
   let ctx = p.decl_ctx in
-  match evaluate_expr_safe ctx p.lang (addcustom e) with
+  match evaluate_expr_safe ~disable_trace:true ctx p.lang s (addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as scope_ty)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -1173,7 +1157,7 @@ let interpret_program_lcalc ?input p s :
         (Expr.pos e)
     in
     match
-      Mark.remove (evaluate_expr_safe ctx p.lang (Expr.unbox to_interpret))
+      Mark.remove (evaluate_expr_safe ctx p.lang s (Expr.unbox to_interpret))
     with
     | EStruct { fields; _ } ->
       List.map
@@ -1199,7 +1183,10 @@ let interpret_program_dcalc ?input ?on_expr p s :
     (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
-  match evaluate_expr_safe ?on_expr p.decl_ctx p.lang (addcustom e) with
+  match
+    evaluate_expr_safe ?on_expr ~disable_trace:true p.decl_ctx p.lang s
+      (addcustom e)
+  with
   | (EAbs { tys = [((TStruct s_in, _) as scope_ty)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -1223,10 +1210,9 @@ let interpret_program_dcalc ?input ?on_expr p s :
         (Expr.pos e)
     in
     match
-      Mark.remove
-        (evaluate_expr_safe ?on_expr ctx p.lang (Expr.unbox to_interpret))
+      evaluate_expr_safe ?on_expr ctx p.lang s (Expr.unbox to_interpret)
     with
-    | EStruct { fields; _ } ->
+    | EStruct { fields; _ }, _ ->
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
@@ -1285,8 +1271,10 @@ let interpret_program_dcalc ?input p s = interpret_program_dcalc ?input p s
    and [delcustom] are needed to expand and shrink the type of the terms to
    reflect that. *)
 let evaluate_expr ctx lang e =
-  Fun.protect ~finally:Runtime.reset_log
-  @@ fun () -> evaluate_expr_safe ctx lang (addcustom e)
+  Fun.protect ~finally:Runtime.reset_trace
+  @@ fun () ->
+  let dummy_scope = ScopeName.fresh [] ("dummy", Pos.void) in
+  evaluate_expr_safe ctx lang dummy_scope (addcustom e)
 
 let loaded_modules = Hashtbl.create 17
 
