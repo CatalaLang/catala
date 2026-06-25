@@ -1,0 +1,106 @@
+```catala-metadata
+declaration ffalse content boolean depends on x content integer equals
+  false
+declaration ftrue content boolean depends on x content integer equals
+  true
+
+#[test]
+declaration scope T:
+  output tresult content integer
+
+scope T:
+  label base
+  definition tresult equals if ffalse of 0 then 1 else 2
+
+  label level1
+  exception base
+  definition tresult under condition (ffalse of 1) consequence equals 10
+
+  label level1
+  exception base
+  definition tresult under condition (ffalse of 0) consequence equals 11
+
+  label level2
+  exception level1
+  definition tresult under condition (ffalse of 0) consequence equals 20
+```
+
+
+```catala-test-cli
+$ catala interpret -s T --trace
+→ Entering scope T
+─➤ tests/trace/good/exceptions.catala_en:8.19-20:
+  │
+8 │ declaration scope T:
+  │                   ‾
+  ≔ Scope variable definition tresult: 2
+  ─➤ tests/trace/good/exceptions.catala_en:9.10-17:
+    │
+  9 │   output tresult content integer
+    │          ‾‾‾‾‾‾‾
+    ⊕ Definition level2 not fulfilled
+    ─➤ tests/trace/good/exceptions.catala_en:25.38-51:
+       │
+    25 │   definition tresult under condition (ffalse of 0) consequence equals 20
+       │                                      ‾‾‾‾‾‾‾‾‾‾‾‾‾
+      → Applying function ffalse
+      ─➤ tests/trace/good/exceptions.catala_en:2.13-19:
+        │
+      2 │ declaration ffalse content boolean depends on x content integer equals
+        │             ‾‾‾‾‾‾
+      ← Function ffalse applied: false
+    ⊕ Definition level1 not fulfilled
+    ─➤ tests/trace/good/exceptions.catala_en:17.38-51:
+       │
+    17 │   definition tresult under condition (ffalse of 1) consequence equals 10
+       │                                      ‾‾‾‾‾‾‾‾‾‾‾‾‾
+      → Applying function ffalse
+      ─➤ tests/trace/good/exceptions.catala_en:2.13-19:
+        │
+      2 │ declaration ffalse content boolean depends on x content integer equals
+        │             ‾‾‾‾‾‾
+      ← Function ffalse applied: false
+    ⊕ Definition level1 not fulfilled
+    ─➤ tests/trace/good/exceptions.catala_en:21.38-51:
+       │
+    21 │   definition tresult under condition (ffalse of 0) consequence equals 11
+       │                                      ‾‾‾‾‾‾‾‾‾‾‾‾‾
+      → Applying function ffalse
+      ─➤ tests/trace/good/exceptions.catala_en:2.13-19:
+        │
+      2 │ declaration ffalse content boolean depends on x content integer equals
+        │             ‾‾‾‾‾‾
+      ← Function ffalse applied: false
+    ⊕ Definition base fulfilled
+    ─➤ tests/trace/good/exceptions.catala_en:13.14-21:
+       │
+    13 │   definition tresult equals if ffalse of 0 then 1 else 2
+       │              ‾‾‾‾‾‾‾
+    ⊸ Consequence:
+    ─➤ tests/trace/good/exceptions.catala_en:13.29-57:
+       │
+    13 │   definition tresult equals if ffalse of 0 then 1 else 2
+       │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    ⊡ Condition evaluated to false
+    ─➤ tests/trace/good/exceptions.catala_en:13.32-43:
+       │
+    13 │   definition tresult equals if ffalse of 0 then 1 else 2
+       │                                ‾‾‾‾‾‾‾‾‾‾‾
+      → Applying function ffalse
+      ─➤ tests/trace/good/exceptions.catala_en:2.13-19:
+        │
+      2 │ declaration ffalse content boolean depends on x content integer equals
+        │             ‾‾‾‾‾‾
+      ← Function ffalse applied: false
+    ⊸ Branch taken
+    ─➤ tests/trace/good/exceptions.catala_en:13.56-57:
+       │
+    13 │   definition tresult equals if ffalse of 0 then 1 else 2
+       │                                                        ‾
+← Exiting Scope T: T {
+                       -- tresult: 2
+                     }
+┌─[RESULT]─ T ─
+│ tresult = 2
+└─
+```

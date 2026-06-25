@@ -1,0 +1,269 @@
+```catala
+declaration f
+  content boolean
+  depends on x content integer
+  equals
+    if x = 0 then false else true
+
+declaration scope A:
+  input i content boolean
+  output f_scope_a content boolean depends on x content integer
+  output a_A content boolean
+
+scope A:
+  definition f_scope_a of x equals
+    match (if x = 3 then Absent else Present content 3) with pattern
+    -- Absent : false
+    -- anything : true
+  definition a_A equals i
+
+#[test]
+declaration scope T:
+  output a_T content boolean
+  ssv scope A
+  internal g content boolean depends on x content integer
+  output res content A
+
+scope T:
+  definition ssv.i equals let zzz equals 333 in true
+
+  label base
+  definition a_T equals ssv.a_A
+
+  label one exception base
+  definition a_T
+  under condition 42 = 42
+  consequence equals
+    not ssv.a_A
+
+  label two exception one
+  definition a_T
+  under condition 43 > 43
+  consequence equals
+    not (ssv.f_scope_a of 2 or ssv.a_A)
+
+  definition g of x equals
+    match (if x = 3 then Absent else Present content 3) with pattern
+    -- Absent : false
+    -- anything : true
+
+  definition res equals
+    output of A with { -- i: f of 2 or g of 3 }
+
+  assertion 42 = 42
+```
+
+```catala-test-cli
+$ catala interpret -s T --trace
+→ Entering scope T
+─➤ tests/trace/good/bit_of_everything.catala_en:21.19-20:
+   │
+21 │ declaration scope T:
+   │                   ‾
+  ≔ Scope variable definition ssv:
+    A {
+      -- f_scope_a: <function>
+      -- a_A: true
+    }
+  ─➤ tests/trace/good/bit_of_everything.catala_en:23.3-6:
+     │
+  23 │   ssv scope A
+     │   ‾‾‾
+    → Entering scope A
+    
+      ⊕ Definition fulfilled
+      ─➤ tests/trace/good/bit_of_everything.catala_en:28.14-19:
+         │
+      28 │   definition ssv.i equals let zzz equals 333 in true
+         │              ‾‾‾‾‾
+      ⊸ Consequence:
+      ─➤ tests/trace/good/bit_of_everything.catala_en:28.27-53:
+         │
+      28 │   definition ssv.i equals let zzz equals 333 in true
+         │                           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+      ≔ Local variable zzz definition: 333
+      ─➤ tests/trace/good/bit_of_everything.catala_en:28.42-45:
+         │
+      28 │   definition ssv.i equals let zzz equals 333 in true
+         │                                          ‾‾‾
+      ≔ Scope input variable definition i: true
+      ─➤ tests/trace/good/bit_of_everything.catala_en:9.9-10:
+        │
+      9 │   input i content boolean
+        │         ‾
+      ≔ Scope variable definition f_scope_a: <function>
+      ─➤ tests/trace/good/bit_of_everything.catala_en:10.10-19:
+         │
+      10 │   output f_scope_a content boolean depends on x content integer
+         │          ‾‾‾‾‾‾‾‾‾
+      ≔ Scope variable definition a_A: true
+      ─➤ tests/trace/good/bit_of_everything.catala_en:11.10-13:
+         │
+      11 │   output a_A content boolean
+         │          ‾‾‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/bit_of_everything.catala_en:18.14-17:
+           │
+        18 │   definition a_A equals i
+           │              ‾‾‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/bit_of_everything.catala_en:18.25-26:
+           │
+        18 │   definition a_A equals i
+           │                         ‾
+    ← Exiting Scope A: A {
+                           -- f_scope_a: <function>
+                           -- a_A: true
+                         }
+  ≔ Scope variable definition a_T: false
+  ─➤ tests/trace/good/bit_of_everything.catala_en:22.10-13:
+     │
+  22 │   output a_T content boolean
+     │          ‾‾‾
+    ⊕ Definition two not fulfilled
+    ─➤ tests/trace/good/bit_of_everything.catala_en:41.19-26:
+       │
+    41 │   under condition 43 > 43
+       │                   ‾‾‾‾‾‾‾
+    ⊕ Definition one fulfilled
+    ─➤ tests/trace/good/bit_of_everything.catala_en:35.19-26:
+       │
+    35 │   under condition 42 = 42
+       │                   ‾‾‾‾‾‾‾
+    ⊸ Consequence:
+    ─➤ tests/trace/good/bit_of_everything.catala_en:37.5-16:
+       │
+    37 │     not ssv.a_A
+       │     ‾‾‾‾‾‾‾‾‾‾‾
+  ≔ Scope variable definition g: <function>
+  ─➤ tests/trace/good/bit_of_everything.catala_en:24.12-13:
+     │
+  24 │   internal g content boolean depends on x content integer
+     │            ‾
+  ≔ Scope variable definition res:
+    A {
+      -- f_scope_a: <function>
+      -- a_A: true
+    }
+  ─➤ tests/trace/good/bit_of_everything.catala_en:25.10-13:
+     │
+  25 │   output res content A
+     │          ‾‾‾
+    ⊕ Definition fulfilled
+    ─➤ tests/trace/good/bit_of_everything.catala_en:50.14-17:
+       │
+    50 │   definition res equals
+       │              ‾‾‾
+    ⊸ Consequence:
+    ─➤ tests/trace/good/bit_of_everything.catala_en:51.5-48:
+       │
+    51 │     output of A with { -- i: f of 2 or g of 3 }
+       │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    → Entering scope A
+    
+      → Applying function f
+      ─➤ tests/trace/good/bit_of_everything.catala_en:2.13-14:
+        │
+      2 │ declaration f
+        │             ‾
+        ⊡ Condition evaluated to false
+        ─➤ tests/trace/good/bit_of_everything.catala_en:6.8-13:
+          │
+        6 │     if x = 0 then false else true
+          │        ‾‾‾‾‾
+        ⊸ Branch taken
+        ─➤ tests/trace/good/bit_of_everything.catala_en:6.30-34:
+          │
+        6 │     if x = 0 then false else true
+          │                              ‾‾‾‾
+      ← Function f applied: true
+      → Applying function g
+      ─➤ tests/trace/good/bit_of_everything.catala_en:51.40-41:
+         │
+      51 │     output of A with { -- i: f of 2 or g of 3 }
+         │                                        ‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/bit_of_everything.catala_en:45.14-15:
+           │
+        45 │   definition g of x equals
+           │              ‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/bit_of_everything.catala_en:46.5-48.23:
+           │
+        46 │     match (if x = 3 then Absent else Present content 3) with pattern
+           │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+        47 │     -- Absent : false
+           │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+        48 │     -- anything : true
+           │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+        ⊡ Condition evaluated to Absent
+        ─➤ tests/trace/good/bit_of_everything.catala_en:46.11-56:
+           │
+        46 │     match (if x = 3 then Absent else Present content 3) with pattern
+           │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+          ⊡ Condition evaluated to true
+          ─➤ tests/trace/good/bit_of_everything.catala_en:46.15-20:
+             │
+          46 │     match (if x = 3 then Absent else Present content 3) with pattern
+             │               ‾‾‾‾‾
+          ⊸ Branch taken
+          ─➤ tests/trace/good/bit_of_everything.catala_en:46.26-32:
+             │
+          46 │     match (if x = 3 then Absent else Present content 3) with pattern
+             │                          ‾‾‾‾‾‾
+        ⊸ Branch taken: case Absent
+        ─➤ tests/trace/good/bit_of_everything.catala_en:47.17-22:
+           │
+        47 │     -- Absent : false
+           │                 ‾‾‾‾‾
+      ← Function g applied: false
+      ≔ Scope input variable definition i: true
+      ─➤ tests/trace/good/bit_of_everything.catala_en:9.9-10:
+        │
+      9 │   input i content boolean
+        │         ‾
+      ≔ Scope variable definition f_scope_a: <function>
+      ─➤ tests/trace/good/bit_of_everything.catala_en:10.10-19:
+         │
+      10 │   output f_scope_a content boolean depends on x content integer
+         │          ‾‾‾‾‾‾‾‾‾
+      ≔ Scope variable definition a_A: true
+      ─➤ tests/trace/good/bit_of_everything.catala_en:11.10-13:
+         │
+      11 │   output a_A content boolean
+         │          ‾‾‾
+        ⊕ Definition fulfilled
+        ─➤ tests/trace/good/bit_of_everything.catala_en:18.14-17:
+           │
+        18 │   definition a_A equals i
+           │              ‾‾‾
+        ⊸ Consequence:
+        ─➤ tests/trace/good/bit_of_everything.catala_en:18.25-26:
+           │
+        18 │   definition a_A equals i
+           │                         ‾
+    ← Exiting Scope A: A {
+                           -- f_scope_a: <function>
+                           -- a_A: true
+                         }
+  ⊹ Assertion
+  ─➤ tests/trace/good/bit_of_everything.catala_en:53.3-20:
+     │
+  53 │   assertion 42 = 42
+     │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+← Exiting Scope T:
+  T {
+    -- a_T: false
+    -- res: A {
+      -- f_scope_a: <function>
+      -- a_A: true
+    }
+  }
+┌─[RESULT]─ T ─
+│ a_T = false
+│ res = A {
+│         -- f_scope_a: <function>
+│         -- a_A: true
+│       }
+└─
+```

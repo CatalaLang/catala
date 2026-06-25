@@ -1,0 +1,73 @@
+```catala-metadata
+declaration scope T:
+  output r content integer
+
+scope T:
+  definition r equals 2
+
+  assertion r >= 2
+  assertion if r > 2 then false else true
+  assertion r > 2
+```
+
+```catala-test-cli
+$ catala interpret -s T --trace
+→ Entering scope T
+─➤ tests/trace/bad/assertion.catala_en:2.19-20:
+  │
+2 │ declaration scope T:
+  │                   ‾
+  ≔ Scope variable definition r: 2
+  ─➤ tests/trace/bad/assertion.catala_en:3.10-11:
+    │
+  3 │   output r content integer
+    │          ‾
+    ⊕ Definition fulfilled
+    ─➤ tests/trace/bad/assertion.catala_en:6.14-15:
+      │
+    6 │   definition r equals 2
+      │              ‾
+    ⊸ Consequence:
+    ─➤ tests/trace/bad/assertion.catala_en:6.23-24:
+      │
+    6 │   definition r equals 2
+      │                       ‾
+  ⊹ Assertion
+  ─➤ tests/trace/bad/assertion.catala_en:8.3-19:
+    │
+  8 │   assertion r >= 2
+    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  ⊹ Assertion
+  ─➤ tests/trace/bad/assertion.catala_en:9.3-42:
+    │
+  9 │   assertion if r > 2 then false else true
+    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    ⊡ Condition evaluated to false
+    ─➤ tests/trace/bad/assertion.catala_en:9.16-21:
+      │
+    9 │   assertion if r > 2 then false else true
+      │                ‾‾‾‾‾
+    ⊸ Branch taken
+    ─➤ tests/trace/bad/assertion.catala_en:9.38-42:
+      │
+    9 │   assertion if r > 2 then false else true
+      │                                      ‾‾‾‾
+  ⊹ Assertion
+  ─➤ tests/trace/bad/assertion.catala_en:10.3-18:
+     │
+  10 │   assertion r > 2
+     │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    ⨉ Error: an assertion doesn't hold (Assertion failed)
+← Exiting Scope T: ∅
+┌─[ERROR]─
+│
+│  During evaluation: an assertion doesn't hold.
+│  Assertion failed
+│
+├─➤ tests/trace/bad/assertion.catala_en:10.3-18:
+│    │
+│ 10 │   assertion r > 2
+│    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
+```

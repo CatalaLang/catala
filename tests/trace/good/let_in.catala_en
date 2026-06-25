@@ -1,0 +1,11 @@
+```catala-metadata
+#[test]
+declaration scope T:
+  output r content integer
+
+scope T:
+  definition r equals
+    let x equals 3 in
+    let (y, z, a, b) equals (1, 2, 3, 4) in
+    x + y + z + a + b
+```
