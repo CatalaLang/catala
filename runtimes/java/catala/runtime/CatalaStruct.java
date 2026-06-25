@@ -63,16 +63,16 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
             subb.append("-- ").append(f.getName()).append(": ");
             if (c.isAssignableFrom(CatalaFunction.class)) {
                 subb.append("<function>");
-                continue;
-            }
-            try {
-                if (CatalaStruct.class.isAssignableFrom(c)) {
-                    subb.append(((CatalaStruct) (f.get(this))).toString(c.getCanonicalName(), indent + 2));
-                } else {
-                    subb.append(((CatalaValue) f.get(this)).toString(indent + 2));
+            } else {
+                try {
+                    if (CatalaStruct.class.isAssignableFrom(c)) {
+                        subb.append(((CatalaStruct) (f.get(this))).toString(c.getCanonicalName(), indent + 2));
+                    } else {
+                        subb.append(((CatalaValue) f.get(this)).toString(indent + 2));
+                    }
+                } catch (IllegalAccessException | IllegalArgumentException e) {
+                    throw CatalaError.error(CatalaError.Error.GenericError, "failed to introspect value of field " + f.getName());
                 }
-            } catch (IllegalAccessException | IllegalArgumentException e) {
-                throw CatalaError.error(CatalaError.Error.GenericError, "failed to introspect value of field " + f.getName());
             }
             if (i < fields.length - 1) {
                 subb.append('\n').append(" ".repeat(indent + 2));
@@ -109,29 +109,32 @@ public class CatalaStruct extends CatalaValue<CatalaStruct> {
         StringBuilder subb = new StringBuilder();
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];
-            try {
-                f.setAccessible(true);
-                Class<?> c = f.getType();
-                if (c.isAssignableFrom(CatalaFunction.class)) {
-                    throw CatalaError.error(CatalaError.Error.GenericError, "Cannot serialize functional value of field " + f.getName());
-                }
-                CatalaValue<?> v = (CatalaValue<?>) (f.get(this));
-                if (c.isAssignableFrom(CatalaOption.class)) {
-                    CatalaOption<?> o = (CatalaOption) f.get(this);
-                    if (o.isNone()) {
-                        // Print nothing if the field is an unset optional
-                        continue;
+
+            f.setAccessible(true);
+            Class<?> c = f.getType();
+            subb.append('"').append(f.getName()).append("\": ");
+            if (c.isAssignableFrom(CatalaFunction.class)) {
+                subb.append("\"<function>\"");
+            } else {
+                try {
+                    CatalaValue<?> v = (CatalaValue<?>) (f.get(this));
+                    if (c.isAssignableFrom(CatalaOption.class)) {
+                        CatalaOption<?> o = (CatalaOption) f.get(this);
+                        if (o.isNone()) {
+                            // Print nothing if the field is an unset optional
+                            continue;
+                        } else {
+                            subb.append(o.get().toJSONString());
+                        }
                     } else {
-                        subb.append('"').append(f.getName()).append("\": ").append(o.get().toJSONString());
+                        subb.append(v.toJSONString());
                     }
-                } else {
-                    subb.append('"').append(f.getName()).append("\": ").append(v.toJSONString());
+                } catch (IllegalAccessException | IllegalArgumentException | ClassCastException e) {
+                    throw CatalaError.error(CatalaError.Error.GenericError, "failed to introspect value of field " + f.getName());
                 }
-                if (i < fields.length - 1) {
-                    subb.append(",\n");
-                }
-            } catch (IllegalAccessException | IllegalArgumentException | ClassCastException e) {
-                throw CatalaError.error(CatalaError.Error.GenericError, "failed to introspect value of field " + f.getName());
+            }
+            if (i < fields.length - 1) {
+                subb.append(",\n");
             }
         }
         if (fields.length > 1) {
