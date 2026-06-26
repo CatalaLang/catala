@@ -155,13 +155,14 @@ class SourcePosition(Value):
                     self.end_column == other.end_column)
 
     def to_json(self) -> str:
-        return '{{"file":"%s","start":{{"line":%d,"character":%d}},"end":{{"line":%d,"character":%d}}}}' % (
+        return '{"file":"%s","start":{"line":%d,"character":%d},"end":{"line":%d,"character":%d}}' % (
             self.filename, self.start_line, self.start_column, self.end_line, self.end_column
         )
 
 class CatalaError(Exception):
-    __slots__ = ( 'message', 'source_positions', 'note' )
+    __slots__ = ( 'name', 'message', 'source_positions', 'note' )
 
+    name: str
     message: str
     source_positions: List[SourcePosition]
     note: str | None
@@ -182,31 +183,41 @@ class CatalaError(Exception):
             "" if self.note is None else (". " + self.note))
 
 class AssertionFailed(CatalaError):
+    name = "AssertionFailed"
     message = "this assertion doesn't hold"
 
 class NoValue(CatalaError):
+    name = "NoValue"
     message = "no computation with valid conditions found"
 
 class Conflict(CatalaError):
+    name = "Conflict"
     message = "two or more concurring valid computations"
 
 class DivisionByZero(CatalaError):
+    name = "DivisionByZero"
     message = "division by zero"
 
 class ListEmpty(CatalaError):
+    name = "ListEmpty"
     message = "the list was empty"
 
 class NotSameLength(CatalaError):
+    name = "NotSameLength"
     message = "traversing multiple lists of different lengths"
 
 class UncomparableValues(CatalaError):
+    name = "UncomparableValues"
     message = "comparison of values of these types is not supported"
 
 class DateError(CatalaError):
+    name = "DateError"
     message = "Date error"
 
 class Impossible(CatalaError):
-    message = "\"impossible\" computation reached"
+    name = "Impossible"
+    message = '"impossible" computation reached'
+
 
 # =============================
 # Types and value introspection
@@ -419,7 +430,7 @@ class Function[Targs, TRet](Value):
         return "<function>"
 
     def to_json(self) -> str:
-        return "<function>"
+        return '"<function>"'
 
 # ============
 # Type classes
@@ -855,3 +866,290 @@ def no_input() -> Callable[[Unit], Alpha]:
 # definition, mypy complains that the later dead code will not know what
 # this variable was. So we give this variable a dead value.
 dead_value: Any = 0
+
+
+# ======
+# Traces
+# ======
+
+
+class TraceKind:
+    __slots__ = "kind"
+    kind: str
+
+    def __init__(self, kind: str) -> None:
+        self.kind = kind
+
+    def to_json_kind(self, json_payload: str | None = None) -> str:
+        if json_payload is None:
+            return f'{{"kind":{json.dumps(self.kind)}}}'
+        else:
+            return f'{{"kind":{json.dumps(self.kind)},{json_payload}}}'
+
+
+class TraceVarDef:
+    __slots__ = ( "var_name", "decl_pos" )
+    var_name: str
+    decl_pos: SourcePosition
+
+    def __init__(self, var_name: str, decl_pos: SourcePosition) -> None:
+        self.var_name = var_name
+        self.decl_pos = decl_pos
+
+    def appendable_json(self) -> str:
+        return (
+            f'"name":{json.dumps(self.var_name)},"decl_pos":{self.decl_pos.to_json()}'
+        )
+
+
+class ScopeCall(TraceKind):
+    __slots__ = "var_def"
+    var_def: TraceVarDef
+
+    def __init__(self, var_name: str, decl_pos: SourcePosition) -> None:
+        super().__init__("scope_call")
+        self.var_def = TraceVarDef(var_name, decl_pos)
+
+    def to_json(self) -> str:
+        return self.to_json_kind(self.var_def.appendable_json())
+
+
+class Input(StrEnum):
+    NoInput = "no_input"
+    OnlyInput = "only_input"
+    Reentrant = "reentrant"
+
+
+class ScopeVarDef(TraceKind):
+    __slots__ = ( "var_def", "io_input", "output" )
+    var_def: TraceVarDef
+    io_input: Input
+    output: Bool
+
+    def __init__(
+        self, var_name: str, decl_pos: SourcePosition, io_input: Input, output: Bool
+    ) -> None:
+        super().__init__("scope_var")
+        self.var_def = TraceVarDef(var_name, decl_pos)
+        self.io_input = io_input
+        self.output = output
+
+    def to_json(self) -> str:
+        output_s = "false"
+        if self.output:
+            output_s = "true"
+        payload = f'{self.var_def.appendable_json()},"input":{json.dumps(self.io_input)},"output":{output_s}'
+        return self.to_json_kind(payload)
+
+
+class LocalVarDef(TraceKind):
+    __slots__ = "name"
+    name: str
+
+    def __init__(self, name: str) -> None:
+        super().__init__("local_var")
+        self.name = name
+
+    def to_json(self) -> str:
+        return self.to_json_kind(f'"name":{json.dumps(self.name)}')
+
+
+class LocalTupDef(TraceKind):
+    __slots__ = "names"
+    names: List[str]
+
+    def __init__(self, names: List[str]) -> None:
+        super().__init__("local_tup")
+        self.names = names
+
+    def to_json(self) -> str:
+        return self.to_json_kind(f'"names":{json.dumps(self.names)}')
+
+
+class FunCall(TraceKind):
+    _slots__ = "var_def"
+    var_def: TraceVarDef
+
+    def __init__(self, var_name: str, decl_pos: SourcePosition) -> None:
+        super().__init__("function_call")
+        self.var_def = TraceVarDef(var_name, decl_pos)
+
+    def to_json(self) -> str:
+        return self.to_json_kind(self.var_def.appendable_json())
+
+
+class BranchingCondition(TraceKind):
+    def __init__(self):
+        super().__init__("branch_condition")
+
+    def to_json(self) -> str:
+        return self.to_json_kind()
+
+
+class IfBranching(TraceKind):
+    def __init__(self):
+        super().__init__("if_branching")
+
+    def to_json(self) -> str:
+        return self.to_json_kind()
+
+
+class Assertion(TraceKind):
+    def __init__(self):
+        super().__init__("assertion")
+
+    def to_json(self) -> str:
+        return self.to_json_kind()
+
+class MatchBranching(TraceKind):
+    _slots__ = "constr_name"
+    constr_name: str
+
+    def __init__(self, constr_name: str) -> None:
+        super().__init__("match_branching")
+        self.constr_name = constr_name
+
+    def to_json(self) -> str:
+        return self.to_json_kind(f'"constructor":{json.dumps(self.constr_name)}')
+
+
+class ExceptionTrace(TraceKind):
+    __slots__ = ( "label", "label_pos", "cons_pos" )
+    label: str | None
+    label_pos: SourcePosition | None
+    cons_pos: SourcePosition
+
+    def __init__(
+        self, label: str | None, label_pos: SourcePosition | None, cons_pos: SourcePosition
+    ) -> None:
+        super().__init__("exception")
+        self.label = label
+        self.label_pos = label_pos
+        self.cons_pos = cons_pos
+
+    def to_json(self) -> str:
+        payload = ""
+        if self.label != None and self.label_pos != None:
+            payload += f'"label":{json.dumps(self.label)},"pos":{self.label_pos.to_json()},'
+        payload += f'"cons_pos":{self.cons_pos.to_json()}'
+        return self.to_json_kind(payload)
+
+
+class ErrorTrace(TraceKind):
+    __slots__ = ( "error", "related_pos" )
+    error: CatalaError
+    related_pos: List[SourcePosition]
+
+    def __init__(self, error: CatalaError, related_pos : List[SourcePosition] = []) -> None:
+        super().__init__("error")
+        self.error = error
+        self.related_pos = related_pos
+
+    def to_json(self) -> str:
+        related_pos_v = ""
+        if self.related_pos != []:
+           related_pos_v = f'[{",".join([pos.to_json() for pos in self.related_pos])}]'
+        payload = f'{{"type":{json.dumps(self.error.name)},"message":{json.dumps(self.error.message)}{related_pos_v}}}'
+        return self.to_json_kind(payload)
+
+class TraceNode:
+    __slots__ = ( "kind", "pos", "parent", "value", "sub_nodes" )
+    kind: TraceKind
+    pos: SourcePosition
+    parent: TraceNode | None
+    value: Value | None
+    sub_nodes: List[TraceNode] | None
+
+    def __init__(self, kind: TraceKind, pos: SourcePosition, parent: TraceNode | None) -> None:
+        self.kind = kind
+        self.pos = pos
+        self.parent = parent
+        self.value = None
+        self.sub_nodes = None
+
+    def add_sub_node(self, n: TraceNode) -> None:
+        if self.sub_nodes == None:
+            self.sub_nodes = [n]
+        else:
+            self.sub_nodes.append(n)
+
+    def to_json(self):
+        v_s = ""
+        if self.value is not None:
+            v_s = f',"value":{self.value.to_json()}'
+        subtrace_s = ""
+        if self.sub_nodes is not None:
+            subtrace_s = f',"trace":[{",".join([node.to_json() for node in self.sub_nodes])}]'
+        return f'{{"element":{self.kind.to_json()},"pos":{self.pos.to_json()}{v_s}{subtrace_s}}}'
+
+
+class TraceContext:
+    __slots__ = ( "current_node", "root_nodes" )
+    current_node: TraceNode | None
+    root_nodes: List[TraceNode]
+
+    def __init__(self) -> None:
+        self.current_node = None
+        self.root_nodes = []
+
+    def begin_trace(self, kind: TraceKind, pos: SourcePosition) -> None:
+        new_node: TraceNode = TraceNode(kind, pos, self.current_node)
+        if self.current_node is None:
+            # root node
+            self.root_nodes.append(new_node)
+        else:
+            parent_node: TraceNode = self.current_node
+            parent_node.add_sub_node(new_node)
+        self.current_node = new_node
+
+    def end_trace(self, v: Value | None = None) -> None:
+        if self.current_node is not None:
+            self.current_node.value = v
+            self.current_node = self.current_node.parent
+
+    def single_trace(self, kind: TraceKind, pos: SourcePosition) -> None:
+        self.begin_trace(kind, pos)
+        self.end_trace()
+
+    def error_trace(self, err: CatalaError) -> None:
+        if err.source_positions is None:
+            raise err
+        elif isinstance(err.source_positions, List):
+            self.single_trace(ErrorTrace(err, err.source_positions[1:]), err.source_positions[0])
+        else:
+            self.single_trace(ErrorTrace(err), err.source_positions)
+
+# Stateful trace context
+trace_context = TraceContext()
+
+def begin_trace(kind: TraceKind, pos: SourcePosition) -> None:
+    global trace_context
+    trace_context.begin_trace(kind, pos)
+
+
+def end_trace(v: Value) -> None:
+    global trace_context
+    trace_context.end_trace(v)
+
+
+def error_trace(e: CatalaError) -> None:
+    global trace_context
+    trace_context.error_trace(e)
+
+
+def reset_trace() -> None:
+    global trace_context
+    trace_context = TraceContext()
+
+
+def retrieve_trace() -> List[TraceNode]:
+    global trace_context
+    return trace_context.root_nodes
+
+
+def trace_to_json(trace: List[TraceNode]) -> str:
+    return (
+        "["
+        + ",".join(node.to_json() for node in trace)
+        + "]"
+    )

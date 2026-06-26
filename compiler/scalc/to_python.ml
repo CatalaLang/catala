@@ -438,6 +438,55 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
     Format.fprintf fmt "%a.%s" VarName.format (Mark.remove modname)
       (Mark.remove name)
 
+and format_pos_as_expr ctx ppf p =
+  let p_e = EPosLit, p in
+  format_expression ctx ppf p_e
+
+let format_begin_trace ctx ppf (tag, pos) =
+  let open Format in
+  let format_pos = format_pos_as_expr ctx in
+  let format_kind ppf =
+    match tag with
+    | ScopeCall scopename ->
+      let _, decl_pos = ScopeName.get_info scopename in
+      fprintf ppf "ScopeCall(%s,@ %a)"
+        (String.quote (ScopeName.original_base scopename))
+        format_pos decl_pos
+    | ScopeVarDef { var = scope_var; io } ->
+      let _, decl_pos = ScopeVar.get_info scope_var in
+      fprintf ppf "ScopeVarDef(%s,@ %a,@ Input.%s,@ %b)"
+        (String.quote (ScopeVar.original_string scope_var))
+        format_pos decl_pos
+        (match io.io_input with
+        | NoInput -> "NoInput"
+        | OnlyInput -> "OnlyInput"
+        | Reentrant -> "Reentrant")
+        io.io_output
+    | LocalVarDef { name } -> fprintf ppf "LocalVarDef(%s)" (String.quote name)
+    | FunCall topdef ->
+      let _, decl_pos = TopdefName.get_info topdef in
+      fprintf ppf "FunCall(%s,@ %a)"
+        (String.quote (TopdefName.original_base topdef))
+        format_pos decl_pos
+    | LocalTupDef { names } ->
+      fprintf ppf "LocalTupDef([%a])"
+        (pp_print_list
+           ~pp_sep:(fun ppf () -> fprintf ppf ",")
+           (fun fmt name -> pp_print_string fmt (String.quote name)))
+        names
+    | BranchingCondition -> fprintf ppf "BranchingCondition()"
+    | Assertion -> fprintf ppf "Assertion()"
+    | Branching None -> fprintf ppf "IfBranching()"
+    | Branching (Some cstr) ->
+      fprintf ppf "MatchBranching(%s)" (String.quote cstr)
+    | Exception { label = None; cons_pos } ->
+      fprintf ppf "ExceptionTrace(%a)" format_pos cons_pos
+    | Exception { label = Some (lbl, pos); cons_pos } ->
+      fprintf ppf "ExceptionTrace(%s,@ %a,@ %a)" (String.quote lbl) format_pos
+        pos format_pos cons_pos
+  in
+  fprintf ppf "@[<hov 2>begin_trace(%t,@ %a)@]" format_kind format_pos pos
+
 let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
     =
   match Mark.remove s with
@@ -546,7 +595,10 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx) e1
-  | SBeginTrace _ | SEndTrace _ -> (* Not yet implemented *) ()
+  | SBeginTrace t -> format_begin_trace ctx fmt t
+  | SEndTrace { ret_var = None } -> Format.fprintf fmt "end_trace(None)"
+  | SEndTrace { ret_var = Some v } ->
+    Format.fprintf fmt "end_trace(%a)" VarName.format v
   | SSpecialOp _ -> .
 
 and format_block ctx (fmt : Format.formatter) (b : block) : unit =
@@ -697,16 +749,37 @@ let format_tests ctx ppf (p : Ast.program) =
       "@,\
        parser.add_argument(@[<hov>'--json',@ action='store_true',@ \
        help='output results in JSON'@])";
-    Format.fprintf ppf "@,args = parser.parse_args()";
+    Format.fprintf ppf
+      "@,\
+       parser.add_argument(@[<hov>'--trace',@ action='store_true',@ \
+       help='output trace in JSON'@])";
+    Format.fprintf ppf "@,args = parser.parse_args()@,";
     List.iter
       (fun (name, var, block) ->
         Format.pp_print_cut ppf ();
         (* Format.fprintf ppf "@,print(\"Executing scope %a...\")@," ScopeName.format
          *   name; *)
-        Format.fprintf ppf
-          "@,@[<v 2>if args.scopes == [] or '%a' in args.scopes:@,"
+        Format.fprintf ppf "@[<v 2>if args.scopes == [] or '%a' in args.scopes:"
           ScopeName.format_original name;
+        if Global.options.trace <> None then (
+          Format.fprintf ppf "@,@[<v 2>if args.trace:@ ";
+          let scope_pos = Mark.get (ScopeName.get_info name) in
+          Format.fprintf ppf "%a@\n" (format_begin_trace ctx)
+            (ScopeCall name, scope_pos);
+          Format.fprintf ppf
+            "@[<v 2>try:@,\
+             %a@]@,\
+             @[<v 2>except CatalaError as e:@,\
+             error_trace(e)@,\
+             print(trace_to_json(retrieve_trace()))@,\
+             raise e@]"
+            (format_block ctx) block;
+          Format.fprintf ppf "@,end_trace(%s)" (VarName.to_string var);
+          Format.fprintf ppf "@,print(trace_to_json(retrieve_trace()))";
+          Format.fprintf ppf "@]@,@[<v 2>else:@,")
+        else Format.pp_print_cut ppf ();
         format_block ctx ppf block;
+        if Global.options.trace <> None then Format.fprintf ppf "@]";
         Format.fprintf ppf
           "@,\
            print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\", \
