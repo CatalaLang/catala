@@ -330,6 +330,7 @@ type date = Catala_runtime.date
 type date_rounding = Catala_runtime.date_rounding
 type duration = Catala_runtime.duration
 
+(** C.f. [Catala_runtime.trace_kind] *)
 type tag =
   | ScopeCall of ScopeName.t
   | ScopeVarDef of { var : ScopeVar.t; io : Catala_runtime.io_log }

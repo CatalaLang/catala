@@ -219,50 +219,84 @@ module ExternalType (Spec : ExternalTypeSpec) : CatalaType with type t = Spec.t
 
 (** {2 Traces types} *)
 
+(** This type describes all the different trace kind generated throughout
+    execution *)
 type trace_kind =
   | ScopeCall of trace_ident_decl
+      (** Scope call with the scope declaration information *)
   | ScopeVarDef of { var : trace_ident_decl; io : io_log }
-  | LocalVarDef of string
+      (** Scope variable definition with its declaration information and its i/o
+          kind *)
+  | LocalVarDef of string  (** Let-binding of a local variable with its name *)
   | LocalTupDef of string list
+      (** Let-binding of a local tuple with the name of each binded variable *)
   | FunCall of trace_ident_decl
+      (** Function call with its declaration information *)
   | BranchingCondition
+      (** Branching condition for an if-then-else or a pattern matching *)
   | IfBranching
+      (** Branch taken of the consequence or alternative of an if-then-else *)
   | MatchBranching of { constructor_name : string }
-  | Assertion
+      (** Pattern taken of a pattern-matching *)
+  | Assertion  (** Beginning of an assertion *)
   | Exception of {
       label : (string * code_location) option;
+          (** Exception label and its position in case of named exception *)
       cons_pos : code_location;
-    }
+          (** Position of the consequence that would be evaluated if this
+              exception gets fulfilled *)
+    }  (** Scope variable definition exception *)
   | Error of {
-      error : error;
-      locs : code_location list;
-      message : string option;
-    }
+      error : error;  (** Runtime error itself *)
+      locs : code_location list;  (** Extra-relevant locations *)
+      message : string option;  (** User-faced error message *)
+    }  (** Runtime error description *)
 
 and trace_ident_decl = { name : string; decl_pos : code_location }
+(** Variable-kind declaration info, i.e., name and declaration position *)
 
 type trace = trace_element list
 
 and trace_element = {
-  kind : trace_kind;
-  pos : code_location;
+  kind : trace_kind;  (** The [kind] of trace *)
+  pos : code_location;  (** The expression [pos] responsible for this trace *)
   value : Value.t option;
+      (** The resulting evaluated value. No value present on error. *)
   sub_trace : trace;
+      (** Sub elements of the trace. E.g., a [ScopeCall] trace will contain
+          [ScopeVarDef] traces in its sub-trace. *)
 }
+(** Trace node *)
 
 (** {2 Trace constructors} *)
 
-val single_trace : trace_kind -> code_location -> unit
 val begin_trace : trace_kind -> code_location -> unit
+(** Begins a trace scope given a [trace_kind] and its [code_location]. *)
+
 val end_trace : ?value:Value.t -> unit -> unit
+(** Ends the currently opened trace scope and register the [value]. *)
+
+val single_trace : trace_kind -> code_location -> unit
+(** Equivalent to a sequence of [begin_trace] then [end_trace]. Used for error
+    reporting. *)
 
 val with_trace :
   embed:('a -> Value.t) -> trace_kind -> code_location -> (unit -> 'a) -> 'a
+(** Wrapper that takes a function [f] and insert a [begin_trace] before [f ()]
+    and a [end_trace] afterwards. It also retrieves and embeds the computed
+    value.
+
+    It also catches runtime's [error]s and insert a [single_trace] before
+    re-raising it. When it occurs, a flag is also set so that callers do not
+    catch it again. *)
 
 (** {2 Trace accessors} *)
 
 val retrieve_trace : unit -> trace
+(** Finalize the global trace state and returns the immutable [trace] value. *)
+
 val reset_trace : unit -> unit
+(** Resets the global trace state. *)
 
 (** {1 Pretty printers} *)
 
