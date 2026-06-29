@@ -1,0 +1,546 @@
+<!-- Creator     : groff version 1.23.0 -->
+<!-- CreationDate: Mon Jun 29 13:22:53 2026 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>CATALA</title>
+
+</head>
+<body>
+
+<h1 align="center">CATALA</h1>
+
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em">catala -
+Compiler for Catala, a specification language for tax and
+social benefits computation rules.</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em">Catala is a
+domain-specific language for deriving
+faithful-by-construction algorithms from legislative
+texts.</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em"><b>catala</b>
+[<i>COMMAND</i>] <i>FILE</i>
+[<i>OPTION</i>]&acirc;&brvbar;</p>
+
+<p style="margin-left:9%; margin-top: 1em">Use
+<b>catala</b> [<i>COMMAND</i>] <b>--hel</b>p for
+documentation on a specific command</p>
+
+<h2>COMMANDS
+<a name="COMMANDS"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em"><b>c</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Generates an C translation of
+the Catala program.</p>
+
+<p style="margin-left:9%;"><b>dependency-graph</b>
+[<b>--include</b>=<i>DIR</i>] [<b>--no-stdlib</b>]
+[<b>--stdlib</b>=<i>DIR</i>] <br>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Prints the inter-scope
+dependency graph (which scope calls which scope), as well as
+the intra-scope dependency graphs (which scope variable uses
+which scope variable), and the type dependency graph (which
+type uses which type), in JSON format.</p>
+
+<p style="margin-left:9%;"><b>exceptions</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Prints the exception tree for
+the definitions of a particular variable, for debugging
+purposes. Use the <b>-s</b> option to select the scope and
+the <b>-v</b> option to select the variable. Use foo.bar to
+access state bar of variable foo or variable bar of subscope
+foo. Use <b>--output-format=json</b> for machine-readable
+JSON output.</p>
+
+<p style="margin-left:9%;"><b>html</b>
+[<b>--output</b>=<i>OUTPUT</i>] [<b>--print-only-law</b>]
+[<b>--wrap</b>] [<i>OPTION</i>]&acirc;&brvbar;
+<i>FILE</i></p>
+
+<p style="margin-left:14%;">Weaves an HTML literate
+programming output of the Catala program.</p>
+
+<p style="margin-left:9%;"><b>interpret</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Runs the interpreter on the
+Catala program, executing the scopes specified with the
+<b>-s</b> option, or the scopes marked as <i>#[test]</i> if
+absent.</p>
+
+<p style="margin-left:9%;"><b>java</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Generates a Java translation of
+the Catala program.</p>
+
+<p style="margin-left:9%;"><b>json-schema</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Display the JSON-schema of the
+input and output JSON objects of the given scope. Both
+schemas are contained in a JSON array of two elements: first
+one being the input, the second one the output.</p>
+
+<p style="margin-left:9%;"><b>latex</b>
+[<b>--output</b>=<i>OUTPUT</i>] [<b>--print-only-law</b>]
+[<b>--wrap</b>] [<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i>
+<br>
+[<i>FILES</i>]&acirc;&brvbar;</p>
+
+<p style="margin-left:14%;">Weaves a LaTeX literate
+programming output of the Catala program.</p>
+
+<p style="margin-left:9%;"><b>makefile</b>
+[<b>--output</b>=<i>OUTPUT</i>]
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Generates a Makefile-compatible
+list of the file dependencies of a Catala program.</p>
+
+<p style="margin-left:9%;"><b>ocaml</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Generates an OCaml translation
+of the Catala program.</p>
+
+<p style="margin-left:9%;"><b>pygmentize</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">This special command is a
+wrapper around the <b>pygmentize</b> command that enables
+support for colorising Catala code.</p>
+
+<p style="margin-left:9%;"><b>python</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Generates a Python translation
+of the Catala program.</p>
+
+<p style="margin-left:9%;"><b>typecheck</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Parses and typechecks a Catala
+program, without interpreting it.</p>
+
+<p style="margin-left:9%;">(Deprecated) <b>depends</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i>
+[<i>FILES</i>]&acirc;&brvbar;</p>
+
+<p style="margin-left:14%;">Prefer the use of Clerk Targets
+defined in a <i>clerk.toml</i> file. This may be unreliable
+with non-ASCII module names Lists the dependencies of the
+given catala files, in linking order. This includes
+recursive dependencies and is useful for linking an
+application in a target language. The space-separated list
+is printed to stdout. The names are printed as expected of
+module identifiers, <i>i.e.</i> capitalized. NOTE: the files
+specified are also included in the returned list.</p>
+
+<h2>INSTALLED PLUGINS
+<a name="INSTALLED PLUGINS"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em"><b>api_web</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Catala plugin for generating
+web APIs. It generates OCaml code before the associated
+[js_of_ocaml] wrapper.</p>
+
+<p style="margin-left:9%;"><b>explain</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Generates a graph of the
+formulas that are used for a given execution of a scope</p>
+
+<p style="margin-left:9%;"><b>json_schema</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Catala plugin for generating
+{{:https://json-schema.org} JSON schemas} used to build
+forms for the Catala website.</p>
+
+<p style="margin-left:9%;"><b>lazy</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Experimental lazy evaluation
+(plugin)</p>
+
+<p style="margin-left:9%;"><b>proof</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">This plugin provides formal
+verification of properties of Catala programs, based on an
+encoding into the Z3 smt-solver</p>
+
+<p style="margin-left:9%;"><b>python-plugin</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">This plugin is for
+demonstration purposes and should be equivalent to using the
+built-in Python backend</p>
+
+<h2>DEBUGGING COMMANDS
+<a name="DEBUGGING COMMANDS"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em">These commands
+are intended for debugging of the Catala compiler itself,
+and unlikely to be useful to the end-user <b><br>
+dcalc</b> [<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Prints a debugging verbatim of
+the default calculus intermediate representation of the
+Catala program. Use the <b>-s</b> option to restrict the
+output to a particular scope.</p>
+
+<p style="margin-left:9%;"><b>lcalc</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Prints a debugging verbatim of
+the lambda calculus intermediate representation of the
+Catala program. Use the <b>-s</b> option to restrict the
+output to a particular scope.</p>
+
+<p style="margin-left:9%;"><b>scalc</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Prints a debugging verbatim of
+the statement calculus intermediate representation of the
+Catala program. Use the <b>-s</b> option to restrict the
+output to a particular scope.</p>
+
+<p style="margin-left:9%;"><b>scopelang</b>
+[<i>OPTION</i>]&acirc;&brvbar; <i>FILE</i></p>
+
+<p style="margin-left:14%;">Prints a debugging verbatim of
+the scope language intermediate representation of the Catala
+program. Use the <b>-s</b> option to restrict the output to
+a particular scope.</p>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em">catala Interpret
+-s Foo file.catala_en</p>
+
+<p style="margin-left:9%; margin-top: 1em">catala Ocaml -o
+target/file.ml file.catala_en</p>
+
+<h2>COMMON OPTIONS
+<a name="COMMON OPTIONS"></a>
+</h2>
+
+
+
+<p style="margin-left:9%; margin-top: 1em"><b>--bin</b>=<i>DIR</i></p>
+
+<p style="margin-left:14%;">Directory containing compiled
+artifacts. This is used to load shared modules. Defaults to
+the value of <b>--directory</b> if that is set, or to
+<b>_build</b> otherwise, consistently with the defaults used
+by clerk to create these files.</p>
+
+<p style="margin-left:9%;"><b>-C</b> <i>DIR</i>,
+<b>--directory</b>=<i>DIR</i></p>
+
+<p style="margin-left:14%;">Behave as if run from the given
+directory for file and error reporting. Does not affect
+resolution of files in arguments.</p>
+
+<p style="margin-left:9%;"><b>--color</b>[=<i>ENUM</i>]
+(default=<b>always</b>) (absent=<b>auto</b> or
+<b>CATALA_COLOR</b> env)</p>
+
+<p style="margin-left:14%;">Allow output of colored and
+styled text. Use <i>auto</i>, to enable when the standard
+output is to a terminal, <i>never</i> to disable.</p>
+
+<p style="margin-left:9%;"><b>-d</b>, <b>--debug</b>
+(absent <b>CATALA_DEBUG</b> env)</p>
+
+<p style="margin-left:14%;">Prints debug information.</p>
+
+<p style="margin-left:9%;"><b>--disable-warnings</b></p>
+
+<p style="margin-left:14%;">Disable all the warnings
+emitted by the compiler.</p>
+
+<p style="margin-left:9%;"><b>-F</b> <i>ENUM</i>,
+<b>--output-format</b>=<i>ENUM</i> (absent=<b>human</b>)</p>
+
+<p style="margin-left:14%;">Selects the format of
+interpretation results. If set to <i>human</i>, the messages
+will be nicely displayed and meant to be read by a human. If
+set to <i>json</i>, the messages will be emitted as a JSON
+structured object.</p>
+
+<p style="margin-left:9%;"><b>--gen-external</b></p>
+
+<p style="margin-left:14%;">Run on a file defining an
+external module, this generates template files in the target
+language, to be used as a basis for writing the
+corresponding implementation.</p>
+
+<p style="margin-left:9%;"><b>--help</b>[=<i>FMT</i>]
+(default=<b>auto</b>)</p>
+
+<p style="margin-left:14%;">Show this help in format
+<i>FMT</i>. The value <i>FMT</i> must be one of <b>auto</b>,
+<b>pager</b>, <b>groff</b> or <b>plain</b>. With
+<b>auto</b>, the format is <b>pager</b> or <b>plain</b>
+whenever the <b>TERM</b> env var is <b>dumb</b> or
+undefined.</p>
+
+<p style="margin-left:9%;"><b>-l</b> <i>LANG</i>,
+<b>--language</b>=<i>LANG</i></p>
+
+<p style="margin-left:14%;">Locale variant of the input
+language to use when it can not be inferred from the file
+extension.</p>
+
+
+<p style="margin-left:9%;"><b>--message-format</b>=<i>ENUM</i>
+(absent=<b>human</b>)</p>
+
+<p style="margin-left:14%;">Selects the format of error and
+warning messages emitted by the compiler. If set to
+<i>human</i>, the messages will be nicely displayed and
+meant to be read by a human. If set to <i>gnu</i>, the
+messages will be rendered according to the GNU coding
+standards.</p>
+
+<p style="margin-left:9%;"><b>--no-fail-on-assert</b></p>
+
+<p style="margin-left:14%;">Instead of reporting an error
+on assertion failure, reports a warning and carry on with
+the interpretation as usual.</p>
+
+<p style="margin-left:9%;"><b>-p</b> <i>NUM</i>,
+<b>--max-digits-printed</b>=<i>NUM</i>
+(absent=<b>20</b>)</p>
+
+<p style="margin-left:14%;">Maximum number of significant
+digits printed for decimal results.</p>
+
+<p style="margin-left:9%;"><b>--plugin-dir</b>=<i>DIR</i>
+(absent <b>CATALA_PLUGINS</b> env)</p>
+
+<p style="margin-left:14%;">Set the given directory to be
+searched for backend plugins. Set to <b>-</b> to disable
+plugins</p>
+
+<p style="margin-left:9%;"><b>-t</b> [<i>FILE</i>],
+<b>--trace</b>[=<i>FILE</i>] (default=<b>-</b>) (absent
+<b>CATALA_TRACE</b> env)</p>
+
+<p style="margin-left:14%;">Displays a trace of the
+interpreter's computation or generates logging instructions
+in translated programs. If set as a flag, outputs trace to
+stdout. If <i>FILE</i> is defined, outputs the trace to a
+file while interpreting. Defining a filename does not affect
+code generation. Cannot use .catala extension.</p>
+
+
+<p style="margin-left:9%;"><b>--trace-format</b>=<i>ENUM</i></p>
+
+<p style="margin-left:14%;">Selects the format of trace
+logs emitted by the interpreter. If set to <i>human</i>, the
+messages will be nicely displayed and meant to be read by a
+human. If set to <i>json</i>, the messages will be emitted
+as a JSON structured object.</p>
+
+<p style="margin-left:9%;"><b>--version</b></p>
+
+<p style="margin-left:14%;">Show version information.</p>
+
+<p style="margin-left:9%;"><b>-W</b>,
+<b>--whole-program</b></p>
+
+<p style="margin-left:14%;">Compile the full chain of
+module dependencies without requiring a separate module
+compilation.</p>
+
+<p style="margin-left:9%;"><b>-x</b>,
+<b>--stop-on-error</b></p>
+
+<p style="margin-left:14%;">Stops the compilation as soon
+as an error is encountered.</p>
+
+<p style="margin-left:9%;">(Deprecated)
+<b>--unstyled</b></p>
+
+<p style="margin-left:14%;">Use <b>--color=</b><i>never</i>
+instead Removes styling (colors, etc.) from terminal
+output.</p>
+
+<h2>EXIT STATUS
+<a name="EXIT STATUS"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em"><b>catala</b>
+exits with:</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="9%"></td>
+<td width="4%">
+
+
+<p>0</p></td>
+<td width="1%"></td>
+<td width="67%">
+
+
+<p>on success.</p></td>
+<td width="19%">
+</td></tr>
+<tr valign="top" align="left">
+<td width="9%"></td>
+<td width="4%">
+
+
+<p>1</p></td>
+<td width="1%"></td>
+<td width="67%">
+
+
+<p>on error.</p></td>
+<td width="19%">
+</td></tr>
+<tr valign="top" align="left">
+<td width="9%"></td>
+<td width="4%">
+
+
+<p>123</p></td>
+<td width="1%"></td>
+<td width="67%">
+
+
+<p>on indiscriminate errors reported on standard error.</p></td>
+<td width="19%">
+</td></tr>
+<tr valign="top" align="left">
+<td width="9%"></td>
+<td width="4%">
+
+
+<p>124</p></td>
+<td width="1%"></td>
+<td width="67%">
+
+
+<p>on command line parsing errors.</p></td>
+<td width="19%">
+</td></tr>
+<tr valign="top" align="left">
+<td width="9%"></td>
+<td width="4%">
+
+
+<p>125</p></td>
+<td width="1%"></td>
+<td width="67%">
+
+
+<p>on unexpected internal errors (bugs).</p></td>
+<td width="19%">
+</td></tr>
+</table>
+
+<h2>ENVIRONMENT
+<a name="ENVIRONMENT"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em">These
+environment variables affect the execution of <b>catala</b>:
+<b><br>
+CATALA_COLOR</b></p>
+
+<p style="margin-left:14%;">See option <b>--color</b>.</p>
+
+<p style="margin-left:9%;"><b>CATALA_DEBUG</b></p>
+
+<p style="margin-left:14%;">See option <b>--debug</b>.</p>
+
+<p style="margin-left:9%;"><b>CATALA_PLUGINS</b></p>
+
+<p style="margin-left:14%;">See option
+<b>--plugin-dir</b>.</p>
+
+<p style="margin-left:9%;"><b>CATALA_TRACE</b></p>
+
+<p style="margin-left:14%;">See option <b>--trace</b>.</p>
+
+<h2>AUTHORS
+<a name="AUTHORS"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em">The authors are
+listed by alphabetical order:</p>
+
+<p style="margin-left:9%; margin-top: 1em">Vincent Botbol
+&lt;<i>vincent.botbol@inria.fr</i>&gt; <br>
+Nicolas Chataing &lt;<i>nicolas.chataing@ens.fr</i>&gt; <br>
+Alain Dela&Atilde;&laquo;t-Tixeuil
+&lt;<i>alain.delaet--tixeuil@inria.fr</i>&gt; <br>
+Aymeric Fromherz &lt;<i>aymeric.fromherz@inria.fr</i>&gt;
+<br>
+Louis Gesbert &lt;<i>louis.gesbert@ocamlpro.com</i>&gt; <br>
+Denis Merigoux &lt;<i>denis.merigoux@inria.fr</i>&gt; <br>
+Emile Rolley &lt;<i>erolley@tutamail.com</i>&gt;</p>
+
+<h2>BUGS
+<a name="BUGS"></a>
+</h2>
+
+
+<p style="margin-left:9%; margin-top: 1em">Please file bug
+reports at https://github.com/CatalaLang/catala/issues</p>
+</body>
+</html>
