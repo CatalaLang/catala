@@ -108,8 +108,8 @@ module Backend = struct
       Ninja.extern_src ~filename:item.Scan.file_name ~backend:name ~ext:"py"
         ~missing:[]
     in
-    Ninja.check_missing ~backend:name ~module_def:item.Scan.module_def ~missing
-      ~filename:item.Scan.file_name;
+    (* Ninja.check_missing ~backend:name ~module_def:item.Scan.module_def ~missing
+     *   ~filename:item.Scan.file_name; *)
     List.to_seq
       [
         Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[py]
