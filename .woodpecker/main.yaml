@@ -10,7 +10,7 @@ when:
     evaluate: 'not("REBUILD_IMAGE" in $env)'
 
 variables:
-  - &catala_image registry.gitlab.inria.fr/catala/registry:20260617
+  - &catala_image registry.gitlab.inria.fr/catala/registry:1782728988
   - &build_env
     OCAMLRUNPARAM: b
     DUNE_PROFILE: check
