@@ -46,7 +46,7 @@ let out_line output_buf str =
 (* Strips trailing line endings. Notably, on Windows catala's stdout is in text
    mode, so lines we parse below arrive with "\r\n"; [input_line] only drops the
    "\n", leaving a '\r' that would defeat the [whole_string] matches. *)
-let re_endline = Re.(compile @@ seq [rep (set "\r\n")])
+let re_endline = Re.(compile @@ rep (set "\r\n"))
 
 let sanitize =
   let re_endtest = Re.(compile @@ seq [bol; str "```"]) in
