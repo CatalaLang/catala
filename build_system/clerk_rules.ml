@@ -371,11 +371,6 @@ let output_ninja_file
   @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~enabled_backends
        ~autotest ~is_stdlib:false project_tree
   @@ fun () ->
-  pp (Nj.Comment "\n- Global rules and defaults - #\n");
-  if tests then
-    pp
-      (Nj.build "phony" ~outputs:["test"]
-         ~inputs:[File.(Var.(!builddir / ".@test"))]);
   Seq.Nil
 
 (** {1 Driver} *)
@@ -520,22 +515,35 @@ type module_info = {
   targets: String.Set.t;
 }
 
-module G =
-  Graph.Persistent.Digraph.ConcreteBidirectional(struct
-    include String
-    let hash = Stdlib.String.hash
-  end)
+module G = struct[@warning "-32"]
+  include Graph.Persistent.Digraph.ConcreteBidirectional(struct
+      include String
+      let hash = Stdlib.String.hash
+    end)
+
+  (* Attributes for Graphviz.Dot *)
+  let graph_attributes _ = []
+  let default_vertex_attributes _ = [`Fontname "sans"; `Shape `Box; `Style `Filled]
+  let vertex_name v = v
+  let vertex_attributes _ = []
+  let get_subgraph _ = None
+  let default_edge_attributes _ = []
+  let edge_attributes _ = []
+end
 
 let organise_modules ~config items =
-  let module_g, modmap =
-    Seq.fold_left (fun (mg, modmap) item ->
+  let stdlib_target_name = "stdlib" in
+  let module_g, modmap, stdlib_modules =
+    Seq.fold_left (fun (mg, modmap, stdlib_modules) item ->
         match item.Scan.module_def with
-        | None -> (mg, modmap)
+        | None -> (mg, modmap, stdlib_modules)
         | Some (modname, pos) ->
           let info = {
             name = modname, pos;
             item;
-            targets = String.Set.empty;
+            targets =
+              if item.Scan.is_stdlib then String.Set.singleton stdlib_target_name
+              else String.Set.empty;
           } in
           let modmap = String.Map.update modname
               (function None -> Some info
@@ -550,7 +558,7 @@ let organise_modules ~config items =
                            randomly, in any case *)
                         Message.error
                           ~pos ~extra_pos:["", Mark.get conflict.name]
-                          "Conflicting module name @{<yellow>%s@}" modname)
+                          "Conflicting module name @{<blue>%s@}" modname)
               modmap
           in
           let mg =
@@ -559,14 +567,30 @@ let organise_modules ~config items =
               )
               mg item.Scan.used_modules
           in
-          mg, modmap)
-      (G.empty, String.Map.empty)
+          mg, modmap, if item.Scan.is_stdlib then modname :: stdlib_modules else stdlib_modules)
+      (G.empty, String.Map.empty, [])
       items
   in
+  let stdlib_target = {
+    Clerk_config.tname = stdlib_target_name;
+    tmodules = stdlib_modules;
+    ttests = [];
+    backends = [];
+    include_sources = false; (* ??? *)
+    include_objects = false; (* ??? *)
+    dependencies = [];
+  } in
   let target_g, modmap, tmap =
     List.fold_left (fun (tg, modmap, tmap) t ->
         let tname = t.Clerk_config.tname in
-        let tmap = String.Map.add tname t tmap in
+        let tmap =
+          String.Map.update tname (function
+              | None -> Some t
+              | Some _ ->
+                Message.error
+                  "Conflicting target name: @{<yellow>%s@} is defined twice" tname)
+            tmap
+        in
         let modmap =
           List.fold_left (fun modmap m ->
               String.Map.update m
@@ -588,7 +612,46 @@ let organise_modules ~config items =
         in
         tg, modmap, tmap
       )
-      (G.empty, modmap, String.Map.empty) config.targets
+      (G.empty, modmap, String.Map.empty) (stdlib_target :: config.targets)
+  in
+  (* Todo: add a check that a target's backends is a subset of its depencies' *)
+  let print_dot oc =
+    let explicit_targets = String.Map.map (fun info -> info.targets) modmap in
+    fun modmap ->
+      let copy_vertex g v1 v2 =
+        let g = G.add_vertex g v2 in
+        let g = G.fold_pred (fun w g -> G.add_edge g w v2) g v1 g in
+        G.fold_succ (fun w g -> G.add_edge g v2 w) g v1 g
+      in
+      let g, modmap, explicit = (* Duplicate modules that belong to multiple targets *)
+        G.fold_vertex (fun v (g, modmap, explicit) ->
+            let info = String.Map.find v modmap in
+            if String.Set.cardinal info.targets <= 1 then g, modmap, explicit
+            else
+            let g, modmap, explicit =
+              String.Set.fold (fun target (g, modmap, explicit) ->
+                  let vn = v ^ " (" ^ target ^ ")" in
+                  copy_vertex g v vn,
+                  String.Map.add vn { info with targets = String.Set.singleton target } modmap,
+                  if String.Set.mem target (String.Map.find v explicit_targets) then String.Set.add v explicit
+                  else explicit)
+                info.targets (g, modmap, explicit)
+            in
+            G.remove_vertex g v,
+            modmap,
+            explicit)
+          module_g (module_g, modmap, String.Set.empty)
+      in
+      let module Dot = Graph.Graphviz.Dot (struct
+          include G
+          let get_subgraph v =
+            match String.Set.choose_opt (String.Map.find v modmap).targets with
+            | None -> None
+            | Some target -> Some { Graph.Graphviz.DotAttributes.sg_name = target; sg_attributes = []; sg_parent = None }
+          let vertex_attributes v = if String.Set.mem v explicit then [`Fillcolor 0xffff80] else []
+        end)
+      in
+      Dot.output_graph oc g
   in
   let check_cycles label g =
     let module SCC = Graph.Components.Make (G) in
@@ -621,6 +684,7 @@ let organise_modules ~config items =
   let modmap =
     String.Map.fold (fun m info new_modmap ->
         let dependents = G.pred module_g m in
+        (* All the targets that effectively depend on m *)
         let targets =
           List.fold_left (fun targets dm ->
               String.Set.union targets (String.Map.find dm modmap).targets)
@@ -628,6 +692,8 @@ let organise_modules ~config items =
             dependents
         in
         let dep_target_graph = subgraph target_g targets in
+        (* The ones in which m needs to be actually included (the others depend
+           on them and will access it that way) *)
         let base_targets = String.Set.union (leaves dep_target_graph) info.targets in
         Message.debug "Module @{<blue>%s@} (%s %a) to be attached to targets %a."
           m (if String.Set.is_empty info.targets then "no explicit target" else "targets")
@@ -637,34 +703,37 @@ let organise_modules ~config items =
           (String.Set.elements base_targets);
         if String.Set.is_empty base_targets && not (Lazy.force info.item.has_scope_tests) then
           Message.warning "The module @{<blue>%s@} belongs to no target and appears to be unused" m;
-        let _, conflict_targets =
-          (* We allow a module to get attached to multiple targets
-             (`base_targets`). However, this creates a conflict between any two
-             indepenednt users of the same module. The fix would be to attach
-             the given module to a target that is a shared dependency of the
-             using targets *)
-          String.Set.fold (fun t (seen, conflicts) ->
-              let depend_on_t = String.Set.of_list (G.pred target_g t) in
-              let clash =
-                leaves (subgraph target_g (String.Set.inter seen depend_on_t))
-              in
-              String.Set.union seen depend_on_t,
-              String.Set.union conflicts clash)
-            base_targets (String.Set.empty, String.Set.empty)
+        let check_conflicts () =
+          let _, conflict_targets =
+            (* We allow a module to get attached to multiple targets
+               (`base_targets`). However, this creates a conflict between any two
+               indepenednt users of the same module. The fix would be to attach
+               the given module to a target that is a shared dependency of the
+               using targets *)
+            String.Set.fold (fun t (seen, conflicts) ->
+                let depend_on_t = String.Set.of_list (G.pred target_g t) in
+                let clash =
+                  leaves (subgraph target_g (String.Set.inter seen depend_on_t))
+                in
+                String.Set.union seen depend_on_t,
+                String.Set.union conflicts clash)
+              base_targets (String.Set.empty, String.Set.empty)
+          in
+          let conflict_err cflt =
+            let bases = String.Set.inter (String.Set.of_list (cflt :: G.succ target_g cflt)) base_targets in
+            Message.error
+              "@[<v>@[<hov>Target conflict error in@ @{<yellow>%s@}:@ module@ @{<blue>%s@}@ would@ be@ included@ multiple@ times.@]@,\
+               @[<hov>The following targets require it (either explicitely, or because one of@ their@ modules@ uses@ it):@]@,\
+              \    %a@,@,\
+               @[<hov>@{<bold>Hint:@} @{<blue>%s@}@ should@ be@ included@ in@ a@ unique@ target@ that@ is@ listed@ in@ the@ @{<cyan>dependencies@}@ field@ of@ all@ targets@ that@ might@ use@ it."
+              cflt m
+              (Format.pp_print_list (fun ppf t -> Format.fprintf ppf "- @{<yellow>%s@}" t))
+              (String.Set.elements bases)
+              cflt
+          in
+          Option.iter conflict_err (String.Set.choose_opt conflict_targets)
         in
-        let conflict_err cflt =
-          let bases = String.Set.inter (String.Set.of_list (cflt :: G.succ target_g cflt)) base_targets in
-          Message.error
-            "@[<v>@[<hov>Target conflict error in@ @{<yellow>%s@}:@ module@ @{<blue>%s@}@ would@ be@ included@ multiple@ times.@]@,\
-             @[<hov>The following targets require it (either explicitely, or because one of@ their@ modules@ uses@ it):@]@,\
-            \    %a@,@,\
-             @[<hov>@{<bold>Hint:@} @{<blue>%s@} should be included in a single target that all its users depend on."
-            cflt m
-            (Format.pp_print_list (fun ppf t -> Format.fprintf ppf "- @{<yellow>%s@}" t))
-            (String.Set.elements bases)
-            cflt
-        in
-        Option.iter conflict_err (String.Set.choose_opt conflict_targets);
+        check_conflicts ();
         String.Map.add m { info with targets = base_targets } new_modmap
       )
       modmap modmap
@@ -673,14 +742,32 @@ let organise_modules ~config items =
     String.Map.fold (fun m info tmap ->
         String.Set.fold (fun t tmap ->
             String.Map.update t (function
-                | Some target -> Some { target with Clerk_config.tmodules = m :: target.Clerk_config.tmodules }
+                | Some target -> Some { target with
+                                        Clerk_config.tmodules = m :: target.Clerk_config.tmodules }
                 | None -> assert false
               ) tmap)
           info.targets tmap)
       modmap tmap
-    |> String.Map.map (fun target -> { target with Clerk_config.tmodules = List.sort_uniq String.compare target.Clerk_config.tmodules })
+    |> String.Map.map (fun target ->
+        { target with
+          Clerk_config.tmodules = List.sort_uniq String.compare target.Clerk_config.tmodules;
+          dependencies = G.succ target_g target.tname;
+        })
   in
+  if Catala_utils.Global.options.debug then
+    (let f = File.(config.global.build_dir / "modules.dot") in
+     File.with_out_channel f (fun oc -> print_dot oc modmap);
+     Message.debug "Module graph available at @{<blue;bold>%a@}"
+       (Message.link ~target:(Message.file_url f) ()) f);
   modmap, tmap
+
+type callback_info = {
+  var_bindings: (Var.t * string list) list;
+  modules_map: module_info String.Map.t;
+  targets_map: Clerk_config.target String.Map.t;
+}
+
+let empty_info = { var_bindings = []; modules_map = String.Map.empty; targets_map = String.Map.empty }
 
 let run_ninja
     ?(include_dir = true)
@@ -700,67 +787,128 @@ let run_ninja
   in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet ~default
     (fun nin_ppf ->
+      (* Design note: the idea here is to write the ninja file as a stream while
+         the directories are being crawled, with the ninja exec already
+         consuming the end of the pipe in parallel. Therefore, refrain from
+         forcing the item sequence prematurely. *)
       let insource = Lazy.force Poll.catala_source_tree_root <> None in
       let stdlib_dir = Lazy.force Poll.stdlib_dir in
       let stdlib_tree =
-        Scan.tree stdlib_dir |> Seq.map (fun (f, fl, items) -> f, fl, items)
+        Scan.tree stdlib_dir
       in
       let item_tree = if include_dir then Scan.tree "." else Seq.empty in
       let item_tree =
-        item_tree
-        |> Seq.filter_map (fun (f, fl, items) ->
-            if insource && String.starts_with f ~prefix:"stdlib" then None
-            else
-              let items =
-                List.map
-                  (fun it ->
-                    let used_modules =
-                      match Scan.get_lang it.Scan.file_name with
-                      | Some lg ->
-                        let lg =
-                          if Global.has_localised_stdlib lg then lg else `En
-                        in
-                        ("Stdlib_" ^ Cli.language_code lg, Pos.from_file f)
-                        :: it.Scan.used_modules
-                      | None -> it.Scan.used_modules
-                    in
-                    { it with Scan.used_modules })
-                  items
+        (* Cleanup leftover source files in _build when we scan the
+           corresponding directory in the source tree *)
+        Seq.map (fun ((f, _, items) as elt) ->
+            match
+              File.(check_directory (config.options.global.build_dir / f))
+            with
+            | None -> elt
+            | Some dir ->
+              let current =
+                List.fold_left
+                  File.(
+                    fun set it -> Set.add (basename it.Scan.file_name) set)
+                  File.Set.empty items
               in
-              let _cleanup =
-                match
-                  File.(check_directory (config.options.global.build_dir / f))
-                with
-                | None -> ()
-                | Some dir ->
-                  let current =
-                    List.fold_left
-                      File.(
-                        fun set it -> Set.add (basename it.Scan.file_name) set)
-                      File.Set.empty items
-                  in
-                  let in_build =
-                    Sys.readdir dir
-                    |> Array.to_seq
-                    |> Seq.filter (fun f -> Scan.get_lang f <> None)
-                    |> File.Set.of_seq
-                  in
-                  let leftover = File.Set.diff in_build current in
-                  if not (File.Set.is_empty leftover) then (
-                    Message.debug
-                      "@[<hov 2>Cleaning up leftover source files in %a:@ %a@]"
-                      File.format dir
-                      (Format.pp_print_list ~pp_sep:Format.pp_print_space
-                         File.format)
-                      (File.Set.elements leftover);
-                    File.Set.iter (fun f -> Sys.remove File.(dir / f)) leftover)
+              let in_build =
+                Sys.readdir dir
+                |> Array.to_seq
+                |> Seq.filter (fun f -> Scan.get_lang f <> None)
+                |> File.Set.of_seq
               in
-              Some (f, fl, items))
+              let leftover = File.Set.diff in_build current in
+              if not (File.Set.is_empty leftover) then (
+                Message.debug
+                  "@[<hov 2>Cleaning up leftover source files in %a:@ %a@]"
+                  File.format dir
+                  (Format.pp_print_list ~pp_sep:Format.pp_print_space
+                     File.format)
+                  (File.Set.elements leftover);
+                File.Set.iter (fun f -> Sys.remove File.(dir / f)) leftover);
+              elt)
+          item_tree
+      in
+      let item_tree =
+        if insource then
+          (* Special case for building within the catala compiler source tree *)
+          Seq.filter (fun (f, _, _) -> not (String.starts_with ~prefix:"stdlib" f))
+            item_tree
+        else item_tree
+      in
+      let item_tree =
+        (* Add dependencies towards the proper stdlib *)
+        Seq.map (fun (f, fl, items) ->
+            let items =
+              List.map
+                (fun it ->
+                   let used_modules =
+                     match Scan.get_lang it.Scan.file_name with
+                     | Some lg ->
+                       let lg =
+                         if Global.has_localised_stdlib lg then lg else `En
+                       in
+                       ("Stdlib_" ^ Cli.language_code lg, Pos.from_file f)
+                       :: it.Scan.used_modules
+                     | None -> it.Scan.used_modules
+                   in
+                   { it with Scan.used_modules })
+                items
+            in
+            f, fl, items)
+          item_tree
       in
       let items =
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
           ~var_bindings stdlib_tree item_tree
       in
-      let ret = callback nin_ppf (List.of_seq items) var_bindings in
+      let modules_map, targets_map =
+        let item_seq = Seq.flat_map (fun (_, _, it) -> List.to_seq it) item_tree in
+        organise_modules ~config:config.options item_seq
+      in
+      let pp nj =
+        Nj.format_def nin_ppf nj;
+        Format.pp_print_cut nin_ppf ()
+      in
+      pp (Nj.Comment "\n- User-defined targets - #\n");
+      String.Map.iter (fun t target ->
+          let modules = target.Clerk_config.tmodules in
+          let backends =
+            let backend_name (module Bk: Clerk_backends.Backend.S) = Bk.name in
+            let conf_backend_name bk =
+              backend_name (backend_from_config bk)
+            in
+            let open String.Set in
+            inter
+              (of_list (List.map backend_name enabled_backends))
+              (of_list (List.map conf_backend_name target.backends))
+          in
+          (* TODO: warn if backend list empty ? Or is that already caught elsewhere ? *)
+          let inputs =
+            String.Set.fold (fun bk_name acc ->
+                List.fold_left (fun acc m ->
+                    (* We could to include Backend.runtime_targets here as well *)
+                    Printf.sprintf "%s@%s-module" m bk_name :: acc)
+                  modules acc)
+              backends
+              (List.map (fun t -> "@" ^ t) target.Clerk_config.dependencies)
+            |> List.rev
+          in
+          pp (Nj.build "phony" ~outputs:["@" ^ t] ~inputs))
+        targets_map;
+      pp (Nj.Comment "\n- Global rules and defaults - #\n");
+      if tests then
+        pp
+          (Nj.build "phony" ~outputs:["test"]
+             ~inputs:[File.(Var.(!builddir / ".@test"))]);
+      let ret =
+        callback nin_ppf (List.of_seq items)
+          {
+            var_bindings;
+            modules_map;
+            targets_map;
+          }
+      in
       Format.pp_print_newline nin_ppf ();
       ret)

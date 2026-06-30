@@ -15,6 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
 open Clerk_utils
 
 type backend = (module Clerk_backends.Backend.S)
@@ -32,6 +33,28 @@ val base_bindings :
 
 exception Stop_ninja
 
+type module_info = {
+  name: string Mark.pos;
+  item: Scan.item;
+  (* extra_items: Scan.item list; (* e.g. included files *) *)
+  targets: String.Set.t;
+}
+
+(** Info passed to the callback that shall conclude the Ninja file, once the
+    whole file tree has been crawled. The modules and targets map differ from
+    the raw configuration information:
+    - the Stdlib target is added
+    - target contents are all modules to actually include in a given target
+    - target dependencies are flattened
+*)
+type callback_info = {
+  var_bindings: (Var.t * string list) list;
+  modules_map: module_info String.Map.t;
+  targets_map: Clerk_config.target String.Map.t;
+}
+
+val empty_info: callback_info
+
 val run_ninja :
   ?include_dir:bool ->
   config:Clerk_cli.config ->
@@ -43,7 +66,7 @@ val run_ninja :
   autotest:bool ->
   ?clean_up_env:bool ->
   ?ninja_flags:string list ->
-  (Format.formatter -> Scan.item list -> (Var.t * string list) list -> 'a) ->
+  (Format.formatter -> Scan.item list -> callback_info -> 'a) ->
   'a
 (** Scan the source tree, run a ninja process, and send to it the expected build
     instructions. A callback can be supplied to retrieve the source items, and
