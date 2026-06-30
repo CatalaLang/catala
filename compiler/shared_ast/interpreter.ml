@@ -1044,7 +1044,10 @@ let evaluate_expr_safe : type d r.
     ((d, r, yes) interpr_kind, 't) gexpr ->
     ((d, r, yes) interpr_kind, 't) gexpr =
  fun ?on_expr ?disable_trace ctx lang s e ->
-  try evaluate_expr_trace ?on_expr ?disable_trace ctx lang s e
+  try
+    let r = evaluate_expr_trace ?on_expr ?disable_trace ctx lang s e in
+    Message.report_delayed_errors_if_any ();
+    r
   with Runtime.Error (err, rpos, note) ->
     Message.error
       ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)

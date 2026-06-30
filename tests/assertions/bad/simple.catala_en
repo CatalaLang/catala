@@ -24,9 +24,6 @@ $ catala test-scope A
 │ 6 │   #[error.message = "Bad attribute"]
 │   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 └─
-┌─[RESULT]─ A ─
-│ w = 6
-└─
 ┌─[ERROR]─ 1/2 ─
 │
 │  Assertion failed: Upper bound for w: 6 ≮ 6
