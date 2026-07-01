@@ -523,8 +523,13 @@ module G = struct[@warning "-32"]
 
   (* Attributes for Graphviz.Dot *)
   let graph_attributes _ = []
-  let default_vertex_attributes _ = [`Fontname "sans"; `Shape `Box; `Style `Filled]
-  let vertex_name v = v
+  let default_vertex_attributes _ = [
+    `Fontname "sans";
+    `Shape `Box;
+    `Style `Filled;
+    `Fillcolor 0xffffff;
+  ]
+  let vertex_name v = String.quote v
   let vertex_attributes _ = []
   let get_subgraph _ = None
   let default_edge_attributes _ = []
@@ -561,6 +566,7 @@ let organise_modules ~config items =
                           "Conflicting module name @{<blue>%s@}" modname)
               modmap
           in
+          let mg = G.add_vertex mg modname in
           let mg =
             List.fold_left (fun g (m, _mpos) ->
                 G.add_edge g modname m
@@ -575,7 +581,7 @@ let organise_modules ~config items =
     Clerk_config.tname = stdlib_target_name;
     tmodules = stdlib_modules;
     ttests = [];
-    backends = [];
+    backends = List.map snd (Clerk_config.registered_backends ());
     include_sources = false; (* ??? *)
     include_objects = false; (* ??? *)
     dependencies = [];
@@ -601,9 +607,11 @@ let organise_modules ~config items =
                 modmap)
             modmap t.tmodules
         in
+        let tg = G.add_vertex tg tname in
         let tg =
           List.fold_left (fun tg dep ->
-              if not (List.exists (fun t -> t.Clerk_config.tname = dep)
+              if not (String.Map.mem dep tmap ||
+                      List.exists (fun t -> t.Clerk_config.tname = dep)
                         config.Clerk_config.targets)
               then Message.error "Clerk target @{<yellow>%s@}@ lists@ @{<yellow>%s@}@ as@ dependency,@ but@ that@ target@ was@ not@ found." tname dep;
               G.add_edge tg t.Clerk_config.tname dep
@@ -612,28 +620,49 @@ let organise_modules ~config items =
         in
         tg, modmap, tmap
       )
-      (G.empty, modmap, String.Map.empty) (stdlib_target :: config.targets)
+      (G.empty, modmap, String.Map.empty)
+      (stdlib_target ::
+       List.map (fun t -> { t with Clerk_config.dependencies = stdlib_target_name :: t.Clerk_config.dependencies })
+         config.targets)
   in
   (* Todo: add a check that a target's backends is a subset of its depencies' *)
   let print_dot oc =
     let explicit_targets = String.Map.map (fun info -> info.targets) modmap in
     fun modmap ->
-      let copy_vertex g v1 v2 =
+      let copy_vertex ~filter g v1 v2 =
         let g = G.add_vertex g v2 in
-        let g = G.fold_pred (fun w g -> G.add_edge g w v2) g v1 g in
-        G.fold_succ (fun w g -> G.add_edge g v2 w) g v1 g
+        let g = G.fold_pred (fun w g -> if filter w then G.add_edge g w v2 else g) g v1 g in
+        G.fold_succ (fun w g -> if filter w then G.add_edge g v2 w else g) g v1 g
+      in
+      let module_g = (* Remove internal stdlib modules *)
+        G.fold_vertex (fun v g ->
+            (* Uncomment this instead to make the stdlib root modules appear *)
+            (*if List.exists (fun v -> (String.Map.find v modmap).item.is_stdlib) (G.pred module_g v) *)
+            if (String.Map.find v modmap).item.is_stdlib
+            then G.remove_vertex g v
+            else g)
+          module_g module_g
       in
       let g, modmap, explicit = (* Duplicate modules that belong to multiple targets *)
         G.fold_vertex (fun v (g, modmap, explicit) ->
             let info = String.Map.find v modmap in
-            if String.Set.cardinal info.targets <= 1 then g, modmap, explicit
+            if String.Set.cardinal info.targets <= 1 then
+              let explicit =
+                if String.Set.is_empty (String.Set.inter info.targets (String.Map.find v explicit_targets))
+                then explicit
+                else String.Set.add v explicit
+              in
+              g, modmap, explicit
             else
             let g, modmap, explicit =
               String.Set.fold (fun target (g, modmap, explicit) ->
                   let vn = v ^ " (" ^ target ^ ")" in
-                  copy_vertex g v vn,
+                  copy_vertex g v vn ~filter:(fun v ->
+                      String.Set.exists (fun t ->
+                          List.mem t (target :: (G.pred target_g target)))
+                        (String.Map.find v modmap).targets),
                   String.Map.add vn { info with targets = String.Set.singleton target } modmap,
-                  if String.Set.mem target (String.Map.find v explicit_targets) then String.Set.add v explicit
+                  if String.Set.mem target (String.Map.find v explicit_targets) then String.Set.add vn explicit
                   else explicit)
                 info.targets (g, modmap, explicit)
             in
@@ -647,8 +676,19 @@ let organise_modules ~config items =
           let get_subgraph v =
             match String.Set.choose_opt (String.Map.find v modmap).targets with
             | None -> None
-            | Some target -> Some { Graph.Graphviz.DotAttributes.sg_name = target; sg_attributes = []; sg_parent = None }
-          let vertex_attributes v = if String.Set.mem v explicit then [`Fillcolor 0xffff80] else []
+            | Some target -> Some {
+                Graph.Graphviz.DotAttributes.sg_name = String.to_id target;
+                sg_attributes = [`Style `Filled; `Style `Dashed; `Fillcolor 0xffffaa; `Label target];
+                sg_parent = None
+              }
+          let vertex_attributes v =
+            let color =
+              if String.contains v '(' then 0xffaaaa
+              else if String.Set.mem v explicit then 0xaaffff
+              else 0xffffff
+            in
+            `Fillcolor color ::
+            (if String.Set.mem v explicit then [`Shape `Box3d] else [])
         end)
       in
       Dot.output_graph oc g
@@ -659,10 +699,16 @@ let organise_modules ~config items =
     match List.find_opt (function [] | [_] -> false | _ -> true) sccs with
     | None | Some [] -> ()
     | Some (v::vs) ->
-      Message.error "@[<v>@[Dependency between the following %s is cyclic:@]@,%a@]" label
+      Message.error "@[<v>@[<v 4>@[Dependency between the following %s is cyclic:@]@,\
+                     %a@]@,@,\
+                     @[<hov>The dependency graph in Dot format is available in@ @{<bold;blue>%t@}.@]@]" label
         (Format.pp_print_list ~pp_sep:(fun ppf () -> Format.fprintf ppf " depends on@,")
            (fun ppf v -> Format.fprintf ppf "@{<yellow>%s@}" v))
         (v :: vs @ [v])
+        (let f = File.(config.global.build_dir / "modules.dot") in
+         File.with_out_channel f (fun oc -> print_dot oc modmap);
+         fun ppf ->
+           Message.link ~target:(Message.file_url f) () ppf f)
   in
   check_cycles "targets" target_g;
   check_cycles "modules" module_g;
@@ -671,7 +717,7 @@ let organise_modules ~config items =
   let module_g = Op.transitive_closure module_g in
   let leaves g =
     G.fold_vertex (fun t set ->
-        if G.out_degree target_g t = 0 then String.Set.add t set else set)
+        if G.out_degree g t = 0 then String.Set.add t set else set)
       g String.Set.empty
   in
   let subgraph g set =
@@ -695,13 +741,15 @@ let organise_modules ~config items =
         (* The ones in which m needs to be actually included (the others depend
            on them and will access it that way) *)
         let base_targets = String.Set.union (leaves dep_target_graph) info.targets in
-        Message.debug "Module @{<blue>%s@} (%s %a) to be attached to targets %a."
-          m (if String.Set.is_empty info.targets then "no explicit target" else "targets")
+        Message.debug "@[<h>Module @{<blue>%s@} (%s%a) to be attached to targets {%a}.@]"
+          m (if String.Set.is_empty info.targets then "no explicit target" else "targets ")
           (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf s -> Format.fprintf ppf "@{<yellow>%s@}" s))
           (String.Set.elements info.targets)
           (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf s -> Format.fprintf ppf "@{<yellow>%s@}" s))
           (String.Set.elements base_targets);
-        if String.Set.is_empty base_targets && not (Lazy.force info.item.has_scope_tests) then
+        if String.Set.is_empty base_targets && (not (Lazy.force info.item.has_scope_tests || info.item.has_inline_tests))
+           (* && not (List.exists has_tests (preds(m))) *)
+        then
           Message.warning "The module @{<blue>%s@} belongs to no target and appears to be unused" m;
         let check_conflicts () =
           let _, conflict_targets =
@@ -722,14 +770,19 @@ let organise_modules ~config items =
           let conflict_err cflt =
             let bases = String.Set.inter (String.Set.of_list (cflt :: G.succ target_g cflt)) base_targets in
             Message.error
-              "@[<v>@[<hov>Target conflict error in@ @{<yellow>%s@}:@ module@ @{<blue>%s@}@ would@ be@ included@ multiple@ times.@]@,\
-               @[<hov>The following targets require it (either explicitely, or because one of@ their@ modules@ uses@ it):@]@,\
-              \    %a@,@,\
-               @[<hov>@{<bold>Hint:@} @{<blue>%s@}@ should@ be@ included@ in@ a@ unique@ target@ that@ is@ listed@ in@ the@ @{<cyan>dependencies@}@ field@ of@ all@ targets@ that@ might@ use@ it."
+              "@[<v>@[<hov>Module conflict error in@ target@ @{<yellow>%s@}:@ module@ @{<blue>%s@}@ would@ be@ included@ multiple@ times.@]@,\
+               @[<hov>The following targets independently@ include@ it@ (either@ explicitely,@ or@ because@ one@ of@ their@ modules@ uses@ it):@]@,\
+              \    @[<v>%a@]@,@,\
+               @[<hov>@{<bold>Hint:@} @{<blue>%s@}@ should@ be@ included@ in@ a@ unique@ target@ that@ is@ listed@ in@ the@ @{<cyan>dependencies@}@ field@ of@ all@ targets@ that@ might@ use@ it.@]@,@,\
+               @[<hov>The dependency graph in Dot format is available in@ @{<bold;blue>%t@}.@]@]"
               cflt m
               (Format.pp_print_list (fun ppf t -> Format.fprintf ppf "- @{<yellow>%s@}" t))
               (String.Set.elements bases)
-              cflt
+              m
+              (let f = File.(config.global.build_dir / "modules.dot") in
+               File.with_out_channel f (fun oc -> print_dot oc new_modmap);
+               fun ppf ->
+                 Message.link ~target:(Message.file_url f) () ppf f)
           in
           Option.iter conflict_err (String.Set.choose_opt conflict_targets)
         in
@@ -864,13 +917,17 @@ let run_ninja
           ~var_bindings stdlib_tree item_tree
       in
       let modules_map, targets_map =
-        let item_seq = Seq.flat_map (fun (_, _, it) -> List.to_seq it) item_tree in
+        let item_seq =
+          Seq.flat_map (fun (_, _, it) -> List.to_seq it)
+            (Seq.append stdlib_tree item_tree)
+        in
         organise_modules ~config:config.options item_seq
       in
       let pp nj =
         Nj.format_def nin_ppf nj;
         Format.pp_print_cut nin_ppf ()
       in
+      let items_list = List.of_seq items in
       pp (Nj.Comment "\n- User-defined targets - #\n");
       String.Map.iter (fun t target ->
           let modules = target.Clerk_config.tmodules in
@@ -890,7 +947,7 @@ let run_ninja
                 List.fold_left (fun acc m ->
                     (* We could to include Backend.runtime_targets here as well *)
                     Printf.sprintf "%s@%s-module" m bk_name :: acc)
-                  modules acc)
+                  acc modules)
               backends
               (List.map (fun t -> "@" ^ t) target.Clerk_config.dependencies)
             |> List.rev
@@ -903,7 +960,7 @@ let run_ninja
           (Nj.build "phony" ~outputs:["test"]
              ~inputs:[File.(Var.(!builddir / ".@test"))]);
       let ret =
-        callback nin_ppf (List.of_seq items)
+        callback nin_ppf items_list
           {
             var_bindings;
             modules_map;
