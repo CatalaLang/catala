@@ -45,7 +45,10 @@ let path_to_list path =
     else
       match p with
       | drive :: p when String.length drive >= 2 && drive.[1] = ':' ->
-        ( Some (String.sub drive 0 2),
+        (* Canonicalize the drive-letter case: Windows is case-insensitive, but
+           some callers pass a lowercase drive (e.g. VS Code's "c:\\...") and our
+           path comparisons are case-sensitive. *)
+        ( Some (String.uppercase_ascii (String.sub drive 0 2)),
           String.sub drive 2 (String.length drive - 2) :: p )
       | _ -> None, p
   in
@@ -63,8 +66,9 @@ let list_to_path = function
 (* - Removes redundant "." segments. - Folds ".." segments when possible and
    preserves extra leading "..". - Preserves whether [p] is absolute or relative
    according to [Filename] on the current platform. - Keeps the platform's
-   separator and root syntax (e.g. ["C:\\"] on Windows). - Does not resolve
-   symlinks or case; purely lexical. *)
+   separator and root syntax (e.g. ["C:\\"] on Windows). - Canonicalizes the
+   Windows drive letter to upper case. - Does not resolve symlinks or other
+   case; purely lexical. *)
 let clean_path p =
   let drive, p = path_to_list p in
   let nup, p =
