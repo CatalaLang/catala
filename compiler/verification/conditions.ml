@@ -301,9 +301,7 @@ let rec generate_verification_conditions_scope_body_expr
     let new_ctx, vc_list, assert_list =
       match scope_let.scope_let_kind with
       | Assertion -> (
-        let e =
-          Expr.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
-        in
+        let e = Expr.unbox (Expr.remove_tags scope_let.scope_let_expr) in
         match Mark.remove e with
         | EAssert e ->
           let e = match_and_ignore_outer_reentrant_default ctx e in
@@ -319,9 +317,7 @@ let rec generate_verification_conditions_scope_body_expr
       | ScopeVarDefinition ->
         (* For scope variables, we should check both that they never evaluate to
            emptyError nor conflictError. *)
-        let e =
-          Expr.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
-        in
+        let e = Expr.unbox (Expr.remove_tags scope_let.scope_let_expr) in
         let e = match_and_ignore_outer_reentrant_default ctx e in
         let vc_confl = generate_vc_must_not_return_conflict ctx e in
         let vc_confl =

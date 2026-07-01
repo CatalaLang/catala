@@ -402,8 +402,7 @@ let polymorphic_op_type (op : Operator.polymorphic operator Mark.pos) : typ =
     | Reduce -> [[any; any] @-> any; array any] @-> option any
     | Sort _ -> [[any] @-> any2; array any] @-> array any
     | Concat -> [array any; array any] @-> array any
-    | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
-    | Log _ -> [any] @-> any
+    | Tag _ -> [any] @-> any
     | Length -> [array any] @-> it
     | HandleExceptions ->
       let pair a b = lazy (TTuple [Lazy.force a; Lazy.force b], pos) in
@@ -446,8 +445,7 @@ let polymorphic_op_return_type
   | Map, [tf; _] -> TArray (return_type tf 1), pos
   | Map2, [tf; _; _] -> TArray (return_type tf 2), pos
   | (Filter | Concat), [_; tau] -> tau
-  | Log (PosRecordIfTrueBool, _), _ -> TLit TBool, pos
-  | Log _, [tau] -> tau
+  | Tag _, [tau] -> tau
   | Length, _ -> TLit TInt, pos
   | HandleExceptions, [_] -> Type.any pos
   | ToClosureEnv, _ -> TClosureEnv, pos
@@ -457,7 +455,7 @@ let polymorphic_op_return_type
   | Find, [_; tarr] -> TOption (element_type tarr), pos
   | Sort _, [_; t] -> t
   | DebugPrint _, _ -> TLit TUnit, pos
-  | ( (( Fold | Reduce | Map | Map2 | Filter | Concat | Log _ | HandleExceptions
+  | ( (( Fold | Reduce | Map | Map2 | Filter | Concat | Tag _ | HandleExceptions
        | ArrayAccess _ | Find | Sort _ ) as op),
       targs ) ->
     Message.error ~pos "Mismatched operator arguments: %a@ (%a)"
@@ -800,12 +798,15 @@ and typecheck_expr_top_down : type a m.
       EnumConstructor.Map.mapi
         (fun c_name e ->
           let c_ty = get_ty env e (EnumConstructor.Map.find c_name cases_ty) in
-          let e =
+          let rec f (e : (a, m) gexpr) : (a, m) gexpr =
             match e with
             | EAbs ({ tys = [ty]; _ } as abs), m ->
               EAbs { abs with tys = [union env e c_ty ty] }, m
+            | EAppOp ({ op = Tag _, _; args = [e]; _ } as log), m ->
+              EAppOp { log with args = [f e] }, m
             | _ -> assert false
           in
+          let e = f e in
           let e_ty = TArrow ([c_ty], t_ret), Expr.pos e in
           typecheck_expr_top_down ctx env e_ty e)
         cases

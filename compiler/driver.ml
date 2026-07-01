@@ -284,11 +284,11 @@ module Commands = struct
          @{<yellow>%s@}, and @{<bold>--language@} was not specified"
         (Global.input_src_file Global.(options.input_src))
 
-  let fix_trace options =
+  let disable_trace options =
     if options.Global.trace <> None then (
       Message.warning "%a" Format.pp_print_text
         "Trace printing is not compatible with closure conversion or the C or \
-         Java backends at the moment and has been disabled.";
+         python backends at the moment and has been disabled.";
       Global.enforce_options ~trace:None ())
     else options
 
@@ -851,7 +851,9 @@ module Commands = struct
       keep_special_ops
       monomorphize_types
       ex_scopes =
-    let options = if closure_conversion then fix_trace options else options in
+    let options =
+      if closure_conversion then disable_trace options else options
+    in
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops ~typed
@@ -910,7 +912,9 @@ module Commands = struct
       quiet
       ex_scopes
       scope_input =
-    let options = if closure_conversion then fix_trace options else options in
+    let options =
+      if closure_conversion then disable_trace options else options
+    in
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest:false ~closure_conversion ~keep_special_ops
@@ -995,7 +999,9 @@ module Commands = struct
       check_invariants
       autotest
       closure_conversion =
-    let options = if closure_conversion then fix_trace options else options in
+    let options =
+      if closure_conversion then disable_trace options else options
+    in
     let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
@@ -1038,7 +1044,9 @@ module Commands = struct
       no_struct_literals
       monomorphize_types
       ex_scope_opt =
-    let options = if closure_conversion then fix_trace options else options in
+    let options =
+      if closure_conversion then disable_trace options else options
+    in
     let prg, _, _ =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops ~dead_value_assignment
@@ -1093,7 +1101,7 @@ module Commands = struct
       check_invariants
       autotest
       closure_conversion =
-    let options = if closure_conversion then fix_trace options else options in
+    let options = disable_trace options in
     let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops:false
@@ -1132,7 +1140,9 @@ module Commands = struct
       check_invariants
       autotest
       closure_conversion =
-    let options = fix_trace options in
+    let options =
+      if closure_conversion then disable_trace options else options
+    in
     let optimize =
       (* javac has a limit on bytecode statement per method, without
          optimizations we easily reach it. We mitigate by enforcing them. *)
@@ -1179,7 +1189,7 @@ module Commands = struct
         $ Cli.Flags.closure_conversion)
 
   let c options includes stdlib output optimize check_invariants autotest =
-    let options = fix_trace options in
+    let options = disable_trace options in
     let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion:true ~keep_special_ops:false

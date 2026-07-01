@@ -88,6 +88,12 @@ module Flags : sig
 
   val output_format : format_enum Term.t
   (** Exported for clerk usage *)
+
+  val trace : [ `FileName of raw_file | `Stdout ] option Term.t
+  (** Exported for clerk usage *)
+
+  val trace_format : format_enum option Term.t
+  (** Exported for clerk usage *)
 end
 
 (** {2 Command-line application} *)

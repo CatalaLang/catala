@@ -98,7 +98,7 @@ let scope B (B_in: B_in): B =
         }
     in
     let result1 : A = { A f = λ (param0: integer) → result.f param0; } in
-    if true then result1 else result1
+    result1
   in
   return {B}
 ```

@@ -32,7 +32,7 @@ module VarName =
     end)
     ()
 
-type operator = Shared_ast.lcalc Shared_ast.operator
+type operator = lcalc Shared_ast.operator
 
 type expr = naked_expr Mark.pos
 
@@ -78,6 +78,8 @@ type stmt =
     }
   | SReturn of expr
   | SSpecialOp of special_operator
+  | SBeginTrace of tag Mark.pos
+  | SEndTrace of { ret_var : VarName.t option }
 
 and special_operator = |
 and block = stmt Mark.pos list

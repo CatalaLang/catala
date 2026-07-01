@@ -1,6 +1,8 @@
 package catala.runtime.exception;
 
+import catala.runtime.CatalaGlobals;
 import catala.runtime.CatalaPosition;
+import catala.runtime.CatalaTrace;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,21 +27,21 @@ public class CatalaError extends RuntimeException {
         public String toString() {
             switch (this) {
                 case AssertionFailed:
-                    return "Assertion failure";
+                    return "an assertion doesn't hold";
                 case NoValue:
-                    return "No applicable rule to define this variable in this situation";
+                    return "no applicable rule to define this variable in this situation";
                 case Conflict:
-                    return "Conflict between multiple valid consequences for assigning the same variable";
+                    return "conflict between multiple valid consequences for assigning the same variable";
                 case DivisionByZero:
-                    return "A value is being used as denominator in a division and it computed to zero";
+                    return "a value is being used as denominator in a division and it computed to zero";
                 case ListEmpty:
-                    return "The list was empty";
+                    return "the list was empty";
                 case NotSameLength:
-                    return "Traversing multiple lists of different lengths";
+                    return "traversing multiple lists of different lengths";
                 case UncomparableValues:
-                    return "Attempting to compare values with uncomparable types";
+                    return "attempting to compare values with uncomparable types";
                 case DateError:
-                    return "Date error";
+                    return "date error";
                 case Impossible:
                     return "\"impossible\" computation reached";
                 case GenericError:
@@ -59,6 +61,9 @@ public class CatalaError extends RuntimeException {
     }
 
     public static CatalaError error(Error err) {
+        if (CatalaGlobals.tracing) {
+            CatalaTrace.error(err, CatalaPosition.empty);
+        }
         return new CatalaError(err);
     }
 
@@ -68,6 +73,9 @@ public class CatalaError extends RuntimeException {
     }
 
     public static CatalaError error(Error err, String note) {
+        if (CatalaGlobals.tracing) {
+            CatalaTrace.error(err, null, null, note);
+        }
         return new CatalaError(err, note);
     }
 
@@ -77,6 +85,9 @@ public class CatalaError extends RuntimeException {
     }
 
     public static CatalaError error(Error err, CatalaPosition pos) {
+        if (CatalaGlobals.tracing) {
+            CatalaTrace.error(err, pos);
+        }
         if (pos == null || pos == CatalaPosition.empty) {
             return new CatalaError(err);
         } else {
@@ -90,6 +101,9 @@ public class CatalaError extends RuntimeException {
     }
 
     public static CatalaError error(Error err, CatalaPosition pos, String note) {
+        if (CatalaGlobals.tracing) {
+            CatalaTrace.error(err, pos, null, note);
+        }
         if (pos == null || pos == CatalaPosition.empty) {
             return new CatalaError(err, note);
         } else {
@@ -105,6 +119,9 @@ public class CatalaError extends RuntimeException {
     }
 
     public static CatalaError error(Error err, List<CatalaPosition> lpos) {
+        if (CatalaGlobals.tracing) {
+            CatalaTrace.error(err, lpos);
+        }
         return new CatalaError(err, lpos);
     }
 }

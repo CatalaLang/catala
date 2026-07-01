@@ -164,7 +164,13 @@ module Flags = struct
               else if File.extension s |> String.starts_with ~prefix:"catala"
               then
                 Error (`Msg "Output trace file cannot have a .catala extension")
-              else Ok (`FileName (Global.raw_file s))),
+              else
+                let abs_f =
+                  if Filename.is_relative s then
+                    File.(original_cwd / s |> clean_path)
+                  else s
+                in
+                Ok (`FileName (Global.raw_file abs_f))),
             fun ppf -> function
               | `Stdout -> Format.pp_print_string ppf "-"
               | `FileName f -> Format.pp_print_string ppf (f :> string) )
@@ -175,7 +181,7 @@ module Flags = struct
           ~env:(Cmd.Env.info "CATALA_TRACE")
           ~doc:
             "Displays a trace of the interpreter's computation or generates \
-             logging instructions in translated programs. If set as a flag, \
+             trace instructions in translated programs. If set as a flag, \
              outputs trace to stdout. If $(docv) is defined, outputs the trace \
              to a file while interpreting.\n\
              Defining a filename does not affect code generation. Cannot use \
@@ -331,12 +337,10 @@ module Flags = struct
           match trace, trace_format with
           | None, _ -> None, trace_format
           | Some `Stdout, _ -> Some (lazy (Message.std_ppf ())), trace_format
-          | Some (`FileName f), Some _ ->
+          | Some (`FileName (f : Global.raw_file)), Some _ ->
             ( Some
                 (lazy
-                  (Message.formatter_of_out_channel
-                     (open_out (path_rewrite f))
-                     ())),
+                  (Message.formatter_of_out_channel (open_out (f :> file)) ())),
               trace_format )
           | Some (`FileName f), None ->
             let trace_format =
@@ -344,9 +348,7 @@ module Flags = struct
             in
             ( Some
                 (lazy
-                  (Message.formatter_of_out_channel
-                     (open_out (path_rewrite f))
-                     ())),
+                  (Message.formatter_of_out_channel (open_out (f :> file)) ())),
               Some trace_format )
         in
         let bin_dir =
@@ -647,6 +649,8 @@ module Flags = struct
            schema for a given scope."
 
   let output_format = Global.output_format
+  let trace = Global.trace
+  let trace_format = Global.trace_format
 end
 
 (* Retrieve current version from dune *)

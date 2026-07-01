@@ -16,6 +16,8 @@ public class CatalaGlobals {
 
     public static Integer max_decimals = 6;
 
+    public static Boolean tracing = false;
+
     public static NumberFormat number_format() {
         NumberFormat nf;
         if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
@@ -43,6 +45,9 @@ public class CatalaGlobals {
     }
 
     public static void displayResult(String scope, CatalaValue<?> result, boolean test_mode, boolean json_mode) {
+        if (tracing) {
+            System.out.println(CatalaTrace.retrieve().toJSONString());
+        }
         System.err.println("\u001B[32m[RESULT]\u001B[0m Scope " + scope + " executed successfully.");
         if (!test_mode) {
             if (json_mode) {
@@ -56,6 +61,9 @@ public class CatalaGlobals {
     private static final String ERR_PREFIX = "\033[1;31m[ERROR]\033[m ";
 
     public static void displayError(String scope, RuntimeException e) {
+        if (tracing) {
+            System.out.println(CatalaTrace.retrieve().toJSONString());
+        }
         if (e instanceof CatalaError ce) {
             System.err.println(ERR_PREFIX + "While executing scope " + scope + " " + ce.getMessage());
             if (ce.kind == CatalaError.Error.GenericError) {
