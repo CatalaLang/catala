@@ -44,11 +44,6 @@ type context = {
   external_scopes : string String.Map.t;
 }
 
-let format_string_list (ppf : formatter) (uids : string list) : unit =
-  fprintf ppf "new String[]{%a}"
-    (pp_print_list ~pp_sep:pp_comma pp_print_string)
-    (List.map String.quote uids)
-
 let java_keywords =
   (* list taken from
      https://docs.oracle.com/javase/tutorial/java/nutsandbolts/_keywords.html *)
@@ -399,11 +394,9 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EPosLit ->
     let pos = Mark.get e in
     fprintf ppf
-      "@[<hv 2>new CatalaPosition@;\
-       <0 -1>(@[<hov>\"%s\",@ %d, %d,@ %d, %d,@ %a@])@]"
+      "@[<hv 2>new CatalaPosition@;<0 -1>(@[<hov>\"%s\",@ %d, %d,@ %d, %d@])@]"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
+      (Pos.get_end_line pos) (Pos.get_end_column pos)
   | EAppOp { op = ValueFromJson (ty, str), p; args = [_e]; _ } ->
     let encoded_string =
       (* Java needs utf-16, we quote the string then escape the non-latin1

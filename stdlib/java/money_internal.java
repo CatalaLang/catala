@@ -18,7 +18,7 @@ public class Money_internal {
                         CatalaInteger ten = CatalaInteger.of(10);
                         if (n == 1) {
                             CatalaPosition dummy_pos
-                            = new CatalaPosition("none", 1, 1, 1, 1, null);
+                            = new CatalaPosition("none", 1, 1, 1, 1);
                             return m.multiply(ten).round().divide(dummy_pos, ten);
                         } else {
                             BigInteger pow_ten = ten.asBigInteger().pow(-n);
