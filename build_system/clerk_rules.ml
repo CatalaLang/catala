@@ -635,7 +635,28 @@ let organise_modules ~config items =
              })
            config.targets)
   in
-  (* Todo: add a check that a target's backends is a subset of its depencies' *)
+  let () =
+    (* Check that a target's backend are a subset of its dependencies' *)
+    G.iter_vertex
+      (fun t ->
+        let t_backends = (String.Map.find t tmap).backends in
+        List.iter
+          (fun t1 ->
+            let t1_backends = (String.Map.find t1 tmap).backends in
+            List.iter
+              (fun bk ->
+                if not (List.mem bk t1_backends) then
+                  Message.error
+                    "Target @{<yellow>%s@}@ is@ configured@ to@ support@ \
+                     backend@ @{<cyan>%s@},@ but@ it@ depends@ on@ \
+                     @{<yellow>%s@}@ which@ doesn't@ support@ it."
+                    t
+                    Clerk_backends.(name (get bk))
+                    t1)
+              t_backends)
+          (G.succ target_g t))
+      target_g
+  in
   let print_dot oc =
     let explicit_targets = String.Map.map (fun info -> info.targets) modmap in
     fun modmap ->
@@ -786,16 +807,12 @@ let organise_modules ~config items =
         let base_targets =
           String.Set.union (leaves dep_target_graph) info.targets
         in
-        Message.debug
-          "@[<h>Module @{<blue>%s@} (%s%a) to be attached to targets {%a}.@]" m
-          (if String.Set.is_empty info.targets then "no explicit target"
-           else "targets ")
-          (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf s ->
-               Format.fprintf ppf "@{<yellow>%s@}" s))
-          (String.Set.elements info.targets)
-          (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf s ->
-               Format.fprintf ppf "@{<yellow>%s@}" s))
-          (String.Set.elements base_targets);
+        (* Message.debug "@[<h>Module @{<blue>%s@} (%s%a) to be attached to targets {%a}.@]"
+         *   m (if String.Set.is_empty info.targets then "no explicit target" else "targets ")
+         *   (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf s -> Format.fprintf ppf "@{<yellow>%s@}" s))
+         *   (String.Set.elements info.targets)
+         *   (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf s -> Format.fprintf ppf "@{<yellow>%s@}" s))
+         *   (String.Set.elements base_targets); *)
         if
           String.Set.is_empty base_targets
           && not
@@ -1017,6 +1034,7 @@ let run_ninja
       in
       let items_list = List.of_seq items in
       pp (Nj.Comment "\n- User-defined targets - #\n");
+      let mk_target backend target = Printf.sprintf "#%s@%s" target backend in
       String.Map.iter
         (fun t target ->
           let modules = target.Clerk_config.tmodules in
@@ -1027,20 +1045,28 @@ let run_ninja
               (of_list (List.map Clerk_backends.name enabled_backends))
               (of_list (List.map conf_backend_name target.backends))
           in
-          (* TODO: warn if backend list empty ? Or is that already caught elsewhere ? *)
-          let inputs =
-            String.Set.fold
-              (fun bk_name acc ->
+          String.Set.iter
+            (fun bk_name ->
+              let inputs =
+                List.map (mk_target bk_name) target.Clerk_config.dependencies
+              in
+              let inputs =
                 List.fold_left
                   (fun acc m ->
-                    (* We could to include Backend.runtime_targets here as well *)
+                    (* We could want to include Backend.runtime_targets here as well ? *)
                     Printf.sprintf "%s@%s-module" m bk_name :: acc)
-                  acc modules)
-              backends
-              (List.map (fun t -> "@" ^ t) target.Clerk_config.dependencies)
-            |> List.rev
-          in
-          pp (Nj.build "phony" ~outputs:["@" ^ t] ~inputs))
+                  inputs modules
+              in
+              pp (Nj.build "phony" ~outputs:[mk_target bk_name t] ~inputs))
+            backends;
+          (* TODO: warn if backend list empty ? Or is that already caught elsewhere ? *)
+          pp
+            (Nj.build "phony"
+               ~outputs:["#" ^ t]
+               ~inputs:
+                 (List.map
+                    (fun bk -> mk_target bk t)
+                    (String.Set.elements backends))))
         targets_map;
       pp (Nj.Comment "\n- Global rules and defaults - #\n");
       if tests then

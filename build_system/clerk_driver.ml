@@ -92,7 +92,15 @@ let backend_subdir_list () =
     (Clerk_backends.all ())
 
 let normalize_backends backends =
-  List.sort_uniq Stdlib.compare backends |> List.map Clerk_backends.get
+  let bks =
+    if backends = [] then Clerk_backends.all ()
+    else List.sort_uniq Stdlib.compare backends |> List.map Clerk_backends.get
+  in
+  Message.debug "@[<h>Enabled backends: %a@]"
+    (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf b ->
+         Format.fprintf ppf "@{<green>%s@}" (Clerk_backends.name b)))
+    bks;
+  bks
 
 let subdir_backend_list () =
   List.map (fun (bk, dir) -> dir, bk) (backend_subdir_list ())
@@ -267,11 +275,12 @@ let build_clerk_targets
   in
   let backends = List.concat_map (fun t -> t.Config.backends) targets in
   let enabled_backends = normalize_backends backends in
+
   let info =
     Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
       ~ninja_flags ~quiet ~default:Clerk_rules.empty_info ~autotest:false
     @@ fun nin_ppf _items info ->
-    let nin_targets = List.map (fun t -> "@" ^ t.Config.tname) targets in
+    let nin_targets = List.map (fun t -> "#" ^ t.Config.tname) targets in
     Nj.format_def nin_ppf (Nj.Default (Nj.Default.make nin_targets));
     info
   in
@@ -287,8 +296,9 @@ let build_clerk_targets
           :: (String.Map.find t.tname info.targets_map).dependencies))
       String.Set.empty targets
   in
-  Config.registered_backends ()
-  |> List.iter (fun (_, bk) ->
+  enabled_backends
+  |> List.iter (fun (module B : Clerk_backends.S) ->
+      let bk = B.config_backend in
       if
         not
           (String.Map.exists
@@ -300,10 +310,11 @@ let build_clerk_targets
         let extensions =
           (* if target.include_objects then List.assoc bk backend_extensions
            * else *)
-          List.assoc bk (backend_src_extensions ())
+          B.src_extensions
         in
         let install_runtime () =
           let dir = bk_dir / "stdlib" in
+          File.remove dir;
           ensure_dir dir;
           match bk with
           | Clerk_backends.Java.T ->
@@ -314,45 +325,72 @@ let build_clerk_targets
                     Filename.check_suffix f ".java"
                     (* || (target.include_objects && Filename.check_suffix f ".class") *))
                   ~src:(local_runtime_dir bk / subdir)
-                  ~dst:(bk_dir / subdir))
+                  ~dst:(dir / subdir))
               ["catala"; "org"]
+          | Clerk_backends.Python.T ->
+            copy_dir ()
+              ~filter:(fun f -> Filename.check_suffix f ".py")
+              ~src:
+                (Lazy.force Poll.stdlib_dir
+                / backend_subdir bk
+                / "src"
+                / "catala")
+              ~dst:dir
           | bk ->
             List.iter
               (fun ext ->
-                let src = (local_runtime_dir bk / "catala_runtime") -.- ext in
-                if File.exists src then copy_in ~dir ~src)
+                let src =
+                  Lazy.force Poll.stdlib_dir
+                  / backend_subdir bk
+                  / ("catala_runtime" -.- ext)
+                in
+                if File.exists src then copy_in ~dir ~src
+                else Message.warning "NOFILE %s" src)
               extensions
         in
         install_runtime ();
         let install_target clerk_target =
           let target_info = String.Map.find clerk_target info.targets_map in
-          let dir = bk_dir / target_info.Config.tname in
-          ensure_dir dir;
-          List.iter
-            (fun m ->
-              let item = (String.Map.find m info.modules_map).item in
-              let base_src =
-                build_dir
-                / item.Scan.file_name
-                /../ backend_subdir bk
-                / Scan.target_basename item
-              in
-              let extensions =
-                (* if target.include_objects then List.assoc bk backend_extensions
-                 * else *)
-                List.assoc bk (backend_src_extensions ())
-              in
+          if not (List.mem bk target_info.backends) then ()
+          else
+            let dir = bk_dir / target_info.Config.tname in
+            if bk = Clerk_backends.Java.T && clerk_target = "stdlib" then ()
+            else (
+              if clerk_target <> "stdlib" then File.remove dir;
+              ensure_dir dir;
               List.iter
-                (fun ext -> copy_in ~dir ~src:(base_src -.- ext))
-                extensions)
-            target_info.Config.tmodules
+                (fun m ->
+                  let item = (String.Map.find m info.modules_map).item in
+                  let file_name =
+                    if item.is_stdlib then
+                      Scan.libcatala
+                      / remove_prefix
+                          (Lazy.force Poll.stdlib_dir)
+                          item.file_name
+                    else item.file_name
+                  in
+                  let base_src =
+                    build_dir
+                    / file_name
+                    /../ backend_subdir bk
+                    / Scan.target_basename item
+                  in
+                  let extensions =
+                    (* if target.include_objects then List.assoc bk backend_extensions
+                     * else *)
+                    B.src_extensions
+                  in
+                  List.iter
+                    (fun ext -> copy_in ~dir ~src:(base_src -.- ext))
+                    extensions)
+                target_info.Config.tmodules)
         in
         String.Set.iter install_target clerk_targets_to_install
-        (* if target.Config.include_sources then
-         *   all_modules_deps
-         *   |> List.map (fun it -> it.Scan.file_name)
-         *   |> List.sort_uniq compare
-         *   |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src) *))
+      (* if target.Config.include_sources then
+       *   all_modules_deps
+       *   |> List.map (fun it -> it.Scan.file_name)
+       *   |> List.sort_uniq compare
+       *   |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src) *))
 
 type targets = { clerk_targets : Config.target list; others : string list }
 
@@ -591,11 +629,11 @@ let build_cmd : int Cmd.t =
     let _clerk_targets_result =
       build_clerk_targets ~quiet ~config ~ninja_flags clerk_targets
     in
-    let _direct_targets_result =
-      build_direct_targets config ~code_coverage ~quiet ~ninja_flags ~autotest
-        direct_targets
-      |> List.filter (fun s -> not (String.contains s '@'))
-    in
+    (* let _direct_targets_result =
+     *   build_direct_targets config ~code_coverage ~quiet ~ninja_flags ~autotest
+     *     direct_targets
+     *   |> List.filter (fun s -> not (String.contains s '@'))
+     * in *)
     (* if clerk_targets_result = [] && direct_targets_result = [] then *)
     Message.result "@[<v 4>Build successful@]";
     (* else TODO restore
