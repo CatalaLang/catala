@@ -95,7 +95,20 @@ let format ppf t =
 let remove_prefix prefix f0 =
   let prefix = make_absolute prefix in
   let f = make_absolute f0 in
-  let suf = String.remove_prefix ~prefix f in
+  (* Windows path comparison is case-insensitive, and VS Code lower-cases the
+     drive letter, so match the prefix case-insensitively; the suffix keeps [f]'s
+     original case. Matters only when cases actually differ (else byte-identical
+     to a plain [String.remove_prefix]). *)
+  let n = String.length prefix in
+  let matches =
+    String.length f >= n
+    &&
+    let pre = String.sub f 0 n in
+    if Sys.win32 then
+      String.equal (String.lowercase_ascii pre) (String.lowercase_ascii prefix)
+    else String.equal pre prefix
+  in
+  let suf = if matches then String.sub f n (String.length f - n) else f in
   if suf = "" then Filename.current_dir_name
   else if suf <> f && Re.execp ~len:1 dir_sep_re suf then
     String.sub suf 1 (String.length suf - 1)
