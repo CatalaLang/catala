@@ -224,8 +224,7 @@ module Backend : Sig.S = struct
          ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
          ~outputs:["@runtime-" ^ name]
     :: Nj.build "java-class" ~inputs:[]
-         ~implicit_in:
-           (java_list_file :: List.map (fun f -> java_base / f) java_files)
+         ~implicit_in:(List.map (fun f -> java_base / f) java_files)
          ~outputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
          ~vars:[javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
     :: List.map
