@@ -202,8 +202,17 @@ let bug_report_url = "https://github.com/CatalaLang/catala/issues"
 let file_url =
   let cwd = Sys.getcwd () in
   fun ?(line = 1) ?(column = 1) file ->
-    Printf.sprintf "file://%s%s%s"
-      (if Filename.is_relative file then Filename.concat cwd file else file)
+    let path =
+      if Filename.is_relative file then Filename.concat cwd file else file
+    in
+    (* A file URL needs forward slashes and, on Windows, a leading slash before
+       the drive (file:///C:/...) — otherwise "C:" is parsed as the URL host and
+       the link resolves to nothing. *)
+    let path =
+      if Sys.win32 then "/" ^ String.map (function '\\' -> '/' | c -> c) path
+      else path
+    in
+    Printf.sprintf "file://%s%s%s" path
       (if line > 1 || column > 1 then Printf.sprintf "#%d" line else "")
       (if column > 1 then Printf.sprintf ":%d" column else "")
 
