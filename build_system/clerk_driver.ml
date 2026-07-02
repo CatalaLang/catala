@@ -63,50 +63,41 @@ let linking_dependencies items =
     in
     rem_dups (traverse [] item)
 
-let all_backends_with_config :
-    (Clerk_config.backend * (module Clerk_backends.Backend.S)) list =
-  [
-    Clerk_config.OCaml, (module Clerk_backends.Ocaml.Backend);
-    Clerk_config.C, (module Clerk_backends.C.Backend);
-    Clerk_config.Python, (module Clerk_backends.Python.Backend);
-    Clerk_config.Java, (module Clerk_backends.Java.Backend);
-  ]
-
-let backend_src_extensions =
+let backend_src_extensions () =
   List.map
-    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.src_extensions)
-    all_backends_with_config
+    (fun (module B : Clerk_backends.S) -> B.config_backend, B.src_extensions)
+    (Clerk_backends.all ())
 
-let backend_obj_extensions =
+let backend_obj_extensions () =
   List.map
-    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.obj_extensions)
-    all_backends_with_config
+    (fun (module B : Clerk_backends.S) -> B.config_backend, B.obj_extensions)
+    (Clerk_backends.all ())
 
-let backend_extensions =
+let backend_extensions () =
+  let bk_exts = backend_obj_extensions () in
   List.map
-    (fun (bk, exts) -> bk, exts @ List.assoc bk backend_obj_extensions)
-    backend_src_extensions
+    (fun (bk, exts) -> bk, exts @ List.assoc bk bk_exts)
+    (backend_src_extensions ())
 
-let extensions_backend =
-  ("cmxa", Clerk_config.OCaml)
+let extensions_backend () =
+  ("cmxa", Clerk_backends.Ocaml.T)
   :: List.flatten
        (List.map
           (fun (bk, exts) -> List.map (fun e -> e, bk) exts)
-          backend_extensions)
+          (backend_extensions ()))
 
-let backend_subdir_list =
+let backend_subdir_list () =
   List.map
-    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.name)
-    all_backends_with_config
+    (fun (module B : Clerk_backends.S) -> B.config_backend, B.name)
+    (Clerk_backends.all ())
 
 let normalize_backends backends =
-  List.sort_uniq Stdlib.compare backends
-  |> List.map Clerk_rules.backend_from_config
+  List.sort_uniq Stdlib.compare backends |> List.map Clerk_backends.get
 
-let subdir_backend_list =
-  List.map (fun (bk, dir) -> dir, bk) backend_subdir_list
+let subdir_backend_list () =
+  List.map (fun (bk, dir) -> dir, bk) (backend_subdir_list ())
 
-let backend_subdir bk = List.assoc bk backend_subdir_list
+let backend_subdir bk = List.assoc bk (backend_subdir_list ())
 let rule_subdir rule = backend_subdir rule.Config.backend
 
 let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
@@ -150,7 +141,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
 
 let target_backend config t =
   let aux ext =
-    try List.assoc ext extensions_backend
+    try List.assoc ext (extensions_backend ())
     with Not_found -> (
       if ext = "" then Message.error "Target without extension: @{<red>%S@}" t
       else
@@ -166,30 +157,19 @@ let target_backend config t =
   in
   match File.extension t with
   | "exe" -> (
-    try List.assoc File.(basename (dirname t)) subdir_backend_list
-    with Not_found -> Clerk_config.OCaml)
+    try List.assoc File.(basename (dirname t)) (subdir_backend_list ())
+    with Not_found -> Clerk_backends.Ocaml.T)
   | ext -> aux ext
 
 let config_backend = function
-  | Clerk_config.OCaml -> `OCaml
-  | Clerk_config.C -> `C
-  | Clerk_config.Python -> `Python
-  | Clerk_config.Java -> `Java
+  | Clerk_backends.Ocaml.T -> `OCaml
+  | Clerk_backends.C.T -> `C
+  | Clerk_backends.Python.T -> `Python
+  | Clerk_backends.Java.T -> `Java
   | _ -> invalid_arg __FUNCTION__
 
-let string_of_config_backend = function
-  | Clerk_config.OCaml -> "ocaml"
-  | Clerk_config.C -> "c"
-  | Clerk_config.Python -> "python"
-  | Clerk_config.Java -> "java"
-  | backend ->
-    let backends = Clerk_config.registered_backends () in
-    let backend_name =
-      List.find_map
-        (fun (name, bckd) -> if backend = bckd then Some name else None)
-        backends
-    in
-    Option.value ~default:"" backend_name
+let string_of_config_backend bk =
+  try Clerk_backends.(name (get bk)) with Not_found -> ""
 
 let string_of_backend = function
   | `OCaml -> "ocaml"
@@ -223,9 +203,7 @@ let make_target ~build_dir ~backend item =
 let backend_runtime_targets ?(only_source = false) enabled_backends =
   List.concat_map
     (fun bk ->
-      let (module B : Clerk_backends.Backend.S) =
-        Clerk_rules.backend_from_config bk
-      in
+      let (module B : Clerk_backends.S) = Clerk_backends.get bk in
       B.runtime_targets ~only_source)
     enabled_backends
 
@@ -322,13 +300,13 @@ let build_clerk_targets
         let extensions =
           (* if target.include_objects then List.assoc bk backend_extensions
            * else *)
-          List.assoc bk backend_src_extensions
+          List.assoc bk (backend_src_extensions ())
         in
         let install_runtime () =
           let dir = bk_dir / "stdlib" in
           ensure_dir dir;
           match bk with
-          | Clerk_config.Java ->
+          | Clerk_backends.Java.T ->
             List.iter
               (fun subdir ->
                 copy_dir ()
@@ -362,7 +340,7 @@ let build_clerk_targets
               let extensions =
                 (* if target.include_objects then List.assoc bk backend_extensions
                  * else *)
-                List.assoc bk backend_src_extensions
+                List.assoc bk (backend_src_extensions ())
               in
               List.iter
                 (fun ext -> copy_in ~dir ~src:(base_src -.- ext))
@@ -408,12 +386,12 @@ let build_direct_targets
           else File.(build_dir / t))
         direct_targets
     in
-    let backends = if autotest then [Clerk_config.OCaml] else [] in
+    let backends = if autotest then [Clerk_backends.Ocaml.T] else [] in
     let enabled_backends =
       List.fold_left
         (fun acc t ->
           match File.extension t with
-          | "" -> Clerk_config.OCaml :: acc
+          | "" -> Clerk_backends.Ocaml.T :: acc
           | _ -> target_backend config.options t :: acc)
         backends direct_targets
       |> normalize_backends
@@ -443,7 +421,7 @@ let build_direct_targets
           (fun t ->
             let ext = File.extension t in
             let is_module = ext = "" in
-            match List.assoc_opt ext extensions_backend, ext with
+            match List.assoc_opt ext (extensions_backend ()), ext with
             | Some bk, _ -> Left (ensure_target_dir (backend_subdir bk) t)
             | None, ("catala_en" | "catala_fr" | "catala_pl") -> Left t
             | None, ("exe" | "jar") ->
@@ -700,10 +678,10 @@ let run_artifact config ~backend ~var_bindings ?scope ~test ~trace src =
   | `Java -> Clerk_backends.Java.run_artifact ~var_bindings ~test ?scope src
 
 let backend_to_config = function
-  | `Interpret | `OCaml -> Clerk_config.OCaml
-  | `C -> Clerk_config.C
-  | `Python -> Clerk_config.Python
-  | `Java -> Clerk_config.Java
+  | `Interpret | `OCaml -> Clerk_backends.Ocaml.T
+  | `C -> Clerk_backends.C.T
+  | `Python -> Clerk_backends.Python.T
+  | `Java -> Clerk_backends.Java.T
 
 let retrieve_target_items ~test_only items files_or_folders =
   let open File in
@@ -886,9 +864,7 @@ let run_cmd =
       | _ -> (* backends only offers entrypoints for test scopes *) `Scope
     in
     let files_or_folders = List.map config.Cli.fix_path files_or_folders in
-    let enabled_backends =
-      [Clerk_rules.backend_from_config (backend_to_config backend)]
-    in
+    let enabled_backends = [Clerk_backends.get (backend_to_config backend)] in
     Clerk_rules.run_ninja ~config ~code_coverage:false ?trace ?trace_format
       ~enabled_backends ~ninja_flags ~autotest:false ~quiet
       ~default:([], (fun _ -> assert false), [])
@@ -1161,7 +1137,7 @@ let run_clerk_test
     [
       backend_to_config backend
       (* Clerk_rules.OCaml backend is required as autotest flag is true *);
-      Clerk_config.OCaml;
+      Clerk_backends.Ocaml.T;
     ]
     |> normalize_backends
   in
@@ -1317,7 +1293,7 @@ let runtest_cmd =
 let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
   let default =
     List.fold_left
-      (fun default_rules (module B : Clerk_backends.Backend.S) ->
+      (fun default_rules (module B : Clerk_backends.S) ->
         let rule_stdlib_fr = Format.sprintf "Stdlib_fr@%s-module" B.name in
         let rule_stdlib_en = Format.sprintf "Stdlib_en@%s-module" B.name in
         let runtime_rule = Format.sprintf "@runtime-%s" B.name in
@@ -1463,7 +1439,7 @@ let list_vars_cmd =
   let run config =
     let var_bindings =
       Clerk_rules.base_bindings ~autotest:false ~trace:None ~trace_format:None
-        ~code_coverage:false ~enabled_backends:Clerk_rules.all_backends ~config
+        ~code_coverage:false ~enabled_backends:(Clerk_backends.all ()) ~config
         ~inplace:false
     in
     Format.eprintf "Defined variables:@.";

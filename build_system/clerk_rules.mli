@@ -18,17 +18,12 @@
 open Catala_utils
 open Clerk_utils
 
-type backend = (module Clerk_backends.Backend.S)
-
-val all_backends : backend list
-val backend_from_config : Clerk_config.backend -> backend
-
 val base_bindings :
   code_coverage:bool ->
   trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] option ->
   trace_format:Catala_utils.Global.format_enum option ->
   autotest:bool ->
-  enabled_backends:backend list ->
+  enabled_backends:Clerk_backends.t list ->
   inplace:bool ->
   config:Clerk_cli.config ->
   (Var.t * string list) list
@@ -60,7 +55,7 @@ val run_ninja :
   ?include_dir:bool ->
   config:Clerk_cli.config ->
   ?tests:bool ->
-  ?enabled_backends:backend list ->
+  ?enabled_backends:Clerk_backends.t list ->
   quiet:bool ->
   default:'a ->
   code_coverage:bool ->

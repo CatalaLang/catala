@@ -19,6 +19,8 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
+type Clerk_config.backend += T
+
 let catala_flags_c = Var.make "CATALA_FLAGS_C"
 let cc_exe = Var.make "CC"
 let c_flags = Var.make "CFLAGS"
@@ -56,6 +58,8 @@ module Backend = struct
   module Nj = Ninja_utils
 
   let name = "c"
+  let config_backend = T
+  let () = Clerk_lib.Clerk_config.register_backend ~name config_backend
   let module_ext = "@" ^ name ^ "-module"
   let src_extensions = ["c"; "h"]
   let obj_extensions = ["o"]
@@ -232,3 +236,5 @@ module Backend = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
 end
+
+let () = Common.register (module Backend)

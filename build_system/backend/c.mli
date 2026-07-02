@@ -17,6 +17,8 @@
 
 open Clerk_utils
 
+type Clerk_lib.Clerk_config.backend += T
+
 val linking_command :
   build_dir:string ->
   var_bindings:(Var.t * string list) list ->
@@ -34,4 +36,4 @@ val run_artifact : test:bool -> ?scope:string -> string -> int
     is needed by the Clerk_driver modules and not the clerk_rules modules that's
     why it doesn't appear in the Backend common interface. *)
 
-module Backend : Backend.S
+module Backend : Sig.S

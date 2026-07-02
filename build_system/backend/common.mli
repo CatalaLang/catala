@@ -18,6 +18,8 @@
 open Clerk_utils
 open Clerk_lib
 
+module type S = Sig.S
+
 module Flags : sig
   val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
   val includes : ?backend:string -> string list -> string list
@@ -42,3 +44,11 @@ end
 module Ninja : sig
   val static_base_rules : Ninja_utils.def list
 end
+
+type t = (module Sig.S)
+
+val register : t -> unit
+val get : Clerk_config.backend -> t
+val all : unit -> t list
+val name : t -> string
+val id : t -> Clerk_config.backend

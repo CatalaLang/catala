@@ -18,18 +18,11 @@ open Catala_utils
 open Otoml
 
 type backend = ..
-type backend += C | OCaml | Java | Python
 
 let registered_backends = ref []
 
 let register_backend ~name backend =
   registered_backends := (name, backend) :: !registered_backends
-
-let () =
-  register_backend ~name:"c" C;
-  register_backend ~name:"ocaml" OCaml;
-  register_backend ~name:"java" Java;
-  register_backend ~name:"python" Python
 
 let registered_backends () = !registered_backends
 
@@ -99,7 +92,7 @@ let default_config =
     custom_rules = [];
   }
 
-let project_encoding =
+let project_encoding () =
   let open Clerk_toml_encoding in
   conv
     (fun {
@@ -144,7 +137,7 @@ let project_encoding =
        (dft_field ~name:"build_dir" ~default:default_global.build_dir string)
        (dft_field ~name:"target_dir" ~default:default_global.target_dir string)
 
-let target_encoding =
+let target_encoding () =
   let open Clerk_toml_encoding in
   conv
     (fun {
@@ -184,13 +177,13 @@ let target_encoding =
        (req_field ~name:"name" @@ string)
        (req_field ~name:"modules" @@ list string)
        (dft_field ~name:"tests" ~default:[] @@ list string)
-       (dft_field ~name:"backends" ~default:[OCaml]
+       (dft_field ~name:"backends" ~default:[]
        @@ list (union (string_cases (registered_backends ()))))
        (dft_field ~name:"include_sources" ~default:false @@ bool)
        (dft_field ~name:"include_objects" ~default:false @@ bool)
        (dft_field ~name:"dependencies" ~default:[] @@ list string)
 
-let doc_encoding =
+let doc_encoding () =
   let open Clerk_toml_encoding in
   conv
     (fun { name; entrypoints; kind; doc_options } ->
@@ -204,7 +197,7 @@ let doc_encoding =
        @@ union (string_cases ["latex", Latex; "html", Html]))
        (opt_field ~name:"doc_options" @@ list string)
 
-let custom_rule_encoding =
+let custom_rule_encoding () =
   let open Clerk_toml_encoding in
   conv
     (fun { backend; in_exts; out_exts; commandline } ->
@@ -218,18 +211,18 @@ let custom_rule_encoding =
        (req_field ~name:"out_exts" @@ list string)
        (req_field ~name:"commandline" @@ list string)
 
-let variables_encoding = Clerk_toml_encoding.(binding_list (list string))
+let variables_encoding () = Clerk_toml_encoding.(binding_list (list string))
 
-let raw_config_encoding =
+let raw_config_encoding () =
   let open Clerk_toml_encoding in
   table5
-    (table_opt ~name:"project" project_encoding)
-    (table_opt ~name:"variables" variables_encoding)
-    (multi_table ~name:"target" target_encoding)
-    (multi_table ~name:"doc" doc_encoding)
-    (multi_table ~name:"rule" custom_rule_encoding)
+    (table_opt ~name:"project" (project_encoding ()))
+    (table_opt ~name:"variables" (variables_encoding ()))
+    (multi_table ~name:"target" (target_encoding ()))
+    (multi_table ~name:"doc" (doc_encoding ()))
+    (multi_table ~name:"rule" (custom_rule_encoding ()))
 
-let config_encoding : config_file Clerk_toml_encoding.t =
+let config_encoding () : config_file Clerk_toml_encoding.t =
   let open Clerk_toml_encoding in
   convt
     (fun { global; variables; targets; docs; custom_rules } ->
@@ -242,7 +235,7 @@ let config_encoding : config_file Clerk_toml_encoding.t =
         docs;
         custom_rules;
       })
-  @@ raw_config_encoding
+  @@ raw_config_encoding ()
 
 let pp_target_names fmt ts =
   Format.(
@@ -272,10 +265,10 @@ let read f =
         ~pos:(Pos.from_info f li col li (col + 1))
         "Error in Clerk configuration:@ %a" Format.pp_print_text msg
   in
-  let config = Clerk_toml_encoding.decode toml config_encoding in
+  let config = Clerk_toml_encoding.decode toml (config_encoding ()) in
   validate f config;
   config
 
 let write f config =
-  let toml = Clerk_toml_encoding.encode config config_encoding in
+  let toml = Clerk_toml_encoding.encode config (config_encoding ()) in
   File.with_out_channel ~bin:false f @@ fun oc -> Printer.to_channel oc toml

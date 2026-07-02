@@ -18,6 +18,7 @@
 open Clerk_utils
 open Catala_utils
 open Clerk_lib
+include Sig
 
 module Flags = struct
   let def ~variables var value =
@@ -156,3 +157,16 @@ module Ninja = struct
         ~description:["<copy>"; !input];
     ]
 end
+
+type t = (module Sig.S)
+
+let backends : (Clerk_config.backend, t) Hashtbl.t = Hashtbl.create 7
+
+let register (module B : S) =
+  Clerk_config.register_backend ~name:B.name B.config_backend;
+  Hashtbl.add backends B.config_backend (module B)
+
+let get bk = Hashtbl.find backends bk
+let all () = Hashtbl.to_seq_values backends |> List.of_seq
+let name (module B : S) = B.name
+let id (module B : S) = B.config_backend

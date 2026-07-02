@@ -19,6 +19,8 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
+type Clerk_config.backend += T
+
 let backend_name = "ocaml"
 let catala_flags_ocaml = Var.make "CATALA_FLAGS_OCAML"
 let ocamlc_exe = Var.make "OCAMLC_EXE"
@@ -121,6 +123,7 @@ module Backend = struct
   module Flags = Flags
 
   let name = backend_name
+  let config_backend = T
   let module_ext = "@" ^ name ^ "-module"
   let src_extensions = ["ml"; "mli"]
   let obj_extensions = ["cmi"; "cmo"; "cmx"; "o"; "cmxs"]
@@ -328,3 +331,5 @@ module Backend = struct
         ~outputs:[Ninja.target ~backend:name module_ext];
     ]
 end
+
+let () = Common.register (module Backend)

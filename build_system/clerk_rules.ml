@@ -17,31 +17,9 @@
 
 open Catala_utils
 open Clerk_utils
-module Backend_common = Clerk_backends.Common
 module Nj = Ninja_utils
 
 (**{1 Building rules}*)
-
-type backend = (module Clerk_backends.Backend.S)
-
-let all_backends : backend list =
-  [
-    (module Clerk_backends.Ocaml.Backend);
-    (module Clerk_backends.C.Backend);
-    (module Clerk_backends.Java.Backend);
-    (module Clerk_backends.Python.Backend);
-  ]
-
-let backend_from_config = function
-  | Clerk_config.OCaml ->
-    (module Clerk_backends.Ocaml.Backend : Clerk_backends.Backend.S)
-  | Clerk_config.Python ->
-    (module Clerk_backends.Python.Backend : Clerk_backends.Backend.S)
-  | Clerk_config.C ->
-    (module Clerk_backends.C.Backend : Clerk_backends.Backend.S)
-  | Clerk_config.Java ->
-    (module Clerk_backends.Java.Backend : Clerk_backends.Backend.S)
-  | _ -> invalid_arg __FUNCTION__
 
 let base_bindings
     ~code_coverage
@@ -55,12 +33,12 @@ let base_bindings
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
   let default_flags =
-    Backend_common.Flags.default ~code_coverage ~trace ~trace_format ~inplace
+    Clerk_backends.Flags.default ~code_coverage ~trace ~trace_format ~inplace
       ~config
   in
   let backend_flags =
     List.concat_map
-      (fun (module Backend : Clerk_backends.Backend.S) ->
+      (fun (module Backend : Clerk_backends.S) ->
         Backend.Flags.default ~variables:options.variables ~autotest
           ~use_default_flags ~test_flags
           ~include_dirs:options.global.include_dirs)
@@ -88,16 +66,15 @@ let static_base_rules ~tests enabled_backends =
   in
   let backend_static_rules =
     List.concat_map
-      (fun (module Backend : Clerk_backends.Backend.S) ->
-        Backend.static_base_rules)
+      (fun (module Backend : Clerk_backends.S) -> Backend.static_base_rules)
       enabled_backends
   in
-  Backend_common.Ninja.static_base_rules @ backend_static_rules @ test_rules
+  Clerk_backends.Ninja.static_base_rules @ backend_static_rules @ test_rules
 
 let gen_build_statements
     (include_dirs : string list)
     ~(tests : bool)
-    (enabled_backends : (module Clerk_backends.Backend.S) list)
+    (enabled_backends : (module Clerk_backends.S) list)
     (autotest : bool)
     (same_dir_modules : (string * File.t) list)
     ~is_stdlib
@@ -138,7 +115,7 @@ let gen_build_statements
     | None -> []
     | Some _ ->
       List.concat_map
-        (fun (module Backend : Clerk_backends.Backend.S) ->
+        (fun (module Backend : Clerk_backends.S) ->
           Backend.expose_module ~same_dir_modules ~used_modules:modules)
         enabled_backends
   in
@@ -146,8 +123,7 @@ let gen_build_statements
   let backend_sources =
     if item.extrnal then
       List.map
-        (fun (module Backend : Clerk_backends.Backend.S) ->
-          Backend.external_copy item)
+        (fun (module Backend : Clerk_backends.S) -> Backend.external_copy item)
         enabled_backends
     else
       let inputs = [catala_src] in
@@ -163,13 +139,13 @@ let gen_build_statements
         else None
       in
       List.map
-        (fun (module Backend : Clerk_backends.Backend.S) ->
+        (fun (module Backend : Clerk_backends.S) ->
           Backend.catala ?vars ~is_stdlib ~inputs ~implicit_in has_scope_tests)
         enabled_backends
   in
   let backend_objects =
     List.map
-      (fun (module Backend : Clerk_backends.Backend.S) ->
+      (fun (module Backend : Clerk_backends.S) ->
         Backend.build_object ~include_dirs ~same_dir_modules ~item
           has_scope_tests)
       enabled_backends
@@ -189,7 +165,7 @@ let gen_build_statements
       let modname = Mark.remove m in
       let backends_module =
         List.map
-          (fun (module Backend : Clerk_backends.Backend.S) ->
+          (fun (module Backend : Clerk_backends.S) ->
             Nj.build "phony"
               ~outputs:[Format.sprintf "%s@%s-module" modname Backend.name]
               ~inputs:
@@ -237,7 +213,7 @@ let gen_build_statements_dir
     (dir : string)
     (include_dirs : string list)
     ~(tests : bool)
-    (enabled_backends : (module Clerk_backends.Backend.S) list)
+    (enabled_backends : (module Clerk_backends.S) list)
     (autotest : bool)
     (items : Scan.item list) : Nj.ninja =
   let same_dir_modules =
@@ -317,7 +293,7 @@ let runtime_build_statements ~config enabled_backends =
   let stdbase = Var.(!builddir) / Scan.libcatala in
   let options = config.Clerk_lib.Clerk_cli.options in
   List.concat_map
-    (fun (module Backend : Clerk_backends.Backend.S) ->
+    (fun (module Backend : Clerk_backends.S) ->
       Backend.runtime_build_statements ~options ~stdbase)
     enabled_backends
 
@@ -533,9 +509,9 @@ module G = struct
   let graph_attributes _ = []
 
   let default_vertex_attributes _ =
-    [`Fontname "sans"; `Shape `Box; `Style `Filled]
+    [`Fontname "sans"; `Shape `Box; `Style `Filled; `Fillcolor 0xffffff]
 
-  let vertex_name v = v
+  let vertex_name v = String.quote v
   let vertex_attributes _ = []
   let get_subgraph _ = None
   let default_edge_attributes _ = []
@@ -578,6 +554,7 @@ let organise_modules ~config items =
                     "Conflicting module name @{<blue>%s@}" modname)
               modmap
           in
+          let mg = G.add_vertex mg modname in
           let mg =
             List.fold_left
               (fun g (m, _mpos) -> G.add_edge g modname m)
@@ -595,7 +572,7 @@ let organise_modules ~config items =
       Clerk_config.tname = stdlib_target_name;
       tmodules = stdlib_modules;
       ttests = [];
-      backends = [];
+      backends = List.map snd (Clerk_config.registered_backends ());
       include_sources = false;
       (* ??? *)
       include_objects = false;
@@ -628,14 +605,16 @@ let organise_modules ~config items =
                 modmap)
             modmap t.tmodules
         in
+        let tg = G.add_vertex tg tname in
         let tg =
           List.fold_left
             (fun tg dep ->
               if
                 not
-                  (List.exists
-                     (fun t -> t.Clerk_config.tname = dep)
-                     config.Clerk_config.targets)
+                  (String.Map.mem dep tmap
+                  || List.exists
+                       (fun t -> t.Clerk_config.tname = dep)
+                       config.Clerk_config.targets)
               then
                 Message.error
                   "Clerk target @{<yellow>%s@}@ lists@ @{<yellow>%s@}@ as@ \
@@ -646,36 +625,74 @@ let organise_modules ~config items =
         in
         tg, modmap, tmap)
       (G.empty, modmap, String.Map.empty)
-      (stdlib_target :: config.targets)
+      (stdlib_target
+      :: List.map
+           (fun t ->
+             {
+               t with
+               Clerk_config.dependencies =
+                 stdlib_target_name :: t.Clerk_config.dependencies;
+             })
+           config.targets)
   in
   (* Todo: add a check that a target's backends is a subset of its depencies' *)
   let print_dot oc =
     let explicit_targets = String.Map.map (fun info -> info.targets) modmap in
     fun modmap ->
-      let copy_vertex g v1 v2 =
+      let copy_vertex ~filter g v1 v2 =
         let g = G.add_vertex g v2 in
-        let g = G.fold_pred (fun w g -> G.add_edge g w v2) g v1 g in
-        G.fold_succ (fun w g -> G.add_edge g v2 w) g v1 g
+        let g =
+          G.fold_pred
+            (fun w g -> if filter w then G.add_edge g w v2 else g)
+            g v1 g
+        in
+        G.fold_succ
+          (fun w g -> if filter w then G.add_edge g v2 w else g)
+          g v1 g
+      in
+      let module_g =
+        (* Remove internal stdlib modules *)
+        G.fold_vertex
+          (fun v g ->
+            (* Uncomment this instead to make the stdlib root modules appear *)
+            (*if List.exists (fun v -> (String.Map.find v modmap).item.is_stdlib) (G.pred module_g v) *)
+            if (String.Map.find v modmap).item.is_stdlib then
+              G.remove_vertex g v
+            else g)
+          module_g module_g
       in
       let g, modmap, explicit =
         (* Duplicate modules that belong to multiple targets *)
         G.fold_vertex
           (fun v (g, modmap, explicit) ->
             let info = String.Map.find v modmap in
-            if String.Set.cardinal info.targets <= 1 then g, modmap, explicit
+            if String.Set.cardinal info.targets <= 1 then
+              let explicit =
+                if
+                  String.Set.is_empty
+                    (String.Set.inter info.targets
+                       (String.Map.find v explicit_targets))
+                then explicit
+                else String.Set.add v explicit
+              in
+              g, modmap, explicit
             else
               let g, modmap, explicit =
                 String.Set.fold
                   (fun target (g, modmap, explicit) ->
                     let vn = v ^ " (" ^ target ^ ")" in
-                    ( copy_vertex g v vn,
+                    ( copy_vertex g v vn ~filter:(fun v ->
+                          String.Set.exists
+                            (fun t ->
+                              List.mem t (target :: G.pred target_g target))
+                            (String.Map.find v modmap).targets),
                       String.Map.add vn
                         { info with targets = String.Set.singleton target }
                         modmap,
                       if
                         String.Set.mem target
                           (String.Map.find v explicit_targets)
-                      then String.Set.add v explicit
+                      then String.Set.add vn explicit
                       else explicit ))
                   info.targets (g, modmap, explicit)
               in
@@ -692,13 +709,25 @@ let organise_modules ~config items =
           | Some target ->
             Some
               {
-                Graph.Graphviz.DotAttributes.sg_name = target;
-                sg_attributes = [];
+                Graph.Graphviz.DotAttributes.sg_name = String.to_id target;
+                sg_attributes =
+                  [
+                    `Style `Filled;
+                    `Style `Dashed;
+                    `Fillcolor 0xffffaa;
+                    `Label target;
+                  ];
                 sg_parent = None;
               }
 
         let vertex_attributes v =
-          if String.Set.mem v explicit then [`Fillcolor 0xffff80] else []
+          let color =
+            if String.contains v '(' then 0xffaaaa
+            else if String.Set.mem v explicit then 0xaaffff
+            else 0xffffff
+          in
+          `Fillcolor color
+          :: (if String.Set.mem v explicit then [`Shape `Box3d] else [])
       end) in
       Dot.output_graph oc g
   in
@@ -709,11 +738,19 @@ let organise_modules ~config items =
     | None | Some [] -> ()
     | Some (v :: vs) ->
       Message.error
-        "@[<v>@[Dependency between the following %s is cyclic:@]@,%a@]" label
+        "@[<v>@[<v 4>@[Dependency between the following %s is cyclic:@]@,\
+         %a@]@,\
+         @,\
+         @[<hov>The dependency graph in Dot format is available in@ \
+         @{<bold;blue>%t@}.@]@]"
+        label
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf " depends on@,")
            (fun ppf v -> Format.fprintf ppf "@{<yellow>%s@}" v))
         ((v :: vs) @ [v])
+        (let f = File.(config.global.build_dir / "modules.dot") in
+         File.with_out_channel f (fun oc -> print_dot oc modmap);
+         fun ppf -> Message.link ~target:(Message.file_url f) () ppf f)
   in
   check_cycles "targets" target_g;
   check_cycles "modules" module_g;
@@ -722,8 +759,7 @@ let organise_modules ~config items =
   let module_g = Op.transitive_closure module_g in
   let leaves g =
     G.fold_vertex
-      (fun t set ->
-        if G.out_degree target_g t = 0 then String.Set.add t set else set)
+      (fun t set -> if G.out_degree g t = 0 then String.Set.add t set else set)
       g String.Set.empty
   in
   let subgraph g set =
@@ -751,9 +787,9 @@ let organise_modules ~config items =
           String.Set.union (leaves dep_target_graph) info.targets
         in
         Message.debug
-          "Module @{<blue>%s@} (%s %a) to be attached to targets %a." m
+          "@[<h>Module @{<blue>%s@} (%s%a) to be attached to targets {%a}.@]" m
           (if String.Set.is_empty info.targets then "no explicit target"
-           else "targets")
+           else "targets ")
           (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf s ->
                Format.fprintf ppf "@{<yellow>%s@}" s))
           (String.Set.elements info.targets)
@@ -762,7 +798,10 @@ let organise_modules ~config items =
           (String.Set.elements base_targets);
         if
           String.Set.is_empty base_targets
-          && not (Lazy.force info.item.has_scope_tests)
+          && not
+               (Lazy.force info.item.has_scope_tests
+               || info.item.has_inline_tests)
+          (* && not (List.exists has_tests (preds(m))) *)
         then
           Message.warning
             "The module @{<blue>%s@} belongs to no target and appears to be \
@@ -793,21 +832,28 @@ let organise_modules ~config items =
                 base_targets
             in
             Message.error
-              "@[<v>@[<hov>Target conflict error in@ @{<yellow>%s@}:@ module@ \
-               @{<blue>%s@}@ would@ be@ included@ multiple@ times.@]@,\
-               @[<hov>The following targets require it (either explicitely, or \
-               because one of@ their@ modules@ uses@ it):@]@,\
-              \    %a@,\
+              "@[<v>@[<hov>Module conflict error in@ target@ @{<yellow>%s@}:@ \
+               module@ @{<blue>%s@}@ would@ be@ included@ multiple@ times.@]@,\
+               @[<hov>The following targets independently@ include@ it@ \
+               (either@ explicitely,@ or@ because@ one@ of@ their@ modules@ \
+               uses@ it):@]@,\
+              \    @[<v>%a@]@,\
                @,\
                @[<hov>@{<bold>Hint:@} @{<blue>%s@}@ should@ be@ included@ in@ \
                a@ unique@ target@ that@ is@ listed@ in@ the@ \
                @{<cyan>dependencies@}@ field@ of@ all@ targets@ that@ might@ \
-               use@ it."
+               use@ it.@]@,\
+               @,\
+               @[<hov>The dependency graph in Dot format is available in@ \
+               @{<bold;blue>%t@}.@]@]"
               cflt m
               (Format.pp_print_list (fun ppf t ->
                    Format.fprintf ppf "- @{<yellow>%s@}" t))
               (String.Set.elements bases)
-              cflt
+              m
+              (let f = File.(config.global.build_dir / "modules.dot") in
+               File.with_out_channel f (fun oc -> print_dot oc new_modmap);
+               fun ppf -> Message.link ~target:(Message.file_url f) () ppf f)
           in
           Option.iter conflict_err (String.Set.choose_opt conflict_targets)
         in
@@ -865,7 +911,7 @@ let run_ninja
     ?(include_dir = true)
     ~config
     ?(tests = false)
-    ?(enabled_backends = all_backends)
+    ?(enabled_backends = Clerk_backends.all ())
     ~quiet
     ~default
     ~code_coverage
@@ -959,7 +1005,9 @@ let run_ninja
       in
       let modules_map, targets_map =
         let item_seq =
-          Seq.flat_map (fun (_, _, it) -> List.to_seq it) item_tree
+          Seq.flat_map
+            (fun (_, _, it) -> List.to_seq it)
+            (Seq.append stdlib_tree item_tree)
         in
         organise_modules ~config:config.options item_seq
       in
@@ -967,16 +1015,16 @@ let run_ninja
         Nj.format_def nin_ppf nj;
         Format.pp_print_cut nin_ppf ()
       in
+      let items_list = List.of_seq items in
       pp (Nj.Comment "\n- User-defined targets - #\n");
       String.Map.iter
         (fun t target ->
           let modules = target.Clerk_config.tmodules in
           let backends =
-            let backend_name (module Bk : Clerk_backends.Backend.S) = Bk.name in
-            let conf_backend_name bk = backend_name (backend_from_config bk) in
+            let conf_backend_name bk = Clerk_backends.(name (get bk)) in
             let open String.Set in
             inter
-              (of_list (List.map backend_name enabled_backends))
+              (of_list (List.map Clerk_backends.name enabled_backends))
               (of_list (List.map conf_backend_name target.backends))
           in
           (* TODO: warn if backend list empty ? Or is that already caught elsewhere ? *)
@@ -987,7 +1035,7 @@ let run_ninja
                   (fun acc m ->
                     (* We could to include Backend.runtime_targets here as well *)
                     Printf.sprintf "%s@%s-module" m bk_name :: acc)
-                  modules acc)
+                  acc modules)
               backends
               (List.map (fun t -> "@" ^ t) target.Clerk_config.dependencies)
             |> List.rev
@@ -1000,8 +1048,7 @@ let run_ninja
           (Nj.build "phony" ~outputs:["test"]
              ~inputs:[File.(Var.(!builddir / ".@test"))]);
       let ret =
-        callback nin_ppf (List.of_seq items)
-          { var_bindings; modules_map; targets_map }
+        callback nin_ppf items_list { var_bindings; modules_map; targets_map }
       in
       Format.pp_print_newline nin_ppf ();
       ret)

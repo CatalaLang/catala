@@ -18,6 +18,8 @@
 open Clerk_utils
 open Clerk_lib
 
+type Clerk_config.backend += T
+
 val linking_command :
   build_dir:string -> ('a -> Scan.item list) -> 'a -> string -> string list
 (** [linking_command] is a that returns a list of parameter that represents a
@@ -36,4 +38,4 @@ val run_artifact :
     is needed by the Clerk_driver modules and not the clerk_rules modules that's
     why it doesn't appear in the Backend common interface. *)
 
-module Backend : Backend.S
+module Backend : Sig.S

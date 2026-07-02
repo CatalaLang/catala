@@ -19,6 +19,8 @@ open Clerk_utils
 open Catala_utils
 open File
 
+type Clerk_lib.Clerk_config.backend += T
+
 let catala_flags_java = Var.make "CATALA_FLAGS_JAVA"
 let javac = Var.make "JAVAC"
 let javac_flags = Var.make "JAVAC_FLAGS"
@@ -102,11 +104,12 @@ let run_artifact ~var_bindings ~test ?scope src =
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
   Clerk_cli.run_command_line cmd
 
-module Backend = struct
+module Backend : Sig.S = struct
   open Var
   module Nj = Ninja_utils
 
   let name = "java"
+  let config_backend = T
   let module_ext = ".class"
   let src_extensions = ["java"]
   let obj_extensions = ["class"]
@@ -272,3 +275,5 @@ module Backend = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
 end
+
+let () = Common.register (module Backend)

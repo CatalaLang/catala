@@ -19,6 +19,8 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
+type Clerk_config.backend += T
+
 let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
 let python = Var.make "PYTHON"
 
@@ -65,12 +67,14 @@ let run_artifact config ~test ?scope ~var_bindings src =
     (String.concat " " cmd);
   Clerk_cli.run_command_line ~setenv:["PYTHONPATH", pythonpath] cmd
 
-module Backend = struct
+module Backend : Sig.S = struct
   open Var
   open File
   module Nj = Ninja_utils
 
   let name = "python"
+  let config_backend = T
+  let () = Clerk_lib.Clerk_config.register_backend ~name config_backend
   let module_ext = ".py"
   let src_extensions = ["py"]
   let obj_extensions = []
@@ -148,3 +152,5 @@ module Backend = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name / "src" / "catala")
 end
+
+let () = Common.register (module Backend)
