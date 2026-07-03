@@ -814,12 +814,21 @@ let organise_modules ~config items =
          *   (String.Set.elements info.targets)
          *   (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf s -> Format.fprintf ppf "@{<yellow>%s@}" s))
          *   (String.Set.elements base_targets); *)
+        let has_tests m =
+          let has_tests_item it =
+            it.Scan.has_inline_tests || Lazy.force it.has_scope_tests
+          in
+          has_tests_item (String.Map.find m modmap).item
+          || Seq.exists
+               (fun it ->
+                 has_tests_item it
+                 && List.exists (fun m1 -> Mark.remove m1 = m) it.used_modules)
+               items
+        in
         if
           String.Set.is_empty base_targets
-          && not
-               (Lazy.force info.item.has_scope_tests
-               || info.item.has_inline_tests)
-          (* && not (List.exists has_tests (preds(m))) *)
+          && (not (has_tests m))
+          && not (List.exists has_tests (G.pred module_g m))
         then
           Message.warning
             "The module @{<blue>%s@} belongs to no target and appears to be \
@@ -1039,8 +1048,8 @@ let run_ninja
       String.Map.iter
         (fun t target ->
           let modules = target.Clerk_config.tmodules in
+          let conf_backend_name bk = Clerk_backends.(name (get bk)) in
           let backends =
-            let conf_backend_name bk = Clerk_backends.(name (get bk)) in
             let open String.Set in
             inter
               (of_list (List.map Clerk_backends.name enabled_backends))
@@ -1060,7 +1069,6 @@ let run_ninja
               in
               pp (Nj.build "phony" ~outputs:[mk_target bk_name t] ~inputs))
             backends;
-          (* TODO: warn if backend list empty ? Or is that already caught elsewhere ? *)
           pp
             (Nj.build "phony"
                ~outputs:["#" ^ t]
