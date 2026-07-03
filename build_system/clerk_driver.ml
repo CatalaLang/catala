@@ -296,101 +296,128 @@ let build_clerk_targets
           :: (String.Map.find t.tname info.targets_map).dependencies))
       String.Set.empty targets
   in
-  enabled_backends
-  |> List.iter (fun (module B : Clerk_backends.S) ->
-      let bk = B.config_backend in
-      if
-        not
-          (String.Map.exists
-             (fun _ clerk_target -> List.mem bk clerk_target.Config.backends)
-             info.targets_map)
-      then ()
-      else
-        let bk_dir = target_dir / backend_subdir bk in
-        let extensions =
-          (* if target.include_objects then List.assoc bk backend_extensions
-           * else *)
-          B.src_extensions
-        in
-        let install_runtime () =
-          let dir = bk_dir / "stdlib" in
+  let install_for_backend (module B : Clerk_backends.S) =
+    let bk = B.config_backend in
+    if
+      not
+        (String.Map.exists
+           (fun _ clerk_target -> List.mem bk clerk_target.Config.backends)
+           info.targets_map)
+    then ()
+    else
+      let bk_dir = target_dir / backend_subdir bk in
+      let extensions =
+        (* if target.include_objects then List.assoc bk backend_extensions
+         * else *)
+        B.src_extensions
+      in
+      let install_runtime_and_stdlib () =
+        let dir = bk_dir / Clerk_rules.stdlib_target_name in
+        File.remove dir;
+        ensure_dir dir;
+        match bk with
+        | Clerk_backends.Java.T ->
+          List.iter
+            (fun subdir ->
+              copy_dir ()
+                ~filter:(fun f ->
+                  Filename.check_suffix f ".java"
+                  (* || (target.include_objects && Filename.check_suffix f ".class") *))
+                ~src:(local_runtime_dir bk / subdir)
+                ~dst:(dir / subdir))
+            ["catala"; "org"]
+        | _ ->
+          let () =
+            match bk with
+            (* install runtime *)
+            | Clerk_backends.Python.T ->
+              copy_dir ()
+                ~filter:(fun f ->
+                  Filename.check_suffix f ".py" && f <> "__init__.py")
+                ~src:
+                  (Lazy.force Poll.stdlib_dir
+                  / backend_subdir bk
+                  / "src"
+                  / "catala")
+                ~dst:dir
+            | bk ->
+              List.iter
+                (fun ext ->
+                  let src =
+                    Lazy.force Poll.stdlib_dir
+                    / backend_subdir bk
+                    / ("catala_runtime" -.- ext)
+                  in
+                  if File.exists src then copy_in ~dir ~src)
+                extensions
+          in
+          let target_info =
+            String.Map.find Clerk_rules.stdlib_target_name info.targets_map
+          in
+          List.iter
+            (fun m ->
+              let item = (String.Map.find m info.modules_map).item in
+              List.iter
+                (fun ext ->
+                  let src_catala_install =
+                    item.file_name
+                    /../ backend_subdir bk
+                    / basename item.file_name
+                    -.- ext
+                  in
+                  let src_libcatala =
+                    build_dir
+                    / Scan.libcatala
+                    / backend_subdir bk
+                    / Scan.target_basename item
+                    -.- ext
+                  in
+                  if exists src_catala_install then
+                    copy_in ~src:src_catala_install ~dir
+                  else copy_in ~dir ~src:src_libcatala)
+                extensions)
+            target_info.Config.tmodules
+      in
+      install_runtime_and_stdlib ();
+      let install_target clerk_target =
+        let target_info = String.Map.find clerk_target info.targets_map in
+        if
+          clerk_target = Clerk_rules.stdlib_target_name
+          || not (List.mem bk target_info.backends)
+        then ()
+        else
+          let dir = bk_dir / target_info.Config.tname in
+          Message.debug "Installing target: %s" (B.name / clerk_target);
           File.remove dir;
           ensure_dir dir;
-          match bk with
-          | Clerk_backends.Java.T ->
-            List.iter
-              (fun subdir ->
-                copy_dir ()
-                  ~filter:(fun f ->
-                    Filename.check_suffix f ".java"
-                    (* || (target.include_objects && Filename.check_suffix f ".class") *))
-                  ~src:(local_runtime_dir bk / subdir)
-                  ~dst:(dir / subdir))
-              ["catala"; "org"]
-          | Clerk_backends.Python.T ->
-            copy_dir ()
-              ~filter:(fun f -> Filename.check_suffix f ".py")
-              ~src:
-                (Lazy.force Poll.stdlib_dir
-                / backend_subdir bk
-                / "src"
-                / "catala")
-              ~dst:dir
-          | bk ->
-            List.iter
-              (fun ext ->
-                let src =
-                  Lazy.force Poll.stdlib_dir
-                  / backend_subdir bk
-                  / ("catala_runtime" -.- ext)
-                in
-                if File.exists src then copy_in ~dir ~src
-                else Message.warning "NOFILE %s" src)
-              extensions
-        in
-        install_runtime ();
-        let install_target clerk_target =
-          let target_info = String.Map.find clerk_target info.targets_map in
-          if not (List.mem bk target_info.backends) then ()
-          else
-            let dir = bk_dir / target_info.Config.tname in
-            if bk = Clerk_backends.Java.T && clerk_target = "stdlib" then ()
-            else (
-              if clerk_target <> "stdlib" then File.remove dir;
-              ensure_dir dir;
+          List.iter
+            (fun m ->
+              let item = (String.Map.find m info.modules_map).item in
+              let file_name =
+                if item.is_stdlib then
+                  Scan.libcatala
+                  / remove_prefix (Lazy.force Poll.stdlib_dir) item.file_name
+                else item.file_name
+              in
+              let base_src =
+                build_dir
+                / file_name
+                /../ backend_subdir bk
+                / Scan.target_basename item
+              in
               List.iter
-                (fun m ->
-                  let item = (String.Map.find m info.modules_map).item in
-                  let file_name =
-                    if item.is_stdlib then
-                      Scan.libcatala
-                      / remove_prefix
-                          (Lazy.force Poll.stdlib_dir)
-                          item.file_name
-                    else item.file_name
-                  in
-                  let base_src =
-                    build_dir
-                    / file_name
-                    /../ backend_subdir bk
-                    / Scan.target_basename item
-                  in
-                  let extensions =
-                    (* if target.include_objects then List.assoc bk backend_extensions
-                     * else *)
-                    B.src_extensions
-                  in
-                  List.iter
-                    (fun ext -> copy_in ~dir ~src:(base_src -.- ext))
-                    extensions)
-                target_info.Config.tmodules)
-        in
-        String.Set.iter install_target clerk_targets_to_install
-      (* if target.Config.include_sources then
-       *   all_modules_deps
-       *   |> List.map (fun it -> it.Scan.file_name)
-       *   |> List.sort_uniq compare
-       *   |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src) *))
+                (fun ext -> copy_in ~dir ~src:(base_src -.- ext))
+                extensions)
+            target_info.Config.tmodules
+      in
+      String.Set.iter install_target clerk_targets_to_install
+    (* if target.Config.include_sources then
+     *   all_modules_deps
+     *   |> List.map (fun it -> it.Scan.file_name)
+     *   |> List.sort_uniq compare
+     *   |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src) *)
+  in
+  List.iter install_for_backend enabled_backends
 
 type targets = { clerk_targets : Config.target list; others : string list }
 

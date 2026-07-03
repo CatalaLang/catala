@@ -50,6 +50,7 @@ type callback_info = {
     - target dependencies are flattened *)
 
 val empty_info : callback_info
+val stdlib_target_name : string
 
 val run_ninja :
   ?include_dir:bool ->

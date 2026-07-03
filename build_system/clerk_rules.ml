@@ -518,8 +518,9 @@ module G = struct
   let edge_attributes _ = []
 end [@warning "-32"]
 
+let stdlib_target_name = "libcatala"
+
 let organise_modules ~config items =
-  let stdlib_target_name = "stdlib" in
   let module_g, modmap, stdlib_modules =
     Seq.fold_left
       (fun (mg, modmap, stdlib_modules) item ->
