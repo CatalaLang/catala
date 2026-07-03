@@ -57,6 +57,12 @@ type bindings = (t * string list) list
 val ( ! ) : t -> string
 (** Run-time reference to the given variable [!var = "${xvarname}"] *)
 
+val quoted : t -> string
+(** Double-quoted variable reference [quoted var = "\"${xvarname}\""], for use
+    as a shell argument in a rule command when the value may contain spaces
+    (e.g. a path-valued variable under an install dir with spaces). Not for
+    ninja paths in inputs/outputs. *)
+
 val get_var : bindings -> t -> string list
 (** replaces [${xvar}] with its value, recursively *)
 

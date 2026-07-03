@@ -58,6 +58,14 @@ let cat_files = make "cat_files" (* Useful on Windows only *)
 let test_id = make "test-id"
 let ( ! ) = Ninja_utils.Var.v
 
+(* Double-quotes a variable reference for use as a shell argument inside a rule
+   command. Once the install directory contains spaces, path-valued variables
+   (catala/clerk exe) expand to spaced strings that the shell would otherwise
+   word-split. Ninja expands ${VAR} inside the quotes, and double quotes work
+   for both cmd.exe and /bin/sh. Use ONLY in command contexts — never for ninja
+   paths in inputs/outputs, which need ninja's own escaping instead. *)
+let quoted x = "\"" ^ !x ^ "\""
+
 let re_var =
   let open Re in
   seq [str "${"; group (rep1 (diff any (char '}'))); char '}']

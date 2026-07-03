@@ -117,7 +117,7 @@ module Flags = struct
       def Var.clerk_flags
         (lazy
           ("-e"
-           :: Var.(!catala_exe)
+           :: Var.(quoted catala_exe)
            :: ("--test-flags=" ^ String.concat "," test_flags)
            :: includes
           @ (if code_coverage then ["--code-coverage"] else [])

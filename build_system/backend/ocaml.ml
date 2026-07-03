@@ -125,7 +125,7 @@ module Backend = struct
     let runtime_include = File.(Var.(!builddir) / Scan.libcatala / name) in
          [
       Nj.rule "catala-ocaml"
-        ~command:[!catala_exe; name; !catala_flags; !catala_flags_ocaml;
+        ~command:[quoted catala_exe; name; !catala_flags; !catala_flags_ocaml;
                   "-o"; !output; "--"; !input]
         ~description:["<catala>"; name; "⇒"; !output];
       Nj.rule "ocaml-bytobject"
