@@ -123,6 +123,12 @@ val pp_pos_link :
   Pos.t -> Format.formatter -> ('a, Format.formatter, unit) format -> 'a
 (** Wraps the given format with a link to the given pos *)
 
+val url_path_of_absolute : win32:bool -> string -> string
+(** Turns an absolute OS path into the path part of a [file://] URL. Pure and
+    platform-parameterized so it can be tested off-Windows. Handles Windows
+    drive paths ([C:\dir] -> [/C:/dir]) and UNC paths
+    ([\\server\share] -> [server/share]). *)
+
 val file_url : ?line:int -> ?column:int -> string -> string
 (** Helper to build file targets for hyperlinks *)
 

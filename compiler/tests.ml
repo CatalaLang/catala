@@ -1,4 +1,5 @@
 module File = Catala_utils.File
+module Message = Catala_utils.Message
 
 let check = Alcotest.(check string)
 
@@ -39,6 +40,34 @@ let test_reverse_path_unix () =
     (File.Path.reverse_path ~win32:false ~cwd:"/home/x" ~from_dir:"/home/x"
        ~to_dir:"." "/home/x/a/b")
 
+let test_make_relative_to_drive_case () =
+  (* Same lower/upper drive mismatch, through make_relative_to. *)
+  check "make_relative_to across a drive-case mismatch"
+    {|b\c|}
+    (File.Path.make_relative_to ~win32:true ~cwd:{|c:\proj|} ~dir:{|C:\proj\a|}
+       {|C:\proj\a\b\c|})
+
+(* file:// URL construction (Message.url_path_of_absolute). The clickable-link
+   fix: a drive path needs a leading slash before "C:" (else it is read as the
+   URL authority), and a UNC path's server IS the authority so it must keep
+   exactly two slashes total after "file:" — i.e. no extra leading slash. *)
+
+let test_file_url_drive () =
+  check "windows drive path -> /C:/..."
+    "/C:/proj/file.catala_en"
+    (Message.url_path_of_absolute ~win32:true {|C:\proj\file.catala_en|})
+
+let test_file_url_unc () =
+  check "windows UNC path -> server/share/... (server is the authority)"
+    "server/share/dir/file.catala_en"
+    (Message.url_path_of_absolute ~win32:true
+       {|\\server\share\dir\file.catala_en|})
+
+let test_file_url_unix () =
+  check "unix path is already URL-shaped"
+    "/home/x/file.catala_en"
+    (Message.url_path_of_absolute ~win32:false "/home/x/file.catala_en")
+
 let () =
   let open Alcotest in
   run "Catala-utils"
@@ -57,5 +86,13 @@ let () =
           test_case "remove_prefix matching case" `Quick
             test_remove_prefix_matching_case;
           test_case "reverse_path unix" `Quick test_reverse_path_unix;
+          test_case "make_relative_to drive-case" `Quick
+            test_make_relative_to_drive_case;
+        ] );
+      ( "File URLs (Windows drive + UNC)",
+        [
+          test_case "file_url drive path" `Quick test_file_url_drive;
+          test_case "file_url UNC path" `Quick test_file_url_unc;
+          test_case "file_url unix path" `Quick test_file_url_unix;
         ] );
     ]

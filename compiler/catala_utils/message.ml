@@ -199,19 +199,31 @@ let pp_marker ?extra_label target ppf =
 
 let bug_report_url = "https://github.com/CatalaLang/catala/issues"
 
+(* Turns an absolute OS [path] into the part that follows [file://] in a file
+   URL. Pure and platform-parameterized (hence testable off-Windows). On Unix
+   the path is already URL-shaped. On Windows:
+   - separators become forward slashes;
+   - a drive path [C:\dir] becomes [/C:/dir] — the leading slash keeps "C:" from
+     being read as the URL authority (host), which would make the link resolve
+     to nothing (file:///C:/dir);
+   - a UNC path [\\server\share\dir] becomes [server/share/dir] — here the
+     server genuinely IS the authority, so it must NOT get an extra leading
+     slash (file://server/share/dir). *)
+let url_path_of_absolute ~win32 path =
+  if not win32 then path
+  else
+    let p = String.map (function '\\' -> '/' | c -> c) path in
+    if String.length p >= 2 && p.[0] = '/' && p.[1] = '/' then
+      String.sub p 2 (String.length p - 2)
+    else "/" ^ p
+
 let file_url =
   let cwd = Sys.getcwd () in
   fun ?(line = 1) ?(column = 1) file ->
     let path =
       if Filename.is_relative file then Filename.concat cwd file else file
     in
-    (* A file URL needs forward slashes and, on Windows, a leading slash before
-       the drive (file:///C:/...) — otherwise "C:" is parsed as the URL host and
-       the link resolves to nothing. *)
-    let path =
-      if Sys.win32 then "/" ^ String.map (function '\\' -> '/' | c -> c) path
-      else path
-    in
+    let path = url_path_of_absolute ~win32:Sys.win32 path in
     Printf.sprintf "file://%s%s%s" path
       (if line > 1 || column > 1 then Printf.sprintf "#%d" line else "")
       (if column > 1 then Printf.sprintf ":%d" column else "")
