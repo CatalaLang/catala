@@ -66,6 +66,21 @@ let ( ! ) = Ninja_utils.Var.v
    paths in inputs/outputs, which need ninja's own escaping instead. *)
 let quoted x = "\"" ^ !x ^ "\""
 
+(* Same as [quoted] but for a literal string (e.g. an absolute include dir)
+   rather than a variable reference. Ninja's own escaping ($ , $:) makes ninja
+   PARSE the file, but is un-escaped before the command runs, so a spaced path
+   still needs shell quotes to survive word-splitting by /bin/sh or CommandLineToArgvW. *)
+let quote_arg s = "\"" ^ s ^ "\""
+
+(* Inverse of [quote_arg]: strip one layer of surrounding double quotes if
+   present. Needed where a variable that carries shell-quoted paths (for ninja
+   rule commands) is instead spliced into a DIRECT argv exec
+   (Unix.create_process, e.g. the link step), which does no shell word-splitting
+   and would otherwise take the quote characters literally. *)
+let unquote s =
+  let n = String.length s in
+  if n >= 2 && s.[0] = '"' && s.[n - 1] = '"' then String.sub s 1 (n - 2) else s
+
 let re_var =
   let open Re in
   seq [str "${"; group (rep1 (diff any (char '}'))); char '}']

@@ -33,11 +33,12 @@ module Flags = struct
       (fun dir flags ->
         if Filename.is_relative dir then
           "-I"
-          :: File.(
-               Var.(!builddir)
-               / match backend with Some b -> dir / b | None -> dir)
+          :: Var.quote_arg
+               File.(
+                 Var.(!builddir)
+                 / match backend with Some b -> dir / b | None -> dir)
           :: flags
-        else "-I" :: dir :: flags)
+        else "-I" :: Var.quote_arg dir :: flags)
       include_dirs []
 
   let catala_backend_flags
@@ -59,13 +60,14 @@ module Flags = struct
   let include_flags ~backend include_dirs =
     let open File in
     "-I"
-    :: Var.(!tdir / backend)
+    :: Var.quote_arg Var.(!tdir / backend)
     :: List.concat_map
          (fun d ->
            [
              "-I";
-             (if Filename.is_relative d then Var.(!builddir) / d else d)
-             / backend;
+             Var.quote_arg
+               ((if Filename.is_relative d then Var.(!builddir) / d else d)
+               / backend);
            ])
          include_dirs
 
