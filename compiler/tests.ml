@@ -108,6 +108,21 @@ let test_c_backend_runtime_include_quoted () =
     ["-I"; {|"${builddir}/libcatala/c"|}]
     c_include
 
+(* Java's classpath separator is OS-dependent: ';' on Windows (':' would be read
+   as part of a 'C:\...' drive path and split the entry), ':' on Unix. This is a
+   Sys.win32-gated bug invisible in the Linux reftests, so pin both cases via the
+   ~win32-parameterized Java.classpath. *)
+
+let test_java_classpath_windows_sep () =
+  check "Java classpath uses ';' on Windows (drive-colon safe)"
+    {|${tdir}/java;/opt/lib a/java|}
+    (Clerk_backends.Java.classpath ~win32:true [{|/opt/lib a|}])
+
+let test_java_classpath_unix_sep () =
+  check "Java classpath uses ':' on Unix"
+    {|${tdir}/java:/opt/lib a/java|}
+    (Clerk_backends.Java.classpath ~win32:false [{|/opt/lib a|}])
+
 let () =
   let open Alcotest in
   run "Catala-utils"
@@ -143,5 +158,9 @@ let () =
             test_include_flags_quote_absolute;
           test_case "C backend runtime -I quoted" `Quick
             test_c_backend_runtime_include_quoted;
+          test_case "Java classpath ';' on Windows" `Quick
+            test_java_classpath_windows_sep;
+          test_case "Java classpath ':' on Unix" `Quick
+            test_java_classpath_unix_sep;
         ] );
     ]
