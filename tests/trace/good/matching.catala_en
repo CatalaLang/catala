@@ -1,0 +1,79 @@
+```catala-metadata
+declaration enumeration E:
+  -- A
+  -- B content integer
+
+declaration proj content integer depends on x content E
+  equals match x with pattern -- A : 0 -- B content i : i
+
+#[test]
+declaration scope T:
+  output r1 content integer
+  output r2 content integer
+
+scope T:
+  definition r1 equals
+    proj of A
+  definition r2 equals
+    proj of B content 2
+```
+
+
+```catala-test-cli
+$ catala interpret -s T --trace -O
+→ Entering scope T
+─➤ tests/trace/good/matching.catala_en:10.19-20:
+   │
+10 │ declaration scope T:
+   │                   ‾
+  ≔ Scope variable definition r1: 0
+  ─➤ tests/trace/good/matching.catala_en:11.10-12:
+     │
+  11 │   output r1 content integer
+     │          ‾‾
+    → Applying function proj
+    ─➤ tests/trace/good/matching.catala_en:6.13-17:
+      │
+    6 │ declaration proj content integer depends on x content E
+      │             ‾‾‾‾
+      ⊡ Condition evaluated to A
+      ─➤ tests/trace/good/matching.catala_en:7.16-17:
+        │
+      7 │   equals match x with pattern -- A : 0 -- B content i : i
+        │                ‾
+      ⊸ Branch taken: case A
+      ─➤ tests/trace/good/matching.catala_en:7.38-39:
+        │
+      7 │   equals match x with pattern -- A : 0 -- B content i : i
+        │                                      ‾
+    ← Function proj applied: 0
+  ≔ Scope variable definition r2: 2
+  ─➤ tests/trace/good/matching.catala_en:12.10-12:
+     │
+  12 │   output r2 content integer
+     │          ‾‾
+    → Applying function proj
+    ─➤ tests/trace/good/matching.catala_en:6.13-17:
+      │
+    6 │ declaration proj content integer depends on x content E
+      │             ‾‾‾‾
+      ⊡ Condition evaluated to B content 2
+      ─➤ tests/trace/good/matching.catala_en:7.16-17:
+        │
+      7 │   equals match x with pattern -- A : 0 -- B content i : i
+        │                ‾
+      ⊸ Branch taken: case B
+      ─➤ tests/trace/good/matching.catala_en:7.57-58:
+        │
+      7 │   equals match x with pattern -- A : 0 -- B content i : i
+        │                                                         ‾
+    ← Function proj applied: 2
+← Exiting Scope T: T {
+                       -- r1: 0
+                       -- r2: 2
+                     }
+┌─[RESULT]─ T ─
+│ r1 = 0
+│ r2 = 2
+└─
+```

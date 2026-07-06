@@ -1,0 +1,62 @@
+```catala-metadata
+declaration abs_f content integer depends on x content integer
+  equals if x > 0 then x else -x
+
+#[test]
+declaration scope T:
+  output result content integer
+
+scope T:
+  definition result equals
+    if 1 > 0 then
+      abs_f of -42
+    else
+      abs_f of -32
+```
+
+
+```catala-test-cli
+$ catala interpret -s T --trace -O
+→ Entering scope T
+─➤ tests/trace/good/funcall.catala_en:6.19-20:
+  │
+6 │ declaration scope T:
+  │                   ‾
+  ≔ Scope variable definition result: 42
+  ─➤ tests/trace/good/funcall.catala_en:7.10-16:
+    │
+  7 │   output result content integer
+    │          ‾‾‾‾‾‾
+    ⊡ Condition evaluated to true
+    ─➤ tests/trace/good/funcall.catala_en:11.8-13:
+       │
+    11 │     if 1 > 0 then
+       │        ‾‾‾‾‾
+    ⊸ Branch taken
+    ─➤ tests/trace/good/funcall.catala_en:12.7-19:
+       │
+    12 │       abs_f of -42
+       │       ‾‾‾‾‾‾‾‾‾‾‾‾
+      → Applying function abs_f
+      ─➤ tests/trace/good/funcall.catala_en:2.13-18:
+        │
+      2 │ declaration abs_f content integer depends on x content integer
+        │             ‾‾‾‾‾
+        ⊡ Condition evaluated to false
+        ─➤ tests/trace/good/funcall.catala_en:3.13-18:
+          │
+        3 │   equals if x > 0 then x else -x
+          │             ‾‾‾‾‾
+        ⊸ Branch taken
+        ─➤ tests/trace/good/funcall.catala_en:3.31-33:
+          │
+        3 │   equals if x > 0 then x else -x
+          │                               ‾‾
+      ← Function abs_f applied: 42
+← Exiting Scope T: T {
+                       -- result: 42
+                     }
+┌─[RESULT]─ T ─
+│ result = 42
+└─
+```

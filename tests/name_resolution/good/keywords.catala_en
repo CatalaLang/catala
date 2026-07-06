@@ -168,7 +168,7 @@ let test : Test_in.t -> Test.t = fun _ ->
     let result__1 : Stdlib__1.t =
       {Stdlib__1.when__1 = (result.Stdlib__1.when__1)}
     in
-    if true then result__1 else result__1
+    result__1
   in
   let val__1: date =
     match (Optional.Present ((a.Stdlib__1.when__1), (loc.(5)))) with

@@ -32,6 +32,8 @@ module Flags : sig
 
   val default :
     code_coverage:bool ->
+    trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] option ->
+    trace_format:Catala_utils.Global.format_enum option ->
     inplace:bool ->
     config:Clerk_cli.config ->
     (Var.t * string list) list

@@ -92,8 +92,6 @@ let rec format_expr
   | EAppOp { op = op, _; args = [arg1; arg2]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       (Print.operator ~debug) op format_with_parens arg2
-  | EAppOp { op = Log _, _; args = [arg1]; _ } when not debug ->
-    Format.fprintf fmt "%a" format_with_parens arg1
   | EAppOp { op = op, _; args = [arg1]; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1
@@ -178,6 +176,11 @@ let rec format_statement
              (format_block decl_ctx ~debug)
              switch_case_data.case_block))
       (List.combine (EnumConstructor.Map.bindings cons) arms)
+  | SBeginTrace t ->
+    Format.fprintf fmt "begin_trace(%a)" Print.tag (Mark.remove t)
+  | SEndTrace { ret_var = Some v } ->
+    Format.fprintf fmt "end_trace(%a)" format_var_name v
+  | SEndTrace { ret_var = None } -> Format.fprintf fmt "end_trace()"
   | _ -> .
 
 and format_block

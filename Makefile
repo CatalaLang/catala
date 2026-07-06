@@ -152,7 +152,7 @@ runtimes:
 js:
 	dune build catala-js.install
 
-#> js					: Build the Proof plugin
+#> proof					: Build the Proof plugin
 proof:
 	dune build catala-proof.install
 

@@ -14,6 +14,7 @@
    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
    License for the specific language governing permissions and limitations under
    the License. *)
+
 type nonrec unit = unit
 type nonrec bool = bool
 
@@ -29,8 +30,6 @@ type date_rounding = Dates_calc.date_rounding =
   | AbortOnRound
 
 type duration = Dates_calc.period
-type io_input = NoInput | OnlyInput | Reentrant
-type io_log = { io_input : io_input; io_output : bool }
 
 type code_location = {
   filename : string;
@@ -40,6 +39,9 @@ type code_location = {
   end_column : int;
   law_headings : string list;
 }
+
+type io_input = NoInput | OnlyInput | Reentrant
+type io_log = { io_input : io_input; io_output : bool }
 
 type error =
   | AssertionFailed
@@ -96,15 +98,6 @@ let () =
       (Printf.sprintf "At %a: %s%s" pposl pos (error_message err)
          (Option.fold ~none:"" ~some:(( ^ ) ". ") note))
   | _ -> None
-
-let () =
-  Printexc.set_uncaught_exception_handler
-  @@ fun exc bt ->
-  Printf.eprintf "\x1b[1;31m[ERROR]\x1b[m %s\n%!" (Printexc.to_string exc);
-  if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt
-(* TODO: the backtrace will point to the OCaml code; but we could make it point
-   to the Catala code if we add #line directives everywhere in the generated
-   code. *)
 
 let z2 = Z.of_int 2
 let z10 = Z.of_int 10
@@ -567,9 +560,9 @@ module Value = struct
     | t -> compare pos (V (t, x1)) (V (t, x2))
 
   let format ppf v =
-    (* Format performs indentation, but also alignment, which we want to disable here
-       to be similar to the other backend printers. Hence the manual indentation
-       printing within a single vbox *)
+    (* Format performs indentation, but also alignment, which we want to disable
+       here to be similar to the other backend printers. Hence the manual
+       indentation printing within a single vbox *)
     let rec aux indent ppf =
       let nl n ppf = Format.fprintf ppf "@,%*s" (indent + n) "" in
       function
@@ -707,37 +700,142 @@ end
 
 (* -- *)
 
-type information = string list
+(** {1 Execution traces} *)
 
-type raw_event =
-  | BeginCall of information
-  | EndCall of information
-  | VariableDefinition of information * io_log * Value.t
-  | DecisionTaken of code_location
-
-type event =
-  | VarComputation of var_def
-  | FunCall of fun_call
-  | SubScopeCall of {
-      name : information;
-      inputs : var_def list;
-      body : event list;
+type trace_kind =
+  | ScopeCall of trace_ident_decl
+  | ScopeVarDef of { var : trace_ident_decl; io : io_log }
+  | LocalVarDef of string
+  | LocalTupDef of string list
+  | FunCall of trace_ident_decl
+  | BranchingCondition
+  | IfBranching
+  | MatchBranching of { constructor_name : string }
+  | Assertion
+  | Exception of {
+      label : (string * code_location) option;
+      cons_pos : code_location;
+    }
+  | Error of {
+      error : error;
+      locs : code_location list;
+      message : string option;
     }
 
-and var_def = {
-  pos : code_location option;
-  name : information;
-  io : io_log;
-  value : Value.t;
-  fun_calls : fun_call list option;
+and trace_ident_decl = { name : string; decl_pos : code_location }
+
+type trace_element = {
+  kind : trace_kind;
+  pos : code_location;
+  value : Value.t option;
+  sub_trace : trace;
 }
 
-and fun_call = {
-  fun_name : information;
-  fun_inputs : var_def list;
-  body : event list;
-  output : var_def;
+and trace = trace_element list
+
+type trace_node = {
+  kind : trace_kind;
+  pos : code_location;
+  mutable value : Value.t option;
+  mutable sub_rev_nodes : trace_node list;
+  parent : trace_node option;
 }
+
+type trace_context = {
+  mutable current_node : trace_node option;
+  mutable root_rev_trace : trace_node list;
+  mutable exception_handled : bool;
+}
+
+let trace_context =
+  { current_node = None; root_rev_trace = []; exception_handled = false }
+
+let begin_trace kind pos =
+  let node =
+    {
+      kind;
+      pos;
+      sub_rev_nodes = [];
+      value = None;
+      parent = trace_context.current_node;
+    }
+  in
+  (match trace_context.current_node with
+  | None ->
+    (* root node *)
+    trace_context.root_rev_trace <- node :: trace_context.root_rev_trace
+  | Some parent_node ->
+    parent_node.sub_rev_nodes <- node :: parent_node.sub_rev_nodes);
+  trace_context.current_node <- Some node
+
+let end_trace ?value () =
+  (* pop the scope *)
+  Option.iter (fun c -> c.value <- value) trace_context.current_node;
+  match trace_context.current_node with
+  | None -> (* Best effort by doing nothing *) ()
+  | Some { parent = None; _ } ->
+    (* No parent: root node *)
+    trace_context.current_node <- None
+  | Some { parent = some_p; _ } -> trace_context.current_node <- some_p
+
+let single_trace kind pos =
+  begin_trace kind pos;
+  end_trace ()
+
+let dummy_pos =
+  {
+    filename = "none";
+    start_line = -1;
+    start_column = -1;
+    end_line = -1;
+    end_column = -1;
+    law_headings = [];
+  }
+
+let with_trace ~embed kind pos f =
+  begin_trace kind pos;
+  let r =
+    try f ()
+    with
+    | Error (error, locs, message) as e
+    when trace_context.exception_handled = false
+    ->
+      trace_context.exception_handled <- true;
+      let pos, locs = match locs with [] -> dummy_pos, [] | h :: t -> h, t in
+      single_trace (Error { error; locs; message }) pos;
+      raise e
+  in
+  let value =
+    let v = embed r in
+    match v with Value.V (Unit, _) -> None | x -> Some x
+  in
+  end_trace ?value ();
+  r
+
+let finalize_trace_context = function
+  | { current_node = None; root_rev_trace; exception_handled = _ } ->
+    let rec f : trace_node -> trace_element =
+     fun { kind; pos; value; sub_rev_nodes; parent = _ } ->
+      { kind; pos; value; sub_trace = List.rev_map f sub_rev_nodes }
+    in
+    List.rev_map f root_rev_trace
+  | { current_node = Some _; _ } ->
+    failwith "inconsistent trace context state: expected to be at root node"
+
+let retrieve_trace () : trace =
+  (* [trace_context.root_rev_trace] is empty when there are no errors *)
+  let rec pop_trace () =
+    if trace_context.current_node = None || trace_context.root_rev_trace = []
+    then trace_context
+    else (
+      end_trace ();
+      pop_trace ())
+  in
+  pop_trace () |> finalize_trace_context
+
+let reset_trace () =
+  trace_context.current_node <- None;
+  trace_context.root_rev_trace <- []
 
 module BufferedJson = struct
   let seq f buf sq =
@@ -776,6 +874,14 @@ module BufferedJson = struct
     if Q.den d = Z.one then Z.bprint buf (Q.num d)
     else Printf.bprintf buf "%a/%a" Z.bprint (Q.num d) Z.bprint (Q.den d)
 
+  let code_location buf pos =
+    Printf.bprintf buf
+      {|{"file":"%s","start":{"line":%d,"character":%d},"end":{"line":%d,"character":%d}|}
+      pos.filename pos.start_line pos.start_column pos.end_line pos.end_column;
+    if pos.law_headings <> [] then
+      Printf.bprintf buf {|,"law_headings":[%a]|} (list quote) pos.law_headings;
+    Printf.bprintf buf "}"
+
   let rec runtime_value buf = function
     | Value.V (Unit, ()) -> Buffer.add_string buf "{}"
     | V (Bool, b) -> Buffer.add_string buf (string_of_bool b)
@@ -804,74 +910,77 @@ module BufferedJson = struct
         (Stdlib.Array.to_seq a)
     | V (Tuple destr, a) ->
       Printf.bprintf buf {|[%a]|} (list runtime_value) (destr a)
-    | V (Position, pos) ->
-      Printf.bprintf buf
-        {|{"file":"%s","start":{"line":%d,"character":%d},"end":{"line":%d,"character":%d}}|}
-        pos.filename pos.start_line pos.start_column pos.end_line pos.end_column
+    | V (Position, pos) -> code_location buf pos
     | V ((Function | Polymorphic), _) -> Buffer.add_string buf {|"<function>"|}
     | V (External (module E), v) -> Buffer.add_string buf (E.to_json v)
 
-  let information buf info = Printf.bprintf buf "[%a]" (list quote) info
+  let rec trace buf (t : trace) =
+    Printf.bprintf buf "[%a]" (list trace_element) t
 
-  let code_location buf pos =
-    Printf.bprintf buf {|{"filename":%a|} quote pos.filename;
-    Printf.bprintf buf {|,"start_line":%d|} pos.start_line;
-    Printf.bprintf buf {|,"start_column":%d|} pos.start_column;
-    Printf.bprintf buf {|,"end_line":%d|} pos.end_line;
-    Printf.bprintf buf {|,"end_column":%d|} pos.end_column;
-    Printf.bprintf buf {|,"law_headings":[%a]}|} (list quote) pos.law_headings
+  and trace_element buf { kind; pos; value; sub_trace } =
+    let value buf =
+      match value with
+      | None -> ()
+      | Some v -> Printf.bprintf buf {|,"value":%a|} runtime_value v
+    in
+    let sub_trace buf =
+      if sub_trace = [] then ()
+      else Printf.bprintf buf {|,"trace":%a|} trace sub_trace
+    in
+    Printf.bprintf buf {|{"element":%a,"pos":%a%t%t}|} trace_kind kind
+      code_location pos value sub_trace
 
-  let io_input buf = function
-    | NoInput -> quote buf "NoInput"
-    | OnlyInput -> quote buf "OnlyInput"
-    | Reentrant -> quote buf "Reentrant"
-
-  let io_log buf iol =
-    Printf.bprintf buf {|{"io_input":%a|} io_input iol.io_input;
-    Printf.bprintf buf {|,"io_output":%b}|} iol.io_output
-
-  let rec event buf = function
-    | VarComputation vd ->
-      Printf.bprintf buf {|"VarComputation",%a]|} var_def vd
-    | FunCall fc -> Printf.bprintf buf {|"FunCall",%a]|} fun_call fc
-    | SubScopeCall { name; inputs; body } ->
-      Printf.bprintf buf {|{"name":%a,"inputs":[%a],"body":[%a]}|} information
-        name (list var_def) inputs (list event) body
-
-  and var_def buf def =
-    Option.iter (Printf.bprintf buf {|{"pos":%a|} code_location) def.pos;
-    Printf.bprintf buf {|,"name":%a|} information def.name;
-    Printf.bprintf buf {|,"io":%a|} io_log def.io;
-    Printf.bprintf buf {|,"value":%a|} runtime_value def.value;
-    Option.iter
-      (Printf.bprintf buf {|,"fun_calls":[%a]}|} (list fun_call))
-      def.fun_calls
-
-  and fun_call buf fc =
-    Printf.bprintf buf {|{"fun_name":%a|} information fc.fun_name;
-    Printf.bprintf buf {|,"fun_inputs":[%a]|} (list var_def) fc.fun_inputs;
-    Printf.bprintf buf {|,"body":[%a]|} (list event) fc.body;
-    Printf.bprintf buf {|,"output":%a}|} var_def fc.output
-
-  and raw_event buf = function
-    | BeginCall name ->
-      Printf.bprintf buf {|{"event": "BeginCall", "name": "%s"}|}
-        (String.concat "." name)
-    | EndCall name ->
-      Printf.bprintf buf {|{"event": "EndCall", "name": "%s"}|}
-        (String.concat "." name)
-    | VariableDefinition (name, io, value) ->
-      Printf.bprintf buf
-        {|{
-         "event": "VariableDefinition",
-         "name": "%s",
-         "io": %a,
-         "value": %a
-         }|}
-        (String.concat "." name) io_log io runtime_value value
-    | DecisionTaken source_pos ->
-      Printf.bprintf buf {|{"event": "DecisionTaken", "pos": %a}|} code_location
-        source_pos
+  and trace_kind buf : trace_kind -> unit =
+    let append_ident_decl buf { name; decl_pos } =
+      Printf.bprintf buf {|,"name":%a,"decl_pos":%a|} quote name code_location
+        decl_pos
+    in
+    let append_svar_io buf { io_input; io_output } =
+      Printf.bprintf buf {|,"input":%S,"output":%b|}
+        (match io_input with
+        | NoInput -> "no_input"
+        | OnlyInput -> "only_input"
+        | Reentrant -> "reentrant")
+        io_output
+    in
+    function
+    | ScopeCall idecl ->
+      Printf.bprintf buf {|{"kind":"scope_call"%a}|} append_ident_decl idecl
+    | ScopeVarDef { var = idecl; io } ->
+      Printf.bprintf buf {|{"kind":"scope_var"%a%a}|} append_ident_decl idecl
+        append_svar_io io
+    | LocalVarDef name ->
+      Printf.bprintf buf {|{"kind":"local_var","name":%a}|} quote name
+    | LocalTupDef names ->
+      Printf.bprintf buf {|{"kind":"local_tup","names":[%a]}|} (list quote)
+        names
+    | FunCall idecl ->
+      Printf.bprintf buf {|{"kind":"function_call"%a}|} append_ident_decl idecl
+    | BranchingCondition -> Printf.bprintf buf {|{"kind":"branch_condition"}|}
+    | IfBranching -> Printf.bprintf buf {|{"kind":"if_branching"}|}
+    | MatchBranching { constructor_name } ->
+      Printf.bprintf buf {|{"kind":"match_branching","constructor":%a}|} quote
+        constructor_name
+    | Assertion -> Printf.bprintf buf {|{"kind":"assertion"}|}
+    | Exception { label; cons_pos } ->
+      let lbl buf =
+        match label with
+        | None -> ()
+        | Some (label, pos) ->
+          Printf.bprintf buf {|,"label":%a,"pos":%a|} quote label code_location
+            pos
+      in
+      Printf.bprintf buf {|{"kind":"exception"%t,"cons_pos":%a}|} lbl
+        code_location cons_pos
+    | Error { error; locs; message } ->
+      let locs buf =
+        if locs = [] then ()
+        else
+          Printf.bprintf buf {|,"related_pos":[%a]|} (list code_location) locs
+      in
+      Printf.bprintf buf {|{"kind":"error","type":%a%t,"message":%a}|} quote
+        (error_to_string error) locs quote
+        (Option.value ~default:(error_message error) message)
 end
 
 module Json = struct
@@ -883,313 +992,23 @@ module Json = struct
   open BufferedJson
 
   let runtime_value = str runtime_value
-  let io_log = str io_log
-  let event = str event
-  let raw_event = str raw_event
+  let trace = str trace
 end
 
-let log_ref : raw_event list ref = ref []
-let reset_log () = log_ref := []
-let retrieve_log () = List.rev !log_ref
-
-let log_begin_call info f =
-  log_ref := BeginCall info :: !log_ref;
-  f
-
-let log_end_call info x =
-  log_ref := EndCall info :: !log_ref;
-  x
-
-let log_variable_definition (info : string list) (io : io_log) embed (x : 'a) =
-  log_ref := VariableDefinition (info, io, embed x) :: !log_ref;
-  x
-
-let log_decision_taken pos x =
-  if x then log_ref := DecisionTaken pos :: !log_ref;
-  x
-
-let rec pp_events ?(is_first_call = true) ppf events =
-  let rec format_var_def ppf var =
-    Format.fprintf ppf "@[<hov 2><var_def at %a>@ %s:@ %a@]" format_pos_opt
-      var.pos
-      (String.concat "." var.name)
-      Value.format var.value
-  and format_pos_opt ppf = function
-    | None -> Format.fprintf ppf "no_pos"
-    | Some pos ->
-      Format.fprintf ppf "%s line %d to %d" pos.filename pos.start_line
-        pos.end_line
-  and format_var_defs ppf =
-    Format.pp_print_list
-      ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ ")
-      format_var_def ppf
-  and format_var_def_with_fun_calls ppf var_with_fun =
-    match var_with_fun.fun_calls with
-    | None | Some [] -> format_var_def ppf var_with_fun
-    | Some fun_calls ->
-      Format.fprintf ppf
-        "@[<hov 2><var_def_with_fun>@ %s: %a@ computed from@ :@ @[<hv 2>[@ %a@;\
-         <1 -2>]@] @]"
-        (String.concat "." var_with_fun.name)
-        Value.format var_with_fun.value
-        (Format.pp_print_list
-           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-           (fun ppf fun_call -> format_event ppf (FunCall fun_call)))
-        fun_calls
-  and format_event ppf = function
-    | VarComputation var_def_with_fun
-      when Option.is_some var_def_with_fun.fun_calls ->
-      Format.fprintf ppf "%a" format_var_def_with_fun_calls var_def_with_fun
-    | VarComputation var_def -> Format.fprintf ppf "%a" format_var_def var_def
-    | FunCall { fun_name; fun_inputs; body; output } ->
-      Format.fprintf ppf
-        "@[<hov 1><function_call>@ %s :=@ {@[<hv 1>@ input:@ %a,@ output:@ \
-         %a,@ body:@ [@,\
-         %a]@]@,\
-         @]@,\
-         }"
-        (String.concat "." fun_name)
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
-           format_var_def)
-        fun_inputs format_var_def_with_fun_calls output
-        (pp_events ~is_first_call:false)
-        body
-    | SubScopeCall { name; inputs; body } ->
-      Format.fprintf ppf
-        "@[<hv 2><subscope_call>@ %s :=@ {@[<hv 1>@,\
-         inputs:@ @[<hv 2>[@,\
-         %a@]],@,\
-         body:@ @[<hv 2>[@ %a@ ]@]@]@]@,\
-         }"
-        (String.concat "." name) format_var_defs inputs
-        (pp_events ~is_first_call:false)
-        body
-  in
-  Format.fprintf ppf
-    ("@[<hv 1>%a@]" ^^ if is_first_call then "@." else "")
-    (Format.pp_print_list
-       ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ ")
-       format_event)
-    events
-
-module EventParser = struct
-  module VarDefMap = struct
-    module StringMap = Map.Make (String)
-
-    type t = var_def list StringMap.t
-
-    let add (name : string) (v : var_def) (map : t) : t =
-      match StringMap.find_opt name map with
-      | Some ls -> StringMap.add name (v :: ls) map
-      | None -> StringMap.add name [v] map
-
-    (** [get name map] returns the list of definitions if there is a
-        corresponding entry, otherwise, returns an empty array. *)
-    let get (name : string) (map : t) : var_def list =
-      match StringMap.find_opt name map with Some ls -> ls | None -> []
-
-    let empty : t = StringMap.empty
-  end
-
-  type context = {
-    (* Keeps tracks of the subscope input variable definitions. *)
-    vars : VarDefMap.t;
-    (* Current parsed events. *)
-    events : event list;
-    rest : raw_event list;
-  }
-
-  let empty_ctx = { vars = VarDefMap.empty; events = []; rest = [] }
-
-  let io_log_to_string (io : io_log) : string =
-    match io.io_input, io.io_output with
-    | NoInput, false -> "internal"
-    | _ ->
-      Printf.sprintf "%s%s%s"
-        (match io.io_input with
-        | NoInput -> ""
-        | OnlyInput -> "input"
-        | Reentrant -> "reentrant")
-        (match io.io_input, io.io_output with
-        | (OnlyInput | Reentrant), true -> "/"
-        | _ -> "")
-        (if io.io_output then "output" else "")
-
-  let raw_event_to_string = function
-    | BeginCall name ->
-      Printf.sprintf "BeginCall([ " ^ String.concat ", " name ^ " ])"
-    | EndCall name ->
-      Printf.sprintf "EndCall([ " ^ String.concat ", " name ^ " ])"
-    | VariableDefinition (name, io, value) ->
-      Printf.sprintf "VariableDefinition([ %s ], %s, %s)"
-        (String.concat ", " name) (io_log_to_string io)
-        (Json.runtime_value value)
-    | DecisionTaken pos ->
-      Printf.sprintf "DecisionTaken(%s:%d.%d-%d.%d)" pos.filename pos.start_line
-        pos.start_column pos.end_line pos.end_column
-
-  (** [takewhile p xs] split the list [xs] as the longest prefix of the list
-      [xs] where every element [x] satisfies [p x] and the rest. *)
-  let rec take_while (p : 'a -> bool) (l : 'a list) : 'a list * 'a list =
-    match l with
-    | [] -> [], []
-    | h :: t when p h ->
-      let t, rest = take_while p t in
-      h :: t, rest
-    | _ -> [], l
-
-  let parse_raw_events raw_events =
-    let nb_raw_events = List.length raw_events
-    and is_function_call infos = 2 = List.length infos
-    and is_subscope_call infos = 3 = List.length infos
-    and is_var_def name = 2 = List.length name
-    and is_output_var_def name =
-      3 = List.length name && "output" = List.nth name 2
-    and is_input_var_def name =
-      3 = List.length name
-      && String.starts_with ~prefix:"input" (List.nth name 2)
-    and is_subscope_input_var_def name =
-      2 = List.length name && String.contains (List.nth name 1) '.'
-    in
-    let rec parse_events (ctx : context) : context =
-      match ctx.rest with
-      | [] -> { ctx with events = ctx.events |> List.rev }
-      | VariableDefinition (name, _, _) :: rest when is_var_def name ->
-        (* VariableDefinition without position corresponds to a function
-           definition which are ignored for now in structured events. *)
-        parse_events { ctx with rest }
-      | DecisionTaken pos :: VariableDefinition (name, io, value) :: rest
-        when is_subscope_input_var_def name -> (
-        match name with
-        | [_; var_dot_subscope_var_name] ->
-          let var_name =
-            List.nth (String.split_on_char '.' var_dot_subscope_var_name) 0
-          in
-          parse_events
-            {
-              ctx with
-              vars =
-                ctx.vars
-                |> VarDefMap.add var_name
-                     { pos = Some pos; name; value; fun_calls = None; io };
-              rest;
-            }
-        | _ ->
-          failwith "unreachable due to the [is_subscope_input_var_def] test")
-      | DecisionTaken pos :: VariableDefinition (name, io, value) :: rest
-        when is_var_def name || is_output_var_def name ->
-        parse_events
-          {
-            ctx with
-            events =
-              VarComputation
-                { pos = Some pos; name; value; fun_calls = None; io }
-              :: ctx.events;
-            rest;
-          }
-      | DecisionTaken pos :: VariableDefinition _ :: BeginCall infos :: _
-        when is_function_call infos ->
-        (* Variable definition with function calls. *)
-        let rec parse_fun_calls fun_calls raw_events =
-          match
-            take_while
-              (function VariableDefinition _ -> true | _ -> false)
-              raw_events
-          with
-          | _, BeginCall infos :: _ when is_function_call infos ->
-            let rest, fun_call = parse_fun_call raw_events in
-            parse_fun_calls (fun_call :: fun_calls) rest
-          | _ -> raw_events, fun_calls |> List.rev
-        in
-        let rest, var_comp =
-          let rest, fun_calls = parse_fun_calls [] (List.tl ctx.rest) in
-          match rest with
-          | VariableDefinition (name, io, value) :: rest ->
-            ( rest,
-              VarComputation
-                { pos = Some pos; name; value; fun_calls = Some fun_calls; io }
-            )
-          | event :: _ ->
-            failwith
-              ("Invalid function call ([ "
-              ^ String.concat ", " infos
-              ^ " ]): expected variable definition (function output), found: "
-              ^ raw_event_to_string event
-              ^ "["
-              ^ (nb_raw_events - List.length rest + 1 |> string_of_int)
-              ^ "]")
-          | [] ->
-            failwith
-              ("Invalid function call ([ "
-              ^ String.concat ", " infos
-              ^ " ]): expected variable definition (function output), found: \
-                 end of tokens")
-        in
-
-        parse_events { ctx with events = var_comp :: ctx.events; rest }
-      | VariableDefinition _ :: BeginCall infos :: _ when is_function_call infos
-        ->
-        let rest, fun_call = parse_fun_call ctx.rest in
-
-        parse_events { ctx with events = FunCall fun_call :: ctx.events; rest }
-      | BeginCall infos :: rest when is_subscope_call infos -> (
-        match infos with
-        | [_; var_name; _] ->
-          let body_ctx = parse_events { empty_ctx with rest } in
-          let inputs = VarDefMap.get var_name ctx.vars in
-          parse_events
-            {
-              ctx with
-              events =
-                SubScopeCall { name = infos; inputs; body = body_ctx.events }
-                :: ctx.events;
-              rest = body_ctx.rest;
-            }
-        | _ -> failwith "unreachable due to the [is_subscope_call] test")
-      | EndCall _ :: rest -> { ctx with events = ctx.events |> List.rev; rest }
-      | event :: _ -> failwith ("Unexpected event: " ^ raw_event_to_string event)
-    and parse_fun_call events =
-      match
-        take_while
-          (function
-            | VariableDefinition (name, _, _) -> is_input_var_def name
-            | _ -> false)
-          events
-      with
-      | inputs, BeginCall infos :: rest when is_function_call infos ->
-        let fun_inputs =
-          ListLabels.map inputs ~f:(function
-            | VariableDefinition (name, io, value) ->
-              { pos = None; name; value; fun_calls = None; io }
-            | _ -> assert false)
-        in
-        let rest, body, output =
-          let body_ctx =
-            parse_events { vars = VarDefMap.empty; events = []; rest }
-          in
-          let body_rev = List.rev body_ctx.events in
-          body_ctx.rest, body_rev |> List.tl |> List.rev, body_rev |> List.hd
-        in
-        let output =
-          match output with
-          | VarComputation var_def -> var_def
-          | _ -> failwith "Missing function output variable definition."
-        in
-
-        rest, { fun_name = infos; fun_inputs; body; output }
-      | _ -> failwith "Invalid start of function call."
-    in
-
-    let ctx =
-      try parse_events { empty_ctx with rest = raw_events }
-      with Failure msg ->
-        (* TODO: discuss what should be done. *)
-        Printf.eprintf "An error occurred while parsing raw events: %s\n" msg;
-        empty_ctx
-    in
-    ctx.events
-end
+let () =
+  Printexc.set_uncaught_exception_handler
+  @@ fun exc bt ->
+  if trace_context.exception_handled then begin
+    (* We caught an exception while collecting the trace meaning we meant to
+       print the trace *)
+    let trace = retrieve_trace () in
+    Printf.printf "%s\n%!" (Json.trace trace)
+  end;
+  Printf.eprintf "\x1b[1;31m[ERROR]\x1b[m %s\n%!" (Printexc.to_string exc);
+  if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt
+(* TODO: the backtrace will point to the OCaml code; but we could make it point
+   to the Catala code if we add #line directives everywhere in the generated
+   code. *)
 
 let handle_exceptions (exceptions : ('a * code_location) Optional.t array) :
     ('a * code_location) Optional.t =

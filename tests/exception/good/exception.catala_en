@@ -9,7 +9,7 @@ scope A:
   definition x equals 0
 
   exception base_x
-  definition x equals 1
+  definition x under condition 42 = 42 consequence equals 1
 ```
 
 

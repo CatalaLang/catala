@@ -68,7 +68,7 @@ let simplified_apply f args tys =
 
 let literal_bool = function
   | ELit (LBool b), _
-  | EAppOp { op = Log _, _; args = [(ELit (LBool b), _)]; _ }, _ ->
+  | EAppOp { op = Tag _, _; args = [(ELit (LBool b), _)]; _ }, _ ->
     Some b
   | _ -> None
 
@@ -226,7 +226,7 @@ let rec optimize_expr : type a b c.
         | [], cond -> simplified_ifthenelse cond cons (EEmpty, mark) mark
         | ( [except],
             ( ( ELit (LBool false)
-              | EAppOp { op = Log _, _; args = [(ELit (LBool false), _)]; _ } ),
+              | EAppOp { op = Tag _, _; args = [(ELit (LBool false), _)]; _ } ),
               _ ) ) ->
           (* Single exception and condition false *)
           Mark.remove except

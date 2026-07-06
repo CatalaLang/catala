@@ -97,11 +97,19 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
       target -.- "exe";
     ]
 
-let run_artifact ~test ?scope src =
+let run_artifact
+    ~test
+    ~(trace : [ `FileName of Global.raw_file | `Stdout ] option)
+    ?scope
+    src =
   let open File in
   let cmd =
     ((src -.- "exe") :: Option.to_list scope)
     @ (if test && not Global.options.debug then ["--test"] else [])
+    @ (match trace with
+      | None -> []
+      | Some `Stdout -> ["--trace"]
+      | Some (`FileName f) -> ["--trace=" ^ (f :> string)])
     @ if Global.options.output_format = JSON then ["--json"] else []
   in
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);

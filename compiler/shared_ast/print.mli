@@ -48,7 +48,8 @@ val typ : Format.formatter -> typ -> unit
 val tvar : Format.formatter -> naked_typ Bindlib.var -> unit
 val lit : Format.formatter -> lit -> unit
 val operator : ?debug:bool -> Format.formatter -> 'a operator -> unit
-val log_entry : Format.formatter -> log_entry -> unit
+val tag : Format.formatter -> tag -> unit
+val tag_to_runtime : tag -> string
 val runtime_error : Format.formatter -> Catala_runtime.error -> unit
 val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit
@@ -99,6 +100,7 @@ val scope :
   ?debug:bool -> Format.formatter -> string * ('a, 'm) gexpr scope_body -> unit
 
 val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
+val trace : Format.formatter -> Catala_runtime.trace -> unit
 
 (** User-facing, localised printer *)
 module UserFacing : sig

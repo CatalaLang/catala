@@ -43,12 +43,20 @@ let backend_from_config = function
     (module Clerk_backends.Java.Backend : Clerk_backends.Backend.S)
   | _ -> invalid_arg __FUNCTION__
 
-let base_bindings ~code_coverage ~autotest ~enabled_backends ~inplace ~config =
+let base_bindings
+    ~code_coverage
+    ~trace
+    ~trace_format
+    ~autotest
+    ~enabled_backends
+    ~inplace
+    ~config =
   let options = config.Clerk_cli.options in
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
   let default_flags =
-    Backend_common.Flags.default ~code_coverage ~inplace ~config
+    Backend_common.Flags.default ~code_coverage ~trace ~trace_format ~inplace
+      ~config
   in
   let backend_flags =
     List.concat_map
@@ -521,13 +529,15 @@ let run_ninja
     ~quiet
     ~default
     ~code_coverage
+    ?trace
+    ?trace_format
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
   let var_bindings =
-    base_bindings ~code_coverage ~config ~enabled_backends ~autotest
-      ~inplace:false
+    base_bindings ~code_coverage ~trace ~trace_format ~config ~enabled_backends
+      ~autotest ~inplace:false
   in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet ~default
     (fun nin_ppf ->

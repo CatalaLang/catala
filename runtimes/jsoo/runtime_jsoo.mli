@@ -31,59 +31,16 @@ class type code_location = object
   method lawHeadings : Js.js_string Js.t Js.js_array Js.t Js.prop
 end
 
-(** Wrapper for the {!type: Runtime.raw_event} -- directly collected during the
-    program execution.*)
-class type raw_event = object
-  method eventType : Js.js_string Js.t Js.prop
-  (** There is four type of raw log events:
-
-      - 'BeginCall' is emitted when a function or a subscope is called.
-      - 'EndCall' is emitted when a function or a subscope is exited.
-      - 'VariableDefinition' is emitted when a variable or a function is
-        defined.
-      - 'DecisionTaken' stores the information about the source position of the
-        event. *)
-
-  method information : Js.js_string Js.t Js.js_array Js.t Js.prop
-  (** Represents information about a name in the code -- i.e. variable name,
-      subscope name, etc...
-
-      It's a list of strings with a length varying from 2 to 3, where:
-
-      - the first string is the name of the current scope -- starting with a
-        capitalized letter [Scope_name],
-      - the second string is either: the name of a scope variable or, the name
-        of a subscope input variable -- [a_subscope_var.input_var]
-      - the third string is either: a subscope name (starting with a capitalized
-        letter [Subscope_name] or, the [input] (resp. [output]) string -- which
-        corresponds to the input (resp. the output) of a function. *)
-
-  method sourcePosition : code_location Js.t Js.optdef Js.prop
-
-  method loggedIOJson : Js.js_string Js.t Js.prop
-  (** Serialzed [Runtime.io_log] corresponding to a `VariableDefinition` raw
-      event. *)
-
-  method loggedValueJson : Js.js_string Js.t Js.prop
-  (** Serialized [Runtime.runtime_value] corresponding to a 'VariableDefinition'
-      raw event. *)
-end
-
-(** Wrapper for the {!type: Runtime.event} -- structured log event parsed from
-    the {!raw_event} ones. *)
-class type event = object
-  method data : Js.js_string Js.t Js.prop
-  (** Serialized [Runtime.event]. *)
-end
-
 class type event_manager = object
-  method resetLog : unit Js.meth
-  method retrieveEvents : event Js.t Js.js_array Js.t Js.meth
-  method retrieveRawEvents : raw_event Js.t Js.js_array Js.t Js.meth
+  method resetTrace : unit Js.meth
+  (** Reset the registered trace. *)
+
+  method retrieveTrace : Js.js_string Js.meth
+  (** Returns a JSON string of the trace. *)
 end
 
 val event_manager : event_manager Js.t
-(** JS object usable to retrieve and reset log events. *)
+(** JS object usable to retrieve and reset trace. *)
 
 (** {1 Duration} *)
 

@@ -526,7 +526,7 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
         match item with
         | ScopeDef (name, body) ->
           let e = Scope.to_expr ctx body in
-          let e = Expr.remove_logging_calls (Expr.unbox e) in
+          let e = Expr.remove_tags (Expr.unbox e) in
           ( Env.add v (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
         | Topdef (_, _, _, e) -> Env.add v e env env, scopes)
@@ -705,7 +705,7 @@ let program_to_graph
         | ScopeDef (name, body) ->
           let e = Scope.to_expr ctx body in
           let e = customize (Expr.unbox e) in
-          let e = Expr.remove_logging_calls (Expr.unbox e) in
+          let e = Expr.remove_tags (Expr.unbox e) in
           let e =
             Renaming.expr
               (Renaming.get_ctx
@@ -1256,7 +1256,7 @@ let expr_to_dot_label0 : type a.
           | Not -> xlang () ~en:"not" ~fr:"non"
           | Length -> xlang () ~en:"length" ~fr:"nombre"
           | Round_rat | Round_mon | Round -> xlang () ~en:"round" ~fr:"arrondi"
-          | Log _ -> xlang () ~en:"Log" ~fr:"Journal"
+          | Tag _ -> xlang () ~en:"Log" ~fr:"Journal"
           | And -> xlang () ~en:"and" ~fr:"et"
           | Or -> xlang () ~en:"or" ~fr:"ou"
           | Xor -> xlang () ~en:"xor" ~fr:"ou bien"

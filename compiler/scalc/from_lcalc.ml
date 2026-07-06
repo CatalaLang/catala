@@ -209,6 +209,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
       ( A.EAppOp { op = Op.HandleExceptions, pos; args = [excs]; tys = [t_arr] },
         pos ),
       ctxt.ren_ctx )
+  | EAppOp { op = Tag _, _; args = [_]; tys = _ } -> spill_expr ctxt expr
   | EAppOp { op; args; tys } ->
     let stmts, args, ren_ctx = translate_expr_list ctxt args in
     let ctxt = { ctxt with ren_ctx } in
@@ -477,6 +478,39 @@ and translate_assignment
              },
            Expr.pos block_expr ),
       ren_ctx )
+  | EAppOp { op = Tag t, p; args = [arg]; tys = _ } -> (
+    let s_begin_trace = A.SBeginTrace (t, p), p in
+    match Expr.ty arg with
+    | TLit TUnit, _ | TArrow _, _ ->
+      let s_block, ren_ctxt = translate_assignment ctxt assign_to arg in
+      let s_end_trace = A.SEndTrace { ret_var = None }, p in
+      RevBlock.empty +> s_begin_trace ++ s_block +> s_end_trace, ren_ctxt
+    | ty -> (
+      let pos_arg = Expr.pos arg in
+      let scalc_var, ctxt =
+        match assign_to with
+        | None -> fresh_var ~pos:Pos.void ctxt ("trc_" ^ ctxt.context_name)
+        | Some (v, _) -> v, ctxt
+      in
+      let scalc_var_m = scalc_var, pos_arg in
+      let s_block, ren_ctxt =
+        translate_assignment ctxt (Some scalc_var_m) arg
+      in
+      let s_end_trace = A.SEndTrace { ret_var = Some scalc_var }, p in
+      match assign_to with
+      | None ->
+        let s_local_decl =
+          A.SLocalDecl { name = scalc_var_m; typ = ty }, Pos.void
+        in
+        ( RevBlock.empty
+          +> s_begin_trace
+          +> s_local_decl
+          ++ s_block
+          +> s_end_trace
+          +> (A.SReturn (A.EVar scalc_var, pos), pos),
+          ren_ctxt )
+      | Some _ ->
+        RevBlock.empty +> s_begin_trace ++ s_block +> s_end_trace, ren_ctxt))
   | EArray _ | EStruct _ | EInj _ | ETuple _ | ELit _ | EPos _ | EAppOp _
   | EVar _ | ETupleAccess _ | EStructAccess _ | EExternal _ | EApp _ ->
     let stmts, expr, ren_ctx =

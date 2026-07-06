@@ -1,0 +1,93 @@
+# Important title
+
+## Less important title
+
+```catala-metadata
+declaration scope S:
+  input i content integer
+  output r content integer
+
+scope S:
+  definition r equals
+    if 42 > 42 then
+      -i
+    else
+      i
+
+#[test]
+declaration scope T:
+  output result content integer
+
+scope T:
+  definition result equals (output of S with { -- i : 123 }).r
+```
+
+```catala-test-cli
+$ catala interpret -s T --trace -O
+→ Entering scope T
+─➤ tests/trace/good/scopecall.catala_en:18.19-20:
+   │
+18 │ declaration scope T:
+   │                   ‾
+Important title
+└─ Less important title
+  ≔ Scope variable definition result: 123
+  ─➤ tests/trace/good/scopecall.catala_en:19.10-16:
+     │
+  19 │   output result content integer
+     │          ‾‾‾‾‾‾
+  Important title
+  └─ Less important title
+    → Entering scope S
+    ─➤ tests/trace/good/scopecall.catala_en:22.28-61:
+       │
+    22 │   definition result equals (output of S with { -- i : 123 }).r
+       │                            ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Important title
+    └─ Less important title
+      ≔ Scope input variable definition i: 123
+      ─➤ tests/trace/good/scopecall.catala_en:7.9-10:
+        │
+      7 │   input i content integer
+        │         ‾
+      Important title
+      └─ Less important title
+      ≔ Scope variable definition r: 123
+      ─➤ tests/trace/good/scopecall.catala_en:8.10-11:
+        │
+      8 │   output r content integer
+        │          ‾
+      Important title
+      └─ Less important title
+        ⊡ Condition evaluated to false
+        ─➤ tests/trace/good/scopecall.catala_en:12.8-15:
+           │
+        12 │     if 42 > 42 then
+           │        ‾‾‾‾‾‾‾
+        Important title
+        └─ Less important title
+        ⊸ Branch taken
+        ─➤ tests/trace/good/scopecall.catala_en:15.7-8:
+           │
+        15 │       i
+           │       ‾
+        Important title
+        └─ Less important title
+    ← Exiting Scope S: S {
+                           -- r: 123
+                         }
+← Exiting Scope T: T {
+                       -- result: 123
+                     }
+┌─[RESULT]─ T ─
+│ result = 123
+└─
+```
+
+```catala-test-cli
+$ catala interpret -s T --trace -O --trace-format json
+[{"element":{"kind":"scope_call","name":"T","decl_pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":18,"character":19},"end":{"line":18,"character":20},"law_headings":["Less important title","Important title"]}},"pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":18,"character":19},"end":{"line":18,"character":20},"law_headings":["Less important title","Important title"]},"value":{"result":"123"},"trace":[{"element":{"kind":"scope_var","name":"result","decl_pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":19,"character":10},"end":{"line":19,"character":16},"law_headings":["Less important title","Important title"]},"input":"no_input","output":true},"pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":19,"character":10},"end":{"line":19,"character":16},"law_headings":["Less important title","Important title"]},"value":"123","trace":[{"element":{"kind":"scope_call","name":"S","decl_pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":6,"character":19},"end":{"line":6,"character":20},"law_headings":["Less important title","Important title"]}},"pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":22,"character":28},"end":{"line":22,"character":61},"law_headings":["Less important title","Important title"]},"value":{"r":"123"},"trace":[{"element":{"kind":"scope_var","name":"i","decl_pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":7,"character":9},"end":{"line":7,"character":10},"law_headings":["Less important title","Important title"]},"input":"only_input","output":false},"pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":6,"character":19},"end":{"line":6,"character":20},"law_headings":["Less important title","Important title"]},"value":"123"},{"element":{"kind":"scope_var","name":"r","decl_pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":8,"character":10},"end":{"line":8,"character":11},"law_headings":["Less important title","Important title"]},"input":"no_input","output":true},"pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":8,"character":10},"end":{"line":8,"character":11},"law_headings":["Less important title","Important title"]},"value":"123","trace":[{"element":{"kind":"branch_condition"},"pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":12,"character":8},"end":{"line":12,"character":15},"law_headings":["Less important title","Important title"]},"value":false},{"element":{"kind":"if_branching"},"pos":{"file":"tests/trace/good/scopecall.catala_en","start":{"line":15,"character":7},"end":{"line":15,"character":8},"law_headings":["Less important title","Important title"]},"value":"123"}]}]}]}]}]
+┌─[RESULT]─ T ─
+│ result = 123
+└─
+```

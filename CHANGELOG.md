@@ -9,3 +9,8 @@ in behavior visible for the end-users of the tooling.
   exhaustive Json_encoding.string_enum` and
   `Invalid_argument("Json_encoding.construct: consequence of bad
   union")`
+
+* [#1069](https://github.com/CatalaLang/catala/pull/1069) Revamp of
+  the `--trace` mechanism:
+  - Added support in the `Java` backend;
+  - Added `clerk run --trace ...` options.

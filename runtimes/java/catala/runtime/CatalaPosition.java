@@ -60,13 +60,18 @@ public final class CatalaPosition
     public String toJSONString() {
         StringBuilder b = new StringBuilder();
         java.util.function.BiConsumer<Integer, Integer> p_pos = (l, c) -> {
-            b.append("{ \"line\":").append(l).append(", ")
-                    .append("\"character\":").append(c).append(" }");
+            b.append("{\"line\":").append(l).append(", ")
+                    .append("\"character\":").append(c).append("}");
         };
-        b.append("{ \"file\":\"").append(this.filename).append("\",\n  \"start\":");
+        b.append("{ \"file\":\"").append(this.filename).append("\",\"start\":");
         p_pos.accept(this.startLine, this.startColumn);
-        b.append("\",\n  \"end\":");
-        p_pos.accept(this.startLine, this.startColumn);
-        return b.append(" }").toString();
+        b.append(",\"end\":");
+        p_pos.accept(this.endLine, this.endColumn);
+        if (!(this.law_headings == null || this.law_headings.length == 0)) {
+            for (String s : this.law_headings) {
+                b.append(",").append(s);
+            }
+        }
+        return b.append("}").toString();
     }
 }

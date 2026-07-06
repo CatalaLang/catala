@@ -41,9 +41,9 @@ $ catala Scalc -s Foo2 -O -t
 └─ Test
 let foo2 (foo2_in: Foo2_in) =
   decl bar : integer;
-  decl bar__1 : integer;
+  begin_trace(ScopeVarDef(bar));
   fatal NoValue;
-  bar = bar__1;
+  end_trace(bar);
   return Foo2 {"bar": bar}
 
 ```

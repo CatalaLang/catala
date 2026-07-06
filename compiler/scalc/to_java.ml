@@ -145,7 +145,7 @@ let format_scope = format_qualified (module ScopeName)
 
 let format_op (ppf : formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
-  | Log (_entry, _infos) -> assert false
+  | Tag _ -> (* Handled by the caller *) assert false
   | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
     pp_print_string ppf "subtract"
   | Not -> pp_print_string ppf "not"
@@ -453,10 +453,10 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "@[<hv 2>%a.%a@;<0 -1>(%a@])"
       (format_expression_with_paren ctx)
       arg1 format_op op (format_expression ctx) arg2
-  | EAppOp { op = Log _, _; _ } when Global.options.trace <> None ->
-    Message.error "tracing is not yet supported in Java"
-  | EAppOp { op = Log _, _; args = [arg1]; _ } ->
-    fprintf ppf "%a" (format_expression ctx) arg1
+  | EAppOp { op = Tag _, _; args = [_]; tys = _ }
+    when Global.options.trace <> None ->
+    (* FIXME: enforce no trace in scalc operators *)
+    assert false
   | EAppOp { op = (Not, _) as op; args = [arg1]; _ } ->
     fprintf ppf "%a.%a()" (format_expression ctx) arg1 format_op op
   | EAppOp
@@ -702,6 +702,10 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
       (pp_print_list ~pp_sep:pp_print_space format_switch_case)
       (List.combine enum_cstrs switch_cases)
       pp_default_initializer
+  | SBeginTrace t -> format_begin_trace ctx ppf t
+  | SEndTrace { ret_var = None } -> fprintf ppf "CatalaTrace.end();"
+  | SEndTrace { ret_var = Some v } ->
+    fprintf ppf "CatalaTrace.end(%a);" VarName.format v
   | SSpecialOp _ -> .
 
 and format_inner_func_def ctx ppf (name, func) =
@@ -784,6 +788,57 @@ and format_if
     ppf =
   fprintf ppf "@[<v 4>if (%t) {@ %t@;<1 -4>} else {@ %t@;<1 -4>}@]" cond_format
     cons_format alt_format
+
+and format_begin_trace ctx ppf (tag, pos) =
+  let format_pos = format_pos_as_expr ctx in
+  let format_kind ppf =
+    match tag with
+    | ScopeCall scopename ->
+      let _, decl_pos = ScopeName.get_info scopename in
+      fprintf ppf "new CatalaTrace.ScopeCall(%s,@ %a)"
+        (String.quote (ScopeName.original_base scopename))
+        format_pos decl_pos
+    | ScopeVarDef { var = scope_var; io } ->
+      let _, decl_pos = ScopeVar.get_info scope_var in
+      fprintf ppf
+        "new CatalaTrace.ScopeVarDef(%s,@ %a,@ CatalaTrace.Input.%s,@ %b)"
+        (String.quote (ScopeVar.original_string scope_var))
+        format_pos decl_pos
+        (match io.io_input with
+        | NoInput -> "NoInput"
+        | OnlyInput -> "OnlyInput"
+        | Reentrant -> "Reentrant")
+        io.io_output
+    | LocalVarDef { name } ->
+      fprintf ppf "new CatalaTrace.LocalVarDef(%s)" (String.quote name)
+    | FunCall topdef ->
+      let _, decl_pos = TopdefName.get_info topdef in
+      fprintf ppf "new CatalaTrace.FunCall(%s,@ %a)"
+        (String.quote (TopdefName.original_base topdef))
+        format_pos decl_pos
+    | LocalTupDef { names } ->
+      fprintf ppf "new CatalaTrace.LocalTupDef(@[<hov 2>new String[]{%a}@])"
+        (pp_print_list
+           ~pp_sep:(fun ppf () -> fprintf ppf ",")
+           (fun fmt name -> pp_print_string fmt (String.quote name)))
+        names
+    | BranchingCondition -> fprintf ppf "new CatalaTrace.BranchingCondition()"
+    | Assertion -> fprintf ppf "new CatalaTrace.Assertion()"
+    | Branching None -> fprintf ppf "new CatalaTrace.IfBranching()"
+    | Branching (Some cstr) ->
+      fprintf ppf "new CatalaTrace.MatchBranching(%s)" (String.quote cstr)
+    | Exception { label = None; cons_pos } ->
+      fprintf ppf "new CatalaTrace.Exception(%a)" format_pos cons_pos
+    | Exception { label = Some (lbl, pos); cons_pos } ->
+      fprintf ppf "new CatalaTrace.Exception(%s,@ %a,@ %a)" (String.quote lbl)
+        format_pos pos format_pos cons_pos
+  in
+  fprintf ppf "@[<hov 2>CatalaTrace.begin(%t,@ %a);@]" format_kind format_pos
+    pos
+
+and format_pos_as_expr ctx ppf p =
+  let p_e = EPosLit, p in
+  format_expression ctx ppf p_e
 
 let format_constructor_body (ctx : context) sbody ppf =
   format_block ~toplevel:true ctx ppf sbody.scope_body_func.func_body
@@ -901,6 +956,8 @@ let format_tests ctx ppf p =
      let () =
        fprintf ppf "boolean test_mode = false;";
        fprintf ppf "@,boolean json_mode = false;";
+       if Global.options.trace <> None then
+         fprintf ppf "@,CatalaGlobals.tracing = true;";
        fprintf ppf
          "@,\
           java.util.Set<String> enabled_tests = new \
@@ -942,10 +999,15 @@ let format_tests ctx ppf p =
          (String.quote (ScopeName.original_base scope_name));
        pp_open_vbox ppf 2;
        fprintf ppf "try {@\n";
+       (if Global.options.trace <> None then
+          let scope_pos = Mark.get (ScopeName.get_info scope_name) in
+          format_begin_trace ctx ppf (ScopeCall scope_name, scope_pos));
+       fprintf ppf "%a@\n" (format_block ~toplevel:true ctx) block;
+       if Global.options.trace <> None then
+         fprintf ppf "CatalaTrace.end(%s);@\n" (VarName.to_string var);
        fprintf ppf
-         "%a@\nCatalaGlobals.displayResult(\"%a\", %s, test_mode, json_mode);"
-         (format_block ~toplevel:true ctx)
-         block ScopeName.format_original scope_name (VarName.to_string var);
+         "CatalaGlobals.displayResult(\"%a\", %s, test_mode, json_mode);"
+         ScopeName.format_original scope_name (VarName.to_string var);
        pp_close_box ppf ();
        fprintf ppf
          "@\n\

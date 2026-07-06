@@ -83,7 +83,7 @@ public final class CatalaOption<T extends CatalaValue<?>> extends CatalaValue<Ca
         // Warning: structures with optional fields should skip this function and
         // print either nothing either directly the value skipping the enum repr
         if (this.isNone()) {
-            return "Absent";
+            return "\"Absent\"";
         } else {
             return String.format("{ \"Present\": %s }", get().toJSONString());
         }

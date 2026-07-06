@@ -40,7 +40,7 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
 
 let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
-  | Log (_entry, _infos) -> assert false
+  | Tag _ -> assert false
   | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
     Format.pp_print_string fmt "-"
   (* Todo: use the names from [Operator.name] *)
@@ -88,15 +88,6 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
     Format.fprintf fmt ".from_json(%s" (String.quote str)
   | ArrayAccess _ | ConstructorCheck _ | DebugPrint _ -> assert false
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
-
-let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
-    : unit =
-  Format.fprintf fmt "[%a]"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-       (fun fmt info ->
-         Format.fprintf fmt "\"%a\"" Uid.MarkedString.format info))
-    uids
 
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
   Format.fprintf fmt "[%a]"
@@ -386,41 +377,10 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
         | Gte, _ -> Format.pp_print_string ppf "__ge__"
         | _ -> assert false)
       op (format_expression ctx) a2 (format_expression ctx) pos
-  | EApp
-      {
-        f = EAppOp { op = Log (BeginCall, info), _; args = [f]; _ }, _;
-        args = [arg];
-        _;
-      }
+  | EApp { f = EAppOp { op = Tag _, _; args = [_f]; _ }, _; args = [_arg]; _ }
     when Global.options.trace <> None ->
-    Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
-      (format_expression ctx) f (format_expression ctx) arg
-  | EAppOp { op = Log (VarDef var_def_info, info), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    Format.fprintf fmt
-      "log_variable_definition(%a,@ LogIO(input_io=InputIO.%s,@ \
-       output_io=%s),@ %a)"
-      format_uid_list info
-      (match var_def_info.log_io_input with
-      | Runtime.NoInput -> "NoInput"
-      | Runtime.OnlyInput -> "OnlyInput"
-      | Runtime.Reentrant -> "Reentrant")
-      (if var_def_info.log_io_output then "True" else "False")
-      (format_expression ctx) arg1
-  | EAppOp { op = Log (PosRecordIfTrueBool, _), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    let pos = Mark.get e in
-    Format.fprintf fmt
-      "log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ \
-       start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos) (format_expression ctx) arg1
-  | EAppOp { op = Log (EndCall, info), _; args = [arg1]; _ }
-    when Global.options.trace <> None ->
-    Format.fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info
-      (format_expression ctx) arg1
-  | EAppOp { op = Log _, _; args = [arg1]; _ } ->
+    Message.error "Traces in python are not yet implemented"
+  | EAppOp { op = Tag _, _; args = [arg1]; _ } ->
     Format.fprintf fmt "%a" (format_expression ctx) arg1
   | EAppOp { op = (Not, _) as op; args = [arg1]; _ } ->
     Format.fprintf fmt "%a%a" (format_expression ctx) arg1 format_op op
@@ -586,6 +546,7 @@ let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx) e1
+  | SBeginTrace _ | SEndTrace _ -> (* Not yet implemented *) ()
   | SSpecialOp _ -> .
 
 and format_block ctx (fmt : Format.formatter) (b : block) : unit =
