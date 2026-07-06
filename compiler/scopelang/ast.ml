@@ -43,7 +43,7 @@ type 'm rule =
       var : (ScopeVar.t, Pos.t list) Mark.ed;
       typ : typ;
       io : Desugared.Ast.io;
-      e : 'm expr; (* sub_scope_var: *)
+      e : 'm expr;
     }
   | Assertion of { e : 'm expr; pos : Pos.t }
 

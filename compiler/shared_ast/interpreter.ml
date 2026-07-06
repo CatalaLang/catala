@@ -651,23 +651,27 @@ let rec handle_assert : type d r.
     in
     (match Mark.remove partially_evaluated_assertion_failure_expr with
     | ELit (LBool false) ->
+      let bt = Printexc.get_raw_backtrace () in
       if Global.options.no_fail_on_assert then Message.warning ~pos "%t." msg
       else if Global.options.trace <> None then
         let msg = Format.asprintf "%t" msg in
         (* We raise a runtime error so that the trace builder catches
            its expected type of error. *)
-        raise
+        Printexc.raise_with_backtrace
           Runtime.(Error (AssertionFailed, [Expr.pos_to_runtime pos], Some msg))
+          bt
       else Message.delayed_error ~kind:AssertFailure () ~pos "%t." msg
     | _ ->
       (if Global.options.no_fail_on_assert then Message.warning
        else if Global.options.trace <> None then
+         let bt = Printexc.get_raw_backtrace () in
          let msg = Format.asprintf "%t" msg in
          (* We raise a runtime error so that the trace builder catches
             its expected type of error. *)
-         raise
+         Printexc.raise_with_backtrace
            Runtime.(
              Error (AssertionFailed, [Expr.pos_to_runtime pos], Some msg))
+           bt
        else Message.delayed_error ~kind:AssertFailure ())
         ~pos "@[<hv>%t:@ @[<hv 4>%a@]@]" msg Print.UserFacing.expr
         partially_evaluated_assertion_failure_expr);

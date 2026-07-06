@@ -92,13 +92,14 @@ module Flags = struct
       else options
     in
     let catala_flags =
-      ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
+      (if inplace then "--stdlib=" ^ Lazy.force Poll.stdlib_dir
+       else "--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
       :: ("--directory=" ^ Var.(!builddir))
-      :: (if inplace then ["--stdlib=" ^ Lazy.force Poll.stdlib_dir] else [])
-      @ (match trace with
-        | None -> []
-        | Some (`FileName f) -> ["--trace=" ^ (f :> string)]
-        | Some `Stdout -> ["--trace"])
+      ::
+      (match trace with
+      | None -> []
+      | Some (`FileName f) -> ["--trace=" ^ (f :> string)]
+      | Some `Stdout -> ["--trace"])
       @ (match trace_format with
         | None -> []
         | Some Human -> ["--trace-format=human"]

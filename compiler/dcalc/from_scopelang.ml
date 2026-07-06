@@ -408,14 +408,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
   | EAppOp { op = Sub_dat_dur _, opos; args; tys } ->
     let args = List.map (translate_expr ctx) args in
     Expr.eappop ~op:(Sub_dat_dur ctx.date_rounding, opos) ~args ~tys m
-  | EIfThenElse { cond; etrue; efalse } ->
-    let cond = translate_expr ctx cond in
-    let etrue = translate_expr ctx etrue in
-    let efalse = translate_expr ctx efalse in
-    Expr.eifthenelse cond etrue efalse m
   | ( EAbs _ | EVar _ | ELit _ | EStruct _ | EStructAccess _ | ETuple _
     | ETupleAccess _ | EInj _ | EFatalError _ | EEmpty | EErrorOnEmpty _
-    | EArray _ | EAppOp _ | EPos _ | EAssert _ | EBad ) as e ->
+    | EArray _ | EIfThenElse _ | EAppOp _ | EPos _ | EAssert _ | EBad ) as e ->
     Expr.map ~f:(translate_expr ctx) ~op:Operator.translate (e, m)
 
 (** The result of a rule translation is a list of assignments, with variables

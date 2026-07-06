@@ -117,9 +117,9 @@ let compare_tag t1 t2 =
   | Branching None, Branching None -> 0
   | Branching (Some c1), Branching (Some c2) -> Ident.compare c1 c2
   | Assertion, Assertion -> 0
-  | ( Exception { label = l; cons_pos = cp1 },
-      Exception { label = l'; cons_pos = cp2 } ) ->
-    let cmp = Option.compare MarkedIdent.compare l l' in
+  | ( Exception { label = l1; cons_pos = cp1 },
+      Exception { label = l2; cons_pos = cp2 } ) ->
+    let cmp = Option.compare MarkedIdent.compare l1 l2 in
     if cmp = 0 then Pos.compare cp1 cp2 else cmp
   | ScopeCall _, _ -> 1
   | _, ScopeCall _ -> -1
