@@ -1,7 +1,9 @@
 module File = Catala_utils.File
 module Message = Catala_utils.Message
+module Common = Clerk_backends.Common
 
 let check = Alcotest.(check string)
+let check_list = Alcotest.(check (list string))
 
 (* These emulate Windows path handling on any host through the [~win32] flag, so
    they run in the Linux CI. The scenario is VS Code launching clerk: the cwd
@@ -62,6 +64,44 @@ let test_file_url_unix () =
   check "unix path is already URL-shaped" "/home/x/file.catala_en"
     (Message.url_path_of_absolute ~win32:false "/home/x/file.catala_en")
 
+(* Clerk's OCaml/C backends emit '-I <dir>' flags into a ninja variable later
+   expanded onto the compiler command line. Ninja's file-syntax escaping ($ , $:)
+   is UN-escaped before the command runs, so an absolute include dir containing a
+   space (e.g. C:\Program Files\Catala\toolchain\lib\zarith) must ALSO be
+   shell-quoted or the compiler's argv parser word-splits it ("Don't know what to
+   do with Files\Catala..."). These pin the shell-quoting. Space-free paths are
+   byte-identical after unquoting, so Linux is unaffected. *)
+
+let test_includes_quote_absolute () =
+  check_list "includes: absolute -I dir is shell-quoted"
+    ["-I"; {|"/opt/some dir/zarith"|}]
+    (Common.Flags.includes [{|/opt/some dir/zarith|}])
+
+let test_include_flags_quote_absolute () =
+  check_list "include_flags: each -I dir is shell-quoted"
+    ["-I"; {|"${tdir}/ocaml"|}; "-I"; {|"/opt/some dir/ocaml"|}]
+    (Common.Flags.include_flags ~backend:"ocaml" [{|/opt/some dir|}])
+
+let test_c_backend_runtime_include_quoted () =
+  (* The C backend emits its own runtime include ("-I ${builddir}/libcatala/c")
+     directly (c.ml), not via the shared helper, so it needs its own check. Drive
+     the public Backend.Flags.default and grab the C_INCLUDE_FLAGS binding (the
+     only one whose value starts with "-I" when include_dirs is empty). *)
+  let bindings =
+    Clerk_backends.C.Backend.Flags.default ~variables:[] ~autotest:false
+      ~use_default_flags:true ~test_flags:[] ~include_dirs:[]
+  in
+  let c_include =
+    Option.get
+      (List.find_map
+         (fun (_v, value) ->
+           match value with "-I" :: _ -> Some value | _ -> None)
+         bindings)
+  in
+  check_list "C backend runtime -I is shell-quoted"
+    ["-I"; {|"${builddir}/libcatala/c"|}]
+    c_include
+
 let () =
   let open Alcotest in
   run "Catala-utils"
@@ -88,5 +128,14 @@ let () =
           test_case "file_url drive path" `Quick test_file_url_drive;
           test_case "file_url UNC path" `Quick test_file_url_unc;
           test_case "file_url unix path" `Quick test_file_url_unix;
+        ] );
+      ( "Clerk include-dir quoting (spaces in install dir)",
+        [
+          test_case "includes quotes absolute dir" `Quick
+            test_includes_quote_absolute;
+          test_case "include_flags quotes dirs" `Quick
+            test_include_flags_quote_absolute;
+          test_case "C backend runtime -I quoted" `Quick
+            test_c_backend_runtime_include_quoted;
         ] );
     ]

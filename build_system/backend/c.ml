@@ -37,7 +37,10 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   @ ["-lgmp"]
   @ [target -.- "o"; File.remove_extension target ^ "+main.o"]
   @ Var.get_var var_bindings c_flags
-  @ Var.get_var var_bindings c_include
+  (* C_INCLUDE_FLAGS is double-quoted for the ninja rule commands (shell); this
+     link step is a direct argv exec (no shell), so the quotes must be stripped
+     or they are taken literally. See the detailed note in Ocaml.linking_command. *)
+  @ List.map Var.unquote (Var.get_var var_bindings c_include)
   @ ["-o"; target -.- "exe"]
 
 let run_artifact ~test ?scope src =
@@ -94,7 +97,9 @@ module Backend = struct
             ]);
         def c_include
           (lazy
-            (["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]
+            ([
+               "-I"; Var.quote_arg File.(Var.(!builddir) / Scan.libcatala / name);
+             ]
             @ Common.Flags.includes ~backend:name include_dirs));
       ]
   end
