@@ -24,6 +24,21 @@ let javac = Var.make "JAVAC"
 let javac_flags = Var.make "JAVAC_FLAGS"
 let jar = Var.make "jar"
 let java = Var.make "JAVA"
+let backend_name = "java"
+
+(* Java's classpath entry separator is OS-dependent: ';' on Windows (':' would
+   collide with the drive-letter colon in 'C:\...'), ':' elsewhere. Parameterized
+   by [win32] so it is unit-testable off-Windows. *)
+let class_path_sep ~win32 = if win32 then ";" else ":"
+
+let classpath ~win32 include_dirs =
+  let open Var in
+  String.concat (class_path_sep ~win32)
+    ((!tdir / backend_name)
+    :: List.map
+         (fun d ->
+           (if Filename.is_relative d then !builddir / d else d) / backend_name)
+         include_dirs)
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open Var in
@@ -159,7 +174,10 @@ module Backend = struct
                   "-o"; !output; "--"; !input]
         ~description:["<catala>"; name; "⇒"; !output];
       Nj.rule "java-class"
-        ~command:[!javac; "-cp"; File.(Var.(!builddir) / Scan.libcatala / name)^":" ^ !class_path; !javac_flags; !input]
+        ~command:[!javac; "-cp";
+                  Var.quote_arg (File.(Var.(!builddir) / Scan.libcatala / name)
+                                 ^ class_path_sep ~win32:Sys.win32 ^ !class_path);
+                  !javac_flags; !input]
         ~description:["<catala>"; name; "⇒"; !output];
     ]
 
@@ -243,14 +261,7 @@ module Backend = struct
 
   let build_object ~include_dirs ~same_dir_modules ~item _has_scope_tests =
     let modules = List.rev_map Mark.remove item.Scan.used_modules in
-    let java_class_path =
-      String.concat ":"
-        ((!Var.tdir / name)
-        :: List.map
-             (fun d ->
-               (if Filename.is_relative d then !Var.builddir / d else d) / name)
-             include_dirs)
-    in
+    let java_class_path = classpath ~win32:Sys.win32 include_dirs in
     let module_target =
       modfile ~is_stdlib:item.is_stdlib same_dir_modules ".class"
     in
