@@ -16,7 +16,8 @@
 (executable
  (name tests)
  (modules tests)
- (libraries catala.driver catala.clerk_backends alcotest))
+ (libraries catala.driver catala.clerk_backends catala.scalc catala.lcalc
+  alcotest))
 
 (rule
  (target custom_linking.sexp)

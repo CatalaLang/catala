@@ -20,6 +20,11 @@ open Catala_utils
 open Shared_ast
 
 val op_needs_pos : 'a operator -> naked_typ -> bool
+
+(* Exposed for testing: emits a source position literal with the filename
+   escaped (Windows backslash paths must survive as a Java string literal). *)
+val format_pos : Format.formatter -> Pos.t -> unit
+
 val renaming : Renaming.t
 
 val format_program :
