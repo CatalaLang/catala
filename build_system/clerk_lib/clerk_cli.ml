@@ -132,23 +132,30 @@ let runtest_out =
     & info [] ~docv:"OUTFILE"
         ~doc:"Write the test outcome to file $(b,OUTFILE) instead of stdout.")
 
-let backend =
-  Arg.(
-    value
-    & opt
-        (enum
-           [
-             "interpret", `Interpret;
-             "ocaml", `OCaml;
-             "c", `C;
-             "python", `Python;
-             "java", `Java;
-           ])
-        `Interpret
-    & info ["backend"; "b"] ~docv:"BACKEND"
-        ~doc:
-          "Run the program using the given backend. $(docv) must be one of \
-           $(b,interpret), $(b,ocaml), $(b,c), $(b,python), $(b,java).")
+let backends =
+  let arg =
+    Arg.(
+      value
+      & opt_all
+          (list
+             (enum
+                [
+                  "interpret", [`Interpret];
+                  "ocaml", [`OCaml];
+                  "c", [`C];
+                  "python", [`Python];
+                  "java", [`Java];
+                  "all", [`Interpret; `OCaml; `C; `Python; `Java];
+                ]))
+          [[[`Interpret]]]
+      & info ["backend"; "b"] ~docv:"BACKEND"
+          ~doc:
+            "Run the program using the given backend. $(docv) must be one of \
+             $(b,interpret), $(b,ocaml), $(b,c), $(b,python), $(b,java) or \
+             $(b,all). When set to $(b,all), all supported backends will be \
+             tested.")
+  in
+  Term.(const (fun l -> List.flatten (List.flatten l)) $ arg)
 
 let run_command =
   Arg.(
