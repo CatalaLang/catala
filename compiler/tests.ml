@@ -5,6 +5,13 @@ module Common = Clerk_backends.Common
 let check = Alcotest.(check string)
 let check_list = Alcotest.(check (list string))
 
+(* [Common.Flags.include_flags] and [Clerk_backends.Java.classpath] join paths
+   with [Filename.concat], so a separator inside a joined path is host-native
+   ('\' on a Windows CI runner, '/' on Linux). The tests using them assert the
+   shell-quoting and the classpath separator, not slash direction, so normalise
+   '\' -> '/' before comparing (a no-op on Linux). *)
+let fwd s = String.map (function '\\' -> '/' | c -> c) s
+
 (* These emulate Windows path handling on any host through the [~win32] flag, so
    they run in the Linux CI. The scenario is VS Code launching clerk: the cwd
    carries a LOWER-case drive letter ("c:\\...", from [Uri.fsPath]) while the
@@ -86,7 +93,7 @@ let test_includes_quote_absolute () =
 let test_include_flags_quote_absolute () =
   check_list "include_flags: each -I dir is shell-quoted"
     ["-I"; {|"${tdir}/ocaml"|}; "-I"; {|"/opt/some dir/ocaml"|}]
-    (Common.Flags.include_flags ~backend:"ocaml" [{|/opt/some dir|}])
+    (List.map fwd (Common.Flags.include_flags ~backend:"ocaml" [{|/opt/some dir|}]))
 
 let test_c_backend_runtime_include_quoted () =
   (* The C backend emits its own runtime include ("-I ${builddir}/libcatala/c")
@@ -106,7 +113,7 @@ let test_c_backend_runtime_include_quoted () =
   in
   check_list "C backend runtime -I is shell-quoted"
     ["-I"; {|"${builddir}/libcatala/c"|}]
-    c_include
+    (List.map fwd c_include)
 
 (* Java's classpath separator is OS-dependent: ';' on Windows (':' would be read
    as part of a 'C:\...' drive path and split the entry), ':' on Unix. This is a
@@ -116,12 +123,12 @@ let test_c_backend_runtime_include_quoted () =
 let test_java_classpath_windows_sep () =
   check "Java classpath uses ';' on Windows (drive-colon safe)"
     {|${tdir}/java;/opt/lib a/java|}
-    (Clerk_backends.Java.classpath ~win32:true [{|/opt/lib a|}])
+    (fwd (Clerk_backends.Java.classpath ~win32:true [{|/opt/lib a|}]))
 
 let test_java_classpath_unix_sep () =
   check "Java classpath uses ':' on Unix"
     {|${tdir}/java:/opt/lib a/java|}
-    (Clerk_backends.Java.classpath ~win32:false [{|/opt/lib a|}])
+    (fwd (Clerk_backends.Java.classpath ~win32:false [{|/opt/lib a|}]))
 
 (* Backend position literals embed the source FILENAME. On Windows that filename
    carries backslash separators (C:\proj\mod.catala_fr); each backend emits it
