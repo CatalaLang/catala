@@ -334,6 +334,16 @@ let poly_cast ctx ppf e fmt =
       (format_typ ctx) typ
   | _ -> fprintf ppf fmt
 
+(* Emit a source position as a [new CatalaPosition(...)] literal. The filename is
+   [String.quote]d so a Windows path's backslashes survive as a Java string
+   literal (an unescaped "C:\proj\mod" is an illegal escape sequence). *)
+let format_pos (ppf : formatter) (pos : Pos.t) : unit =
+  fprintf ppf
+    "@[<hv 2>new CatalaPosition@;<0 -1>(@[<hov>%s,@ %d, %d,@ %d, %d@])@]"
+    (String.quote (Pos.get_file pos))
+    (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
+    (Pos.get_end_column pos)
+
 let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   let {
     in_scope_structs;
@@ -406,12 +416,7 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
            fprintf ppf "%a" (format_expression ctx) e))
       elts
   | ELit l -> fprintf ppf "%a" format_lit (Mark.copy e l)
-  | EPosLit ->
-    let pos = Mark.get e in
-    fprintf ppf
-      "@[<hv 2>new CatalaPosition@;<0 -1>(@[<hov>\"%s\",@ %d, %d,@ %d, %d@])@]"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos)
+  | EPosLit -> format_pos ppf (Mark.get e)
   | EAppOp { op = ValueFromJson (ty, str), p; args = [_e]; _ } ->
     let encoded_string =
       (* Java needs utf-16, we quote the string then escape the non-latin1

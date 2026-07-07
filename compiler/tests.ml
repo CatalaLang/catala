@@ -116,6 +116,38 @@ let test_java_classpath_unix_sep () =
   check "Java classpath uses ':' on Unix" {|${tdir}/java:/opt/lib a/java|}
     (Clerk_backends.Java.classpath ~win32:false [{|/opt/lib a|}])
 
+(* Backend position literals embed the source FILENAME. On Windows that filename
+   carries backslash separators (C:\proj\mod.catala_fr); each backend emits it
+   into a string literal of the target language, where an un-escaped backslash is
+   an illegal escape sequence (Java/Python) or silently wrong (C/OCaml). Every
+   backend's [format_pos] must therefore escape the filename. These emulate a
+   Windows path on any host, so they run in the Linux CI. *)
+
+let contains ~sub s =
+  let n = String.length sub and m = String.length s in
+  let rec go i = i + n <= m && (String.sub s i n = sub || go (i + 1)) in
+  n = 0 || go 0
+
+let pos_output fmt_pos =
+  let pos = Catala_utils.Pos.from_info {|C:\proj\mod.catala_fr|} 1 2 3 4 in
+  Format.asprintf "%a" fmt_pos pos
+
+let check_pos_escaped name fmt_pos =
+  Alcotest.(check bool)
+    (name ^ " backend escapes backslashes in the position filename")
+    true
+    (contains ~sub:{|C:\\proj\\mod.catala_fr|} (pos_output fmt_pos))
+
+let test_java_pos_escaped () = check_pos_escaped "Java" Scalc.To_java.format_pos
+
+let test_python_pos_escaped () =
+  check_pos_escaped "Python" Scalc.To_python.format_pos
+
+let test_c_pos_escaped () = check_pos_escaped "C" Scalc.To_c.format_pos
+
+let test_ocaml_pos_escaped () =
+  check_pos_escaped "OCaml" Lcalc.To_ocaml.format_pos
+
 let () =
   let open Alcotest in
   run "Catala-utils"
@@ -155,5 +187,14 @@ let () =
             test_java_classpath_windows_sep;
           test_case "Java classpath ':' on Unix" `Quick
             test_java_classpath_unix_sep;
+        ] );
+      ( "Backend position-filename escaping (Windows backslash)",
+        [
+          test_case "Java position filename escaped" `Quick test_java_pos_escaped;
+          test_case "Python position filename escaped" `Quick
+            test_python_pos_escaped;
+          test_case "C position filename escaped" `Quick test_c_pos_escaped;
+          test_case "OCaml position filename escaped" `Quick
+            test_ocaml_pos_escaped;
         ] );
     ]
