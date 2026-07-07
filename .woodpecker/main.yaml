@@ -44,8 +44,20 @@ steps:
     depends_on: build
     environment: *build_env
     commands:
+      # This reproduces 'make testsuite', but splitting in individual commands
+      # helps in browsing the logs
       - eval $(opam env)
-      - make testsuite
+      - _build/default/build_system/clerk.exe test tests
+      - _build/default/build_system/clerk.exe test tests --test-flags=-O
+      - _build/default/build_system/clerk.exe test tests --test-flags=--lcalc
+      - _build/default/build_system/clerk.exe test tests --test-flags=--lcalc,--closure-conversion,-O
+      - _build/default/build_system/clerk.exe test tests --test-flags=--whole-program
+      - make unit-tests
+      - make backend-tests-ocaml
+      - make backend-tests-c
+      - make backend-tests-python
+      - make backend-tests-java
+      - _build/default/build_system/clerk.exe test tests-extra doc
 
   - name: extra-tests
     image: *catala_image
@@ -77,7 +89,13 @@ steps:
         git clone https://github.com/CatalaLang/catala-examples --depth 1
       - . _python_venv/bin/activate
       - cd catala-examples
-      - make all testsuite
+      - make all
+      - clerk test --build-dir=_build/clerk_tests
+      - clerk test --build-dir=_build/clerk_tests --test-flags=--lcalc,-O
+      - clerk test --backend=ocaml
+      - clerk test --backend=c
+      - clerk test --backend=python
+      - clerk test --backend=java
 
   - name: lsp
     image: *catala_image
