@@ -155,6 +155,31 @@ let test_c_pos_escaped () = check_pos_escaped "C" Scalc.To_c.format_pos
 let test_ocaml_pos_escaped () =
   check_pos_escaped "OCaml" Lcalc.To_ocaml.format_pos
 
+(* A big Java module packs thousands of '-C <dir> <file>' pairs into the jar
+   command; inline this overflows the OS command-line limit (~32k on Windows,
+   where CreateProcess fails with a misleading ENOENT), so clerk spills them to a
+   jar @argfile. In that argfile backslash is an escape character, so a Windows
+   path must be forward-slashed (and quoted for spaces) or the entry is mangled.
+   Runs on Linux since it is pure string formatting. *)
+
+let test_jar_argfile_escaping () =
+  check "jar argfile forward-slashes and quotes Windows paths"
+    {|-C
+"C:/Program Files/build/app/java"
+"Outer$Inner.class"|}
+    (Clerk_backends.Java.jar_argfile_content
+       [{|C:\Program Files\build\app\java|}, {|Outer$Inner.class|}])
+
+let test_jar_argfile_relative_entry () =
+  (* Runtime entries carry a relative path WITH separators as the file token; it
+     too must be forward-slashed so it is not read as escapes. *)
+  check "jar argfile forward-slashes a separator-bearing file token"
+    {|-C
+"C:/rt/libcatala/java"
+"catala/runtime/Value.class"|}
+    (Clerk_backends.Java.jar_argfile_content
+       [{|C:\rt\libcatala\java|}, {|catala\runtime\Value.class|}])
+
 let () =
   let open Alcotest in
   run "Catala-utils"
@@ -204,5 +229,12 @@ let () =
           test_case "C position filename escaped" `Quick test_c_pos_escaped;
           test_case "OCaml position filename escaped" `Quick
             test_ocaml_pos_escaped;
+        ] );
+      ( "Java jar @argfile (command-line length + path escaping)",
+        [
+          test_case "argfile escapes a Windows path" `Quick
+            test_jar_argfile_escaping;
+          test_case "argfile escapes a separator-bearing entry" `Quick
+            test_jar_argfile_relative_entry;
         ] );
     ]

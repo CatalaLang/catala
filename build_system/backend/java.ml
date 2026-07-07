@@ -41,6 +41,21 @@ let classpath ~win32 include_dirs =
            (if Filename.is_relative d then !builddir / d else d) / backend_name)
          include_dirs)
 
+(* jar packs one entry per '-C <dir> <file>' pair; a big module yields thousands,
+   overflowing the OS command-line limit (~32k on Windows, where CreateProcess
+   then fails with a misleading ENOENT). Spill the entries to a jar argument file
+   (@file), as javac already does for its inputs. In a jar argfile the backslash
+   is an escape character, so paths are written with forward slashes (accepted by
+   the JVM on Windows too) and quoted to tolerate spaces. *)
+let jar_argfile_content (entries : (string * string) list) : string =
+  let quote_path p =
+    "\"" ^ String.map (function '\\' -> '/' | c -> c) p ^ "\""
+  in
+  String.concat "\n"
+    (List.concat_map
+       (fun (dir, file) -> ["-C"; quote_path dir; quote_path file])
+       entries)
+
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open Var in
   let jar_target = target -.- "jar" in
@@ -95,15 +110,19 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
     |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
     |> List.of_seq
   in
-  get_var var_bindings jar
-  @ ["--create"; "--file"; jar_target]
-  @ List.concat_map
-      (fun clazz -> ["-C"; Filename.dirname clazz; Filename.basename clazz])
+  let entries =
+    List.map
+      (fun clazz -> (Filename.dirname clazz, Filename.basename clazz))
       classes
-  @ List.concat_map
-      (fun clazz ->
-        ["-C"; java_dir_prefix; File.remove_prefix java_dir_prefix clazz])
-      runtime_class_files
+    @ List.map
+        (fun clazz ->
+          (java_dir_prefix, File.remove_prefix java_dir_prefix clazz))
+        runtime_class_files
+  in
+  let argfile = jar_target ^ ".jarargs" in
+  File.with_out_channel ~bin:false argfile (fun oc ->
+      output_string oc (jar_argfile_content entries));
+  get_var var_bindings jar @ ["--create"; "--file"; jar_target; "@" ^ argfile]
 
 let run_artifact ~var_bindings ~test ?scope src =
   let open Clerk_lib in

@@ -45,4 +45,10 @@ val classpath : win32:bool -> string list -> string
     Windows — ':' collides with the drive-letter colon — ':' elsewhere). Exposed
     to unit-test the Windows separator off-Windows. *)
 
+val jar_argfile_content : (string * string) list -> string
+(** [jar_argfile_content entries] renders the '-C <dir> <file>' pairs into a jar
+    argument-file body: each path forward-slashed and quoted, so a Windows path
+    survives jar's argfile parser (where backslash is an escape char). Exposed to
+    unit-test that escaping. *)
+
 module Backend : Backend.S
