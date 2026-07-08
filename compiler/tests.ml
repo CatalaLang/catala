@@ -130,6 +130,23 @@ let test_java_classpath_unix_sep () =
     {|${tdir}/java:/opt/lib a/java|}
     (fwd (Clerk_backends.Java.classpath ~win32:false [{|/opt/lib a|}]))
 
+(* Same OS-dependent-separator bug for the Python backend's PYTHONPATH: ';' on
+   Windows (':' collides with the 'C:\...' drive-letter colon and mis-splits the
+   entry so the generated test package isn't importable), ':' on Unix. Pin both
+   via the ~win32-parameterized Python.pythonpath. *)
+
+let test_pythonpath_windows_sep () =
+  check "PYTHONPATH uses ';' on Windows (drive-colon safe)"
+    {|C:/build/libcatala/python;C:/proj/tests|}
+    (Clerk_backends.Python.pythonpath ~win32:true
+       [{|C:/build/libcatala/python|}; {|C:/proj/tests|}])
+
+let test_pythonpath_unix_sep () =
+  check "PYTHONPATH uses ':' on Unix"
+    {|/build/libcatala/python:/proj/tests|}
+    (Clerk_backends.Python.pythonpath ~win32:false
+       [{|/build/libcatala/python|}; {|/proj/tests|}])
+
 (* Backend position literals embed the source FILENAME. On Windows that filename
    carries backslash separators (C:\proj\mod.catala_fr); each backend emits it
    into a string literal of the target language, where an un-escaped backslash is
@@ -226,6 +243,9 @@ let () =
             test_java_classpath_windows_sep;
           test_case "Java classpath ':' on Unix" `Quick
             test_java_classpath_unix_sep;
+          test_case "PYTHONPATH ';' on Windows" `Quick
+            test_pythonpath_windows_sep;
+          test_case "PYTHONPATH ':' on Unix" `Quick test_pythonpath_unix_sep;
         ] );
       ( "Backend position-filename escaping (Windows backslash)",
         [

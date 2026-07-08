@@ -22,6 +22,13 @@ open Clerk_lib
 let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
 let python = Var.make "PYTHON"
 
+(* PYTHONPATH entries are separated by ';' on Windows (':' would be read as part
+   of a 'C:\...' drive letter and mis-split the entry), ':' elsewhere.
+   Parameterized by [win32] so it is unit-testable off-Windows. *)
+let path_sep ~win32 = if win32 then ";" else ":"
+
+let pythonpath ~win32 dirs = String.concat (path_sep ~win32) dirs
+
 let linking_command ~build_dir link_deps item target =
   (* a "linked" python module is a "Module.py" folder containing the module .py
      file along with the runtime and all dependencies, plus a __init__.py
@@ -54,7 +61,7 @@ let run_artifact config ~test ?scope ~var_bindings src =
     @ if Global.options.output_format = JSON then ["--json"] else []
   in
   let pythonpath =
-    String.concat ":"
+    pythonpath ~win32:Sys.win32
       [
         build_dir / Scan.libcatala / "python";
         File.dirname src;
