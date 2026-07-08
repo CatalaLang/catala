@@ -75,8 +75,14 @@ let static_base_rules ~tests enabled_backends =
       [
         Nj.rule "tests"
           ~command:
-            [quoted clerk_exe; "runtest"; !clerk_flags; !input; "--report";
-             !output]
+            [
+              quoted clerk_exe;
+              "runtest";
+              !clerk_flags;
+              !input;
+              "--report";
+              !output;
+            ]
           ~description:["<catala>"; "tests"; "⇐"; !input];
         Nj.rule "dir-tests"
           ~command:

@@ -26,7 +26,6 @@ let python = Var.make "PYTHON"
    of a 'C:\...' drive letter and mis-split the entry), ':' elsewhere.
    Parameterized by [win32] so it is unit-testable off-Windows. *)
 let path_sep ~win32 = if win32 then ";" else ":"
-
 let pythonpath ~win32 dirs = String.concat (path_sep ~win32) dirs
 
 let linking_command ~build_dir link_deps item target =

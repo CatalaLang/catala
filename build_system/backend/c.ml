@@ -97,7 +97,9 @@ module Backend = struct
             ]);
         def c_include
           (lazy
-            (["-I"; Var.quote_arg File.(Var.(!builddir) / Scan.libcatala / name)]
+            ([
+               "-I"; Var.quote_arg File.(Var.(!builddir) / Scan.libcatala / name);
+             ]
             @ Common.Flags.includes ~backend:name include_dirs));
       ]
   end

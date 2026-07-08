@@ -43,7 +43,6 @@ module Path = struct
   let current = Filename.current_dir_name
   let parent = Filename.parent_dir_name
   let dir_sep ~win32 = if win32 then "\\" else "/"
-
   let dir_sep_re_win = Re.(compile (set "/\\"))
   let dir_sep_re_unix = Re.(compile (char '/'))
   let dir_sep_re ~win32 = if win32 then dir_sep_re_win else dir_sep_re_unix
@@ -131,7 +130,8 @@ module Path = struct
       &&
       let pre = String.sub f 0 n in
       if win32 then
-        String.equal (String.lowercase_ascii pre)
+        String.equal
+          (String.lowercase_ascii pre)
           (String.lowercase_ascii prefix)
       else String.equal pre prefix
     in

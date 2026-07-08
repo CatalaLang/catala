@@ -22,7 +22,6 @@ val op_needs_pos : 'a operator -> naked_typ -> bool
 (* Exposed for testing: emits a source position record with the filename escaped
    (Windows backslash paths must survive as an OCaml string literal). *)
 val format_pos : Format.formatter -> Pos.t -> unit
-
 val renaming : Renaming.t
 
 (** Formats a lambda calculus program into a valid OCaml program *)

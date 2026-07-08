@@ -24,7 +24,6 @@ let javac = Var.make "JAVAC"
 let javac_flags = Var.make "JAVAC_FLAGS"
 let jar = Var.make "jar"
 let java = Var.make "JAVA"
-
 let backend_name = "java"
 
 (* Java's classpath entry separator is OS-dependent: ';' on Windows (':' would
@@ -112,11 +111,10 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   in
   let entries =
     List.map
-      (fun clazz -> (Filename.dirname clazz, Filename.basename clazz))
+      (fun clazz -> Filename.dirname clazz, Filename.basename clazz)
       classes
     @ List.map
-        (fun clazz ->
-          (java_dir_prefix, File.remove_prefix java_dir_prefix clazz))
+        (fun clazz -> java_dir_prefix, File.remove_prefix java_dir_prefix clazz)
         runtime_class_files
   in
   let argfile = jar_target ^ ".jarargs" in

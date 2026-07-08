@@ -37,22 +37,19 @@ let test_reverse_path_no_drive_strip () =
 
 let test_remove_prefix_matching_case () =
   (* No change when the drive cases already agree. *)
-  check "matching-case prefix removal"
-    {|lib\src|}
+  check "matching-case prefix removal" {|lib\src|}
     (File.Path.remove_prefix ~win32:true ~cwd:{|C:\proj|} {|C:\proj|}
        {|C:\proj\lib\src|})
 
 let test_reverse_path_unix () =
   (* Non-Windows behaviour is unaffected. *)
-  check "unix relativization"
-    "a/b"
+  check "unix relativization" "a/b"
     (File.Path.reverse_path ~win32:false ~cwd:"/home/x" ~from_dir:"/home/x"
        ~to_dir:"." "/home/x/a/b")
 
 let test_make_relative_to_drive_case () =
   (* Same lower/upper drive mismatch, through make_relative_to. *)
-  check "make_relative_to across a drive-case mismatch"
-    {|b\c|}
+  check "make_relative_to across a drive-case mismatch" {|b\c|}
     (File.Path.make_relative_to ~win32:true ~cwd:{|c:\proj|} ~dir:{|C:\proj\a|}
        {|C:\proj\a\b\c|})
 
@@ -62,8 +59,7 @@ let test_make_relative_to_drive_case () =
    exactly two slashes total after "file:" — i.e. no extra leading slash. *)
 
 let test_file_url_drive () =
-  check "windows drive path -> /C:/..."
-    "/C:/proj/file.catala_en"
+  check "windows drive path -> /C:/..." "/C:/proj/file.catala_en"
     (Message.url_path_of_absolute ~win32:true {|C:\proj\file.catala_en|})
 
 let test_file_url_unc () =
@@ -73,8 +69,7 @@ let test_file_url_unc () =
        {|\\server\share\dir\file.catala_en|})
 
 let test_file_url_unix () =
-  check "unix path is already URL-shaped"
-    "/home/x/file.catala_en"
+  check "unix path is already URL-shaped" "/home/x/file.catala_en"
     (Message.url_path_of_absolute ~win32:false "/home/x/file.catala_en")
 
 (* Clerk's OCaml/C backends emit '-I <dir>' flags into a ninja variable later
@@ -93,7 +88,8 @@ let test_includes_quote_absolute () =
 let test_include_flags_quote_absolute () =
   check_list "include_flags: each -I dir is shell-quoted"
     ["-I"; {|"${tdir}/ocaml"|}; "-I"; {|"/opt/some dir/ocaml"|}]
-    (List.map fwd (Common.Flags.include_flags ~backend:"ocaml" [{|/opt/some dir|}]))
+    (List.map fwd
+       (Common.Flags.include_flags ~backend:"ocaml" [{|/opt/some dir|}]))
 
 let test_c_backend_runtime_include_quoted () =
   (* The C backend emits its own runtime include ("-I ${builddir}/libcatala/c")
@@ -126,8 +122,7 @@ let test_java_classpath_windows_sep () =
     (fwd (Clerk_backends.Java.classpath ~win32:true [{|/opt/lib a|}]))
 
 let test_java_classpath_unix_sep () =
-  check "Java classpath uses ':' on Unix"
-    {|${tdir}/java:/opt/lib a/java|}
+  check "Java classpath uses ':' on Unix" {|${tdir}/java:/opt/lib a/java|}
     (fwd (Clerk_backends.Java.classpath ~win32:false [{|/opt/lib a|}]))
 
 (* Same OS-dependent-separator bug for the Python backend's PYTHONPATH: ';' on
@@ -142,8 +137,7 @@ let test_pythonpath_windows_sep () =
        [{|C:/build/libcatala/python|}; {|C:/proj/tests|}])
 
 let test_pythonpath_unix_sep () =
-  check "PYTHONPATH uses ':' on Unix"
-    {|/build/libcatala/python:/proj/tests|}
+  check "PYTHONPATH uses ':' on Unix" {|/build/libcatala/python:/proj/tests|}
     (Clerk_backends.Python.pythonpath ~win32:false
        [{|/build/libcatala/python|}; {|/proj/tests|}])
 
@@ -249,8 +243,7 @@ let () =
         ] );
       ( "Backend position-filename escaping (Windows backslash)",
         [
-          test_case "Java position filename escaped" `Quick
-            test_java_pos_escaped;
+          test_case "Java position filename escaped" `Quick test_java_pos_escaped;
           test_case "Python position filename escaped" `Quick
             test_python_pos_escaped;
           test_case "C position filename escaped" `Quick test_c_pos_escaped;

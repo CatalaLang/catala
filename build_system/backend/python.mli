@@ -27,9 +27,9 @@ val linking_command :
 
 val pythonpath : win32:bool -> string list -> string
 (** [pythonpath ~win32 dirs] joins the PYTHONPATH entries with the
-    OS-appropriate separator (';' on Windows — ':' collides with the drive-letter
-    colon — ':' elsewhere). Exposed to unit-test the Windows separator
-    off-Windows. *)
+    OS-appropriate separator (';' on Windows — ':' collides with the
+    drive-letter colon — ':' elsewhere). Exposed to unit-test the Windows
+    separator off-Windows. *)
 
 val run_artifact :
   Clerk_cli.config ->
