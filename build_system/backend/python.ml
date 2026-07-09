@@ -22,9 +22,8 @@ open Clerk_lib
 let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
 let python = Var.make "PYTHON"
 
-(* PYTHONPATH entries are separated by ';' on Windows (':' would be read as part
-   of a 'C:\...' drive letter and mis-split the entry), ':' elsewhere.
-   Parameterized by [win32] so it is unit-testable off-Windows. *)
+(* PYTHONPATH separator: ';' on Windows (':' would mis-split the 'C:' drive
+   colon), ':' elsewhere. *)
 let path_sep ~win32 = if win32 then ";" else ":"
 let pythonpath ~win32 dirs = String.concat (path_sep ~win32) dirs
 

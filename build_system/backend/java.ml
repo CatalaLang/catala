@@ -26,9 +26,8 @@ let jar = Var.make "jar"
 let java = Var.make "JAVA"
 let backend_name = "java"
 
-(* Java's classpath entry separator is OS-dependent: ';' on Windows (':' would
-   collide with the drive-letter colon in 'C:\...'), ':' elsewhere. Parameterized
-   by [win32] so it is unit-testable off-Windows. *)
+(* Classpath separator: ';' on Windows (':' would collide with the 'C:' drive
+   colon), ':' elsewhere. *)
 let class_path_sep ~win32 = if win32 then ";" else ":"
 
 let classpath ~win32 include_dirs =
@@ -40,12 +39,10 @@ let classpath ~win32 include_dirs =
            (if Filename.is_relative d then !builddir / d else d) / backend_name)
          include_dirs)
 
-(* jar packs one entry per '-C <dir> <file>' pair; a big module yields thousands,
-   overflowing the OS command-line limit (~32k on Windows, where CreateProcess
-   then fails with a misleading ENOENT). Spill the entries to a jar argument file
-   (@file), as javac already does for its inputs. In a jar argfile the backslash
-   is an escape character, so paths are written with forward slashes (accepted by
-   the JVM on Windows too) and quoted to tolerate spaces. *)
+(* Thousands of '-C <dir> <file>' pairs overflow the Windows command-line limit
+   (~32k; CreateProcess fails with a misleading ENOENT), so spill them to a jar
+   @argfile. Backslash escapes there, so use forward slashes (JVM accepts them on
+   Windows) and quote for spaces. *)
 let jar_argfile_content (entries : (string * string) list) : string =
   let quote_path p =
     "\"" ^ String.map (function '\\' -> '/' | c -> c) p ^ "\""

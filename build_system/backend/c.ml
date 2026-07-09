@@ -37,9 +37,8 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   @ ["-lgmp"]
   @ [target -.- "o"; File.remove_extension target ^ "+main.o"]
   @ Var.get_var var_bindings c_flags
-  (* C_INCLUDE_FLAGS is double-quoted for the ninja rule commands (shell); this
-     link step is a direct argv exec (no shell), so the quotes must be stripped
-     or they are taken literally. See the detailed note in Ocaml.linking_command. *)
+  (* Strip the shell-quoting from C_INCLUDE_FLAGS: this link step is a direct
+     argv exec, not a ninja rule command. See Ocaml.linking_command. *)
   @ List.map Var.unquote (Var.get_var var_bindings c_include)
   @ ["-o"; target -.- "exe"]
 

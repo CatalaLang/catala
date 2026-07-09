@@ -84,16 +84,10 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   @ [build_dir / Scan.libcatala / backend_name / "dates_calc.cmx"]
   @ [build_dir / Scan.libcatala / backend_name / "catala_runtime.cmx"]
   @ Var.get_var var_bindings ocaml_flags
-  (* OCAML_INCLUDE holds '-I <dir>' flags with each <dir> double-quoted (see
-     Var.quote_arg at the include sites). That quoting is required because the
-     variable is spliced into the ninja *rule* commands, which ninja runs through
-     a shell: an unquoted path with spaces (e.g. C:\Program Files\Catala\...\
-     zarith) would be word-split into two arguments. This link step is the one
-     consumer that is NOT a ninja rule — it is a direct argv exec
-     (Clerk_cli.run_command_line -> Unix.create_process, no shell), where each
-     list element is already exactly one argument and the surrounding quotes
-     would be passed literally as part of the path (ocamlopt: "Cannot find file
-     zarith.cmxa"). So strip the shell-quoting back off for this path only. *)
+  (* OCAML_INCLUDE's '-I <dir>' flags are double-quoted (Var.quote_arg) so spaced
+     paths survive the shell in ninja *rule* commands. This link step is the
+     exception — a direct argv exec (no shell), where the quotes would be taken
+     literally (ocamlopt: "Cannot find file zarith.cmxa") — so strip them. *)
   @ List.map Var.unquote (Var.get_var var_bindings ocaml_include)
   @ List.map
       (fun it ->

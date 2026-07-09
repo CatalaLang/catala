@@ -58,25 +58,15 @@ let cat_files = make "cat_files" (* Useful on Windows only *)
 let test_id = make "test-id"
 let ( ! ) = Ninja_utils.Var.v
 
-(* Double-quotes a variable reference for use as a shell argument inside a rule
-   command. Once the install directory contains spaces, path-valued variables
-   (catala/clerk exe) expand to spaced strings that the shell would otherwise
-   word-split. Ninja expands ${VAR} inside the quotes, and double quotes work
-   for both cmd.exe and /bin/sh. Use ONLY in command contexts — never for ninja
-   paths in inputs/outputs, which need ninja's own escaping instead. *)
+(* Double-quote a variable reference for use as a shell argument in a rule
+   command (protects spaced paths). Command contexts only, not ninja paths. *)
 let quoted x = "\"" ^ !x ^ "\""
 
-(* Same as [quoted] but for a literal string (e.g. an absolute include dir)
-   rather than a variable reference. Ninja's own escaping ($ , $:) makes ninja
-   PARSE the file, but is un-escaped before the command runs, so a spaced path
-   still needs shell quotes to survive word-splitting by /bin/sh or CommandLineToArgvW. *)
+(* Like [quoted] but for a literal string (e.g. an absolute include dir). *)
 let quote_arg s = "\"" ^ s ^ "\""
 
-(* Inverse of [quote_arg]: strip one layer of surrounding double quotes if
-   present. Needed where a variable that carries shell-quoted paths (for ninja
-   rule commands) is instead spliced into a DIRECT argv exec
-   (Unix.create_process, e.g. the link step), which does no shell word-splitting
-   and would otherwise take the quote characters literally. *)
+(* Inverse of [quote_arg]: strip one surrounding double-quote layer, for values
+   spliced into a direct argv exec (Unix.create_process) rather than a shell. *)
 let unquote s =
   let n = String.length s in
   if n >= 2 && s.[0] = '"' && s.[n - 1] = '"' then String.sub s 1 (n - 2) else s

@@ -334,9 +334,8 @@ let poly_cast ctx ppf e fmt =
       (format_typ ctx) typ
   | _ -> fprintf ppf fmt
 
-(* Emit a source position as a [new CatalaPosition(...)] literal. The filename is
-   [String.quote]d so a Windows path's backslashes survive as a Java string
-   literal (an unescaped "C:\proj\mod" is an illegal escape sequence). *)
+(* [String.quote] the filename so Windows backslashes survive as a Java string
+   literal (unescaped "C:\proj\mod" is an illegal escape). *)
 let format_pos (ppf : formatter) (pos : Pos.t) : unit =
   fprintf ppf
     "@[<hv 2>new CatalaPosition@;<0 -1>(@[<hov>%s,@ %d, %d,@ %d, %d@])@]"

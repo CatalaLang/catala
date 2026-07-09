@@ -482,8 +482,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Add_dat_dur _ -> assert false (* needs specific printing *)
   | op -> Format.fprintf fmt "@{<blue;bold>%s@}" (Operator.name op)
 
-(* Emit a source position as a C initialiser struct. [%S] escapes the filename
-   so a Windows path's backslashes survive as a C string literal. *)
+(* [%S] escapes the filename so Windows backslashes survive as a C string literal. *)
 let format_pos (fmt : Format.formatter) (pos : Pos.t) : unit =
   Format.fprintf fmt "@[<hv 2>{%S,@ %d, %d, %d, %d}@]" (Pos.get_file pos)
     (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
