@@ -26,10 +26,8 @@ val linking_command :
     modules that's why it doesn't appear in the Backend common interface. *)
 
 val pythonpath : win32:bool -> string list -> string
-(** [pythonpath ~win32 dirs] joins the PYTHONPATH entries with the
-    OS-appropriate separator (';' on Windows — ':' collides with the
-    drive-letter colon — ':' elsewhere). Exposed to unit-test the Windows
-    separator off-Windows. *)
+(** [pythonpath ~win32 dirs] joins the entries with the OS separator. Exposed to
+    unit-test the Windows separator off-Windows. *)
 
 val run_artifact :
   Clerk_cli.config ->

@@ -199,16 +199,11 @@ let pp_marker ?extra_label target ppf =
 
 let bug_report_url = "https://github.com/CatalaLang/catala/issues"
 
-(* Turns an absolute OS [path] into the part that follows [file://] in a file
-   URL. Pure and platform-parameterized (hence testable off-Windows). On Unix
-   the path is already URL-shaped. On Windows:
-   - separators become forward slashes;
-   - a drive path [C:\dir] becomes [/C:/dir] — the leading slash keeps "C:" from
-     being read as the URL authority (host), which would make the link resolve
-     to nothing (file:///C:/dir);
-   - a UNC path [\\server\share\dir] becomes [server/share/dir] — here the
-     server genuinely IS the authority, so it must NOT get an extra leading
-     slash (file://server/share/dir). *)
+(* Path part of a [file://] URL for an absolute OS [path]. On Unix it's already
+   URL-shaped. On Windows: separators become '/'; a drive path [C:\dir] becomes
+   [/C:/dir] (leading slash stops "C:" being read as the URL authority); a UNC
+   path [\\server\share] becomes [server/share] (server IS the authority, so no
+   leading slash). *)
 let url_path_of_absolute ~win32 path =
   if not win32 then path
   else

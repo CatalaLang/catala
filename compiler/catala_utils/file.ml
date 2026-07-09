@@ -35,10 +35,8 @@ let ( / ) a b =
   else if a = "" then Filename.dir_sep ^ b
   else Filename.concat a b
 
-(* Platform-parameterized path logic: the [~win32] flag and an explicit [~cwd]
-   keep these pure and OS-independent, so they can be unit-tested on Linux. The
-   public path functions below are thin wrappers passing [Sys.win32] and
-   [Sys.getcwd ()]. *)
+(* Platform-parameterized ([~win32], explicit [~cwd]) so these stay pure and
+   unit-testable on Linux; the public wrappers below pass [Sys.win32]/[getcwd]. *)
 module Path = struct
   let current = Filename.current_dir_name
   let parent = Filename.parent_dir_name
@@ -122,8 +120,7 @@ module Path = struct
     let f = make_absolute ~win32 ~cwd f0 in
     (* Windows path comparison is case-insensitive and VS Code lower-cases the
        drive letter, so match the prefix case-insensitively; the suffix keeps
-       [f]'s original case. Byte-identical to a plain prefix removal when the
-       cases already agree (always so outside Windows). *)
+       [f]'s original case. *)
     let n = String.length prefix in
     let matches =
       String.length f >= n

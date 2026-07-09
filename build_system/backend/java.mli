@@ -40,15 +40,11 @@ val run_artifact :
     why it doesn't appear in the Backend common interface. *)
 
 val classpath : win32:bool -> string list -> string
-(** [classpath ~win32 include_dirs] builds the java/javac classpath string for
-    the given include dirs, joined with the OS-appropriate separator (';' on
-    Windows — ':' collides with the drive-letter colon — ':' elsewhere). Exposed
-    to unit-test the Windows separator off-Windows. *)
+(** [classpath ~win32 include_dirs] joins the dirs with the OS classpath
+    separator. Exposed to unit-test the Windows separator off-Windows. *)
 
 val jar_argfile_content : (string * string) list -> string
-(** [jar_argfile_content entries] renders the '-C <dir> <file>' pairs into a jar
-    argument-file body: each path forward-slashed and quoted, so a Windows path
-    survives jar's argfile parser (where backslash is an escape char). Exposed
-    to unit-test that escaping. *)
+(** [jar_argfile_content entries] renders '-C <dir> <file>' pairs into a jar
+    argfile body (forward-slashed, quoted). Exposed to unit-test that escaping. *)
 
 module Backend : Backend.S

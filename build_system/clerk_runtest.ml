@@ -43,9 +43,8 @@ let out_line output_buf str =
       pos_bol = pos_cnum;
     }
 
-(* Strips trailing line endings. Notably, on Windows catala's stdout is in text
-   mode, so lines we parse below arrive with "\r\n"; [input_line] only drops the
-   "\n", leaving a '\r' that would defeat the [whole_string] matches. *)
+(* Strip trailing line endings: on Windows, text-mode stdout gives "\r\n" and
+   [input_line] drops only "\n", leaving a '\r' that defeats [whole_string]. *)
 let re_endline = Re.(compile @@ rep (set "\r\n"))
 
 let sanitize =

@@ -225,10 +225,9 @@ val path_to_list : t -> string option * string list
     directories ; empty elements or current-directory (".") are otherwise
     skipped in the resulting list; *)
 
-(** Platform-parameterized versions of the path functions above. Taking the
-    platform ([~win32]) and working directory ([~cwd]) explicitly makes them
-    pure and testable on any OS; the functions above are these specialised to
-    the host ([Sys.win32], [Sys.getcwd ()]). *)
+(** Path functions taking the platform ([~win32]) and cwd ([~cwd]) explicitly,
+    so they are pure and testable on any OS; the versions above specialise these
+    to the host. *)
 module Path : sig
   val path_to_list : win32:bool -> t -> string option * string list
   val clean_path : win32:bool -> t -> t

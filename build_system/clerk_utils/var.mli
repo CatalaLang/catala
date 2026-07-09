@@ -58,23 +58,15 @@ val ( ! ) : t -> string
 (** Run-time reference to the given variable [!var = "${xvarname}"] *)
 
 val quoted : t -> string
-(** Double-quoted variable reference [quoted var = "\"${xvarname}\""], for use
-    as a shell argument in a rule command when the value may contain spaces
-    (e.g. a path-valued variable under an install dir with spaces). Not for
-    ninja paths in inputs/outputs. *)
+(** Double-quote a variable reference for use as a shell argument in a rule
+    command (spaced paths). Not for ninja input/output paths. *)
 
 val quote_arg : string -> string
-(** Like {!quoted} but double-quotes a literal string (e.g. an absolute include
-    directory) rather than a variable reference:
-    [quote_arg s = "\"" ^ s ^ "\""]. Same rationale — protect spaces in a path
-    for the rule command's shell — and same restriction: command contexts only,
-    not ninja input/output paths. *)
+(** Like {!quoted} but for a literal string (e.g. an absolute include dir). *)
 
 val unquote : string -> string
-(** Inverse of {!quote_arg}: strips one layer of surrounding double quotes if
-    present. Use when splicing a shell-quoted variable into a DIRECT argv exec
-    (no shell, e.g. the link step), which would otherwise take the quotes
-    literally. *)
+(** Inverse of {!quote_arg}: strip one surrounding double-quote layer, for
+    values spliced into a direct argv exec (no shell). *)
 
 val get_var : bindings -> t -> string list
 (** replaces [${xvar}] with its value, recursively *)
