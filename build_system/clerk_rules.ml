@@ -523,51 +523,60 @@ let stdlib_target_name = "libcatala"
 
 let organise_modules ~config items =
   let module_g, modmap, stdlib_modules =
-    Seq.fold_left
-      (fun (mg, modmap, stdlib_modules) item ->
-        match item.Scan.module_def with
-        | None -> mg, modmap, stdlib_modules
-        | Some (modname, pos) ->
-          let info =
-            {
-              name = modname, pos;
-              item;
-              targets =
-                (if item.Scan.is_stdlib then
-                   String.Set.singleton stdlib_target_name
-                 else String.Set.empty);
-            }
-          in
-          let modmap =
-            String.Map.update modname
-              (function
-                | None -> Some info
-                | Some conflict ->
-                  (* Note: until now this was allowed. However, targets
-                           select their contents by module name only, so this
-                           could only be for local modules ? We could switch to
-                           UIDs to support this, or somehow namespace the
-                           modules by dir.
+    let modmap, stdlib_modules =
+      Seq.fold_left
+        (fun (modmap, stdlib_modules) item ->
+          match item.Scan.module_def with
+          | None -> modmap, stdlib_modules
+          | Some (modname, pos) ->
+            let info =
+              {
+                name = modname, pos;
+                item;
+                targets =
+                  (if item.Scan.is_stdlib then
+                     String.Set.singleton stdlib_target_name
+                   else String.Set.empty);
+              }
+            in
+            let modmap =
+              String.Map.update modname
+                (function
+                  | None -> Some info
+                  | Some conflict ->
+                    (* Note: until now this was allowed. However, targets
+                              select their contents by module name only, so this
+                              could only be for local modules ? We could switch to
+                              UIDs to support this, or somehow namespace the
+                              modules by dir.
 
-                           We need to implement something else than picking
-                           randomly, in any case *)
-                  Message.error ~pos
-                    ~extra_pos:["", Mark.get conflict.name]
-                    "Conflicting module name @{<blue>%s@}" modname)
-              modmap
-          in
-          let mg = G.add_vertex mg modname in
-          let mg =
-            List.fold_left
-              (fun g (m, _mpos) -> G.add_edge g modname m)
-              mg item.Scan.used_modules
-          in
-          ( mg,
-            modmap,
-            if item.Scan.is_stdlib then modname :: stdlib_modules
-            else stdlib_modules ))
-      (G.empty, String.Map.empty, [])
-      items
+                              We need to implement something else than picking
+                              randomly, in any case *)
+                    Message.error ~pos
+                      ~extra_pos:["", Mark.get conflict.name]
+                      "Conflicting module name @{<blue>%s@}" modname)
+                modmap
+            in
+            ( modmap,
+              if item.Scan.is_stdlib then modname :: stdlib_modules
+              else stdlib_modules ))
+        (String.Map.empty, []) items
+    in
+    let mg =
+      String.Map.fold
+        (fun modname info mg ->
+          List.fold_left
+            (fun g (m, pos) ->
+              if String.Map.mem m modmap then G.add_edge g modname m
+              else
+                Message.error ~pos
+                  "Missing dependency in@ @{<blue>%s@}:@ module@ @{<blue>%s@}@ \
+                   not@ found."
+                  modname m)
+            (G.add_vertex mg modname) info.item.used_modules)
+        modmap G.empty
+    in
+    mg, modmap, stdlib_modules
   in
   let stdlib_target =
     {
@@ -603,7 +612,11 @@ let organise_modules ~config items =
                 (function
                   | Some i ->
                     Some { i with targets = String.Set.add tname i.targets }
-                  | None -> assert false)
+                  | None ->
+                    Message.error
+                      "Target @{<yellow>%s@} is declared to use module \
+                       @{<blue>%s@}, which was not found"
+                      tname m)
                 modmap)
             modmap t.tmodules
         in
