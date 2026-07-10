@@ -18,6 +18,8 @@
 open Cmdliner
 open Catala_utils
 
+type backend = [ `C | `Interpret | `OCaml | `Python | `Java ]
+
 val catala_exe : string option Term.t
 val catala_opts : string list Term.t
 val autotest : bool Term.t
@@ -28,7 +30,7 @@ val include_dirs : string list Term.t
 val test_flags : string list Term.t
 val runtest_report : string option Term.t
 val runtest_out : string option Term.t
-val backends : [> `C | `Interpret | `OCaml | `Python | `Java ] list Term.t
+val backends : backend list Term.t
 val run_command : string Term.t
 val vars_override : (string * string) list Term.t
 val files_or_folders : string list Term.t
@@ -69,4 +71,8 @@ val init_term : ?allow_test_flags:bool -> unit -> config Term.t
 (** Reads the supplied command-line flags and configuration file and runs
     globals initialisation routines *)
 
-val run_command_line : ?setenv:(string * string) list -> string list -> int
+val run_command_line :
+  ?setenv:(string * string) list ->
+  ?quiet:bool ->
+  string list ->
+  int * string list

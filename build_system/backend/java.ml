@@ -91,7 +91,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
         ["-C"; java_dir_prefix; File.remove_prefix java_dir_prefix clazz])
       runtime_class_files
 
-let run_artifact ~var_bindings ~test ?scope src =
+let run_artifact ~var_bindings ~test ?scope ?quiet src =
   let open Clerk_lib in
   let target_main = File.remove_extension (Filename.basename src) in
   let cmd =
@@ -102,7 +102,7 @@ let run_artifact ~var_bindings ~test ?scope src =
     @ if Global.options.output_format = JSON then ["--json"] else []
   in
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
-  Clerk_cli.run_command_line cmd
+  Clerk_cli.run_command_line ?quiet cmd
 
 module Backend : Sig.S = struct
   open Var
@@ -166,12 +166,10 @@ module Backend : Sig.S = struct
 
   let external_copy item =
     let catala_src = !Var.tdir / !Var.src in
-    let java, missing =
+    let java, _missing =
       Ninja.extern_src ~filename:item.Scan.file_name ~backend:name ~ext:"java"
         ~missing:[]
     in
-    Ninja.check_missing ~backend:name ~module_def:item.Scan.module_def ~missing
-      ~filename:item.Scan.file_name;
     List.to_seq
       [
         Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[java]

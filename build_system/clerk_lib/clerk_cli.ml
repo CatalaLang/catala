@@ -132,6 +132,8 @@ let runtest_out =
     & info [] ~docv:"OUTFILE"
         ~doc:"Write the test outcome to file $(b,OUTFILE) instead of stdout.")
 
+type backend = [ `C | `Interpret | `OCaml | `Python | `Java ]
+
 let backends =
   let arg =
     Arg.(
@@ -553,8 +555,8 @@ let init_term ?(allow_test_flags = false) () =
     $ whole_program
     $ Cli.Flags.output_format)
 
-let run_command_line ?(setenv = []) cmdline =
-  if cmdline = [] then 0
+let run_command_line ?(setenv = []) ?(quiet = false) cmdline =
+  if cmdline = [] then 0, []
   else
     let cmd = List.hd cmdline in
     let env =
@@ -571,17 +573,27 @@ let run_command_line ?(setenv = []) cmdline =
       |> Seq.map (fun (var, value) -> var ^ "=" ^ value)
       |> Array.of_seq
     in
+    let in_fd, out_fd = Unix.pipe () in
     let npid =
-      Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin
-        Unix.stdout Unix.stderr
+      Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin out_fd
+        out_fd
     in
-    let return_code =
-      let rec wait () =
-        match Unix.waitpid [] npid with
-        | _, Unix.WEXITED n -> n
-        | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
-        | exception Unix.Unix_error (Unix.EINTR, _, _) -> wait ()
-      in
-      wait ()
+    Unix.close out_fd;
+    let ic = Unix.in_channel_of_descr in_fd in
+    let rec read acc =
+      match input_line ic with
+      | line ->
+        if not quiet then print_endline line;
+        read (line :: acc)
+      | exception End_of_file -> List.rev acc
     in
-    return_code
+    let rec wait () =
+      match Unix.waitpid [] npid with
+      | _, Unix.WEXITED n -> n
+      | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
+      | exception Unix.Unix_error (Unix.EINTR, _, _) -> wait ()
+    in
+    let out = read [] in
+    close_in ic;
+    let code = wait () in
+    code, out

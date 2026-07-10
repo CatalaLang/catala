@@ -25,7 +25,7 @@ type item = {
   used_modules : string Mark.pos list;
   included_files : File.t Mark.pos list;
   has_inline_tests : bool;
-  has_scope_tests : bool Lazy.t;
+  has_scope_tests : int Lazy.t;
 }
 
 let libcatala = "libcatala"
@@ -57,7 +57,7 @@ let get_lang file =
   Option.bind (Re.exec_opt catala_suffix_regex file)
   @@ fun g -> List.assoc_opt (Re.Group.get g 1) Catala_utils.Cli.languages
 
-let rec find_test_scope ~lang file =
+let rec has_test_scope ~lang file =
   (* Note: if efficiency becomes a problem, this could rely on a cached index of
      file items *)
   let lang = Option.value (get_lang file) ~default:lang in
@@ -66,9 +66,24 @@ let rec find_test_scope ~lang file =
     | Some ((_, L.LINE_TEST_ATTRIBUTE, _), _) -> true
     | Some ((_, L.LINE_INCLUDE f, _), lines) ->
       let f = if Filename.is_relative f then File.(file /../ f) else f in
-      scan lines || find_test_scope ~lang f
+      scan lines || has_test_scope ~lang f
     | Some (_, lines) -> scan lines
     | None -> false
+  in
+  scan (Surface.Parser_driver.lines file lang)
+
+let rec count_test_scopes ~lang file =
+  (* Note: if efficiency becomes a problem, this could rely on a cached index of
+     file items *)
+  let lang = Option.value (get_lang file) ~default:lang in
+  let rec scan lines =
+    match Seq.uncons lines with
+    | Some ((_, L.LINE_TEST_ATTRIBUTE, _), lines) -> 1 + scan lines
+    | Some ((_, L.LINE_INCLUDE f, _), lines) ->
+      let f = if Filename.is_relative f then File.(file /../ f) else f in
+      scan lines + count_test_scopes ~lang f
+    | Some (_, lines) -> scan lines
+    | None -> 0
   in
   scan (Surface.Parser_driver.lines file lang)
 
@@ -94,7 +109,8 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
       | L.LINE_MODULE_USE m ->
         { acc with used_modules = Mark.add pos m :: acc.used_modules }
       | L.LINE_INLINE_TEST -> { acc with has_inline_tests = true }
-      | L.LINE_TEST_ATTRIBUTE -> { acc with has_scope_tests = lazy true }
+      | L.LINE_TEST_ATTRIBUTE ->
+        { acc with has_scope_tests = lazy (Lazy.force acc.has_scope_tests + 1) }
       | _ -> acc)
   in
   let item =
@@ -109,22 +125,22 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
         used_modules = [];
         included_files = [];
         has_inline_tests = false;
-        has_scope_tests = lazy false;
+        has_scope_tests = lazy 0;
       }
   in
   let has_scope_tests =
     lazy
       ((* If there are includes, they must be checked for test scopes as well *)
-       Lazy.force item.has_scope_tests
-      || List.exists
-           (fun l ->
-             let included_file = Mark.remove l in
-             if File.check_file included_file = None then
-               Message.error ~kind:Parsing ~pos:(Mark.get l)
-                 "Included file '%s' is not a regular file or does not exist."
-                 included_file;
-             find_test_scope ~lang included_file)
-           item.included_files)
+       List.fold_left
+         (fun count l ->
+           let included_file = Mark.remove l in
+           if File.check_file included_file = None then
+             Message.error ~kind:Parsing ~pos:(Mark.get l)
+               "Included file '%s' is not a regular file or does not exist."
+               included_file;
+           count + count_test_scopes ~lang included_file)
+         (Lazy.force item.has_scope_tests)
+         item.included_files)
   in
   { item with has_scope_tests }
 

@@ -42,7 +42,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   @ Var.get_var var_bindings c_include
   @ ["-o"; target -.- "exe"]
 
-let run_artifact ~test ?scope src =
+let run_artifact ~test ?scope ?quiet src =
   let open File in
   let cmd =
     ((src -.- "exe") :: Option.to_list scope)
@@ -50,7 +50,7 @@ let run_artifact ~test ?scope src =
     @ if Global.options.output_format = JSON then ["--json"] else []
   in
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
-  Clerk_cli.run_command_line cmd
+  Clerk_cli.run_command_line ?quiet cmd
 
 module Backend = struct
   open Var
@@ -121,12 +121,10 @@ module Backend = struct
       Ninja.extern_src ~backend:name ~ext:"c" ~missing:[]
         ~filename:item.Scan.file_name
     in
-    let h, missing =
+    let h, _missing =
       Ninja.extern_src ~backend:name ~ext:"h" ~missing
         ~filename:item.Scan.file_name
     in
-    Ninja.check_missing ~backend:name ~module_def:item.Scan.module_def ~missing
-      ~filename:item.Scan.file_name;
     List.to_seq
       [
         Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[c]

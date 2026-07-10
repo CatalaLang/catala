@@ -218,7 +218,7 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          format_typ_with_parens)
       t1 format_typ_with_parens t2
-  | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
+  | TArray t1 -> Format.fprintf fmt "Array[%a]" format_typ_with_parens t1
   | TVar _ -> Format.fprintf fmt "Any"
   | TForAll tb ->
     let _v, typ = Bindlib.unmbind tb in

@@ -119,7 +119,7 @@ let gen_build_statements
           Backend.expose_module ~same_dir_modules ~used_modules:modules)
         enabled_backends
   in
-  let has_scope_tests = Lazy.force item.has_scope_tests in
+  let has_scope_tests = Lazy.force item.has_scope_tests > 0 in
   let backend_sources =
     if item.extrnal then
       List.map
@@ -180,7 +180,8 @@ let gen_build_statements
     | _ -> []
   in
   let tests_rules =
-    if not (item.has_inline_tests || Lazy.force item.has_scope_tests) then []
+    if not (item.has_inline_tests || Lazy.force item.has_scope_tests > 0) then
+      []
     else
       [
         Nj.build "tests" ~inputs:[catala_src]
@@ -269,7 +270,7 @@ let dir_test_rules dir subdirs items =
            if
              not
                (item.Scan.has_inline_tests
-               || Lazy.force item.Scan.has_scope_tests)
+               || Lazy.force item.Scan.has_scope_tests > 0)
            then None
            else Some ((Var.(!builddir) / item.Scan.file_name) ^ "@test"))
          items)
@@ -816,7 +817,7 @@ let organise_modules ~config items =
          *   (String.Set.elements base_targets); *)
         let has_tests m =
           let has_tests_item it =
-            it.Scan.has_inline_tests || Lazy.force it.has_scope_tests
+            it.Scan.has_inline_tests || Lazy.force it.has_scope_tests > 0
           in
           has_tests_item (String.Map.find m modmap).item
           || Seq.exists
@@ -934,6 +935,8 @@ let empty_info =
     targets_map = String.Map.empty;
   }
 
+let run_once = ref false
+
 let run_ninja
     ?(include_dir = true)
     ~config
@@ -948,6 +951,14 @@ let run_ninja
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
+  if !run_once then Message.error ~internal:true "Ninja should run only once";
+  run_once := true;
+  let enabled_backends =
+    List.sort_uniq
+      (fun a b ->
+        String.compare (Clerk_backends.name a) (Clerk_backends.name b))
+      enabled_backends
+  in
   let var_bindings =
     base_bindings ~code_coverage ~trace ~trace_format ~config ~enabled_backends
       ~autotest ~inplace:false
@@ -1026,6 +1037,8 @@ let run_ninja
             f, fl, items)
           item_tree
       in
+      let stdlib_tree = Seq.memoize stdlib_tree in
+      let item_tree = Seq.memoize item_tree in
       let items =
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
           ~var_bindings stdlib_tree item_tree

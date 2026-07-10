@@ -47,17 +47,18 @@ steps:
       # This reproduces 'make testsuite', but splitting in individual commands
       # helps in browsing the logs
       - eval $(opam env)
-      - _build/default/build_system/clerk.exe test tests
-      - _build/default/build_system/clerk.exe test tests --test-flags=-O
-      - _build/default/build_system/clerk.exe test tests --test-flags=--lcalc
-      - _build/default/build_system/clerk.exe test tests --test-flags=--lcalc,--closure-conversion,-O
-      - _build/default/build_system/clerk.exe test tests --test-flags=--whole-program
+      - alias clerk=_build/default/build_system/clerk.exe
+      - clerk test tests
+      - clerk test tests --test-flags=-O
+      - clerk test tests --test-flags=--lcalc
+      - clerk test tests --test-flags=--lcalc,--closure-conversion,-O
+      - clerk test tests --test-flags=--whole-program
       - make unit-tests
       - make backend-tests-ocaml
       - make backend-tests-c
       - make backend-tests-python
       - make backend-tests-java
-      - _build/default/build_system/clerk.exe test tests-extra doc
+      - clerk test tests-extra doc
 
   - name: extra-tests
     image: *catala_image

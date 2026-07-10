@@ -44,7 +44,7 @@ let linking_command ~build_dir link_deps item target =
   close_out (open_out (tdir / "__init__.py"));
   []
 
-let run_artifact config ~test ?scope ~var_bindings src =
+let run_artifact config ~test ?scope ~var_bindings ?quiet src =
   let open File in
   let build_dir = config.Clerk_cli.options.global.build_dir in
   let cmd =
@@ -65,7 +65,7 @@ let run_artifact config ~test ?scope ~var_bindings src =
   in
   Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
     (String.concat " " cmd);
-  Clerk_cli.run_command_line ~setenv:["PYTHONPATH", pythonpath] cmd
+  Clerk_cli.run_command_line ~setenv:["PYTHONPATH", pythonpath] ?quiet cmd
 
 module Backend : Sig.S = struct
   open Var
@@ -108,12 +108,10 @@ module Backend : Sig.S = struct
 
   let external_copy item =
     let catala_src = !Var.tdir / !Var.src in
-    let py, missing =
+    let py, _missing =
       Ninja.extern_src ~filename:item.Scan.file_name ~backend:name ~ext:"py"
         ~missing:[]
     in
-    Ninja.check_missing ~backend:name ~module_def:item.Scan.module_def ~missing
-      ~filename:item.Scan.file_name;
     List.to_seq
       [
         Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[py]

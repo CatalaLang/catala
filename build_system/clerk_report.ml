@@ -89,6 +89,7 @@ let write_to f file =
 let read_from f = File.with_in_channel ~bin:true f Marshal.from_channel
 
 let read_many f =
+  Message.debug "Reading test results from %a" File.format f;
   File.with_in_channel ~bin:true f
   @@ fun ic ->
   let rec results () =
@@ -478,7 +479,7 @@ let print_box tcolor ppf title (pcontents : box -> unit) =
   Format.pp_close_tbox ppf ();
   Format.fprintf ppf "%t┗%t┛@}@," tcolor (Message.pad (columns - 2) "━")
 
-let summary ~build_dir tests =
+let summary ~build_dir ?(backend_tests = []) tests =
   let ppf = Message.formatter_of_out_channel stdout () in
   Format.pp_open_vbox ppf 0;
   let tests = List.filter (fun f -> f.total > 0) tests in
@@ -491,6 +492,28 @@ let summary ~build_dir tests =
           success + file.successful,
           total + file.total ))
       (0, 0, 0, 0) tests
+  in
+  let backend_results =
+    List.fold_left
+      (fun acc ((_, bk, _), (success, total)) ->
+        if bk = `Interpret then assert false
+        (* acc *)
+        (* already reported as normal tests *)
+          else
+          let bk =
+            match bk with
+            | `Interpret -> "Interpreted"
+            | `OCaml -> "OCaml"
+            | `C -> "C"
+            | `Python -> "Python"
+            | `Java -> "Java"
+          in
+          String.Map.update bk
+            (fun r ->
+              let success0, total0 = Option.value r ~default:(0, 0) in
+              Some (success + success0, total + total0))
+            acc)
+      String.Map.empty backend_tests
   in
   let full_coverage =
     List.fold_left
@@ -510,8 +533,12 @@ let summary ~build_dir tests =
   if disp_flags.files <> `None then
     List.iter (fun f -> display_file ~build_dir ppf f) tests;
   let result_box =
-    if success < total then
-      print_box (fun ppf -> Format.fprintf ppf "@{<red>") ppf "TESTS FAILED"
+    if
+      success < total
+      || String.Map.exists
+           (fun _ (success, total) -> success < total)
+           backend_results
+    then print_box (fun ppf -> Format.fprintf ppf "@{<red>") ppf "TESTS FAILED"
     else
       print_box
         (fun ppf -> Format.fprintf ppf "@{<green>")
@@ -531,6 +558,19 @@ let summary ~build_dir tests =
         else Format.fprintf ppf "%8s %%" "-";
         Format.pp_close_stag ppf ()
       in
+      if files > 1 || String.Map.is_empty backend_results then
+        box.print_line
+          "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
+           @{<bold>%a@}"
+          "tests"
+          (fun ppf -> function
+            | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
+            | n -> Format.fprintf ppf "%10d" n)
+          (total - success)
+          (fun ppf -> function
+            | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
+            | n -> Format.fprintf ppf "%10d" n)
+          success total ratio (success, total);
       if files > 1 then
         box.print_line
           "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
@@ -544,17 +584,6 @@ let summary ~build_dir tests =
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
           success_files files ratio (success_files, files);
-      box.print_line
-        "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} @{<bold>%a@}"
-        "tests"
-        (fun ppf -> function
-          | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
-          | n -> Format.fprintf ppf "%10d" n)
-        (total - success)
-        (fun ppf -> function
-          | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
-          | n -> Format.fprintf ppf "%10d" n)
-        success total ratio (success, total);
       if disp_flags.coverage then
         box.print_line
           "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
@@ -568,7 +597,22 @@ let summary ~build_dir tests =
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
           total_reached_lines total_reachable_lines ratio
-          (total_reached_lines, total_reachable_lines));
+          (total_reached_lines, total_reachable_lines);
+      String.Map.iter
+        (fun bk (success, total) ->
+          box.print_line
+            "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
+             @{<bold>%a@}"
+            bk
+            (fun ppf -> function
+              | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
+              | n -> Format.fprintf ppf "%10d" n)
+            (total - success)
+            (fun ppf -> function
+              | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
+              | n -> Format.fprintf ppf "%10d" n)
+            success total ratio (success, total))
+        backend_results);
   Format.pp_close_box ppf ();
   Format.pp_print_flush ppf ();
   success = total
