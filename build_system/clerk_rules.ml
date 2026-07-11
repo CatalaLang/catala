@@ -38,7 +38,8 @@ let base_bindings
   in
   let backend_flags =
     List.concat_map
-      (fun (module Backend : Clerk_backends.S) ->
+      (fun bk ->
+        let module Backend : Clerk_backends.S = (val Clerk_backends.get bk) in
         Backend.Flags.default ~variables:options.variables ~autotest
           ~use_default_flags ~test_flags
           ~include_dirs:options.global.include_dirs)
@@ -58,7 +59,7 @@ let static_base_rules ~tests enabled_backends =
         Nj.rule "dir-tests"
           ~command:
             (if Sys.win32 then
-               ["cmd"; "/c"; "copy /by >nul"; !cat_files; !output]
+               ["cmd"; "/c"; "copy"; "/by"; ">nul"; !cat_files; !output]
              else ["cat"; !input; ">"; !output])
           ~description:["<test>"; !test_id];
       ]
@@ -167,7 +168,7 @@ let gen_build_statements
         List.map
           (fun (module Backend : Clerk_backends.S) ->
             Nj.build "phony"
-              ~outputs:[Format.sprintf "%s@%s-module" modname Backend.name]
+              ~outputs:[Format.sprintf "%s@%s-module" !Var.dst Backend.name]
               ~inputs:
                 [
                   Backend.modfile ~is_stdlib same_dir_modules Backend.module_ext
@@ -175,7 +176,15 @@ let gen_build_statements
                 ])
           enabled_backends
       in
-      Nj.build "phony" ~outputs:[modname ^ "@src"] ~inputs:[catala_src]
+      Nj.build "phony" ~outputs:[!Var.dst ^ "@src"] ~inputs:[catala_src]
+      :: Nj.build "phony"
+           ~outputs:[!Var.dst ^ "@module"]
+           ~inputs:
+             (List.map
+                (fun bk ->
+                  Format.sprintf "%s@%s-module" !Var.dst
+                    (Clerk_backends.name bk))
+                enabled_backends)
       :: backends_module
     | _ -> []
   in
@@ -584,10 +593,6 @@ let organise_modules ~config items =
       tmodules = stdlib_modules;
       ttests = [];
       backends = List.map snd (Clerk_config.registered_backends ());
-      include_sources = false;
-      (* ??? *)
-      include_objects = false;
-      (* ??? *)
       dependencies = [];
     }
   in
@@ -672,6 +677,7 @@ let organise_modules ~config items =
           (G.succ target_g t))
       target_g
   in
+  let module Op = Graph.Oper.P (G) in
   let print_dot oc =
     let explicit_targets = String.Map.map (fun info -> info.targets) modmap in
     fun modmap ->
@@ -686,6 +692,7 @@ let organise_modules ~config items =
           (fun w g -> if filter w then G.add_edge g v2 w else g)
           g v1 g
       in
+      let module_g = Op.transitive_reduction module_g in
       let module_g =
         (* Remove internal stdlib modules *)
         G.fold_vertex
@@ -790,7 +797,25 @@ let organise_modules ~config items =
   in
   check_cycles "targets" target_g;
   check_cycles "modules" module_g;
-  let module Op = Graph.Oper.P (G) in
+  let linking_deps =
+    let module Topo = Graph.Topological.Make_stable (G) in
+    fun item ->
+      let depg =
+        let rec add_vertex depg m =
+          if G.mem_vertex depg m then depg
+          else
+            let depg = G.add_vertex depg m in
+            List.fold_left
+              (fun depg m1 ->
+                let depg = add_vertex depg m1 in
+                G.add_edge depg m m1)
+              depg (G.succ module_g m)
+        in
+        List.fold_left add_vertex G.empty
+          (List.map Mark.remove item.Scan.used_modules)
+      in
+      Topo.fold (fun m acc -> m :: acc) depg []
+  in
   let target_g = Op.transitive_closure target_g in
   let module_g = Op.transitive_closure module_g in
   let leaves g =
@@ -933,12 +958,13 @@ let organise_modules ~config items =
     Message.debug "Module graph available at @{<blue;bold>%a@}"
       (Message.link ~target:(Message.file_url f) ())
       f);
-  modmap, tmap
+  modmap, tmap, linking_deps
 
 type callback_info = {
   var_bindings : (Var.t * string list) list;
   modules_map : module_info String.Map.t;
   targets_map : Clerk_config.target String.Map.t;
+  linking_deps : Scan.item -> string list;
 }
 
 let empty_info =
@@ -946,6 +972,7 @@ let empty_info =
     var_bindings = [];
     modules_map = String.Map.empty;
     targets_map = String.Map.empty;
+    linking_deps = (fun m -> raise (String.Map.Not_found m.file_name));
   }
 
 let run_once = ref false
@@ -954,7 +981,7 @@ let run_ninja
     ?(include_dir = true)
     ~config
     ?(tests = false)
-    ?(enabled_backends = Clerk_backends.all ())
+    ?(enabled_backends = List.map snd (Clerk_config.registered_backends ()))
     ~quiet
     ~default
     ~code_coverage
@@ -966,15 +993,12 @@ let run_ninja
     callback =
   if !run_once then Message.error ~internal:true "Ninja should run only once";
   run_once := true;
-  let enabled_backends =
-    List.sort_uniq
-      (fun a b ->
-        String.compare (Clerk_backends.name a) (Clerk_backends.name b))
-      enabled_backends
-  in
   let var_bindings =
     base_bindings ~code_coverage ~trace ~trace_format ~config ~enabled_backends
       ~autotest ~inplace:false
+  in
+  let enabled_backends =
+    List.map Clerk_backends.get (List.sort_uniq compare enabled_backends)
   in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet ~default
     (fun nin_ppf ->
@@ -1056,13 +1080,16 @@ let run_ninja
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
           ~var_bindings stdlib_tree item_tree
       in
-      let modules_map, targets_map =
-        let item_seq =
-          Seq.flat_map
-            (fun (_, _, it) -> List.to_seq it)
-            (Seq.append stdlib_tree item_tree)
-        in
-        organise_modules ~config:config.options item_seq
+      let modules_map, targets_map, linking_deps =
+        if include_dir = false then
+          String.Map.empty, String.Map.empty, fun _ -> []
+        else
+          let item_seq =
+            Seq.flat_map
+              (fun (_, _, it) -> List.to_seq it)
+              (Seq.append stdlib_tree item_tree)
+          in
+          organise_modules ~config:config.options item_seq
       in
       let pp nj =
         Nj.format_def nin_ppf nj;
@@ -1109,7 +1136,8 @@ let run_ninja
           (Nj.build "phony" ~outputs:["test"]
              ~inputs:[File.(Var.(!builddir / ".@test"))]);
       let ret =
-        callback nin_ppf items_list { var_bindings; modules_map; targets_map }
+        callback nin_ppf items_list
+          { var_bindings; modules_map; targets_map; linking_deps }
       in
       Format.pp_print_newline nin_ppf ();
       ret)

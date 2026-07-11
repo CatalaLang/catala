@@ -90,13 +90,15 @@ steps:
         git clone https://github.com/CatalaLang/catala-examples --depth 1
       - . _python_venv/bin/activate
       - cd catala-examples
-      - make all
+      - make targets
       - clerk test --build-dir=_build/clerk_tests
       - clerk test --build-dir=_build/clerk_tests --test-flags=--lcalc,-O
       - clerk test --backend=ocaml
       - clerk test --backend=c
       - clerk test --backend=python
       - clerk test --backend=java
+      - make ocaml-libs
+      - make python-libs
 
   - name: lsp
     image: *catala_image

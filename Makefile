@@ -288,6 +288,9 @@ testsuite: unit-tests backend-tests
 	$(CLERK_TEST) tests-extra doc
 	$(MAKE) testsuite-base
 
+# Warning: the CI replicates these actions to enable finer-grained logging.
+# Any tests added here should be considered for addition in .woodpecker/main.html
+
 #> reset-tests				: Update the expected test results from current run
 reset-tests: .FORCE $(CLERK_BIN)
 	$(CLERK_TEST) tests tests-extra doc --reset

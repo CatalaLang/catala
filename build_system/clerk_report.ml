@@ -558,19 +558,6 @@ let summary ~build_dir ?(backend_tests = []) tests =
         else Format.fprintf ppf "%8s %%" "-";
         Format.pp_close_stag ppf ()
       in
-      if files > 1 || String.Map.is_empty backend_results then
-        box.print_line
-          "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
-           @{<bold>%a@}"
-          "tests"
-          (fun ppf -> function
-            | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
-            | n -> Format.fprintf ppf "%10d" n)
-          (total - success)
-          (fun ppf -> function
-            | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
-            | n -> Format.fprintf ppf "%10d" n)
-          success total ratio (success, total);
       if files > 1 then
         box.print_line
           "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
@@ -584,6 +571,19 @@ let summary ~build_dir ?(backend_tests = []) tests =
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
           success_files files ratio (success_files, files);
+      if files > 1 || String.Map.is_empty backend_results then
+        box.print_line
+          "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
+           @{<bold>%a@}"
+          "tests"
+          (fun ppf -> function
+            | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
+            | n -> Format.fprintf ppf "%10d" n)
+          (total - success)
+          (fun ppf -> function
+            | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
+            | n -> Format.fprintf ppf "%10d" n)
+          success total ratio (success, total);
       if disp_flags.coverage then
         box.print_line
           "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \

@@ -94,7 +94,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
       (link_deps item)
   @ [
       target -.- "cmx";
-      File.remove_extension target ^ "+main.cmx";
+      (* File.remove_extension target ^ "+main.cmx"; *)
       "-o";
       target -.- "exe";
     ]

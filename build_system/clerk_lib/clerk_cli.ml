@@ -105,7 +105,7 @@ let test_flags =
     value
     & opt ~vopt:[""] (list string) []
     & info ["test-flags"] ~docv:"FLAGS"
-        ~env:(Cmd.Env.info "CATALA_TEST_FLAGS")
+        ~env:(Cmd.Env.info "CLERK_TEST_FLAGS")
         ~doc:
           "Flags to pass to the catala interpreter on $(b,catala test-scope) \
            tests. Comma-separated list. A subset may also be applied to the \
@@ -149,7 +149,7 @@ let backends =
                   "java", [`Java];
                   "all", [`Interpret; `OCaml; `C; `Python; `Java];
                 ]))
-          [[[`Interpret]]]
+          []
       & info ["backend"; "b"] ~docv:"BACKEND"
           ~doc:
             "Run the program using the given backend. $(docv) must be one of \
@@ -314,7 +314,7 @@ let code_coverage =
     value
     & flag
     & info ["code-coverage"]
-        ~env:(Cmd.Env.info "CATALA_MEASURE_COVERAGE")
+        ~env:(Cmd.Env.info "CLERK_CODE_COVERAGE")
         ~doc:"Measure code coverage in the test report.")
 
 let diff_command =
@@ -322,7 +322,7 @@ let diff_command =
     value
     & opt ~vopt:(Some None) (some (some string)) None
     & info ["diff"]
-        ~env:(Cmd.Env.info "CATALA_DIFF_COMMAND")
+        ~env:(Cmd.Env.info "CLERK_DIFF")
         ~doc:
           "Use a standard $(i,diff) command instead of the default \
            side-by-side view. If no argument is supplied, the command will be \

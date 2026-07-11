@@ -31,6 +31,8 @@ type global = {
   catala_exe : File.t option;
   catala_opts : string list;
   default_targets : string list;
+  include_sources : bool;
+  include_objects : bool;
 }
 
 type target = {
@@ -38,8 +40,6 @@ type target = {
   tmodules : string list;
   ttests : File.t list;
   backends : backend list;
-  include_sources : bool;
-  include_objects : bool;
   dependencies : string list;
 }
 

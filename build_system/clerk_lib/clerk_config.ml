@@ -36,6 +36,8 @@ type global = {
   catala_exe : File.t option;
   catala_opts : string list;
   default_targets : string list;
+  include_sources : bool;
+  include_objects : bool;
 }
 
 type target = {
@@ -43,8 +45,6 @@ type target = {
   tmodules : string list;
   ttests : File.t list;
   backends : backend list;
-  include_sources : bool;
-  include_objects : bool;
   dependencies : string list;
 }
 
@@ -75,12 +75,14 @@ type t = config_file
 let default_global =
   {
     project_name = None;
-    include_dirs = [];
+    include_dirs = [Filename.current_dir_name];
     catala_exe = None;
     catala_opts = [];
     default_targets = [];
     build_dir = "_build";
     target_dir = "_targets";
+    include_sources = false;
+    include_objects = false;
   }
 
 let default_config =
@@ -103,32 +105,44 @@ let project_encoding () =
            default_targets;
            build_dir;
            target_dir;
+           include_sources;
+           include_objects;
          } ->
       ( project_name,
-        proj_empty_list include_dirs,
+        (if include_dirs = default_global.include_dirs then None
+         else Some include_dirs),
         catala_exe,
         proj_empty_list catala_opts,
         proj_empty_list default_targets,
         build_dir,
-        target_dir ))
+        target_dir,
+        include_sources,
+        include_objects ))
     (fun ( project_name,
            include_dirs,
            catala_exe,
            catala_opts,
            default_targets,
            build_dir,
-           target_dir )
+           target_dir,
+           include_sources,
+           include_objects )
        ->
       {
         project_name;
-        include_dirs = inj_empty_list include_dirs;
+        include_dirs =
+          (match include_dirs with
+          | None -> default_global.include_dirs
+          | Some l -> l);
         catala_exe;
         catala_opts = inj_empty_list catala_opts;
         default_targets = inj_empty_list default_targets;
         build_dir;
         target_dir;
+        include_sources;
+        include_objects;
       })
-  @@ obj7
+  @@ obj9
        (opt_field ~name:"name" @@ string)
        (opt_field ~name:"include_dirs" @@ list string)
        (opt_field ~name:"catala_exe" @@ string)
@@ -136,51 +150,24 @@ let project_encoding () =
        (opt_field ~name:"default_targets" @@ list string)
        (dft_field ~name:"build_dir" ~default:default_global.build_dir string)
        (dft_field ~name:"target_dir" ~default:default_global.target_dir string)
+       (dft_field ~name:"include_sources"
+          ~default:default_global.include_sources bool)
+       (dft_field ~name:"include_objects"
+          ~default:default_global.include_objects bool)
 
 let target_encoding () =
   let open Clerk_toml_encoding in
   conv
-    (fun {
-           tname;
-           tmodules;
-           ttests;
-           backends;
-           include_sources;
-           include_objects;
-           dependencies;
-         } ->
-      ( tname,
-        tmodules,
-        ttests,
-        backends,
-        include_sources,
-        include_objects,
-        dependencies ))
-    (fun ( tname,
-           tmodules,
-           ttests,
-           backends,
-           include_sources,
-           include_objects,
-           dependencies )
-       ->
-      {
-        tname;
-        tmodules;
-        ttests;
-        backends;
-        include_sources;
-        include_objects;
-        dependencies;
-      })
-  @@ obj7
+    (fun { tname; tmodules; ttests; backends; dependencies } ->
+      tname, tmodules, ttests, backends, dependencies)
+    (fun (tname, tmodules, ttests, backends, dependencies) ->
+      { tname; tmodules; ttests; backends; dependencies })
+  @@ obj5
        (req_field ~name:"name" @@ string)
        (req_field ~name:"modules" @@ list string)
        (dft_field ~name:"tests" ~default:[] @@ list string)
        (dft_field ~name:"backends" ~default:[]
        @@ list (union (string_cases (registered_backends ()))))
-       (dft_field ~name:"include_sources" ~default:false @@ bool)
-       (dft_field ~name:"include_objects" ~default:false @@ bool)
        (dft_field ~name:"dependencies" ~default:[] @@ list string)
 
 let doc_encoding () =

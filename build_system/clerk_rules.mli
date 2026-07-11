@@ -23,7 +23,7 @@ val base_bindings :
   trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] option ->
   trace_format:Catala_utils.Global.format_enum option ->
   autotest:bool ->
-  enabled_backends:Clerk_backends.t list ->
+  enabled_backends:Clerk_config.backend list ->
   inplace:bool ->
   config:Clerk_cli.config ->
   (Var.t * string list) list
@@ -41,6 +41,8 @@ type callback_info = {
   var_bindings : (Var.t * string list) list;
   modules_map : module_info String.Map.t;
   targets_map : Clerk_config.target String.Map.t;
+  linking_deps : Scan.item -> string list;
+      (** item -> modules, topologically ordered *)
 }
 (** Info passed to the callback that shall conclude the Ninja file, once the
     whole file tree has been crawled. The modules and targets map differ from
@@ -56,7 +58,7 @@ val run_ninja :
   ?include_dir:bool ->
   config:Clerk_cli.config ->
   ?tests:bool ->
-  ?enabled_backends:Clerk_backends.t list ->
+  ?enabled_backends:Clerk_config.backend list ->
   quiet:bool ->
   default:'a ->
   code_coverage:bool ->
@@ -79,3 +81,5 @@ val run_ninja :
     variables.
 
     [default] is returned if the callback aborts with exception [Stop_ninja]. *)
+
+val module_supported_backends : callback_info -> string -> Clerk_backends.t
