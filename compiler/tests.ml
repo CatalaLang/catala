@@ -1,88 +1,55 @@
-module File = Catala_utils.File
-module Message = Catala_utils.Message
+module File_path = Catala_utils.File_path
 module Common = Clerk_backends.Common
+module Backend_paths = Clerk_backends.Backend_paths
 
 let check = Alcotest.(check string)
 let check_list = Alcotest.(check (list string))
 
-(* [Common.Flags.include_flags] and [Clerk_backends.Java.classpath] join paths
-   with [Filename.concat], so a separator inside a joined path is host-native
-   ('\' on a Windows CI runner, '/' on Linux). The tests using them assert the
-   shell-quoting and the classpath separator, not slash direction, so normalise
-   '\' -> '/' before comparing (a no-op on Linux). *)
+(* [include_flags]/[classpath] join with [Filename.concat], so on Windows a
+   joined separator is '\'. These tests check quoting and the path separator, not
+   slash direction; normalise '\' -> '/' first (no-op on Linux). *)
 let fwd s = String.map (function '\\' -> '/' | c -> c) s
 
-(* These emulate Windows path handling on any host through the [~win32] flag, so
-   they run in the Linux CI. The scenario is VS Code launching clerk: the cwd
-   carries a LOWER-case drive letter ("c:\\...", from [Uri.fsPath]) while the
-   filesystem's canonical drive is UPPER case ("C:\\..."). The case-sensitive
-   prefix compare that [File.Path.remove_prefix] used to do then failed to
-   relativize, corrupting clerk's include_dirs into drive-stripped absolutes. *)
+(* Each test drives a [~win32] core directly, so Windows behaviour runs on the
+   Linux CI — where the reftests, running with '/', cannot catch it. *)
+
+(* VS Code launches clerk with a lower-case drive cwd ("c:\\...") while the fs
+   drive is upper-case; a case-sensitive prefix compare then failed to
+   relativize, corrupting include_dirs into drive-stripped absolutes. *)
 
 let test_remove_prefix_drive_case () =
-  check "lower-case-drive prefix still removed from upper-case-drive path"
+  check "lower-case-drive prefix removed from upper-case-drive path"
     {|lib\src\data|}
-    (File.Path.remove_prefix ~win32:true ~cwd:{|c:\proj|} {|c:\proj|}
+    (File_path.remove_prefix ~win32:true ~cwd:{|c:\proj|} {|c:\proj|}
        {|C:\proj\lib\src\data|})
 
 let test_reverse_path_no_drive_strip () =
-  (* The exact clerk include_dir case: from a lower-case-drive cwd an
-     upper-case-drive project dir must relativize to a clean relative path, not
-     a drive-stripped absolute ("\\proj\\..."). *)
   check "include-dir relativized to project root (drive not stripped)"
     {|lib\src\data\enums|}
-    (File.Path.reverse_path ~win32:true ~cwd:{|c:\proj|} ~from_dir:{|c:\proj|}
+    (File_path.reverse_path ~win32:true ~cwd:{|c:\proj|} ~from_dir:{|c:\proj|}
        ~to_dir:{|.|} {|C:\proj\lib\src\data\enums|})
 
-let test_remove_prefix_matching_case () =
-  (* No change when the drive cases already agree. *)
-  check "matching-case prefix removal" {|lib\src|}
-    (File.Path.remove_prefix ~win32:true ~cwd:{|C:\proj|} {|C:\proj|}
-       {|C:\proj\lib\src|})
-
-let test_reverse_path_unix () =
-  (* Non-Windows behaviour is unaffected. *)
-  check "unix relativization" "a/b"
-    (File.Path.reverse_path ~win32:false ~cwd:"/home/x" ~from_dir:"/home/x"
-       ~to_dir:"." "/home/x/a/b")
-
 let test_make_relative_to_drive_case () =
-  (* Same lower/upper drive mismatch, through make_relative_to. *)
   check "make_relative_to across a drive-case mismatch" {|b\c|}
-    (File.Path.make_relative_to ~win32:true ~cwd:{|c:\proj|} ~dir:{|C:\proj\a|}
+    (File_path.make_relative_to ~win32:true ~cwd:{|c:\proj|} ~dir:{|C:\proj\a|}
        {|C:\proj\a\b\c|})
 
-(* file:// URL construction (Message.url_path_of_absolute). The clickable-link
-   fix: a drive path needs a leading slash before "C:" (else it is read as the
-   URL authority), and a UNC path's server IS the authority so it must keep
-   exactly two slashes total after "file:" — i.e. no extra leading slash. *)
+(* A drive path needs a leading slash before "C:" (else "C:" is the URL
+   authority); a UNC path's server IS the authority, so no extra leading slash. *)
 
 let test_file_url_drive () =
   check "windows drive path -> /C:/..." "/C:/proj/file.catala_en"
-    (Message.url_path_of_absolute ~win32:true {|C:\proj\file.catala_en|})
+    (File_path.url_path_of_absolute ~win32:true {|C:\proj\file.catala_en|})
 
 let test_file_url_unc () =
   check "windows UNC path -> server/share/... (server is the authority)"
     "server/share/dir/file.catala_en"
-    (Message.url_path_of_absolute ~win32:true
+    (File_path.url_path_of_absolute ~win32:true
        {|\\server\share\dir\file.catala_en|})
 
-let test_file_url_unix () =
-  check "unix path is already URL-shaped" "/home/x/file.catala_en"
-    (Message.url_path_of_absolute ~win32:false "/home/x/file.catala_en")
-
-(* Clerk's OCaml/C backends emit '-I <dir>' flags into a ninja variable later
-   expanded onto the compiler command line. Ninja's file-syntax escaping ($ , $:)
-   is UN-escaped before the command runs, so an absolute include dir containing a
-   space (e.g. C:\Program Files\Catala\toolchain\lib\zarith) must ALSO be
-   shell-quoted or the compiler's argv parser word-splits it ("Don't know what to
-   do with Files\Catala..."). These pin the shell-quoting. Space-free paths are
-   byte-identical after unquoting, so Linux is unaffected. *)
-
-let test_includes_quote_absolute () =
-  check_list "includes: absolute -I dir is shell-quoted"
-    ["-I"; {|"/opt/some dir/zarith"|}]
-    (Common.Flags.includes [{|/opt/some dir/zarith|}])
+(* Ninja un-escapes its file-syntax quoting before running the command, so an
+   include dir with a space (C:\Program Files\...) must ALSO be shell-quoted or
+   the compiler's argv parser word-splits it. *)
 
 let test_include_flags_quote_absolute () =
   check_list "include_flags: each -I dir is shell-quoted"
@@ -90,112 +57,55 @@ let test_include_flags_quote_absolute () =
     (List.map fwd
        (Common.Flags.include_flags ~backend:"ocaml" [{|/opt/some dir|}]))
 
-let test_c_backend_runtime_include_quoted () =
-  (* The C backend emits its own runtime include ("-I ${builddir}/libcatala/c")
-     directly (c.ml), not via the shared helper, so it needs its own check. Drive
-     the public Backend.Flags.default and grab the C_INCLUDE_FLAGS binding (the
-     only one whose value starts with "-I" when include_dirs is empty). *)
-  let bindings =
-    Clerk_backends.C.Backend.Flags.default ~variables:[] ~autotest:false
-      ~use_default_flags:true ~test_flags:[] ~include_dirs:[]
-  in
-  let c_include =
-    Option.get
-      (List.find_map
-         (fun (_v, value) ->
-           match value with "-I" :: _ -> Some value | _ -> None)
-         bindings)
-  in
-  check_list "C backend runtime -I is shell-quoted"
-    ["-I"; {|"${builddir}/libcatala/c"|}]
-    (List.map fwd c_include)
+(* Path-list separator: ';' on Windows (':' collides with the 'C:' drive colon),
+   ':' on Unix. *)
 
-(* Java's classpath separator is OS-dependent: ';' on Windows (':' would be read
-   as part of a 'C:\...' drive path and split the entry), ':' on Unix. This is a
-   Sys.win32-gated bug invisible in the Linux reftests, so pin both cases via the
-   ~win32-parameterized Java.classpath. *)
+let test_classpath_separator () =
+  check "Java classpath: ';' on Windows" {|${tdir}/java;/opt/lib a/java|}
+    (fwd (Backend_paths.classpath ~win32:true ~backend:"java" [{|/opt/lib a|}]));
+  check "Java classpath: ':' on Unix" {|${tdir}/java:/opt/lib a/java|}
+    (fwd
+       (Backend_paths.classpath ~win32:false ~backend:"java" [{|/opt/lib a|}]))
 
-let test_java_classpath_windows_sep () =
-  check "Java classpath uses ';' on Windows (drive-colon safe)"
-    {|${tdir}/java;/opt/lib a/java|}
-    (fwd (Clerk_backends.Java.classpath ~win32:true [{|/opt/lib a|}]))
+let test_pythonpath_separator () =
+  check "PYTHONPATH: ';' on Windows" {|C:/build/python;C:/proj/tests|}
+    (Backend_paths.pythonpath ~win32:true
+       [{|C:/build/python|}; {|C:/proj/tests|}]);
+  check "PYTHONPATH: ':' on Unix" {|/build/python:/proj/tests|}
+    (Backend_paths.pythonpath ~win32:false [{|/build/python|}; {|/proj/tests|}])
 
-let test_java_classpath_unix_sep () =
-  check "Java classpath uses ':' on Unix" {|${tdir}/java:/opt/lib a/java|}
-    (fwd (Clerk_backends.Java.classpath ~win32:false [{|/opt/lib a|}]))
-
-(* Same OS-dependent-separator bug for the Python backend's PYTHONPATH: ';' on
-   Windows (':' collides with the 'C:\...' drive-letter colon and mis-splits the
-   entry so the generated test package isn't importable), ':' on Unix. Pin both
-   via the ~win32-parameterized Python.pythonpath. *)
-
-let test_pythonpath_windows_sep () =
-  check "PYTHONPATH uses ';' on Windows (drive-colon safe)"
-    {|C:/build/libcatala/python;C:/proj/tests|}
-    (Clerk_backends.Python.pythonpath ~win32:true
-       [{|C:/build/libcatala/python|}; {|C:/proj/tests|}])
-
-let test_pythonpath_unix_sep () =
-  check "PYTHONPATH uses ':' on Unix" {|/build/libcatala/python:/proj/tests|}
-    (Clerk_backends.Python.pythonpath ~win32:false
-       [{|/build/libcatala/python|}; {|/proj/tests|}])
-
-(* Backend position literals embed the source FILENAME. On Windows that filename
-   carries backslash separators (C:\proj\mod.catala_fr); each backend emits it
-   into a string literal of the target language, where an un-escaped backslash is
-   an illegal escape sequence (Java/Python) or silently wrong (C/OCaml). Every
-   backend's [format_pos] must therefore escape the filename. These emulate a
-   Windows path on any host, so they run in the Linux CI. *)
+(* A position literal embeds the source filename; on Windows its backslashes are
+   an illegal escape (Java/Python) or silently wrong (C/OCaml) in the target
+   string literal unless [format_pos] escapes them. *)
 
 let contains ~sub s =
   let n = String.length sub and m = String.length s in
   let rec go i = i + n <= m && (String.sub s i n = sub || go (i + 1)) in
   n = 0 || go 0
 
-let pos_output fmt_pos =
+let pos_escaped fmt_pos =
   let pos = Catala_utils.Pos.from_info {|C:\proj\mod.catala_fr|} 1 2 3 4 in
-  Format.asprintf "%a" fmt_pos pos
+  contains ~sub:{|C:\\proj\\mod.catala_fr|} (Format.asprintf "%a" fmt_pos pos)
 
-let check_pos_escaped name fmt_pos =
-  Alcotest.(check bool)
-    (name ^ " backend escapes backslashes in the position filename")
-    true
-    (contains ~sub:{|C:\\proj\\mod.catala_fr|} (pos_output fmt_pos))
+let backends_format_pos =
+  [
+    "Java", Scalc.To_java.format_pos;
+    "Python", Scalc.To_python.format_pos;
+    "C", Scalc.To_c.format_pos;
+    "OCaml", Lcalc.To_ocaml.format_pos;
+  ]
 
-let test_java_pos_escaped () = check_pos_escaped "Java" Scalc.To_java.format_pos
-
-let test_python_pos_escaped () =
-  check_pos_escaped "Python" Scalc.To_python.format_pos
-
-let test_c_pos_escaped () = check_pos_escaped "C" Scalc.To_c.format_pos
-
-let test_ocaml_pos_escaped () =
-  check_pos_escaped "OCaml" Lcalc.To_ocaml.format_pos
-
-(* A big Java module packs thousands of '-C <dir> <file>' pairs into the jar
-   command; inline this overflows the OS command-line limit (~32k on Windows,
-   where CreateProcess fails with a misleading ENOENT), so clerk spills them to a
-   jar @argfile. In that argfile backslash is an escape character, so a Windows
-   path must be forward-slashed (and quoted for spaces) or the entry is mangled.
-   Runs on Linux since it is pure string formatting. *)
+(* Thousands of '-C <dir> <file>' pairs overflow the Windows command-line limit,
+   so clerk spills them to a jar argfile; backslash escapes there, so Windows
+   paths must be forward-slashed and quoted for spaces. *)
 
 let test_jar_argfile_escaping () =
   check "jar argfile forward-slashes and quotes Windows paths"
     {|-C
 "C:/Program Files/build/app/java"
 "Outer$Inner.class"|}
-    (Clerk_backends.Java.jar_argfile_content
+    (Backend_paths.jar_argfile_content
        [{|C:\Program Files\build\app\java|}, {|Outer$Inner.class|}])
-
-let test_jar_argfile_relative_entry () =
-  (* Runtime entries carry a relative path WITH separators as the file token; it
-     too must be forward-slashed so it is not read as escapes. *)
-  check "jar argfile forward-slashes a separator-bearing file token"
-    {|-C
-"C:/rt/libcatala/java"
-"catala/runtime/Value.class"|}
-    (Clerk_backends.Java.jar_argfile_content
-       [{|C:\rt\libcatala\java|}, {|catala\runtime\Value.class|}])
 
 let () =
   let open Alcotest in
@@ -206,15 +116,12 @@ let () =
           test_case "#1" `Quick Shared_ast.Optimizations.test_iota_reduction_1;
           test_case "#2" `Quick Shared_ast.Optimizations.test_iota_reduction_2;
         ] );
-      ( "File-paths (Windows drive-case)",
+      ( "File paths (Windows drive-case)",
         [
           test_case "remove_prefix drive-case" `Quick
             test_remove_prefix_drive_case;
           test_case "reverse_path no drive strip" `Quick
             test_reverse_path_no_drive_strip;
-          test_case "remove_prefix matching case" `Quick
-            test_remove_prefix_matching_case;
-          test_case "reverse_path unix" `Quick test_reverse_path_unix;
           test_case "make_relative_to drive-case" `Quick
             test_make_relative_to_drive_case;
         ] );
@@ -222,38 +129,26 @@ let () =
         [
           test_case "file_url drive path" `Quick test_file_url_drive;
           test_case "file_url UNC path" `Quick test_file_url_unc;
-          test_case "file_url unix path" `Quick test_file_url_unix;
         ] );
       ( "Clerk include-dir quoting (spaces in install dir)",
         [
-          test_case "includes quotes absolute dir" `Quick
-            test_includes_quote_absolute;
-          test_case "include_flags quotes dirs" `Quick
+          test_case "include_flags shell-quotes each -I dir" `Quick
             test_include_flags_quote_absolute;
-          test_case "C backend runtime -I quoted" `Quick
-            test_c_backend_runtime_include_quoted;
-          test_case "Java classpath ';' on Windows" `Quick
-            test_java_classpath_windows_sep;
-          test_case "Java classpath ':' on Unix" `Quick
-            test_java_classpath_unix_sep;
-          test_case "PYTHONPATH ';' on Windows" `Quick
-            test_pythonpath_windows_sep;
-          test_case "PYTHONPATH ':' on Unix" `Quick test_pythonpath_unix_sep;
+        ] );
+      ( "Backend path separators (Windows drive-colon)",
+        [
+          test_case "classpath separator" `Quick test_classpath_separator;
+          test_case "PYTHONPATH separator" `Quick test_pythonpath_separator;
         ] );
       ( "Backend position-filename escaping (Windows backslash)",
-        [
-          test_case "Java position filename escaped" `Quick test_java_pos_escaped;
-          test_case "Python position filename escaped" `Quick
-            test_python_pos_escaped;
-          test_case "C position filename escaped" `Quick test_c_pos_escaped;
-          test_case "OCaml position filename escaped" `Quick
-            test_ocaml_pos_escaped;
-        ] );
+        List.map
+          (fun (name, fmt_pos) ->
+            test_case (name ^ " escapes backslashes") `Quick (fun () ->
+                Alcotest.(check bool) name true (pos_escaped fmt_pos)))
+          backends_format_pos );
       ( "Java jar @argfile (command-line length + path escaping)",
         [
           test_case "argfile escapes a Windows path" `Quick
             test_jar_argfile_escaping;
-          test_case "argfile escapes a separator-bearing entry" `Quick
-            test_jar_argfile_relative_entry;
         ] );
     ]

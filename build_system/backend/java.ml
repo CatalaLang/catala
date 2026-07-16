@@ -26,32 +26,6 @@ let jar = Var.make "jar"
 let java = Var.make "JAVA"
 let backend_name = "java"
 
-(* Classpath separator: ';' on Windows (':' would collide with the 'C:' drive
-   colon), ':' elsewhere. *)
-let class_path_sep ~win32 = if win32 then ";" else ":"
-
-let classpath ~win32 include_dirs =
-  let open Var in
-  String.concat (class_path_sep ~win32)
-    ((!tdir / backend_name)
-    :: List.map
-         (fun d ->
-           (if Filename.is_relative d then !builddir / d else d) / backend_name)
-         include_dirs)
-
-(* Thousands of '-C <dir> <file>' pairs overflow the Windows command-line limit
-   (~32k; CreateProcess fails with a misleading ENOENT), so spill them to a jar
-   @argfile. Backslash escapes there, so use forward slashes (JVM accepts them on
-   Windows) and quote for spaces. *)
-let jar_argfile_content (entries : (string * string) list) : string =
-  let quote_path p =
-    "\"" ^ String.map (function '\\' -> '/' | c -> c) p ^ "\""
-  in
-  String.concat "\n"
-    (List.concat_map
-       (fun (dir, file) -> ["-C"; quote_path dir; quote_path file])
-       entries)
-
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open Var in
   let jar_target = target -.- "jar" in
@@ -116,7 +90,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   in
   let argfile = jar_target ^ ".jarargs" in
   File.with_out_channel ~bin:false argfile (fun oc ->
-      output_string oc (jar_argfile_content entries));
+      output_string oc (Backend_paths.jar_argfile_content entries));
   get_var var_bindings jar @ ["--create"; "--file"; jar_target; "@" ^ argfile]
 
 let run_artifact ~var_bindings ~test ~trace ?scope src =
@@ -191,7 +165,8 @@ module Backend = struct
       Nj.rule "java-class"
         ~command:[!javac; "-cp";
                   Var.quote_arg (File.(Var.(!builddir) / Scan.libcatala / name)
-                                 ^ class_path_sep ~win32:Sys.win32 ^ !class_path);
+                                 ^ Backend_paths.os_path_sep ~win32:Sys.win32
+                                 ^ !class_path);
                   !javac_flags; !input]
         ~description:["<catala>"; name; "⇒"; !output];
     ]
@@ -276,7 +251,10 @@ module Backend = struct
 
   let build_object ~include_dirs ~same_dir_modules ~item _has_scope_tests =
     let modules = List.rev_map Mark.remove item.Scan.used_modules in
-    let java_class_path = classpath ~win32:Sys.win32 include_dirs in
+    let java_class_path =
+      Backend_paths.classpath ~win32:Sys.win32 ~backend:backend_name
+        include_dirs
+    in
     let module_target =
       modfile ~is_stdlib:item.is_stdlib same_dir_modules ".class"
     in

@@ -40,13 +40,4 @@ val run_artifact :
     is needed by the Clerk_driver modules and not the clerk_rules modules that's
     why it doesn't appear in the Backend common interface. *)
 
-val classpath : win32:bool -> string list -> string
-(** [classpath ~win32 include_dirs] joins the dirs with the OS classpath
-    separator. Exposed to unit-test the Windows separator off-Windows. *)
-
-val jar_argfile_content : (string * string) list -> string
-(** [jar_argfile_content entries] renders '-C <dir> <file>' pairs into a jar
-    argfile body (forward-slashed, quoted). Exposed to unit-test that escaping.
-*)
-
 module Backend : Backend.S

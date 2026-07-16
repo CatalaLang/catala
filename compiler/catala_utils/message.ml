@@ -199,26 +199,13 @@ let pp_marker ?extra_label target ppf =
 
 let bug_report_url = "https://github.com/CatalaLang/catala/issues"
 
-(* Path part of a [file://] URL for an absolute OS [path]. On Unix it's already
-   URL-shaped. On Windows: separators become '/'; a drive path [C:\dir] becomes
-   [/C:/dir] (leading slash stops "C:" being read as the URL authority); a UNC
-   path [\\server\share] becomes [server/share] (server IS the authority, so no
-   leading slash). *)
-let url_path_of_absolute ~win32 path =
-  if not win32 then path
-  else
-    let p = String.map (function '\\' -> '/' | c -> c) path in
-    if String.length p >= 2 && p.[0] = '/' && p.[1] = '/' then
-      String.sub p 2 (String.length p - 2)
-    else "/" ^ p
-
 let file_url =
   let cwd = Sys.getcwd () in
   fun ?(line = 1) ?(column = 1) file ->
     let path =
       if Filename.is_relative file then Filename.concat cwd file else file
     in
-    let path = url_path_of_absolute ~win32:Sys.win32 path in
+    let path = File_path.url_path_of_absolute ~win32:Sys.win32 path in
     Printf.sprintf "file://%s%s%s" path
       (if line > 1 || column > 1 then Printf.sprintf "#%d" line else "")
       (if column > 1 then Printf.sprintf ":%d" column else "")
