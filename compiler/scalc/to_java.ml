@@ -251,6 +251,10 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
   | LBool true -> pp_print_string ppf "CatalaBool.TRUE"
   | LBool false -> pp_print_string ppf "CatalaBool.FALSE"
+  | LInt i when Z.fits_int64 i ->
+    fprintf ppf "new CatalaInteger(%s%s)"
+      (Runtime.integer_to_string i)
+      (if Z.fits_int32 i then "" else "l")
   | LInt i ->
     fprintf ppf "new CatalaInteger(\"%s\")" (Runtime.integer_to_string i)
   | LUnit -> pp_print_string ppf "null"
@@ -263,6 +267,15 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
         (Mark.copy l (LInt (Q.num i)))
         format_lit
         (Mark.copy l (LInt (Q.den i)))
+  | LMoney e when Z.fits_int64 e ->
+    if Z.(rem e (of_int 100) = zero) then
+      fprintf ppf "new CatalaMoney(%s%s)"
+        Runtime.(integer_to_string (money_round e))
+        (if Z.fits_int32 e then "" else "l")
+    else
+      fprintf ppf "CatalaMoney.ofCents(%s%s)"
+        Runtime.(integer_to_string (money_to_cents e))
+        (if Z.fits_int32 e then "" else "l")
   | LMoney e ->
     fprintf ppf "CatalaMoney.ofCents(\"%s\")"
       (Runtime.integer_to_string (Runtime.money_to_cents e))
