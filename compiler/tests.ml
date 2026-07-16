@@ -56,8 +56,8 @@ let test_include_flags_quote_absolute () =
     (List.map fwd
        (Common.Flags.include_flags ~backend:"ocaml" [{|/opt/some dir|}]))
 
-(* Path-list separator: ';' on Windows (':' collides with the 'C:' drive colon),
-   ':' on Unix. *)
+(* The separator differs by OS; the reftests only run on Linux, so the Windows
+   case needs a unit test. *)
 
 let test_classpath_separator () =
   check "Java classpath: ';' on Windows" {|${tdir}/java;/opt/lib a/java|}
