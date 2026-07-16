@@ -1,4 +1,4 @@
-module File_path = Catala_utils.File_path
+module Path = Catala_utils.Path
 module Common = Clerk_backends.Common
 module Backend_paths = Clerk_backends.Backend_paths
 
@@ -20,18 +20,18 @@ let fwd s = String.map (function '\\' -> '/' | c -> c) s
 let test_remove_prefix_drive_case () =
   check "lower-case-drive prefix removed from upper-case-drive path"
     {|lib\src\data|}
-    (File_path.remove_prefix ~win32:true ~cwd:{|c:\proj|} {|c:\proj|}
+    (Path.remove_prefix ~win32:true ~cwd:{|c:\proj|} {|c:\proj|}
        {|C:\proj\lib\src\data|})
 
 let test_reverse_path_no_drive_strip () =
   check "include-dir relativized to project root (drive not stripped)"
     {|lib\src\data\enums|}
-    (File_path.reverse_path ~win32:true ~cwd:{|c:\proj|} ~from_dir:{|c:\proj|}
+    (Path.reverse ~win32:true ~cwd:{|c:\proj|} ~from_dir:{|c:\proj|}
        ~to_dir:{|.|} {|C:\proj\lib\src\data\enums|})
 
 let test_make_relative_to_drive_case () =
   check "make_relative_to across a drive-case mismatch" {|b\c|}
-    (File_path.make_relative_to ~win32:true ~cwd:{|c:\proj|} ~dir:{|C:\proj\a|}
+    (Path.make_relative_to ~win32:true ~cwd:{|c:\proj|} ~dir:{|C:\proj\a|}
        {|C:\proj\a\b\c|})
 
 (* A drive path needs a leading slash before "C:" (else "C:" is the URL
@@ -39,13 +39,12 @@ let test_make_relative_to_drive_case () =
 
 let test_file_url_drive () =
   check "windows drive path -> /C:/..." "/C:/proj/file.catala_en"
-    (File_path.url_path_of_absolute ~win32:true {|C:\proj\file.catala_en|})
+    (Path.url_of_absolute ~win32:true {|C:\proj\file.catala_en|})
 
 let test_file_url_unc () =
   check "windows UNC path -> server/share/... (server is the authority)"
     "server/share/dir/file.catala_en"
-    (File_path.url_path_of_absolute ~win32:true
-       {|\\server\share\dir\file.catala_en|})
+    (Path.url_of_absolute ~win32:true {|\\server\share\dir\file.catala_en|})
 
 (* Ninja un-escapes its file-syntax quoting before running the command, so an
    include dir with a space (C:\Program Files\...) must ALSO be shell-quoted or

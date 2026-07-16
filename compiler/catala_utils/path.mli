@@ -19,8 +19,8 @@
     host-specialised versions. *)
 
 val dir_sep_re : win32:bool -> Re.re
-val path_to_list : win32:bool -> string -> string option * string list
-val clean_path : win32:bool -> string -> string
+val to_list : win32:bool -> string -> string option * string list
+val clean : win32:bool -> string -> string
 val make_absolute : win32:bool -> cwd:string -> string -> string
 val remove_prefix : win32:bool -> cwd:string -> string -> string -> string
 val common_prefix : win32:bool -> cwd:string -> string -> string -> string
@@ -28,7 +28,7 @@ val common_prefix : win32:bool -> cwd:string -> string -> string -> string
 val make_relative_to :
   win32:bool -> cwd:string -> dir:string -> string -> string
 
-val reverse_path :
+val reverse :
   win32:bool ->
   cwd:string ->
   from_dir:string ->
@@ -36,7 +36,7 @@ val reverse_path :
   string ->
   string
 
-val url_path_of_absolute : win32:bool -> string -> string
+val url_of_absolute : win32:bool -> string -> string
 (** Path part of a [file://] URL for an absolute OS path. Handles Windows drive
     paths ([C:\dir] -> [/C:/dir]) and UNC paths ([\\server\share] ->
     [server/share]). *)

@@ -41,7 +41,7 @@ let join ~win32 a b =
   else if a = "" then dir_sep ~win32 ^ b
   else concat ~win32 a b
 
-let path_to_list ~win32 path =
+let to_list ~win32 path =
   let p = String.re_split_delim (dir_sep_re ~win32) path in
   let drive, p =
     if not win32 then None, p
@@ -57,7 +57,7 @@ let path_to_list ~win32 path =
   | p1 :: p ->
     drive, p1 :: List.filter (function "" | "." -> false | _ -> true) p
 
-let list_to_path ~win32 = function
+let from_list ~win32 = function
   | None, [] -> current
   | Some drive, [] -> drive
   | drive, [""] -> Option.value drive ~default:"" ^ dir_sep ~win32
@@ -67,8 +67,8 @@ let list_to_path ~win32 = function
 (* Removes redundant "." segments, folds ".." when possible (keeping extra
    leading ".."), preserves absolute/relative and the drive/root syntax. Purely
    lexical: no symlink or case resolution. *)
-let clean_path ~win32 p =
-  let drive, p = path_to_list ~win32 p in
+let clean ~win32 p =
+  let drive, p = to_list ~win32 p in
   let nup, p =
     List.fold_right
       (fun d (nup, acc) ->
@@ -78,10 +78,10 @@ let clean_path ~win32 p =
       p (0, [])
   in
   let p = List.init nup (fun _ -> parent) @ p in
-  list_to_path ~win32 (drive, p)
+  from_list ~win32 (drive, p)
 
 let make_absolute ~win32 ~cwd p =
-  clean_path ~win32
+  clean ~win32
   @@
   if is_relative ~win32 p then join ~win32 cwd p
   else if win32 && String.starts_with ~prefix:(dir_sep ~win32) p then
@@ -121,13 +121,13 @@ let common_prefix ~win32 ~cwd f1 f2 =
     | d1 :: p1, d2 :: p2 when d1 = d2 -> d1 :: aux p1 p2
     | _ -> []
   in
-  let drive1, f1 = path_to_list ~win32 (make_absolute ~win32 ~cwd f1) in
-  let drive2, f2 = path_to_list ~win32 (make_absolute ~win32 ~cwd f2) in
+  let drive1, f1 = to_list ~win32 (make_absolute ~win32 ~cwd f1) in
+  let drive2, f2 = to_list ~win32 (make_absolute ~win32 ~cwd f2) in
   if not (compat_drives drive1 drive2) then ""
   else
     match aux f1 f2 with
     | [""] -> "" (* this is the fs root *)
-    | pfx -> list_to_path ~win32 (drive1, pfx)
+    | pfx -> from_list ~win32 (drive1, pfx)
 
 let make_relative_to ~win32 ~cwd ~dir:dir0 f0 =
   let dir = make_absolute ~win32 ~cwd dir0 in
@@ -137,16 +137,14 @@ let make_relative_to ~win32 ~cwd ~dir:dir0 f0 =
   else
     let dir = remove_prefix ~win32 ~cwd prefix dir in
     let f = remove_prefix ~win32 ~cwd prefix f in
-    let ddrive, dlist = path_to_list ~win32 dir in
-    join ~win32
-      (list_to_path ~win32 (ddrive, List.map (fun _ -> parent) dlist))
-      f
-    |> clean_path ~win32
+    let ddrive, dlist = to_list ~win32 dir in
+    join ~win32 (from_list ~win32 (ddrive, List.map (fun _ -> parent) dlist)) f
+    |> clean ~win32
 
-let reverse_path ~win32 ~cwd ~from_dir ~to_dir f =
-  clean_path ~win32
+let reverse ~win32 ~cwd ~from_dir ~to_dir f =
+  clean ~win32
   @@
-  if is_relative ~win32 from_dir then invalid_arg "File.reverse_path"
+  if is_relative ~win32 from_dir then invalid_arg "Path.reverse"
   else
     let f =
       if is_relative ~win32 f then f
@@ -168,16 +166,16 @@ let reverse_path ~win32 ~cwd ~from_dir ~to_dir f =
           | dir1 :: acc when dir1 = dir -> aux acc rbase p
           | _ -> aux (parent :: acc) rbase p)
     in
-    let _, frompath = path_to_list ~win32 from_dir in
-    let todrive, topath = path_to_list ~win32 to_dir in
-    let fdrive, fpath = path_to_list ~win32 f in
+    let _, frompath = to_list ~win32 from_dir in
+    let todrive, topath = to_list ~win32 to_dir in
+    let fdrive, fpath = to_list ~win32 f in
     if compat_drives todrive fdrive then
-      list_to_path ~win32 (todrive, aux fpath (List.rev frompath) topath)
+      from_list ~win32 (todrive, aux fpath (List.rev frompath) topath)
     else make_absolute ~win32 ~cwd f
 
 (* Leading slash before "C:" (else "C:" reads as the URL authority); a UNC
    path's server IS the authority, so its two leading slashes collapse to none. *)
-let url_path_of_absolute ~win32 path =
+let url_of_absolute ~win32 path =
   if not win32 then path
   else
     let p = String.map (function '\\' -> '/' | c -> c) path in
