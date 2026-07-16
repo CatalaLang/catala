@@ -225,19 +225,6 @@ val path_to_list : t -> string option * string list
     directories ; empty elements or current-directory (".") are otherwise
     skipped in the resulting list; *)
 
-(** Path functions taking the platform ([~win32]) and cwd ([~cwd]) explicitly,
-    so they are pure and testable on any OS; the versions above specialise these
-    to the host. *)
-module Path : sig
-  val path_to_list : win32:bool -> t -> string option * string list
-  val clean_path : win32:bool -> t -> t
-  val make_absolute : win32:bool -> cwd:t -> t -> t
-  val remove_prefix : win32:bool -> cwd:t -> t -> t -> t
-  val common_prefix : win32:bool -> cwd:t -> t -> t -> t
-  val make_relative_to : win32:bool -> cwd:t -> dir:t -> t -> t
-  val reverse_path : win32:bool -> cwd:t -> from_dir:t -> to_dir:t -> t -> t
-end
-
 val equal : t -> t -> bool
 (** Case-insensitive string comparison (no file resolution whatsoever) *)
 

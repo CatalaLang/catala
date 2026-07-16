@@ -25,10 +25,6 @@ val linking_command :
     command is needed by the Clerk_driver modules and not the clerk_rules
     modules that's why it doesn't appear in the Backend common interface. *)
 
-val pythonpath : win32:bool -> string list -> string
-(** [pythonpath ~win32 dirs] joins the entries with the OS separator. Exposed to
-    unit-test the Windows separator off-Windows. *)
-
 val run_artifact :
   Clerk_cli.config ->
   test:bool ->
