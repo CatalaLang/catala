@@ -163,7 +163,7 @@ module Backend = struct
       Nj.rule "java-class"
         ~command:[!javac; "-cp";
                   Var.quote_arg (File.(Var.(!builddir) / Scan.libcatala / name)
-                                 ^ Backend_paths.os_path_sep ~win32:Sys.win32
+                                 ^ Path.list_sep ~win32:Sys.win32
                                  ^ !class_path);
                   !javac_flags; !input]
         ~description:["<catala>"; name; "⇒"; !output];

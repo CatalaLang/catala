@@ -19,6 +19,11 @@
     host-specialised versions. *)
 
 val dir_sep_re : win32:bool -> Re.re
+
+val list_sep : win32:bool -> string
+(** Separator between entries of a path-list env var (PATH, PYTHONPATH,
+    CLASSPATH). *)
+
 val to_list : win32:bool -> string -> string option * string list
 val clean : win32:bool -> string -> string
 val make_absolute : win32:bool -> cwd:string -> string -> string

@@ -18,9 +18,6 @@
 (** Backend path/command helpers, [~win32]-parameterized so Windows behaviour is
     testable on any host. Internal to [Clerk_backends]. *)
 
-val os_path_sep : win32:bool -> string
-(** PYTHONPATH/classpath separator (';' on Windows, ':' elsewhere). *)
-
 val pythonpath : win32:bool -> string list -> string
 val classpath : win32:bool -> backend:string -> string list -> string
 

@@ -22,14 +22,11 @@ open File
 (* Backend path/command helpers parameterized by [~win32] so Windows behaviour
    is testable on any host. Internal: the backends specialise it to [Sys.win32]. *)
 
-(* Path-list separator: ';' on Windows (':' collides with the 'C:' drive colon),
-   ':' elsewhere. *)
-let os_path_sep ~win32 = if win32 then ";" else ":"
-let pythonpath ~win32 dirs = String.concat (os_path_sep ~win32) dirs
+let pythonpath ~win32 dirs = String.concat (Path.list_sep ~win32) dirs
 
 let classpath ~win32 ~backend include_dirs =
   let open Var in
-  String.concat (os_path_sep ~win32)
+  String.concat (Path.list_sep ~win32)
     ((!tdir / backend)
     :: List.map
          (fun d ->

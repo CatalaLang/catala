@@ -26,6 +26,10 @@ let dir_sep_re_unix = Re.(compile (char '/'))
 let dir_sep_re ~win32 = if win32 then dir_sep_re_win else dir_sep_re_unix
 let is_dir_sep ~win32 c = c = '/' || (win32 && (c = '\\' || c = ':'))
 
+(* Separator between entries of a path-list env var (PATH, PYTHONPATH,
+   CLASSPATH). *)
+let list_sep ~win32 = if win32 then ";" else ":"
+
 let is_relative ~win32 n =
   if win32 then
     (String.length n < 1 || (n.[0] <> '/' && n.[0] <> '\\'))
