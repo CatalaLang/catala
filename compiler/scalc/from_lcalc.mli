@@ -37,6 +37,10 @@ type translation_config = {
           defined in the preamble of the output. If set, module names are
           immutable and must be used as is in all references. *)
   renaming_context : Renaming.context;
+  split_scope_var_defs : bool;
+      (** Split scope's variable definitions into multiple functions to ensure
+          small function size. Necessary in Java to prevent 'code too large'
+          errors. *)
 }
 
 val translate_program :

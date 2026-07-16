@@ -26,6 +26,7 @@ type translation_config = {
   no_struct_literals : bool;
   keep_module_names : bool;
   renaming_context : Renaming.context;
+  split_scope_var_defs : bool;
 }
 
 type 'm ctxt = {
@@ -577,6 +578,117 @@ let rec translate_scope_body_expr ctx (scope_expr : 'm L.expr scope_body_expr) :
     RevBlock.rebuild (decl ++ statements)
       ~tail:(translate_scope_body_expr { ctx with ren_ctx } scope_let_next)
 
+let translate_split_scope_body_expr
+    (outer_ctx : 'm ctxt)
+    (ctx : 'm ctxt)
+    (scope_expr : 'm L.expr scope_body_expr) :
+    (A.VarName.t Mark.pos * A.FuncName.t * A.func) list * A.block =
+  let rec loop (var_def_funcs, scope_body, local_vars, (ctx : 'm ctxt)) =
+    function
+    | Last e ->
+      let block, new_e, _ren_ctx = translate_expr ctx e in
+      ( List.rev var_def_funcs,
+        RevBlock.rebuild (scope_body ++ block)
+          ~tail:[A.SReturn new_e, Mark.get new_e] )
+    | Cons (scope_let, next_bnd) ->
+      let let_var, scope_let_next, binded_ctx = unbind ctx next_bnd in
+      let ctx = binded_ctx in
+      let pos = scope_let.scope_let_pos in
+      let let_var_id, ctx = register_fresh_var ctx let_var ~pos in
+      if scope_let.scope_let_kind = Assertion then
+        let statements, ren_ctx =
+          translate_assignment ctx None scope_let.scope_let_expr
+        in
+        loop
+          ( var_def_funcs,
+            scope_body ++ statements,
+            Var.Set.add let_var local_vars,
+            { ctx with ren_ctx } )
+          scope_let_next
+      else if scope_let.scope_let_kind = ScopeVarDefinition then begin
+        let decl_var_name = let_var_id, pos in
+        let ret_typ = scope_let.scope_let_typ in
+        let fun_name, ctx =
+          register_fresh_func ~pos ~poly:false ctx
+            (Var.make (A.VarName.to_string let_var_id ^ "_def"))
+        in
+        let free_var_args =
+          Expr.free_vars_marked scope_let.scope_let_expr
+          |> Var.Map.bindings
+          |> List.filter_map (fun (var, m) ->
+              if
+                Var.Map.mem var outer_ctx.func_dict
+                || Var.Map.mem var outer_ctx.var_dict
+              then None
+              else
+                Some (A.VarName.fresh (Bindlib.name_of var, Expr.mark_pos m), m))
+        in
+        let call_expr =
+          ( A.EApp
+              {
+                f = A.EFunc fun_name, pos;
+                args =
+                  List.map
+                    (fun (v, m) -> A.EVar v, Expr.mark_pos m)
+                    free_var_args;
+                typ = ret_typ;
+                poly = false;
+              },
+            pos )
+        in
+        let decl_and_call =
+          RevBlock.make
+            [
+              A.SLocalDecl { name = decl_var_name; typ = ret_typ }, pos;
+              ( A.SLocalDef
+                  { name = decl_var_name; typ = ret_typ; expr = call_expr },
+                pos );
+            ]
+        in
+        let var_def_func : A.func =
+          let func_params : (A.VarName.t Mark.pos * typ) list =
+            List.map
+              (fun (v, m) -> Mark.add (Expr.mark_pos m) v, Expr.ty (v, m))
+              free_var_args
+          in
+          let func_body =
+            let stmts, e, _ =
+              translate_expr binded_ctx scope_let.scope_let_expr
+            in
+            RevBlock.rebuild stmts ~tail:[A.SReturn e, Mark.get e]
+          in
+          let func_return_typ = ret_typ in
+          { A.func_params; func_body; func_return_typ }
+        in
+        loop
+          ( (decl_var_name, fun_name, var_def_func) :: var_def_funcs,
+            scope_body ++ decl_and_call,
+            Var.Set.add let_var local_vars,
+            ctx )
+          scope_let_next
+      end
+      else
+        let decl, assign_to =
+          ( RevBlock.make
+              [
+                ( A.SLocalDecl
+                    { name = let_var_id, pos; typ = scope_let.scope_let_typ },
+                  pos );
+              ],
+            Some (let_var_id, pos) )
+        in
+        let statements, ren_ctx =
+          translate_assignment ctx assign_to scope_let.scope_let_expr
+        in
+        loop
+          ( var_def_funcs,
+            scope_body ++ decl ++ statements,
+            Var.Set.add let_var local_vars,
+            { ctx with ren_ctx } )
+          scope_let_next
+  in
+  loop ([], RevBlock.empty, Var.Set.empty, ctx) scope_expr
+
 let translate_program ~(config : translation_config) (p : 'm L.program) :
     A.program =
   let ctxt =
@@ -616,10 +728,19 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
       let scope_input_var_id, inner_ctx =
         register_fresh_var ctxt scope_input_var ~pos:input_pos
       in
-      let new_scope_body =
-        translate_scope_body_expr
-          { inner_ctx with context_name = ScopeName.base name }
-          scope_body_expr
+      let scope_body_var_defs, new_scope_body =
+        if config.split_scope_var_defs then
+          let var_defs, scope_body =
+            translate_split_scope_body_expr outer_ctx
+              { inner_ctx with context_name = ScopeName.base name }
+              scope_body_expr
+          in
+          Some var_defs, scope_body
+        else
+          ( None,
+            translate_scope_body_expr
+              { inner_ctx with context_name = ScopeName.base name }
+              scope_body_expr )
       in
       let func_id, outer_ctx =
         register_fresh_func outer_ctx var ~pos:input_pos ~poly:false
@@ -641,6 +762,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                   TStruct body.scope_body_output_struct, input_pos;
               };
             scope_body_visibility = body.scope_body_visibility;
+            scope_body_var_defs;
           }
         :: rev_items )
     | Topdef (name, topdef_ty, visibility, (EAbs abs, m)) ->

@@ -237,6 +237,7 @@ module Passes = struct
       ~keep_module_names
       ~monomorphize_types
       ~split_threshold
+      ~split_scope_var_defs
       ~renaming
       ~lift_pos : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
     let prg, type_ordering, renaming_context =
@@ -258,6 +259,7 @@ module Passes = struct
             no_struct_literals;
             keep_module_names;
             renaming_context;
+            split_scope_var_defs;
           }
         prg,
       type_ordering,
@@ -1066,7 +1068,8 @@ module Commands = struct
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops ~dead_value_assignment
         ~no_struct_literals ~keep_module_names:false ~monomorphize_types
-        ~split_threshold ~renaming:(Some Renaming.default)
+        ~split_threshold ~split_scope_var_defs:false
+        ~renaming:(Some Renaming.default)
         ~lift_pos:(Some Lcalc.To_ocaml.op_needs_pos)
     in
     get_output_format options output
@@ -1126,6 +1129,7 @@ module Commands = struct
         ~keep_module_names:false ~monomorphize_types:false
         ~renaming:(Some Scalc.To_python.renaming)
         ~lift_pos:(Some Scalc.To_python.op_needs_pos) ~split_threshold
+        ~split_scope_var_defs:false
     in
     Message.debug "Compiling program into Python...";
     get_output_format options output
@@ -1178,6 +1182,7 @@ module Commands = struct
         ~keep_module_names:true ~monomorphize_types:false
         ~renaming:(Some Scalc.To_java.renaming)
         ~lift_pos:(Some Scalc.To_java.op_needs_pos) ~split_threshold
+        ~split_scope_var_defs:true
     in
     Message.debug "Compiling program into Java...";
     get_output_format options output
@@ -1229,6 +1234,7 @@ module Commands = struct
         ~keep_module_names:false ~monomorphize_types:false
         ~renaming:(Some Scalc.To_c.renaming)
         ~lift_pos:(Some Scalc.To_c.op_needs_pos) ~split_threshold
+        ~split_scope_var_defs:false
     in
     Message.debug "Compiling program into C...";
     get_output_format options output
