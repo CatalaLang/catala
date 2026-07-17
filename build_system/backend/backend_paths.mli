@@ -15,11 +15,11 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Backend path/command helpers, [~win32]-parameterized so Windows behaviour is
-    testable on any host. Internal to [Clerk_backends]. *)
+(** Backend path/command helpers. Windows behaviour is testable on any host via
+    [Path.win32]. Internal to [Clerk_backends]. *)
 
-val pythonpath : win32:bool -> string list -> string
-val classpath : win32:bool -> backend:string -> string list -> string
+val pythonpath : string list -> string
+val classpath : backend:string -> string list -> string
 
 val jar_argfile_content : (string * string) list -> string
 (** Render '-C <dir> <file>' pairs into a jar argfile body (forward-slashed,

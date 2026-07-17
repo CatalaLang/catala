@@ -5,46 +5,59 @@ module Backend_paths = Clerk_backends.Backend_paths
 let check = Alcotest.(check string)
 let check_list = Alcotest.(check (list string))
 
+(* Runs [f] with the target OS forced, so Windows behaviour is exercised on the
+   Linux CI — where the reftests, running with '/', cannot catch it. Restores
+   [Path.win32] afterwards so tests don't leak the setting to one another. *)
+let with_os win32 f =
+  let saved = !Path.win32 in
+  Path.win32 := win32;
+  Fun.protect ~finally:(fun () -> Path.win32 := saved) f
+
 (* [include_flags]/[classpath] join with [Filename.concat], so on Windows a
    joined separator is '\'. These tests check quoting and the path separator, not
    slash direction; normalise '\' -> '/' first (no-op on Linux). *)
 let fwd s = String.map (function '\\' -> '/' | c -> c) s
-
-(* Each test drives a [~win32] core directly, so Windows behaviour runs on the
-   Linux CI — where the reftests, running with '/', cannot catch it. *)
 
 (* VS Code launches clerk with a lower-case drive cwd ("c:\\...") while the fs
    drive is upper-case; a case-sensitive prefix compare then failed to
    relativize, corrupting include_dirs into drive-stripped absolutes. *)
 
 let test_remove_prefix_drive_case () =
+  with_os true
+  @@ fun () ->
   check "lower-case-drive prefix removed from upper-case-drive path"
     {|lib\src\data|}
-    (Path.remove_prefix ~win32:true ~cwd:{|c:\proj|} {|c:\proj|}
-       {|C:\proj\lib\src\data|})
+    (Path.remove_prefix ~cwd:{|c:\proj|} {|c:\proj|} {|C:\proj\lib\src\data|})
 
 let test_reverse_path_no_drive_strip () =
+  with_os true
+  @@ fun () ->
   check "include-dir relativized to project root (drive not stripped)"
     {|lib\src\data\enums|}
-    (Path.reverse ~win32:true ~cwd:{|c:\proj|} ~from_dir:{|c:\proj|}
-       ~to_dir:{|.|} {|C:\proj\lib\src\data\enums|})
+    (Path.reverse ~cwd:{|c:\proj|} ~from_dir:{|c:\proj|} ~to_dir:{|.|}
+       {|C:\proj\lib\src\data\enums|})
 
 let test_make_relative_to_drive_case () =
+  with_os true
+  @@ fun () ->
   check "make_relative_to across a drive-case mismatch" {|b\c|}
-    (Path.make_relative_to ~win32:true ~cwd:{|c:\proj|} ~dir:{|C:\proj\a|}
-       {|C:\proj\a\b\c|})
+    (Path.make_relative_to ~cwd:{|c:\proj|} ~dir:{|C:\proj\a|} {|C:\proj\a\b\c|})
 
 (* A drive path needs a leading slash before "C:" (else "C:" is the URL
    authority); a UNC path's server IS the authority, so no extra leading slash. *)
 
 let test_file_url_drive () =
+  with_os true
+  @@ fun () ->
   check "windows drive path -> /C:/..." "/C:/proj/file.catala_en"
-    (Path.url_of_absolute ~win32:true {|C:\proj\file.catala_en|})
+    (Path.url_of_absolute {|C:\proj\file.catala_en|})
 
 let test_file_url_unc () =
+  with_os true
+  @@ fun () ->
   check "windows UNC path -> server/share/... (server is the authority)"
     "server/share/dir/file.catala_en"
-    (Path.url_of_absolute ~win32:true {|\\server\share\dir\file.catala_en|})
+    (Path.url_of_absolute {|\\server\share\dir\file.catala_en|})
 
 (* Ninja un-escapes its file-syntax quoting before running the command, so an
    include dir with a space (C:\Program Files\...) must ALSO be shell-quoted or
@@ -60,18 +73,20 @@ let test_include_flags_quote_absolute () =
    case needs a unit test. *)
 
 let test_classpath_separator () =
-  check "Java classpath: ';' on Windows" {|${tdir}/java;/opt/lib a/java|}
-    (fwd (Backend_paths.classpath ~win32:true ~backend:"java" [{|/opt/lib a|}]));
-  check "Java classpath: ':' on Unix" {|${tdir}/java:/opt/lib a/java|}
-    (fwd
-       (Backend_paths.classpath ~win32:false ~backend:"java" [{|/opt/lib a|}]))
+  with_os true (fun () ->
+      check "Java classpath: ';' on Windows" {|${tdir}/java;/opt/lib a/java|}
+        (fwd (Backend_paths.classpath ~backend:"java" [{|/opt/lib a|}])));
+  with_os false (fun () ->
+      check "Java classpath: ':' on Unix" {|${tdir}/java:/opt/lib a/java|}
+        (fwd (Backend_paths.classpath ~backend:"java" [{|/opt/lib a|}])))
 
 let test_pythonpath_separator () =
-  check "PYTHONPATH: ';' on Windows" {|C:/build/python;C:/proj/tests|}
-    (Backend_paths.pythonpath ~win32:true
-       [{|C:/build/python|}; {|C:/proj/tests|}]);
-  check "PYTHONPATH: ':' on Unix" {|/build/python:/proj/tests|}
-    (Backend_paths.pythonpath ~win32:false [{|/build/python|}; {|/proj/tests|}])
+  with_os true (fun () ->
+      check "PYTHONPATH: ';' on Windows" {|C:/build/python;C:/proj/tests|}
+        (Backend_paths.pythonpath [{|C:/build/python|}; {|C:/proj/tests|}]));
+  with_os false (fun () ->
+      check "PYTHONPATH: ':' on Unix" {|/build/python:/proj/tests|}
+        (Backend_paths.pythonpath [{|/build/python|}; {|/proj/tests|}]))
 
 (* A position literal embeds the source filename; on Windows its backslashes are
    an illegal escape (Java/Python) or silently wrong (C/OCaml) in the target

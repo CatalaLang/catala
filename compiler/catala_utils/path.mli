@@ -14,34 +14,28 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Pure path/URL helpers parameterized by platform ([~win32]) and cwd ([~cwd]),
-    so they are testable on any OS. Internal: [File]/[Message] expose the
+(** Pure path/URL helpers. Internal: [File]/[Message] expose the
     host-specialised versions. *)
 
-val dir_sep_re : win32:bool -> Re.re
+val win32 : bool ref
+(** Target OS, defaulting to the host ([Sys.win32]). Tests override it to
+    exercise Windows behaviour on any host; production never assigns it. *)
 
-val list_sep : win32:bool -> string
+val dir_sep_re : unit -> Re.re
+
+val list_sep : unit -> string
 (** Separator between entries of a path-list env var (PATH, PYTHONPATH,
     CLASSPATH). *)
 
-val to_list : win32:bool -> string -> string option * string list
-val clean : win32:bool -> string -> string
-val make_absolute : win32:bool -> cwd:string -> string -> string
-val remove_prefix : win32:bool -> cwd:string -> string -> string -> string
-val common_prefix : win32:bool -> cwd:string -> string -> string -> string
+val to_list : string -> string option * string list
+val clean : string -> string
+val make_absolute : cwd:string -> string -> string
+val remove_prefix : cwd:string -> string -> string -> string
+val common_prefix : cwd:string -> string -> string -> string
+val make_relative_to : cwd:string -> dir:string -> string -> string
+val reverse : cwd:string -> from_dir:string -> to_dir:string -> string -> string
 
-val make_relative_to :
-  win32:bool -> cwd:string -> dir:string -> string -> string
-
-val reverse :
-  win32:bool ->
-  cwd:string ->
-  from_dir:string ->
-  to_dir:string ->
-  string ->
-  string
-
-val url_of_absolute : win32:bool -> string -> string
+val url_of_absolute : string -> string
 (** Path part of a [file://] URL for an absolute OS path. Handles Windows drive
     paths ([C:\dir] -> [/C:/dir]) and UNC paths ([\\server\share] ->
     [server/share]). *)

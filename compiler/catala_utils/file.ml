@@ -35,18 +35,16 @@ let ( / ) a b =
   else if a = "" then Filename.dir_sep ^ b
   else Filename.concat a b
 
-let path_to_list p = Path.to_list ~win32:Sys.win32 p
-let clean_path p = Path.clean ~win32:Sys.win32 p
-let make_absolute p = Path.make_absolute ~win32:Sys.win32 ~cwd:(Sys.getcwd ()) p
+let path_to_list p = Path.to_list p
+let clean_path p = Path.clean p
+let make_absolute p = Path.make_absolute ~cwd:(Sys.getcwd ()) p
 
 let format ppf t =
   Format.fprintf ppf "\"@{<cyan>%a@}\""
     (Message.link ~target:(Message.file_url t) ())
     t
 
-let remove_prefix prefix f0 =
-  Path.remove_prefix ~win32:Sys.win32 ~cwd:(Sys.getcwd ()) prefix f0
-
+let remove_prefix prefix f0 = Path.remove_prefix ~cwd:(Sys.getcwd ()) prefix f0
 let rel_original_cwd () = remove_prefix (Sys.getcwd ()) original_cwd
 
 let temp_file pfx sfx =
@@ -74,14 +72,13 @@ let rec ensure_dir dir =
     Sys.mkdir dir
       0o777 (* will be affected by umask, most likely restricted to 0o755 *)
 
-let common_prefix f1 f2 =
-  Path.common_prefix ~win32:Sys.win32 ~cwd:(Sys.getcwd ()) f1 f2
+let common_prefix f1 f2 = Path.common_prefix ~cwd:(Sys.getcwd ()) f1 f2
 
 let make_relative_to ~dir f0 =
-  Path.make_relative_to ~win32:Sys.win32 ~cwd:(Sys.getcwd ()) ~dir f0
+  Path.make_relative_to ~cwd:(Sys.getcwd ()) ~dir f0
 
 let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
-  Path.reverse ~win32:Sys.win32 ~cwd:(Sys.getcwd ()) ~from_dir ~to_dir f
+  Path.reverse ~cwd:(Sys.getcwd ()) ~from_dir ~to_dir f
 
 let find_in_parents ?cwd predicate =
   let cwd = match cwd with None -> Sys.getcwd () | Some cwd -> cwd in
@@ -357,8 +354,7 @@ let get_command t =
 
 let check_exec t =
   try
-    if Re.execp (Path.dir_sep_re ~win32:Sys.win32) t then Unix.realpath t
-    else get_command t
+    if Re.execp (Path.dir_sep_re ()) t then Unix.realpath t else get_command t
   with
   | Unix.Unix_error _ | Sys_error _ ->
     Message.error

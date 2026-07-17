@@ -56,7 +56,7 @@ let run_artifact config ~trace ~test ?scope ~var_bindings src =
     else [] @ if trace then ["--trace"] else []
   in
   let pythonpath =
-    Backend_paths.pythonpath ~win32:Sys.win32
+    Backend_paths.pythonpath
       [
         build_dir / Scan.libcatala / "python";
         File.dirname src;
