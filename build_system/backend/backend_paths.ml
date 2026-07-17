@@ -19,14 +19,14 @@ open Clerk_utils
 open Catala_utils
 open File
 
-(* Backend path/command helpers parameterized by [~win32] so Windows behaviour
-   is testable on any host. Internal: the backends specialise it to [Sys.win32]. *)
+(* Backend path/command helpers. Windows behaviour is testable on any host via
+   [Path.win32]; the backends run against the host default. *)
 
-let pythonpath ~win32 dirs = String.concat (Path.list_sep ~win32) dirs
+let pythonpath dirs = String.concat (Path.list_sep ()) dirs
 
-let classpath ~win32 ~backend include_dirs =
+let classpath ~backend include_dirs =
   let open Var in
-  String.concat (Path.list_sep ~win32)
+  String.concat (Path.list_sep ())
     ((!tdir / backend)
     :: List.map
          (fun d ->

@@ -163,7 +163,7 @@ module Backend = struct
       Nj.rule "java-class"
         ~command:[!javac; "-cp";
                   Var.quote_arg (File.(Var.(!builddir) / Scan.libcatala / name)
-                                 ^ Path.list_sep ~win32:Sys.win32
+                                 ^ Path.list_sep ()
                                  ^ !class_path);
                   !javac_flags; !input]
         ~description:["<catala>"; name; "⇒"; !output];
@@ -250,8 +250,7 @@ module Backend = struct
   let build_object ~include_dirs ~same_dir_modules ~item _has_scope_tests =
     let modules = List.rev_map Mark.remove item.Scan.used_modules in
     let java_class_path =
-      Backend_paths.classpath ~win32:Sys.win32 ~backend:backend_name
-        include_dirs
+      Backend_paths.classpath ~backend:backend_name include_dirs
     in
     let module_target =
       modfile ~is_stdlib:item.is_stdlib same_dir_modules ".class"

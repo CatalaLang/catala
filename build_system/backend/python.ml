@@ -54,7 +54,7 @@ let run_artifact config ~test ?scope ~var_bindings src =
     @ if Global.options.output_format = JSON then ["--json"] else []
   in
   let pythonpath =
-    Backend_paths.pythonpath ~win32:Sys.win32
+    Backend_paths.pythonpath
       [
         build_dir / Scan.libcatala / "python";
         File.dirname src;

@@ -205,7 +205,7 @@ let file_url =
     let path =
       if Filename.is_relative file then Filename.concat cwd file else file
     in
-    let path = Path.url_of_absolute ~win32:Sys.win32 path in
+    let path = Path.url_of_absolute path in
     Printf.sprintf "file://%s%s%s" path
       (if line > 1 || column > 1 then Printf.sprintf "#%d" line else "")
       (if column > 1 then Printf.sprintf ":%d" column else "")
