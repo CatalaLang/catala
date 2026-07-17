@@ -1216,11 +1216,16 @@ module UserFacing = struct
     aux_value
 end
 
-let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
- fun fmt e ->
+let rec s_expr : type a m.
+    ?pp_mark:(Format.formatter -> m mark -> unit) ->
+    Format.formatter ->
+    (a, m) gexpr ->
+    unit =
+ fun ?(pp_mark = fun _ _ -> ()) fmt e ->
   let open Format in
   let pf = fprintf in
   let pp_sep fmt () = pf fmt ",@ " in
+  let s_expr = s_expr ~pp_mark in
   let ppl fmt l = pf fmt "@[<hov 2>[ %a ]@]" (pp_print_list ~pp_sep s_expr) l in
   let pp_marked_id fmt (sf, e) =
     pf fmt "@[<hov 1>%a: %a@]" MarkedIdent.format sf s_expr e
@@ -1232,6 +1237,7 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
     | None -> pf fmt "NONE"
     | Some x -> pf fmt "SOME(%a)" pp x
   in
+  pp_mark fmt (Mark.get e);
   match Mark.remove e with
   | ELit (LBool b) -> pf fmt "LitBool<%b>" b
   | ELit (LInt i) -> pf fmt "LitInt<%s>" (Z.to_string i)
@@ -1253,7 +1259,7 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
   | EVar v -> pf fmt "Var(%s#%d)" (Bindlib.name_of v) (Bindlib.uid_of v)
   | EAbs { binder; _ } ->
     let vars, e = Bindlib.unmbind binder in
-    let vars : (a, 't) gexpr list =
+    let vars : (a, m) gexpr list =
       Array.to_list vars |> List.map (fun v -> Mark.add (Mark.get e) (EVar v))
     in
     pf fmt "@[<hov 1>Abs(%a,@ %a)@]" ppl vars s_expr e
