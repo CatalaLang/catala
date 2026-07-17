@@ -186,8 +186,13 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
     let stmts, new_exceptions, ren_ctx = translate_expr_list ctxt exceptions in
     let ctxt = { ctxt with ren_ctx } in
     let stmts, excs, ctxt =
+      let ty =
+        match Expr.ty arr with
+        | TArray ty, _ -> ty
+        | _ -> Type.universal (Expr.pos expr)
+      in
       if not ctxt.config.no_struct_literals then
-        stmts, (A.EArray { elts = new_exceptions; ty = Expr.ty arr }, pos), ctxt
+        stmts, (A.EArray { elts = new_exceptions; ty }, pos), ctxt
       else
         let arr_var_name, ctxt =
           fresh_var ~pos ctxt ("exc_" ^ ctxt.context_name)
@@ -198,8 +203,7 @@ and translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) :
                  {
                    name = arr_var_name, pos;
                    typ = t_arr;
-                   expr =
-                     A.EArray { elts = new_exceptions; ty = Expr.ty arr }, pos;
+                   expr = A.EArray { elts = new_exceptions; ty }, pos;
                  },
                pos )
         in

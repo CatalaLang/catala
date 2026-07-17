@@ -429,14 +429,9 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EAppOp { op = DebugPrint str, _; args = [e]; _ } ->
     fprintf ppf "System.err.println(\"%s = \" + %a.toString())" str
       (format_expression ctx) e
-  | EAppOp
-      {
-        op = (HandleExceptions, _) as op;
-        args = [(EArray { elts = exprs; _ }, _)];
-        _;
-      } ->
-    fprintf ppf "@[<hv 2>%a@;<0 -1>(new CatalaArray<>(@ %a@ )@])" format_op op
-      (pp_print_list ~pp_sep:pp_comma (fun ppf e -> format_expression ctx ppf e))
+  | EAppOp { op = (HandleExceptions, _) as op; args = exprs; _ } ->
+    fprintf ppf "@[<hv 2>%a@;<0 -1>(%a@])" format_op op
+      (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       exprs
   | EAppOp { op = Concat, _; args = [(EArray { elts = []; _ }, _); e2]; _ } ->
     (* Do not append to empty list *)
