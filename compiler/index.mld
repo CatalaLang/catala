@@ -70,6 +70,7 @@ lcalc/                       |   Compile the default terms
                              |   (optional) closure conversion
                              |   (optional) monomorphisation
                              |   Reification of positions
+                             |   (optional) large expression splitting
                              |   Collision-free renaming
                              v
 scalc/                       |   Turn expressions into statements

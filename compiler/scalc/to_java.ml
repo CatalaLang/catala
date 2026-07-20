@@ -534,6 +534,10 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       (pp_print_list ~pp_sep:pp_comma (fun ppf e ->
            fprintf ppf "%a" (format_expression ctx) e))
       es
+  | ETupleAccess { e1; index; typ = (TArrow _, _) as typ } ->
+    fprintf ppf "(%a)@;<0 -1>(%a.get(%d))" (format_typ ctx) typ
+      (format_expression_with_paren ctx)
+      e1 index
   | ETupleAccess { e1; index; typ } ->
     fprintf ppf "CatalaValue.<%a>cast@;<0 -1>(%a.get(%d))" (format_typ ctx) typ
       (format_expression_with_paren ctx)

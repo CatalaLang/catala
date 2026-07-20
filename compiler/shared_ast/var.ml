@@ -115,6 +115,7 @@ module Map = struct
   let keys m = keys m |> List.map get
   let values m = values m
   let format_keys ?pp_sep m = format_keys ?pp_sep m
+  let filter f m = filter (fun v x -> f (get v) x) m
 
   (* Add more as needed *)
 end
