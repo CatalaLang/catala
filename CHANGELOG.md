@@ -14,3 +14,9 @@ in behavior visible for the end-users of the tooling.
   the `--trace` mechanism:
   - Added support in the `Java` backend;
   - Added `clerk run --trace ...` options.
+
+* [#1075](https://github.com/CatalaLang/catala/pull/1075) Fixes a bug
+  where, for large Catala programs, the java generated code is too
+  large and would yield "code too large" error. We now split large
+  methods into smaller methods whenever necessary.
+  Also, removed law headings from positions in Java (same as C).
