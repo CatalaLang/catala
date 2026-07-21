@@ -53,7 +53,7 @@ let run_artifact ~test ?scope src =
 module Backend = struct
   open Var
   open File
-  module Nj = Ninja_utils
+  module Nj = Var.Nj
 
   let name = "c"
   let module_ext = "@" ^ name ^ "-module"
@@ -94,9 +94,7 @@ module Backend = struct
             ]);
         def c_include
           (lazy
-            ([
-               "-I"; File.(Var.(!builddir) / Scan.libcatala / name);
-             ]
+            (["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]
             @ Common.Flags.includes ~backend:name include_dirs));
       ]
   end

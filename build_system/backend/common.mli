@@ -19,7 +19,12 @@ open Clerk_utils
 open Clerk_lib
 
 module Flags : sig
-  val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
+  val def :
+    variables:(string * string list) list ->
+    Var.t ->
+    string list lazy_t ->
+    Var.t * string list
+
   val includes : ?backend:string -> string list -> string list
   val include_flags : backend:string -> string list -> string list
 

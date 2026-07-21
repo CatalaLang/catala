@@ -46,15 +46,16 @@ val catala_flags : t
 val make : string -> t
 
 val cmd_only : t -> t
-(** [cmd_only (make "V")] declares that ${V} is only ever consumed as shell
+(** [cmd_only (make "V")] declares that [${V}] is only ever consumed as shell
     arguments (rule commands, direct-exec argv), never as a build-statement
     path. Its words are shell-quoted when the binding is written to the ninja
     file ({!binding_words}); the stored value stays unquoted for direct argv
     execs. Not for vars with a path consumer (builddir, tdir, CATALA_EXE, ...):
-    ninja uses those values as file names, where quotes would be literal.
-    A word-list var can never have a path consumer: its binding would need
-    per-word quotes for commands and verbatim text for paths at once. Split
-    such a var in two (a raw path var, and a derived cmd_only flags var). *)
+    ninja uses those values as file names, where quotes would be literal. A
+    word-list var with a path consumer is not expressible in ninja itself:
+    variables expand after tokenization, so one [${v}] is always exactly one
+    path. For a list of paths in a build statement, pass the concrete OCaml list
+    (~inputs:[...]) instead of a variable. *)
 
 val is_cmd_only : t -> bool
 val runtime : t
@@ -93,6 +94,22 @@ val quote_arg : string -> string
 val binding_words : t -> string list -> string list
 (** A binding's words as written to the ninja file: shell-quoted for cmd_only
     vars, verbatim otherwise. *)
+
+val check_value : t -> string list -> string list
+(** Identity; errors out if a cmd_only binding word contains a quote char
+    (quoting is applied at emission, never stored). *)
+
+val check_path : string -> string
+(** Identity; errors out if the string references a cmd_only variable, whose
+    expansion (shell-quoted words) must never reach a ninja path position. *)
+
+(** {!Ninja_utils} with the path fields of [build] statements checked through
+    {!check_path}. *)
+module Nj : sig
+  include module type of struct
+    include Ninja_utils
+  end
+end
 
 val get_var : bindings -> t -> string list
 (** replaces [${xvar}] with its value, recursively *)

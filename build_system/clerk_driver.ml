@@ -17,7 +17,7 @@
 
 open Catala_utils
 open Clerk_utils
-module Nj = Ninja_utils
+module Nj = Clerk_utils.Var.Nj
 module Cli = Clerk_cli
 module Var = Clerk_utils.Var
 module Config = Clerk_config
@@ -1064,9 +1064,7 @@ let typecheck_cmd =
     with
     | exception Nothing_to_do -> Message.error "Nothing to typecheck."
     | target_items, var_bindings ->
-      let catala_flags =
-        Var.get_var var_bindings Var.catala_flags
-      in
+      let catala_flags = Var.get_var var_bindings Var.catala_flags in
       let exec = Var.get_var var_bindings Var.catala_exe in
       let ret =
         List.filter_map
@@ -1542,9 +1540,7 @@ let json_schema_cmd =
         ~trace_format:None ~enabled_backends:[] ~config ~inplace:true
     in
     let catala_exe = Var.get_var var_bindings Var.catala_exe in
-    let catala_flags =
-      Var.get_var var_bindings Var.catala_flags
-    in
+    let catala_flags = Var.get_var var_bindings Var.catala_flags in
     let cmd =
       catala_exe @ ["json-schema"; file; "--scope"; scope] @ catala_flags
     in
@@ -1572,9 +1568,7 @@ let exceptions_cmd =
         ~trace_format:None ~enabled_backends:[] ~config ~inplace:true
     in
     let catala_exe = Var.get_var var_bindings Var.catala_exe in
-    let catala_flags =
-      Var.get_var var_bindings Var.catala_flags
-    in
+    let catala_flags = Var.get_var var_bindings Var.catala_flags in
     let cmd =
       catala_exe
       @ ["exceptions"; file; "--scope"; scope; "--variable"; variable]
