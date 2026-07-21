@@ -1031,7 +1031,8 @@ let format_tests ctx ppf p =
        fprintf ppf "try {@\n";
        (if Global.options.trace <> None then
           let scope_pos = Mark.get (ScopeName.get_info scope_name) in
-          format_begin_trace ctx ppf (ScopeCall scope_name, scope_pos));
+          fprintf ppf "%a@\n" (format_begin_trace ctx)
+            (ScopeCall scope_name, scope_pos));
        fprintf ppf "%a@\n" (format_block ~toplevel:true ctx) block;
        if Global.options.trace <> None then
          fprintf ppf "CatalaTrace.end(%s);@\n" (VarName.to_string var);
