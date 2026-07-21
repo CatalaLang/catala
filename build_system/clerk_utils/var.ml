@@ -85,9 +85,41 @@ let quote_arg s = "\"" ^ s ^ "\""
 let binding_words var words =
   if is_cmd_only var then List.map quote_arg words else words
 
+(* Guard: emitting [binding_words] quoting around a word that already contains
+   a quote char produces broken shell syntax, and direct execs would get the
+   quote char in argv. *)
+let check_value var words =
+  if is_cmd_only var then
+    List.iter
+      (fun w ->
+        if String.contains w '"' then
+          Message.error
+            "Invalid word %S in the value of variable @{<blue;bold>$%s@}: \
+             quote characters are not allowed, shell quoting is applied \
+             automatically"
+            w (name var))
+      words;
+  words
+
 let re_var =
   let open Re in
   seq [str "${"; group (rep1 (diff any (char '}'))); char '}']
+
+(* Guard: a cmd_only var referenced in a ninja path position would expand to
+   its shell-quoted binding words, which ninja takes as literal file names. *)
+let check_path =
+  let re = lazy Re.(compile re_var) in
+  fun s ->
+    List.iter
+      (fun g ->
+        let n = Re.Group.get g 1 in
+        if String.Set.mem n (Stdlib.( ! ) cmd_only_names) then
+          Message.error
+            "Command-only variable @{<blue;bold>${%s}@} referenced in a ninja \
+             path position"
+            n)
+      (Re.all (Lazy.force re) s);
+    s
 
 type bindings = (t * string list) list
 
@@ -117,3 +149,17 @@ and expand_vars =
       ~f:(fun g ->
         String.concat " " (get_var var_bindings (make (Re.Group.get g 1))))
       s
+
+(* Ninja_utils with the path fields of build statements checked against
+   cmd_only references. *)
+module Nj = struct
+  include Ninja_utils
+
+  let build ?inputs ?implicit_in ~outputs ?implicit_out ?vars rule =
+    let chk = List.map check_path in
+    Ninja_utils.build ?inputs:(Option.map chk inputs)
+      ?implicit_in:(Option.map chk implicit_in)
+      ~outputs:(chk outputs)
+      ?implicit_out:(Option.map chk implicit_out)
+      ?vars rule
+end

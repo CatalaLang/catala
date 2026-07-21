@@ -26,7 +26,7 @@ module Flags = struct
       | Some vl -> vl
       | None -> Lazy.force value
     in
-    var, value
+    var, Var.check_value var value
 
   (* Unquoted: feeds cmd_only binding values (CATALA_FLAGS, OCAML_INCLUDE, ...),
      quoted at ninja-emit by [Var.binding_words] and used bare by direct
@@ -135,7 +135,7 @@ module Flags = struct
 end
 
 module Ninja = struct
-  module Nj = Ninja_utils
+  module Nj = Var.Nj
 
   let static_base_rules =
     let open Var in

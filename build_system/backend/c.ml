@@ -53,7 +53,7 @@ let run_artifact ~test ?scope src =
 module Backend = struct
   open Var
   open File
-  module Nj = Ninja_utils
+  module Nj = Var.Nj
 
   let name = "c"
   let module_ext = "@" ^ name ^ "-module"

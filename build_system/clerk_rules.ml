@@ -18,7 +18,7 @@
 open Catala_utils
 open Clerk_utils
 module Backend_common = Clerk_backends.Common
-module Nj = Ninja_utils
+module Nj = Clerk_utils.Var.Nj
 
 (**{1 Building rules}*)
 

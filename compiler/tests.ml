@@ -59,6 +59,39 @@ let test_file_url_unc () =
     "server/share/dir/file.catala_en"
     (Path.url_of_absolute {|\\server\share\dir\file.catala_en|})
 
+(* The cmd_only classification is enforced at runtime: a quote char stored in a
+   cmd_only binding value (double-quoting at emission), or a cmd_only var
+   referenced in a ninja path position (its quoted words would become literal
+   file-name chars), must fail loudly on any platform, not just spaced-dir
+   Windows. *)
+
+module CVar = Clerk_utils.Var
+
+let raises_compiler_error f =
+  try
+    ignore (f ());
+    false
+  with Catala_utils.Message.CompilerError _ -> true
+
+let test_check_value_rejects_quote () =
+  Alcotest.(check bool)
+    "quote char in a cmd_only value is rejected" true
+    (raises_compiler_error (fun () ->
+         CVar.check_value CVar.catala_flags [{|"boom"|}]))
+
+let test_check_value_accepts_clean () =
+  check_list "clean cmd_only value passes through" ["-O"; "--trace"]
+    (CVar.check_value CVar.catala_flags ["-O"; "--trace"])
+
+let test_check_path_rejects_cmd_only_ref () =
+  Alcotest.(check bool)
+    "cmd_only ref in a path position is rejected" true
+    (raises_compiler_error (fun () -> CVar.check_path "${CATALA_FLAGS}/foo.cmx"))
+
+let test_check_path_accepts_path_vars () =
+  check "path-var refs pass through" "${builddir}/x/${tdir}/y"
+    (CVar.check_path "${builddir}/x/${tdir}/y")
+
 (* Ninja un-escapes its file-syntax quoting before running the command, so an
    include dir with a space (C:\Program Files\...) must ALSO be shell-quoted or
    the compiler's argv parser word-splits it. *)
@@ -143,6 +176,17 @@ let () =
         [
           test_case "file_url drive path" `Quick test_file_url_drive;
           test_case "file_url UNC path" `Quick test_file_url_unc;
+        ] );
+      ( "Clerk cmd_only runtime guards",
+        [
+          test_case "check_value rejects quote char" `Quick
+            test_check_value_rejects_quote;
+          test_case "check_value passes clean words" `Quick
+            test_check_value_accepts_clean;
+          test_case "check_path rejects cmd_only ref" `Quick
+            test_check_path_rejects_cmd_only_ref;
+          test_case "check_path passes path-var refs" `Quick
+            test_check_path_accepts_path_vars;
         ] );
       ( "Clerk include-dir quoting (spaces in install dir)",
         [

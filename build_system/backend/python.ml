@@ -70,7 +70,7 @@ let run_artifact config ~trace ~test ?scope ~var_bindings src =
 module Backend = struct
   open Var
   open File
-  module Nj = Ninja_utils
+  module Nj = Var.Nj
 
   let name = "python"
   let module_ext = ".py"

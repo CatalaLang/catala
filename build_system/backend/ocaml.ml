@@ -110,7 +110,7 @@ let run_artifact ~test ~(trace : bool) ?scope src =
 
 module Backend = struct
   open Var
-  module Nj = Ninja_utils
+  module Nj = Var.Nj
   module Flags = Flags
 
   let name = backend_name

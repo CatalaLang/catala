@@ -110,7 +110,7 @@ let run_artifact ~var_bindings ~test ~trace ?scope src =
 
 module Backend = struct
   open Var
-  module Nj = Ninja_utils
+  module Nj = Var.Nj
 
   let name = "java"
   let module_ext = ".class"
