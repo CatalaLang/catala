@@ -60,11 +60,9 @@ let test_file_url_unc () =
     "server/share/dir/file.catala_en"
     (Path.url_of_absolute {|\\server\share\dir\file.catala_en|})
 
-(* The cmd_only classification is enforced at runtime: a quote char stored in a
-   cmd_only binding value (double-quoting at emission), or a cmd_only var
-   referenced in a ninja path position (its quoted words would become literal
-   file-name chars), must fail loudly on any platform, not just spaced-dir
-   Windows. *)
+(* The cmd_only guards must fail loudly on any platform, not just spaced-dir
+   Windows: stored quote chars double-quote at emission; a cmd_only ref in a
+   path position puts quote chars in file names. *)
 
 module CVar = Clerk_utils.Var
 
@@ -93,9 +91,10 @@ let test_check_path_accepts_path_vars () =
   check "path-var refs pass through" "${builddir}/x/${tdir}/y"
     (CVar.check_path "${builddir}/x/${tdir}/y")
 
-(* Ninja un-escapes its file-syntax quoting before running the command, so an
-   include dir with a space (C:\Program Files\...) must ALSO be shell-quoted or
-   the compiler's argv parser word-splits it. *)
+(* include_flags feeds rule-scoped ninja bindings spliced into compile
+   commands, which the shell re-parses: each dir must be shell-quoted or a
+   spaced path (C:\Program Files\...) word-splits. Emit-only values, never read
+   back for direct exec (see Var.cmd_only). *)
 
 let test_include_flags_quote_absolute () =
   check_list "include_flags: each -I dir is shell-quoted"

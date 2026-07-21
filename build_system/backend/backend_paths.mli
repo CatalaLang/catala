@@ -1,7 +1,6 @@
 (* This file is part of the Catala build system, a specification language for
-   tax and social benefits computation rules. Copyright (C) 2020-2025 Inria,
-   contributors: Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley
-   <emile.rolley@tuta.io>, Louis Gesbert <louis.gesbert@inria.fr>
+   tax and social benefits computation rules. Copyright (C) 2026 Inria,
+   contributors: Romain Primet <romain.primet@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -19,7 +18,13 @@
     [Path.win32]. Internal to [Clerk_backends]. *)
 
 val pythonpath : string list -> string
+(** PYTHONPATH value: the given dirs joined with the OS path-list separator (';'
+    on Windows, ':' elsewhere). *)
+
 val classpath : backend:string -> string list -> string
+(** Java [-cp] value: the backend output dirs ([${tdir}/<backend>], then each
+    include dir's [<backend>] subdir) joined with the OS path-list separator.
+    Contains ninja variable references, for use in rule commands. *)
 
 val jar_argfile_content : (string * string) list -> string
 (** Render '-C <dir> <file>' pairs into a jar argfile body (forward-slashed,

@@ -28,9 +28,8 @@ module Flags = struct
     in
     var, Var.check_value var value
 
-  (* Unquoted: feeds cmd_only binding values (CATALA_FLAGS, OCAML_INCLUDE, ...),
-     quoted at ninja-emit by [Var.binding_words] and used bare by direct
-     execs. *)
+  (* Unquoted: cmd_only binding values, quoted at emission
+     ([Var.binding_words]). *)
   let includes ?backend include_dirs =
     List.fold_right
       (fun dir flags ->
@@ -59,8 +58,7 @@ module Flags = struct
           | _ -> false)
         test_flags
 
-  (* Quoted here: only ever emitted into rule-scoped ninja bindings
-     (~vars:[Var.includes, ...]), never read back for direct exec. *)
+  (* Quoted here: emit-only rule-scoped bindings, never read back. *)
   let include_flags ~backend include_dirs =
     let open File in
     "-I"

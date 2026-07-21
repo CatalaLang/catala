@@ -20,12 +20,7 @@ open Catala_utils
 include Ninja_utils.Var
 (** Ninja variable names *)
 
-(* Declares that ${v} is only ever consumed as shell arguments (rule commands,
-   direct-exec argv) — never as a build-statement path. Its words are
-   shell-quoted when the binding is written to the ninja file; the stored value
-   stays unquoted (direct execs use it as argv). Vars with a path consumer
-   (builddir, tdir, CATALA_EXE, ...) must NOT be declared cmd_only: ninja uses
-   their values as file names, where quotes would be literal. *)
+(* See [cmd_only] in the mli. *)
 let cmd_only_names = ref String.Set.empty
 let is_cmd_only v = String.Set.mem (name v) !cmd_only_names
 
@@ -70,24 +65,12 @@ let cat_files = make "cat_files" (* Useful on Windows only *)
 (* let scope = make "scope" *)
 let test_id = make "test-id"
 let ( ! ) = Ninja_utils.Var.v
-
-(* Double-quote a variable reference for use as a shell argument in a rule
-   command (protects spaced paths). Command contexts only, not ninja paths. *)
 let quoted x = "\"" ^ !x ^ "\""
-
-(* Like [quoted] but for a literal string. Rule-command literals ONLY, never
-   binding values: those stay unquoted (direct execs read them as argv) and are
-   quoted by [binding_words] when written to the ninja file. *)
 let quote_arg s = "\"" ^ s ^ "\""
 
-(* A binding's words as written to the ninja file: shell-quoted for cmd_only
-   vars, verbatim otherwise. *)
 let binding_words var words =
   if is_cmd_only var then List.map quote_arg words else words
 
-(* Guard: emitting [binding_words] quoting around a word that already contains
-   a quote char produces broken shell syntax, and direct execs would get the
-   quote char in argv. *)
 let check_value var words =
   if is_cmd_only var then
     List.iter
@@ -105,8 +88,6 @@ let re_var =
   let open Re in
   seq [str "${"; group (rep1 (diff any (char '}'))); char '}']
 
-(* Guard: a cmd_only var referenced in a ninja path position would expand to
-   its shell-quoted binding words, which ninja takes as literal file names. *)
 let check_path =
   let re = lazy Re.(compile re_var) in
   fun s ->
@@ -150,8 +131,6 @@ and expand_vars =
         String.concat " " (get_var var_bindings (make (Re.Group.get g 1))))
       s
 
-(* Ninja_utils with the path fields of build statements checked against
-   cmd_only references. *)
 module Nj = struct
   include Ninja_utils
 

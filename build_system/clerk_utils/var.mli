@@ -48,14 +48,12 @@ val make : string -> t
 val cmd_only : t -> t
 (** [cmd_only (make "V")] declares that [${V}] is only ever consumed as shell
     arguments (rule commands, direct-exec argv), never as a build-statement
-    path. Its words are shell-quoted when the binding is written to the ninja
-    file ({!binding_words}); the stored value stays unquoted for direct argv
-    execs. Not for vars with a path consumer (builddir, tdir, CATALA_EXE, ...):
-    ninja uses those values as file names, where quotes would be literal. A
-    word-list var with a path consumer is not expressible in ninja itself:
-    variables expand after tokenization, so one [${v}] is always exactly one
-    path. For a list of paths in a build statement, pass the concrete OCaml list
-    (~inputs:[...]) instead of a variable. *)
+    path: its words are shell-quoted when the binding is written to the ninja
+    file ({!binding_words}), and stay unquoted in the stored value. Not for vars
+    with a path consumer (builddir, tdir, CATALA_EXE, ...), where the quotes
+    would be literal file-name chars. A word-list var with a path consumer is
+    not expressible in ninja anyway (variables expand after tokenization: one
+    [${v}] is exactly one path); pass the concrete OCaml list instead. *)
 
 val is_cmd_only : t -> bool
 val runtime : t
