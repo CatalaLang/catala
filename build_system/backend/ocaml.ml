@@ -20,11 +20,11 @@ open Catala_utils
 open Clerk_lib
 
 let backend_name = "ocaml"
-let catala_flags_ocaml = Var.make "CATALA_FLAGS_OCAML"
-let ocamlc_exe = Var.make "OCAMLC_EXE"
-let ocamlopt_exe = Var.make "OCAMLOPT_EXE"
-let ocaml_flags = Var.make "OCAML_FLAGS"
-let ocaml_include = Var.make "OCAML_INCLUDE"
+let catala_flags_ocaml = Var.cmd_only (Var.make "CATALA_FLAGS_OCAML")
+let ocamlc_exe = Var.cmd_only (Var.make "OCAMLC_EXE")
+let ocamlopt_exe = Var.cmd_only (Var.make "OCAMLOPT_EXE")
+let ocaml_flags = Var.cmd_only (Var.make "OCAML_FLAGS")
+let ocaml_include = Var.cmd_only (Var.make "OCAML_INCLUDE")
 
 module Flags = struct
   let ocaml_include_and_lib : (string list * string list) Lazy.t =
@@ -44,7 +44,7 @@ module Flags = struct
                  File.(Lazy.force Poll.ocaml_libdir / lib)
                  lib
              | Some d ->
-               ( ["-I"; Var.quote_arg d],
+               ( ["-I"; d],
                  String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa" ))
            link_libs
        in
@@ -84,11 +84,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   @ [build_dir / Scan.libcatala / backend_name / "dates_calc.cmx"]
   @ [build_dir / Scan.libcatala / backend_name / "catala_runtime.cmx"]
   @ Var.get_var var_bindings ocaml_flags
-  (* OCAML_INCLUDE's '-I <dir>' flags are double-quoted (Var.quote_arg) so spaced
-     paths survive the shell in ninja *rule* commands. This link step is the
-     exception — a direct argv exec (no shell), where the quotes would be taken
-     literally (ocamlopt: "Cannot find file zarith.cmxa") — so strip them. *)
-  @ List.map Var.unquote (Var.get_var var_bindings ocaml_include)
+  @ Var.get_var var_bindings ocaml_include
   @ List.map
       (fun it ->
         let f = Scan.target_file_name it in

@@ -19,10 +19,10 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
-let catala_flags_c = Var.make "CATALA_FLAGS_C"
-let cc_exe = Var.make "CC"
-let c_flags = Var.make "CFLAGS"
-let c_include = Var.make "C_INCLUDE_FLAGS"
+let catala_flags_c = Var.cmd_only (Var.make "CATALA_FLAGS_C")
+let cc_exe = Var.cmd_only (Var.make "CC")
+let c_flags = Var.cmd_only (Var.make "CFLAGS")
+let c_include = Var.cmd_only (Var.make "C_INCLUDE_FLAGS")
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
@@ -37,9 +37,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   @ ["-lgmp"]
   @ [target -.- "o"; File.remove_extension target ^ "+main.o"]
   @ Var.get_var var_bindings c_flags
-  (* Strip the shell-quoting from C_INCLUDE_FLAGS: this link step is a direct
-     argv exec, not a ninja rule command. See Ocaml.linking_command. *)
-  @ List.map Var.unquote (Var.get_var var_bindings c_include)
+  @ Var.get_var var_bindings c_include
   @ ["-o"; target -.- "exe"]
 
 let run_artifact ~test ?scope src =
@@ -96,9 +94,7 @@ module Backend = struct
             ]);
         def c_include
           (lazy
-            ([
-               "-I"; Var.quote_arg File.(Var.(!builddir) / Scan.libcatala / name);
-             ]
+            (["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]
             @ Common.Flags.includes ~backend:name include_dirs));
       ]
   end

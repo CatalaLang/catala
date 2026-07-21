@@ -28,17 +28,19 @@ module Flags = struct
     in
     var, value
 
+  (* Unquoted: feeds cmd_only binding values (CATALA_FLAGS, OCAML_INCLUDE, ...),
+     quoted at ninja-emit by [Var.binding_words] and used bare by direct
+     execs. *)
   let includes ?backend include_dirs =
     List.fold_right
       (fun dir flags ->
         if Filename.is_relative dir then
           "-I"
-          :: Var.quote_arg
-               File.(
-                 Var.(!builddir)
-                 / match backend with Some b -> dir / b | None -> dir)
+          :: File.(
+               Var.(!builddir)
+               / match backend with Some b -> dir / b | None -> dir)
           :: flags
-        else "-I" :: Var.quote_arg dir :: flags)
+        else "-I" :: dir :: flags)
       include_dirs []
 
   let catala_backend_flags
@@ -57,6 +59,8 @@ module Flags = struct
           | _ -> false)
         test_flags
 
+  (* Quoted here: only ever emitted into rule-scoped ninja bindings
+     (~vars:[Var.includes, ...]), never read back for direct exec. *)
   let include_flags ~backend include_dirs =
     let open File in
     "-I"
@@ -119,7 +123,7 @@ module Flags = struct
       def Var.clerk_flags
         (lazy
           ("-e"
-           :: Var.(quoted catala_exe)
+           :: Var.(!catala_exe)
            :: ("--test-flags=" ^ String.concat "," test_flags)
            :: includes
           @ (if code_coverage then ["--code-coverage"] else [])
