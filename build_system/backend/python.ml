@@ -19,8 +19,8 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
-let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
-let python = Var.make "PYTHON"
+let catala_flags_python = Var.cmd_only (Var.make "CATALA_FLAGS_PYTHON")
+let python = Var.cmd_only (Var.make "PYTHON")
 
 let linking_command ~build_dir link_deps item target =
   (* a "linked" python module is a "Module.py" folder containing the module .py

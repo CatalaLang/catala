@@ -19,11 +19,11 @@ open Clerk_utils
 open Catala_utils
 open File
 
-let catala_flags_java = Var.make "CATALA_FLAGS_JAVA"
-let javac = Var.make "JAVAC"
-let javac_flags = Var.make "JAVAC_FLAGS"
-let jar = Var.make "jar"
-let java = Var.make "JAVA"
+let catala_flags_java = Var.cmd_only (Var.make "CATALA_FLAGS_JAVA")
+let javac = Var.cmd_only (Var.make "JAVAC")
+let javac_flags = Var.cmd_only (Var.make "JAVAC_FLAGS")
+let jar = Var.cmd_only (Var.make "jar")
+let java = Var.cmd_only (Var.make "JAVA")
 let backend_name = "java"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =

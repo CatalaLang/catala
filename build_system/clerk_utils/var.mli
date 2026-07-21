@@ -21,6 +21,18 @@ include module type of struct
   include Ninja_utils.Var
 end
 
+(** {1 Quoting rules}
+
+    Quoting belongs to the boundary a value crosses, never to the stored value:
+    - declaring: holds shell arguments -> {!cmd_only}; names build-statement
+      paths -> {!make}. Dual-use (CATALA_EXE): [make], quote each command ref.
+    - command ref: expands to one argument -> {!quoted}; to several -> bare
+      [!var].
+    - command literal: spaceable (a path) -> {!quote_arg}; a flag -> bare.
+    - [def] binding values: never contain a quote char ({!binding_words} quotes
+      cmd_only vars at emit; direct execs read values as argv).
+    - {!get_var} output is argv: use as-is, never quote or strip. *)
+
 (** {1 Ninja variable names} *)
 
 (** {2 Global vars: always defined, at toplevel} *)
@@ -32,6 +44,19 @@ val clerk_flags : t
 val catala_exe : t
 val catala_flags : t
 val make : string -> t
+
+val cmd_only : t -> t
+(** [cmd_only (make "V")] declares that ${V} is only ever consumed as shell
+    arguments (rule commands, direct-exec argv), never as a build-statement
+    path. Its words are shell-quoted when the binding is written to the ninja
+    file ({!binding_words}); the stored value stays unquoted for direct argv
+    execs. Not for vars with a path consumer (builddir, tdir, CATALA_EXE, ...):
+    ninja uses those values as file names, where quotes would be literal.
+    A word-list var can never have a path consumer: its binding would need
+    per-word quotes for commands and verbatim text for paths at once. Split
+    such a var in two (a raw path var, and a derived cmd_only flags var). *)
+
+val is_cmd_only : t -> bool
 val runtime : t
 val all_vars : t String.Map.t
 
@@ -62,11 +87,12 @@ val quoted : t -> string
     command (spaced paths). Not for ninja input/output paths. *)
 
 val quote_arg : string -> string
-(** Like {!quoted} but for a literal string (e.g. an absolute include dir). *)
+(** Like {!quoted} but for a literal string. Rule-command literals only, never
+    binding values (see {!cmd_only}). *)
 
-val unquote : string -> string
-(** Inverse of {!quote_arg}: strip one surrounding double-quote layer, for
-    values spliced into a direct argv exec (no shell). *)
+val binding_words : t -> string list -> string list
+(** A binding's words as written to the ninja file: shell-quoted for cmd_only
+    vars, verbatim otherwise. *)
 
 val get_var : bindings -> t -> string list
 (** replaces [${xvar}] with its value, recursively *)

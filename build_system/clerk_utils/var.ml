@@ -20,14 +20,28 @@ open Catala_utils
 include Ninja_utils.Var
 (** Ninja variable names *)
 
+(* Declares that ${v} is only ever consumed as shell arguments (rule commands,
+   direct-exec argv) — never as a build-statement path. Its words are
+   shell-quoted when the binding is written to the ninja file; the stored value
+   stays unquoted (direct execs use it as argv). Vars with a path consumer
+   (builddir, tdir, CATALA_EXE, ...) must NOT be declared cmd_only: ninja uses
+   their values as file names, where quotes would be literal. *)
+let cmd_only_names = ref String.Set.empty
+
+let is_cmd_only v = String.Set.mem (name v) !cmd_only_names
+
+let cmd_only v =
+  cmd_only_names := String.Set.add (name v) !cmd_only_names;
+  v
+
 (** Global vars: always defined, at toplevel *)
 
 let ninja_required_version = make "ninja_required_version"
 let builddir = make "builddir"
 let clerk_exe = make "CLERK_EXE"
-let clerk_flags = make "CLERK_FLAGS"
+let clerk_flags = cmd_only (make "CLERK_FLAGS")
 let catala_exe = make "CATALA_EXE"
-let catala_flags = make "CATALA_FLAGS"
+let catala_flags = cmd_only (make "CATALA_FLAGS")
 
 let make, all_vars_ref =
   let all_vars_ref = ref String.Map.empty in
@@ -62,14 +76,15 @@ let ( ! ) = Ninja_utils.Var.v
    command (protects spaced paths). Command contexts only, not ninja paths. *)
 let quoted x = "\"" ^ !x ^ "\""
 
-(* Like [quoted] but for a literal string (e.g. an absolute include dir). *)
+(* Like [quoted] but for a literal string. Rule-command literals ONLY, never
+   binding values: those stay unquoted (direct execs read them as argv) and are
+   quoted by [binding_words] when written to the ninja file. *)
 let quote_arg s = "\"" ^ s ^ "\""
 
-(* Inverse of [quote_arg]: strip one surrounding double-quote layer, for values
-   spliced into a direct argv exec (Unix.create_process) rather than a shell. *)
-let unquote s =
-  let n = String.length s in
-  if n >= 2 && s.[0] = '"' && s.[n - 1] = '"' then String.sub s 1 (n - 2) else s
+(* A binding's words as written to the ninja file: shell-quoted for cmd_only
+   vars, verbatim otherwise. *)
+let binding_words var words =
+  if is_cmd_only var then List.map quote_arg words else words
 
 let re_var =
   let open Re in
