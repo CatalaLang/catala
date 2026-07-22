@@ -1,0 +1,324 @@
+```catala
+declaration enumeration E:
+-- E1
+-- E2
+-- E3
+-- E4
+-- E5
+-- E6
+-- E7
+-- E8
+-- E9
+
+declaration scope A:
+    input e content E
+    output o content integer
+
+scope A:
+    definition o equals 0
+    exception definition o under condition
+        (match e with pattern
+        -- E1: true
+        -- E9: true
+        -- anything: false)
+    consequence equals 1
+    exception definition o under condition
+        (match e with pattern
+        -- E1: true
+        -- E2: true
+        -- anything: false)
+    consequence equals 2
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A
+  (A_in:
+     A_in {
+       e_in:
+         E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit |
+           E7: unit | E8: unit | E9: unit]
+     })
+  : A {o: integer}
+  =
+  let get e :
+      E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit | E7:
+        unit | E8: unit | E9: unit] =
+    A_in.e_in
+  in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨ ⟨match e with
+           | E1 → true
+           | E2 → false
+           | E3 → false
+           | E4 → false
+           | E5 → false
+           | E6 → false
+           | E7 → false
+           | E8 → false
+           | E9 → true
+           ⊢ ⟨1⟩⟩,
+          ⟨match e with
+           | E1 → true
+           | E2 → true
+           | E3 → false
+           | E4 → false
+           | E5 → false
+           | E6 → false
+           | E7 → false
+           | E8 → false
+           | E9 → false
+           ⊢ ⟨2⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala DCalc -s A --optimize
+let scope A
+  (A_in:
+     A_in {
+       e_in:
+         E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit |
+           E7: unit | E8: unit | E9: unit]
+     })
+  : A {o: integer}
+  =
+  let get e :
+      E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit | E7:
+        unit | E8: unit | E9: unit] =
+    A_in.e_in
+  in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨ ⟨e = E1 () || e = E9 () ⊢ ⟨1⟩⟩, ⟨e = E1 () || e = E2 () ⊢ ⟨2⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨0⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic --conc-optim=incremental -s A
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E1 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ Found error ↯Conflict(tests/concolic/good/ugly_pattern.catala_en:30.24-30.25,tests/concolic/good/ugly_pattern.catala_en:24.24-24.25,)↯ at tests/concolic/good/ugly_pattern.catala_en:15.12-15.13
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E2 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 2
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E3 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E4 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E5 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E6 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E7 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E8 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E9 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Concolic interpreter done
+└─
+┌─[RESULT]─
+│ Computation successful!
+└─
+```
+
+```catala-test-inline
+$ catala Concolic --conc-optim=incremental -s A --optimize --conc-optim=linearize-match
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E1 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ Found error ↯Conflict(tests/concolic/good/ugly_pattern.catala_en:30.24-30.25,tests/concolic/good/ugly_pattern.catala_en:24.24-24.25,)↯ at tests/concolic/good/ugly_pattern.catala_en:15.12-15.13
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E9 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E2 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 2
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . e_in = E3 ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Concolic interpreter done
+└─
+┌─[RESULT]─
+│ Computation successful!
+└─
+```
+

@@ -1,0 +1,83 @@
+## Article
+
+```catala
+declaration scope A:
+    input dur content duration
+    input d content date
+    output o condition
+
+scope A:
+    rule o under condition
+        |2024-10-16| - (3 * dur - (3 day)) = d + (|2023-01-11| - |2023-01-01|) + 7 day
+        and dur != 0 day
+        and dur / 3 day = 2.0
+    consequence fulfilled
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A (A_in: A_in {dur_in: duration; d_in: date}): A {o: bool} =
+  let get dur : duration = A_in.dur_in in
+  let get d : date = A_in.d_in in
+  let set o : bool =
+    error_empty
+      ⟨ ⟨ ⟨2024-10-16 - (dur * 3 - [0 years, 0 months, 3 days])
+           = d + 2023-01-11 - 2023-01-01 + [0 years, 0 months, 7 days]
+           && (~ (dur = [0 years, 0 months, 0 days]))
+           && dur / [0 years, 0 months, 3 days] = 2.
+           ⊢ ⟨true⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic --conc-optim=incremental -s A
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . d_in = 2010-01-01
+└─
+┌─[RESULT]─
+│ . dur_in = [10 days]
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = false
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . d_in = 2024-09-14
+└─
+┌─[RESULT]─
+│ . dur_in = [6 days]
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = true
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Concolic interpreter done
+└─
+┌─[RESULT]─
+│ Computation successful!
+└─
+```
+

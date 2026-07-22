@@ -1,0 +1,483 @@
+Entering directory '/home/pierre/these/repos/catala'
+Leaving directory '/home/pierre/these/repos/catala'
+[DEBUG] = INIT =
+[DEBUG] Could not read plugin directory _build/install/default/lib/catala/plugins
+[DEBUG] = SURFACE =
+[DEBUG] Parsing "except_rule_condition.catala_en"
+[DEBUG] = DESUGARED =
+[DEBUG] Name resolution...
+[DEBUG] Desugaring...
+[DEBUG] Disambiguating...
+[DEBUG] Linting...
+[DEBUG] = SCOPELANG =
+[DEBUG] = DCALC =
+[DEBUG] Typechecking...
+[DEBUG] Translating to default calculus...
+[DEBUG] Typechecking again...
+[DEBUG] Starting interpretation...
+[DEBUG] === Start concolic interpretation... ===
+[DEBUG] [CONC] Create empty context
+[DEBUG] [CONC] Initialize context
+[DEBUG] [Struct] Find or create struct A_in
+[DEBUG] [Struct] . x_in : integer
+[DEBUG] [Struct] Find or create struct A
+[DEBUG] [Struct] . b : bool
+[DEBUG] [CONC] Make program expression concolic
+[DEBUG] [CONC] Pre-compute program concretely
+[DEBUG] 
+[DEBUG] No constraints
+[DEBUG] Using incremental Z3 solver
+[DEBUG] Get solver
+
+[DEBUG] Solver returned a model
+[DEBUG] model:
+z3: 
+reentrant: 
+[DEBUG] [inputs_of_model] input has symb? x_in
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42 | x_in
+[DEBUG] ...inputs applied...
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EApp
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EAbs
+[DEBUG] 	eval returns None
+[DEBUG] EApp f evaluated
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EStruct
+[DEBUG] eval symbolic: x_in
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns x_in
+[DEBUG] 	eval returns (mk!A_in x_in)
+[DEBUG] EApp args evaluated
+[DEBUG] EApp>EAbs vars are A_in_24
+[DEBUG] EApp>EAbs args are
+[DEBUG] EApp>EAbs arg | (mk!A_in x_in) | 0
+[DEBUG] EApp>EAbs vars replaced in box
+[DEBUG] EApp>EAbs binder reconstructed
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EApp
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EAbs
+[DEBUG] 	eval returns None
+[DEBUG] EApp f evaluated
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EStructAccess
+[DEBUG] eval symbolic: (mk!A_in x_in)
+[DEBUG] ... it's an EStruct
+[DEBUG] eval symbolic: x_in
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns x_in
+[DEBUG] 	eval returns (mk!A_in x_in)
+[DEBUG] EStructAccess symbolic struct access created
+[DEBUG] 	eval returns x_in
+[DEBUG] EApp args evaluated
+[DEBUG] EApp>EAbs vars are x_29
+[DEBUG] EApp>EAbs args are
+[DEBUG] EApp>EAbs arg | x_in | 0
+[DEBUG] EApp>EAbs vars replaced in box
+[DEBUG] EApp>EAbs binder reconstructed
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EApp
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EAbs
+[DEBUG] 	eval returns None
+[DEBUG] EApp f evaluated
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EErrorOnEmpty
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EDefault
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EDefault
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EDefault
+[DEBUG] EDefault>no except
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EAppOp
+[DEBUG] eval symbolic: x_in
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns x_in
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns 42
+[DEBUG] EAppOp args evaluated
+[DEBUG] 	eval returns (= x_in 42)
+[DEBUG] EDefault>true adding (= x_in 42) to constraints
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EPureDefault
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns true
+[DEBUG] 	eval returns true
+[DEBUG] 	eval returns true
+[DEBUG] EDefault>except
+[DEBUG] 	eval returns true
+[DEBUG] EDefault>except
+[DEBUG] 	eval returns true
+[DEBUG] 	eval returns true
+[DEBUG] EApp args evaluated
+[DEBUG] EApp>EAbs vars are b_32
+[DEBUG] EApp>EAbs args are
+[DEBUG] EApp>EAbs arg | true | 1
+[DEBUG] EApp>EAbs vars replaced in box
+[DEBUG] EApp>EAbs binder reconstructed
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EStruct
+[DEBUG] eval symbolic: true
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns true
+[DEBUG] 	eval returns (mk!A true)
+[DEBUG] EApp>EAbs substituted binder evaluated
+[DEBUG] EApp>EAbs extracted symbolic expression from result: (mk!A true)
+[DEBUG] 	eval returns (mk!A true)
+[DEBUG] EApp>EAbs substituted binder evaluated
+[DEBUG] EApp>EAbs extracted symbolic expression from result: (mk!A true)
+[DEBUG] 	eval returns (mk!A true)
+[DEBUG] EApp>EAbs substituted binder evaluated
+[DEBUG] EApp>EAbs extracted symbolic expression from result: (mk!A true)
+[DEBUG] 	eval returns (mk!A true)
+[DEBUG] Path constraints after evaluation:
+(= x_in 42)@except_rule_condition.catala_en:9.28-9.32 {true}
+[RESULT] Output of scope after evaluation:
+[RESULT] . b = true | true
+[DEBUG] Diff:
+IncrPush   (= x_in 42)@except_rule_condition.catala_en:9.28-9.32 {true}
+[DEBUG] Diff:
+IncrPop    
+IncrPush n (= x_in 42)@except_rule_condition.catala_en:9.28-9.32 {true}
+[DEBUG] apply_diff
+[DEBUG] before push 0 
+[DEBUG] after push 1 (declare-fun x_in () Int)
+(assert (= x_in 42))
+
+[DEBUG] before pop 1 (declare-fun x_in () Int)
+(assert (= x_in 42))
+
+[DEBUG] after pop 0 
+[DEBUG] before push 0 
+[DEBUG] after push 1 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+
+[DEBUG] 
+[DEBUG] Trying new path constraints:
+NEGATE (= x_in 42)@except_rule_condition.catala_en:9.28-9.32 {true}
+[DEBUG] Using incremental Z3 solver
+[DEBUG] Get solver
+(declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+
+[DEBUG] Solver returned a model
+[DEBUG] model:
+z3: (define-fun x_in () Int
+  2)
+reentrant: 
+[DEBUG] [inputs_of_model] input has symb? x_in
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 2 | x_in
+[DEBUG] ...inputs applied...
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EApp
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EAbs
+[DEBUG] 	eval returns None
+[DEBUG] EApp f evaluated
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EStruct
+[DEBUG] eval symbolic: x_in
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns x_in
+[DEBUG] 	eval returns (mk!A_in x_in)
+[DEBUG] EApp args evaluated
+[DEBUG] EApp>EAbs vars are A_in_36
+[DEBUG] EApp>EAbs args are
+[DEBUG] EApp>EAbs arg | (mk!A_in x_in) | 0
+[DEBUG] EApp>EAbs vars replaced in box
+[DEBUG] EApp>EAbs binder reconstructed
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EApp
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EAbs
+[DEBUG] 	eval returns None
+[DEBUG] EApp f evaluated
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EStructAccess
+[DEBUG] eval symbolic: (mk!A_in x_in)
+[DEBUG] ... it's an EStruct
+[DEBUG] eval symbolic: x_in
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns x_in
+[DEBUG] 	eval returns (mk!A_in x_in)
+[DEBUG] EStructAccess symbolic struct access created
+[DEBUG] 	eval returns x_in
+[DEBUG] EApp args evaluated
+[DEBUG] EApp>EAbs vars are x_41
+[DEBUG] EApp>EAbs args are
+[DEBUG] EApp>EAbs arg | x_in | 0
+[DEBUG] EApp>EAbs vars replaced in box
+[DEBUG] EApp>EAbs binder reconstructed
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EApp
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EAbs
+[DEBUG] 	eval returns None
+[DEBUG] EApp f evaluated
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EErrorOnEmpty
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EDefault
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EDefault
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EDefault
+[DEBUG] EDefault>no except
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EAppOp
+[DEBUG] eval symbolic: x_in
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns x_in
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns 42
+[DEBUG] EAppOp args evaluated
+[DEBUG] 	eval returns (= x_in 42)
+[DEBUG] EDefault>false adding (not (= x_in 42)) to constraints
+[DEBUG] 	eval returns None
+[DEBUG] EDefault>no except
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns false
+[DEBUG] EDefault>false adding true to constraints
+[DEBUG] 	eval returns None
+[DEBUG] EDefault>no except
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns true
+[DEBUG] EDefault>true adding true to constraints
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EDefault
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EDefault
+[DEBUG] EDefault>no except
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns true
+[DEBUG] EDefault>true adding true to constraints
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EPureDefault
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns false
+[DEBUG] 	eval returns false
+[DEBUG] 	eval returns false
+[DEBUG] EDefault>except
+[DEBUG] 	eval returns false
+[DEBUG] 	eval returns false
+[DEBUG] 	eval returns false
+[DEBUG] EApp args evaluated
+[DEBUG] EApp>EAbs vars are b_44
+[DEBUG] EApp>EAbs args are
+[DEBUG] EApp>EAbs arg | false | 4
+[DEBUG] EApp>EAbs vars replaced in box
+[DEBUG] EApp>EAbs binder reconstructed
+[DEBUG] eval symbolic: None
+[DEBUG] ... it's an EStruct
+[DEBUG] eval symbolic: false
+[DEBUG] ... it's an ELit
+[DEBUG] 	eval returns false
+[DEBUG] 	eval returns (mk!A false)
+[DEBUG] EApp>EAbs substituted binder evaluated
+[DEBUG] EApp>EAbs extracted symbolic expression from result: (mk!A false)
+[DEBUG] 	eval returns (mk!A false)
+[DEBUG] EApp>EAbs substituted binder evaluated
+[DEBUG] EApp>EAbs extracted symbolic expression from result: (mk!A false)
+[DEBUG] 	eval returns (mk!A false)
+[DEBUG] EApp>EAbs substituted binder evaluated
+[DEBUG] EApp>EAbs extracted symbolic expression from result: (mk!A false)
+[DEBUG] 	eval returns (mk!A false)
+[DEBUG] Path constraints after evaluation:
+true@except_rule_condition.catala_en:6.12-6.13 {true}
+true@except_rule_condition.catala_en:6.12-6.13 {true}
+true@except_rule_condition.catala_en:6.12-6.13 {false}
+(not (= x_in 42))@except_rule_condition.catala_en:9.28-9.32 {false}
+[RESULT] Output of scope after evaluation:
+[RESULT] . b = false | false
+[DEBUG] Diff:
+IncrPush   true@except_rule_condition.catala_en:6.12-6.13 {false}
+IncrPush   true@except_rule_condition.catala_en:6.12-6.13 {true}
+IncrPush   true@except_rule_condition.catala_en:6.12-6.13 {true}
+[DEBUG] Diff:
+IncrPop    
+IncrPush n true@except_rule_condition.catala_en:6.12-6.13 {true}
+[DEBUG] apply_diff
+[DEBUG] before push 1 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+
+[DEBUG] after push 2 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+
+[DEBUG] before push 2 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+
+[DEBUG] after push 3 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+
+[DEBUG] before push 3 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+
+[DEBUG] after push 4 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+(assert true)
+
+[DEBUG] before pop 4 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+(assert true)
+
+[DEBUG] after pop 3 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+
+[DEBUG] before push 3 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+
+[DEBUG] after push 4 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+(assert (not true))
+
+[DEBUG] 
+[DEBUG] Trying new path constraints:
+NEGATE true@except_rule_condition.catala_en:6.12-6.13 {true}
+       true@except_rule_condition.catala_en:6.12-6.13 {true}
+       true@except_rule_condition.catala_en:6.12-6.13 {false}
+DONE   (not (= x_in 42))@except_rule_condition.catala_en:9.28-9.32 {false}
+[DEBUG] Using incremental Z3 solver
+[DEBUG] Get solver
+(declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+(assert (not true))
+
+[DEBUG] Solver returned Unsat
+[DEBUG] Diff for removing head
+[DEBUG] Diff:
+IncrPop    
+IncrPop    
+IncrPush n true@except_rule_condition.catala_en:6.12-6.13 {true}
+[DEBUG] apply_diff
+[DEBUG] before pop 4 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+(assert (not true))
+
+[DEBUG] after pop 3 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+
+[DEBUG] before pop 3 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert true)
+
+[DEBUG] after pop 2 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+
+[DEBUG] before push 2 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+
+[DEBUG] after push 3 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert (not true))
+
+[DEBUG] 
+[DEBUG] Trying new path constraints:
+NEGATE true@except_rule_condition.catala_en:6.12-6.13 {true}
+       true@except_rule_condition.catala_en:6.12-6.13 {false}
+DONE   (not (= x_in 42))@except_rule_condition.catala_en:9.28-9.32 {false}
+[DEBUG] Using incremental Z3 solver
+[DEBUG] Get solver
+(declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert (not true))
+
+[DEBUG] Solver returned Unsat
+[DEBUG] Diff for removing head
+[DEBUG] Diff:
+IncrPop    
+IncrPop    
+IncrPush n true@except_rule_condition.catala_en:6.12-6.13 {false}
+[DEBUG] apply_diff
+[DEBUG] before pop 3 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+(assert (not true))
+
+[DEBUG] after pop 2 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+
+[DEBUG] before pop 2 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert true)
+
+[DEBUG] after pop 1 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+
+[DEBUG] before push 1 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+
+[DEBUG] after push 2 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert (not true))
+
+[DEBUG] 
+[DEBUG] Trying new path constraints:
+NEGATE true@except_rule_condition.catala_en:6.12-6.13 {false}
+DONE   (not (= x_in 42))@except_rule_condition.catala_en:9.28-9.32 {false}
+[DEBUG] Using incremental Z3 solver
+[DEBUG] Get solver
+(declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert (not true))
+
+[DEBUG] Solver returned Unsat
+[DEBUG] Diff for removing head
+[DEBUG] Diff:
+IncrPop    
+IncrPop    
+[DEBUG] apply_diff
+[DEBUG] before pop 2 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+(assert (not true))
+
+[DEBUG] after pop 1 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+
+[DEBUG] before pop 1 (declare-fun x_in () Int)
+(assert (not (= x_in 42)))
+
+[DEBUG] after pop 0 
+[RESULT] 
+[RESULT] Concolic interpreter done
+[DEBUG] End of interpretation
+[RESULT] Computation successful!

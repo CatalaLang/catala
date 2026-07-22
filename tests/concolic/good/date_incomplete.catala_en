@@ -1,0 +1,143 @@
+## Article
+
+```catala
+declaration scope A:
+    input x content integer
+    output o content integer
+
+scope A:
+    definition o equals -1
+    exception definition o under condition x = 0 consequence equals 0
+    exception definition o under condition x = 1 consequence equals 1
+    exception definition o under condition x = 2 consequence equals 2
+    exception definition o under condition x >= 3 and x < 20 consequence equals
+        if get_month of |2024-10-16| = x then 10 else 20
+    exception definition o under condition x >= 20 consequence equals
+        if last_day_of_month of |2024-02-10| = |2024-02-29| and x=30 then 100 else 200
+```
+
+When encountering the condition that depends on a date operation we don't yet
+encode symbolically, the engine explains this branch cannot be investigated
+further, returns the concrete value it was still able to compute, and then
+backtracks the same way if would if it had found an error (by discaring the
+last constraint).
+
+```catala-test-inline
+$ catala Concolic -s A
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . x_in = 0
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . x_in = -1
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = -1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . x_in = 20
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 200
+└─
+┌─[WARNING]─
+│
+│  Concolic evaluation found an expression that cannot be encoded (a list or a date). The current
+                           path will be dropped.
+│
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . x_in = 3
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 20
+└─
+┌─[WARNING]─
+│
+│  Concolic evaluation found an expression that cannot be encoded (a list or a date). The current
+                           path will be dropped.
+│
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . x_in = 2
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 2
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . x_in = 1
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Concolic interpreter done
+└─
+┌─[WARNING]─
+│
+│  Please note that the concolic execution may be incomplete: it could systematically explore the whole program.
+│
+└─
+┌─[RESULT]─
+│ Computation successful!
+└─
+```
