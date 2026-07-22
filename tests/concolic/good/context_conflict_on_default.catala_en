@@ -16,7 +16,7 @@ The concolic interpreter tries different values for the context variable,
 including the special "default" value. This allows for the detection of a
 conflict when trying to compute the value in this case.
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ 

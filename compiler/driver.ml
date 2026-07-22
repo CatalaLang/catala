@@ -1368,6 +1368,75 @@ module Commands = struct
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.ex_scope)
 
+  let interpret_concolic
+      typed
+      options
+      stats
+      conc_optims
+      mutation_seed
+      includes
+      stdlib
+      optimize
+      check_invariants
+      ex_scope =
+    let prg, _ =
+      Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest:false ~typed
+    in
+    Interpreter.load_runtime_modules
+      ~hashf:Hash.(finalise ~monomorphize_types:false)
+      prg;
+    let scope = get_scope_uid prg.decl_ctx ex_scope in
+    let evaluate () =
+      ( Concolic.Interpreter.interpret_program_concolic stats conc_optims
+          mutation_seed prg scope,
+        None )
+    in
+    let success =
+      print_interpretation_results options evaluate scope prg.decl_ctx
+    in
+    if not success then raise (Cli.Exit_with 123)
+
+  let concolic_cmd =
+    let f no_typing =
+      if no_typing then interpret_concolic Expr.untyped
+      else interpret_concolic Expr.typed
+    in
+    let stats =
+      let open Cmdliner.Arg in
+      value
+      & flag
+      & info ["stats"] ~doc:"Prints statistics for the concolic execution."
+    in
+    let open Concolic.Interpreter.Optimizations in
+    let conc_optims =
+      let open Cmdliner.Arg in
+      value
+      & opt_all (enum optim_list) []
+      & info ["conc-optim"] ~doc:"Concolic execution optimizations"
+      (* FIXME add information on optims *)
+    in
+    let mutation_seed =
+      let open Cmdliner.Arg in
+      value
+      & opt (some int) None
+      & info ["seed"] ~docv:"SEED" ~doc:"Concolic mutation seed."
+    in
+    Cmd.v
+      (Cmd.info "concolic" ~doc:"Runs the concolic interpreter")
+      Term.(
+        const f
+        $ Cli.Flags.no_typing
+        $ Cli.Flags.Global.options
+        $ stats
+        $ conc_optims
+        $ mutation_seed
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.ex_scope)
+
   let commands =
     [
       interpret_cmd;
@@ -1388,6 +1457,7 @@ module Commands = struct
       depends_cmd;
       pygmentize_cmd;
       json_schema_cmd;
+      concolic_cmd;
     ]
 end
 

@@ -33,7 +33,7 @@ scope A:
     consequence equals 1
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala DCalc -s A
 let scope A
   (A_in:
@@ -70,7 +70,7 @@ let scope A
   return { A o = o; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic -s A
 ┌─[RESULT]─
 │ 
@@ -218,7 +218,7 @@ $ catala Concolic -s A
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala DCalc -O -s A
 let scope A
   (A_in:
@@ -250,7 +250,7 @@ let scope A
   return { A o = o; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=linearize-match -s A
 ┌─[RESULT]─
 │ 
@@ -293,7 +293,7 @@ $ catala Concolic --conc-optim=linearize-match -s A
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic -O --conc-optim=linearize-match -s A
 ┌─[RESULT]─
 │ 

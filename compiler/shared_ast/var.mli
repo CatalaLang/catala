@@ -54,6 +54,8 @@ module Set : sig
   val iter : ('e var -> unit) -> 'e t -> unit
   val is_empty : 'e t -> bool
   val disjoint : 'e t -> 'e t -> bool
+  val compare : 'e t -> 'e t -> int
+  val format : Format.formatter -> 'e t -> unit
 end
 
 (** Wrapper over [Map.S] but with a type variable for the AST type parameters.

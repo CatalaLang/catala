@@ -11,7 +11,7 @@ scope A:
   exception definition o under condition b consequence equals x
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala DCalc -s A
 let scope A (A_in: A_in {b_in: bool; x_in: integer}): A {o: integer} =
   let get b : bool = A_in.b_in in
@@ -24,7 +24,7 @@ let scope A (A_in: A_in {b_in: bool; x_in: integer}): A {o: integer} =
   return { A o = o; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ 

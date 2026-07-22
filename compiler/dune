@@ -10,6 +10,7 @@
   dcalc
   lcalc
   scalc
+  concolic
   catala.runtime_ocaml)
  (modules plugin driver))
 

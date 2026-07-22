@@ -22,7 +22,7 @@ further, returns the concrete value it was still able to compute, and then
 backtracks the same way if would if it had found an error (by discaring the
 last constraint).
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic -s A
 ┌─[RESULT]─
 │ 

@@ -1106,6 +1106,7 @@ and typecheck_expr_top_down : type a m.
   | ECustom { obj; targs; tret } ->
     let mark = mark_with_tau_and_unify (TArrow (targs, tret), Expr.pos e) in
     Expr.ecustom obj targs tret mark
+  | EGenericError -> Expr.egenericerror context_mark
   | EBad ->
     (* Expression should not be typechecked *)
     Expr.ebad (Custom { pos = Expr.pos e; custom = TError, Expr.pos e })

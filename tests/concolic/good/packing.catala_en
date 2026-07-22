@@ -15,7 +15,7 @@ scope A:
     exception definition o under condition y or z consequence equals 6
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic -s A
 ┌─[RESULT]─
 │ 
@@ -196,7 +196,7 @@ $ catala Concolic -s A
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic -s A --conc-optim=lazy-default
 ┌─[RESULT]─
 │ 
@@ -356,7 +356,7 @@ $ catala Concolic -s A --conc-optim=lazy-default
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic -s A --conc-optim=packing --conc-optim=lazy-default
 ┌─[RESULT]─
 │ 

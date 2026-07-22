@@ -22,7 +22,7 @@ scope B:
     definition o equals a.o
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala DCalc -s A
 let scope A (A_in: A_in {x_in: ⟨integer⟩}): A {x: integer; o: integer} =
   let get x : ⟨integer⟩ = A_in.x_in in
@@ -37,7 +37,7 @@ let scope A (A_in: A_in {x_in: ⟨integer⟩}): A {x: integer; o: integer} =
   return { A x = x; o = o; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ 
@@ -122,7 +122,7 @@ $ catala Concolic --conc-optim=incremental -s A
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala DCalc -s B
 let scope B (B_in: B_in {x_in: integer}): B {o: integer} =
   let get x : integer = B_in.x_in in
@@ -135,7 +135,7 @@ let scope B (B_in: B_in {x_in: integer}): B {o: integer} =
   return { B o = o; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s B
 ┌─[RESULT]─
 │ 

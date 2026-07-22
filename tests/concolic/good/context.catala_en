@@ -16,7 +16,7 @@ Note that because we have a specific constraint for `x` having its default
 value, output `3` is found twice: once when `x = λ(). 30` and once when `x =
 λ(). ∅` but its default value is `30`.
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ 

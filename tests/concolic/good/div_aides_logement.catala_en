@@ -26,14 +26,14 @@ scope A:
     assertion o = 0.8600
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Interpret -s A
 ┌─[RESULT]─
 │ o = 0.86
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ 
