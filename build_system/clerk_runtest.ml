@@ -43,8 +43,7 @@ let out_line output_buf str =
       pos_bol = pos_cnum;
     }
 
-(* Strip trailing line endings: on Windows, text-mode stdout gives "\r\n" and
-   [input_line] drops only "\n", leaving a '\r' that defeats [whole_string]. *)
+(* '\r' included: Windows text-mode output keeps it past [input_line]. *)
 let re_endline = Re.(compile @@ rep (set "\r\n"))
 
 let sanitize =

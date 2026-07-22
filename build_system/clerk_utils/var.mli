@@ -24,8 +24,9 @@ end
 (** {1 Quoting rules}
 
     Quoting belongs to the boundary a value crosses, never to the stored value:
-    - declaring: holds shell arguments -> {!cmd_only}; names build-statement
-      paths -> {!make}. Dual-use (CATALA_EXE): [make], quote each command ref.
+    - declaring: who will read [${V}]? a shell -> {!cmd_only}; ninja path
+      positions -> {!make}. Dual-use (CATALA_EXE): [make], quote each command
+      ref.
     - command ref: expands to one argument -> [quote_arg !var]; to several ->
       bare [!var].
     - command literal: spaceable (a path) -> {!quote_arg}; a flag -> bare
@@ -50,10 +51,12 @@ val cmd_only : t -> t
 (** [cmd_only (make "V")] declares that [${V}] is only consumed as shell
     arguments (rule commands, direct-exec argv), never as a build-statement
     path: {!binding_words} shell-quotes its words at emission; the stored value
-    stays unquoted. Not for vars with a path consumer (builddir, CATALA_EXE,
-    ...), where the quotes would be literal file-name chars. No var needs both:
-    ninja expands variables after tokenizing, so [${v}] in a path position is
-    always exactly one path, never a word list. *)
+    stays unquoted. Mandatory for word lists (a quoted ref is one glued
+    argument); a convenience over [quote_arg !v] for single-word vars. Not for
+    vars with a path consumer (builddir, CATALA_EXE, ...), where the quotes
+    would be literal file-name chars. No var needs both: ninja expands variables
+    after tokenizing, so [${v}] in a path position is always exactly one path,
+    never a word list. *)
 
 val is_cmd_only : t -> bool
 val runtime : t

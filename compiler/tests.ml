@@ -155,7 +155,7 @@ let test_jar_argfile_escaping () =
 
 let () =
   let open Alcotest in
-  run "Catala-utils"
+  run "Unit tests"
     [
       ( "Iota-reduction",
         [
