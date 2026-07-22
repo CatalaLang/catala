@@ -74,11 +74,11 @@ Important title
         Important title
         └─ Less important title
     ← Exiting Scope S: S {
-                           -- r: 123
-                         }
+                         -- r: 123
+                       }
 ← Exiting Scope T: T {
-                       -- result: 123
-                     }
+                     -- result: 123
+                   }
 ┌─[RESULT]─ T ─
 │ result = 123
 └─

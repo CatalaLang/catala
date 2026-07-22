@@ -98,8 +98,8 @@ $ catala interpret -s T --trace
     13 │   definition tresult equals if ffalse of 0 then 1 else 2
        │                                                        ‾
 ← Exiting Scope T: T {
-                       -- tresult: 2
-                     }
+                     -- tresult: 2
+                   }
 ┌─[RESULT]─ T ─
 │ tresult = 2
 └─
