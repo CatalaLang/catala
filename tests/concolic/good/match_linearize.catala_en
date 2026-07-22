@@ -1,0 +1,338 @@
+From `catala-examples/aides_logement/arrete_2019-09-27.catala_fr`
+
+This example shows how `-O` linearizes a match from an enum to bool into a big
+logical OR.
+
+```catala
+declaration enumeration Collectivité:
+  -- Guadeloupe
+  -- Guyane
+  -- Martinique
+  -- LaRéunion
+  -- SaintBarthélemy
+  -- SaintMartin
+  -- Métropole
+  -- SaintPierreEtMiquelon
+  -- Mayotte
+
+declaration scope A:
+    input résidence content Collectivité
+    output o content integer
+
+scope A:
+    definition o equals 0
+    exception definition o under condition
+    (match résidence with pattern
+      -- Guadeloupe: true
+      -- Martinique: true
+      -- LaRéunion: true
+      -- Mayotte: true
+      -- SaintBarthélemy: true
+      -- SaintMartin: true
+      -- anything: false)
+    consequence equals 1
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A
+  (A_in:
+     A_in {
+       résidence_in:
+         Collectivité[Guadeloupe: unit | Guyane: unit | Martinique: unit |
+           LaRéunion: unit | SaintBarthélemy: unit | SaintMartin: unit |
+           Métropole: unit | SaintPierreEtMiquelon: unit | Mayotte: unit]
+     })
+  : A {o: integer}
+  =
+  let get résidence :
+      Collectivité[Guadeloupe: unit | Guyane: unit | Martinique: unit |
+        LaRéunion: unit | SaintBarthélemy: unit | SaintMartin: unit |
+        Métropole: unit | SaintPierreEtMiquelon: unit | Mayotte: unit] =
+    A_in.résidence_in
+  in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨ ⟨match résidence with
+           | Guadeloupe → true
+           | Guyane → false
+           | Martinique → true
+           | LaRéunion → true
+           | SaintBarthélemy → true
+           | SaintMartin → true
+           | Métropole → false
+           | SaintPierreEtMiquelon → false
+           | Mayotte → true
+           ⊢ ⟨1⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = Guadeloupe ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = Guyane ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = Martinique ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = LaRéunion ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = SaintBarthélemy ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = SaintMartin ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = Métropole ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = SaintPierreEtMiquelon ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = Mayotte ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Concolic interpreter done
+└─
+┌─[RESULT]─
+│ Computation successful!
+└─
+```
+
+```catala-test-inline
+$ catala DCalc -O -s A
+let scope A
+  (A_in:
+     A_in {
+       résidence_in:
+         Collectivité[Guadeloupe: unit | Guyane: unit | Martinique: unit |
+           LaRéunion: unit | SaintBarthélemy: unit | SaintMartin: unit |
+           Métropole: unit | SaintPierreEtMiquelon: unit | Mayotte: unit]
+     })
+  : A {o: integer}
+  =
+  let get résidence :
+      Collectivité[Guadeloupe: unit | Guyane: unit | Martinique: unit |
+        LaRéunion: unit | SaintBarthélemy: unit | SaintMartin: unit |
+        Métropole: unit | SaintPierreEtMiquelon: unit | Mayotte: unit] =
+    A_in.résidence_in
+  in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨résidence = Guadeloupe ()
+         || résidence = Martinique ()
+         || résidence = LaRéunion ()
+         || résidence = SaintBarthélemy ()
+         || résidence = SaintMartin ()
+         || résidence = Mayotte ()
+         ⊢ ⟨1⟩⟩
+      | true ⊢ ⟨0⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic --conc-optim=linearize-match -s A
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = Guadeloupe ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = Guyane ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Concolic interpreter done
+└─
+┌─[RESULT]─
+│ Computation successful!
+└─
+```
+
+```catala-test-inline
+$ catala Concolic -O --conc-optim=linearize-match -s A
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = Guadeloupe ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 1
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Evaluating with inputs:
+└─
+┌─[RESULT]─
+│ . résidence_in = Guyane ()
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 0
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Concolic interpreter done
+└─
+┌─[RESULT]─
+│ Computation successful!
+└─
+```
+

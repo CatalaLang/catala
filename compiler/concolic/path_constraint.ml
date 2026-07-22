@@ -1,0 +1,207 @@
+open Catala_utils
+open Shared_ast
+open Symb_expr
+
+module PathConstraint = struct
+  type s_expr = SymbExpr.z3_expr
+  type soft_id = string
+  type soft = { symb : s_expr; weight : int; id : soft_id }
+  type reentrant = { symb : SymbExpr.reentrant; is_empty : bool }
+
+  type pc_expr =
+    | Pc_z3 of s_expr
+    | Pc_soft of soft
+    | Pc_reentrant of reentrant
+    | Pc_incomplete
+
+  (* path constraint cannot be empty (this looks like a GADT but it would be
+     overkill I think) *)
+  type naked_pc = { expr : pc_expr; pos : Pos.t; branch : bool }
+  type naked_path = naked_pc list
+
+  let mk_z3 (expr : SymbExpr.t) (pos : Pos.t) (branch : bool) : naked_pc =
+    let expr =
+      match expr with
+      | Symb_z3 e -> Pc_z3 e
+      | Symb_incomplete -> Pc_incomplete
+      | _ ->
+        invalid_arg
+          "[PathConstraint.mk_z3] expects a z3 symbolic expression (or \
+           incomplete)"
+    in
+    { expr; pos; branch }
+
+  let default_id = ref 0
+
+  let fresh_id () =
+    incr default_id;
+    !default_id
+
+  let id_of_string (id : string option) =
+    match id with Some s -> s | None -> "id!" ^ string_of_int (fresh_id ())
+
+  let mk_soft
+      (expr : SymbExpr.t)
+      (weight : int)
+      (id : soft_id option)
+      (pos : Pos.t)
+      (branch : bool) : naked_pc =
+    let expr =
+      match expr with
+      | Symb_z3 e -> Pc_soft { symb = e; weight; id = id_of_string id }
+      | _ ->
+        invalid_arg "[PathConstraint.mk_soft] expects a z3 symbolic expression"
+    in
+    { expr; pos; branch }
+
+  let mk_reentrant
+      (expr : SymbExpr.t)
+      (reentrant_const : s_expr)
+      (pos : Pos.t)
+      (branch : bool) : naked_pc option =
+    let expr : pc_expr option =
+      match expr with
+      | Symb_reentrant r -> Some (Pc_reentrant { symb = r; is_empty = branch })
+      | Symb_z3 s when Z3.Expr.equal s reentrant_const ->
+        (* If the symbolic expression is the dummy, it means that the default
+           being evaluated is in a scope called by the scope under analysis.
+           Thus the context variable is not an input variable of the concolic
+           engine, and its evaluation should not generate a path constraint. *)
+        None
+      | _ ->
+        Message.error ~pos
+          "[PathConstraint.mk_reentrant] expects reentrant symbolic expression \
+           or dummy const but got %a"
+          SymbExpr.formatter expr
+    in
+    Option.bind expr (fun expr -> Some { expr; pos; branch })
+
+  let is_incomplete (pc : naked_pc) : bool =
+    match pc.expr with Pc_incomplete -> true | _ -> false
+
+  type annotated_pc =
+    | Negated of naked_pc
+        (** the path constraint that has been negated to generate a new input *)
+    | Done of naked_pc
+        (** a path node that has been explored should, and whose constraint
+            should not be negated *)
+    | Normal of naked_pc  (** all other constraints *)
+
+  type annotated_path = annotated_pc list
+
+  (** Computation path logic *)
+
+  (* Two path constraint expressions are equal if they are of the same kind, and
+     if either their Z3 expressions are equal or their variable name and
+     "emptyness" are equal depending on that kind. *)
+  let pc_expr_equal e e' : bool =
+    match e, e' with
+    | Pc_z3 e1, Pc_z3 e2 -> Z3.Expr.equal e1 e2
+    | Pc_reentrant e1, Pc_reentrant e2 ->
+      StructField.equal e1.symb.name e2.symb.name && e1.is_empty = e2.is_empty
+    | _, _ -> false
+
+  (** Two path constraints are equal if their expressions are equal, and they
+      are marked with the same branch information. Position is not taken into
+      account as it is used only in printing and not in computations *)
+  let path_constraint_equal c c' : bool =
+    pc_expr_equal c.expr c'.expr && c.branch = c'.branch
+
+  type 'a incremental_action = IncrPush of 'a | IncrPop of 'a
+  type incremental_annotated_pc = annotated_pc incremental_action
+  type incremental_pc_expr = pc_expr incremental_action
+
+  (** Compare the path of the previous evaluation and the path of the current
+      evaluation. If a constraint was previously marked as Done or Normal, then
+      check that it stayed the same. If it was previously marked as Negated,
+      thus if it was negated before the two evaluations, then check that the
+      concrete value was indeed negated and mark it Done. If there are new
+      constraints after the last one, add them as Normal. Crash in other cases. *)
+  let rec compare_paths (path_prev : annotated_path) (path_new : naked_path) :
+      annotated_path * incremental_annotated_pc list =
+    match path_prev, path_new with
+    | [], [] -> [], []
+    | [], c' :: p' ->
+      let res, diff = compare_paths [] p' in
+      ( Normal c' :: res,
+        (* the new path can be longer *)
+        IncrPush (Normal c') :: diff )
+    | _ :: _, [] -> failwith "[compare_paths] old path is longer than new path"
+    | Normal c :: p, c' :: p' ->
+      if path_constraint_equal c c' then
+        let res, diff = compare_paths p p' in
+        Normal c :: res, diff
+      else
+        failwith
+          "[compare_paths] a constraint that should not change has changed"
+    | Negated c :: p, c' :: p' ->
+      if c.branch <> c'.branch then
+        (* the branch has been successfully negated and is now done *)
+        (* TODO we should have a way to know if c and c' are the same except for
+           their [branch] *)
+        let res, diff = compare_paths p p' in
+        Done c' :: res, diff
+      else
+        failwith "[compare_paths] the negated condition lead to the same path"
+    | Done c :: p, c' :: p' ->
+      if c = c' then
+        let res, diff = compare_paths p p' in
+        Done c :: res, diff
+      else
+        failwith
+          "[compare_paths] a done constraint that should not change has changed"
+
+  (** Remove Done paths until a Normal (not yet negated) constraint is found,
+      then mark this branch as Negated. This function shall be called on an
+      output of [compare_paths], and thus no Negated constraint should appear in
+      its input. *)
+  let rec make_expected_path (path : annotated_path) :
+      annotated_path * incremental_annotated_pc list =
+    match path with
+    | [] -> [], []
+    | Normal c :: p ->
+      Negated c :: p, [IncrPop (Normal c); IncrPush (Negated c)]
+    | Done c :: p ->
+      let res, diff = make_expected_path p in
+      res, IncrPop (Done c) :: diff
+    | Negated _ :: _ ->
+      failwith
+        "[make_expected_path] found a negated constraint, which should not \
+         happen"
+
+  module Print = struct
+    open Format
+
+    let pc_expr (fmt : formatter) (e : pc_expr) : unit =
+      match e with
+      | Pc_z3 e -> pp_print_string fmt (Z3.Expr.to_string e)
+      | Pc_soft { symb; weight; id } ->
+        fprintf fmt "Soft(%s, %d, %s)" (Z3.Expr.to_string symb) weight id
+      | Pc_reentrant { symb = { name; _ }; is_empty } ->
+        fprintf fmt "%s(%s)"
+          (if is_empty then "Empty" else "NotEmpty")
+          (Mark.remove (StructField.get_info name))
+      | Pc_incomplete -> pp_print_string fmt "Incomplete"
+
+    let pc_debug_info (fmt : formatter) (pc : naked_pc) : unit =
+      if Global.options.debug then
+        fprintf fmt "@%s {%B}" (Pos.to_string_short pc.pos) pc.branch
+
+    let naked_pc (fmt : formatter) (pc : naked_pc) : unit =
+      fprintf fmt "%a%a" pc_expr pc.expr pc_debug_info pc
+
+    let naked_path (fmt : formatter) (pcs : naked_path) : unit =
+      pp_print_list naked_pc fmt pcs
+
+    let annotated_pc (fmt : formatter) (apc : annotated_pc) : unit =
+      let print s pc = fprintf fmt s naked_pc pc in
+      match apc with
+      | Normal pc -> print "       %a" pc
+      | Done pc -> print "DONE   %a" pc
+      | Negated pc -> print "NEGATE %a" pc
+
+    let annotated_path (fmt : formatter) (pcs : annotated_path) : unit =
+      if pcs = [] then pp_print_string fmt "[No constraints]"
+      else pp_print_list annotated_pc fmt pcs
+  end
+end
