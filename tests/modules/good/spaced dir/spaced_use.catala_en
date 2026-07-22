@@ -1,0 +1,18 @@
+# Uses a module defined in a directory whose name contains a space.
+
+> Using Spaced_mod
+
+```catala
+#[test] declaration scope T:
+  output o content integer
+
+scope T:
+  definition o equals Spaced_mod.answer
+```
+
+```catala-test-cli
+$ catala test-scope T
+┌─[RESULT]─ T ─
+│ o = 42
+└─
+```
