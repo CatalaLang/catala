@@ -27,7 +27,7 @@ Here the `i=1` branch forces a value for `a.x`, but the `i=0` branch and the
 branch where `i` is neither `0` nor `1` make `a.x` have its default, because
 the thunked term is empty.
 
-```catala-test-inline
+```catala-test-cli
 $ catala DCalc -s B
 let scope B (B_in: B_in {i_in: integer; x_in: integer}): B {o: integer} =
   let get i : integer = B_in.i_in in
@@ -48,7 +48,7 @@ let scope B (B_in: B_in {i_in: integer; x_in: integer}): B {o: integer} =
   return { B o = o; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s B
 ┌─[RESULT]─
 │ 

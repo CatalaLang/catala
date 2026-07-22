@@ -23,7 +23,7 @@ scope A:
     definition o equals -1
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ 

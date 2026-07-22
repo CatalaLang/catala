@@ -166,8 +166,8 @@ let rec optimize_rec : flag list -> conc_expr -> conc_boxed_expr =
       let boxed_e' = Expr.rebox e' in
       let m = Mark.get e' |> Expr.no_mark in
       let lunit = Expr.elit LUnit m in
-      let enum_typ = Mark.add Pos.no_pos (TEnum n) in
-      let bool_typ = Mark.add Pos.no_pos (TLit TBool) in
+      let enum_typ = Mark.add Pos.void (TEnum n) in
+      let bool_typ = Mark.add Pos.void (TLit TBool) in
       let make_eq (cons : EnumConstructor.t) =
         let inj = Expr.einj ~name:n ~cons ~e:lunit m in
         Expr.eappop

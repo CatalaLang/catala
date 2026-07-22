@@ -167,6 +167,7 @@ type desugared =
   ; explicitScopes : yes
   ; defaultTerms : yes
   ; reifiedPos : no
+  ; genericErrors : no
   ; custom : no >
 (* Technically, desugared before name resolution has [syntacticNames: yes;
    resolvedNames: no], and after name resolution has the opposite; but the
@@ -187,6 +188,7 @@ type scopelang =
   ; explicitScopes : yes
   ; defaultTerms : yes
   ; reifiedPos : no
+  ; genericErrors : no
   ; custom : no >
 
 type dcalc =
@@ -200,6 +202,7 @@ type dcalc =
   ; explicitScopes : no
   ; defaultTerms : yes
   ; reifiedPos : no
+  ; genericErrors : no
   ; custom : no >
 
 type lcalc =
@@ -213,6 +216,7 @@ type lcalc =
   ; explicitScopes : no
   ; defaultTerms : no
   ; reifiedPos : yes
+  ; genericErrors : no
   ; custom : no >
 
 type 'a any = < .. > as 'a
@@ -227,7 +231,8 @@ type dcalc_lcalc_features =
   ; syntacticNames : no
   ; scopeVarStates : no
   ; scopeVarSimpl : no
-  ; explicitScopes : no >
+  ; explicitScopes : no
+  ; genericErrors : no >
 (** Features that are common to Dcalc and Lcalc *)
 
 type ('d, 'r) dcalc_lcalc =
@@ -660,6 +665,10 @@ and ('a, 'b, 'm) base_gexpr =
   | EErrorOnEmpty :
       ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
+  (* Only used for non-crashing errors *)
+  | EGenericError : ('a, < genericErrors : yes ; .. >, 'm) base_gexpr
+      (** A general purpose error, whose entire payload is expected to be in its
+          mark *)
   (* Only used during evaluation *)
   | ECustom : {
       obj : Obj.t;

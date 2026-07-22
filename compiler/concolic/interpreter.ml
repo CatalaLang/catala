@@ -26,6 +26,7 @@ open Z3_utils
 open Symb_expr
 open Path_constraint
 module Optimizations = Concolic_optimizations
+module Runtime = Catala_runtime
 open Conc_types
 
 let set_conc_info
@@ -88,8 +89,7 @@ let map_conc_mark
 (* Typing shenanigan to [EGenericError] terms to the AST type. Inspired by
    [Concrete.addcustom]. *)
 let add_genericerror e =
-  let rec f :
-      type c e.
+  let rec f : type c e.
       ((c, e) conc_interpr_kind, 't) gexpr ->
       ((c, yes) conc_interpr_kind, 't) gexpr boxed = function
     | (ECustom _, _) as e -> Expr.map ~f e
@@ -103,7 +103,7 @@ let add_genericerror e =
     | (EFatalError _, _) as e -> Expr.map ~f e
     | ( ( EAssert _ | ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _
         | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _
-        | EStructAccess _ | EMatch _ ),
+        | EStructAccess _ | EMatch _ | EBad | EPos _ ),
         _ ) as e ->
       Expr.map ~f e
     | _ -> .
@@ -157,7 +157,8 @@ let del_genericerror e =
       | ( ( EAssert _ | ELit _ | EApp _ | EArray _ | EVar _ | EExternal _
           | EAbs _ | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _
           | EStruct _ | EStructAccess _ | EMatch _ | EDefault _ | EPureDefault _
-          | EEmpty | EFatalError _ | EErrorOnEmpty _ | ECustom _ ),
+          | EEmpty | EFatalError _ | EErrorOnEmpty _ | ECustom _ | EBad | EPos _
+            ),
           _ ) as e ->
         Expr.map ~f e
       | _ -> .
@@ -286,11 +287,11 @@ module DateEncoding = struct
     z3_int_of_bigint ctx.ctx_z3 days
 
   let decode_date
-      ?(round : Runtime.date_rounding = Dates_calc.Dates.AbortOnRound)
+      ?(round : Runtime.date_rounding = Dates_calc.AbortOnRound)
       (* NOTE: no rounding for now *)
         (e : s_expr) : Runtime.date =
     let days = decode_duration e in
-    Runtime.o_add_dat_dur round (Expr.pos_to_runtime Pos.no_pos) base_day days
+    Runtime.o_add_dat_dur round (Expr.pos_to_runtime Pos.void) base_day days
 
   (* Default date is epoch *)
   let default_date : Runtime.date = base_day
@@ -317,18 +318,6 @@ module DateEncoding = struct
     (* convert e1 to a [Real] explicitely to avoid using integer division *)
     let dur1_rat = z3_force_real ctx dur1 in
     Z3.Arithmetic.mk_div ctx dur1_rat dur2
-
-  (* TODO CONC incompleteness warning for comparisons? eg on day < month *)
-  let lt_dat_dat = Z3.Arithmetic.mk_lt
-  let lt_dur_dur = Z3.Arithmetic.mk_lt
-  let lte_dat_dat = Z3.Arithmetic.mk_le
-  let lte_dur_dur = Z3.Arithmetic.mk_le
-  let gt_dat_dat = Z3.Arithmetic.mk_gt
-  let gt_dur_dur = Z3.Arithmetic.mk_gt
-  let gte_dat_dat = Z3.Arithmetic.mk_ge
-  let gte_dur_dur = Z3.Arithmetic.mk_ge
-  let eq_dat_dat = Z3.Boolean.mk_eq
-  let eq_dur_dur = Z3.Boolean.mk_eq
 end
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal
@@ -336,7 +325,7 @@ end
 let translate_typ_lit (ctx : context) (t : typ_lit) : Z3.Sort.sort =
   match t with
   | TBool -> Z3.Boolean.mk_sort ctx.ctx_z3
-  | TUnit -> fst ctx.ctx_z3unit
+  | TPos | TUnit -> fst ctx.ctx_z3unit
   | TInt -> Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TRat -> Z3.Arithmetic.Real.mk_sort ctx.ctx_z3
   | TMoney -> Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
@@ -367,11 +356,17 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
       ctx.ctx_dummy_sort
       (* TODO maybe put a better sort here? this should not be read anyway... *)
     )
-  | TAny -> failwith "[translate_typ] TAny not implemented"
+  | TForAll _ -> failwith "[translate_typ] TForAll not implemented"
   | TClosureEnv -> failwith "[translate_typ] TClosureEnv not implemented"
   | TDefault _ ->
     (* context variable *)
     ctx, ctx.ctx_reentrant_sort
+  | TVar _ ->
+    (* A type variable being an unresolved type, it can't be deconstructed, so
+       we can let it pass through. *)
+    failwith "[translate_typ] TVar not implemented"
+  | TAbstract _ -> failwith "[translate_typ] TAbstract not implemented"
+  | TError -> assert false
 
 (* taken from z3backend's find_or_create_struct *)
 and find_or_create_struct (ctx : context) (s : StructName.t) :
@@ -387,8 +382,14 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
     let s_name = Mark.remove (StructName.get_info s) in
     let fields = StructName.Map.find s ctx.ctx_decl.ctx_structs in
 
-    let mk_struct_s = "mk!" ^ s_name (* struct constructor *) in
-    let is_struct_s = "is!" ^ s_name (* recognizer *) in
+    let mk_struct_s =
+      "mk!" ^ s_name
+      (* struct constructor *)
+    in
+    let is_struct_s =
+      "is!" ^ s_name
+      (* recognizer *)
+    in
     let z3_fieldnames =
       List.map
         (fun f ->
@@ -403,7 +404,7 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
           if Global.options.debug then
             Message.debug "[Struct] . %s : %a"
               (Mark.remove (StructField.get_info f))
-              Print.typ_debug ty;
+              Print.typ ty;
           let ctx, ftype = translate_typ ctx (Mark.remove ty) in
           ctx, ftype :: ftypes)
         fields (ctx, [])
@@ -433,13 +434,25 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
   let create_constructor (name : EnumConstructor.t) (ty : typ) (ctx : context) :
       context * Z3.Datatype.Constructor.constructor =
     let cstr_name = Mark.remove (EnumConstructor.get_info name) in
-    let mk_cstr_s = "mk!" ^ cstr_name (* case constructor *) in
-    let is_cstr_s = "is!" ^ cstr_name (* recognizer *) in
-    let fieldname_s = cstr_name ^ "!0" (* name of the argument *) in
+    let mk_cstr_s =
+      "mk!" ^ cstr_name
+      (* case constructor *)
+    in
+    let is_cstr_s =
+      "is!" ^ cstr_name
+      (* recognizer *)
+    in
+    let fieldname_s =
+      cstr_name ^ "!0"
+      (* name of the argument *)
+    in
     let ctx, z3_arg_ty = translate_typ ctx (Mark.remove ty) in
-    let z3_sortrefs = [0] (* will not be used *) in
+    let z3_sortrefs =
+      [0]
+      (* will not be used *)
+    in
     if Global.options.debug then
-      Message.debug "[Enum] . %s : %a" cstr_name Print.typ_debug ty;
+      Message.debug "[Enum] . %s : %a" cstr_name Print.typ ty;
     ( ctx,
       Z3.Datatype.mk_constructor_s ctx.ctx_z3 mk_cstr_s
         (Z3.Symbol.mk_string ctx.ctx_z3 is_cstr_s)
@@ -840,49 +853,13 @@ let propagate_generic_error_list l other_constraints f =
 (*   in *)
 (*   aux [] elist *)
 
-let handle_eq pos evaluate_operator (m : conc_info mark) lang e1 e2 =
-  let eq_eval = evaluate_operator (Eq, pos) m lang in
-  let open Runtime.Oper in
-  match e1, e2 with
-  | ELit LUnit, ELit LUnit -> true
-  | ELit (LBool b1), ELit (LBool b2) -> not (o_xor b1 b2)
-  | ELit (LInt x1), ELit (LInt x2) -> o_eq_int_int x1 x2
-  | ELit (LRat x1), ELit (LRat x2) -> o_eq_rat_rat x1 x2
-  | ELit (LMoney x1), ELit (LMoney x2) -> o_eq_mon_mon x1 x2
-  | ELit (LDuration x1), ELit (LDuration x2) ->
-    o_eq_dur_dur (Expr.pos_to_runtime (Expr.mark_pos m)) x1 x2
-  | ELit (LDate x1), ELit (LDate x2) -> o_eq_dat_dat x1 x2
-  | EArray es1, EArray es2 -> (
-    try
-      List.for_all2
-        (fun e1 e2 ->
-          match Mark.remove (eq_eval [e1; e2]) with
-          | ELit (LBool b) -> b
-          | _ -> assert false
-          (* should not happen *))
-        es1 es2
-    with Invalid_argument _ -> false)
-  | EStruct { fields = es1; name = s1 }, EStruct { fields = es2; name = s2 } ->
-    StructName.equal s1 s2
-    && StructField.Map.equal
-         (fun e1 e2 ->
-           match Mark.remove (eq_eval [e1; e2]) with
-           | ELit (LBool b) -> b
-           | _ -> assert false
-           (* should not happen *))
-         es1 es2
-  | ( EInj { e = e1; cons = i1; name = en1 },
-      EInj { e = e2; cons = i2; name = en2 } ) -> (
-    try
-      EnumName.equal en1 en2
-      && EnumConstructor.equal i1 i2
-      &&
-      match Mark.remove (eq_eval [e1; e2]) with
-      | ELit (LBool b) -> b
-      | _ -> assert false
-      (* should not happen *)
-    with Invalid_argument _ -> false)
-  | _, _ -> false (* comparing anything else return false *)
+let handle_eq ctx pos e1 e2 =
+  Runtime.Value.equal (Expr.pos_to_runtime pos) (Expr.embed_value ctx e1)
+    (Expr.embed_value ctx e2)
+
+let handle_compare ctx pos e1 e2 =
+  Runtime.Value.compare (Expr.pos_to_runtime pos) (Expr.embed_value ctx e1)
+    (Expr.embed_value ctx e2)
 
 let op1
     ctx
@@ -900,13 +877,10 @@ let op1
 let op2
     ctx
     m
-    (concrete_f : 'x -> 'y -> conc_naked_result)
+    (concrete : conc_naked_result)
     (symbolic_f : Z3.context -> s_expr -> s_expr -> s_expr)
-    x
-    y
     e1
     e2 : conc_result =
-  let concrete = concrete_f x y in
   let e1 = get_symb_expr e1 in
   let e2 = get_symb_expr e2 in
   if Global.options.debug then
@@ -919,22 +893,18 @@ let op2
 let op2list
     ctx
     m
-    (concrete_f : 'x -> 'y -> conc_naked_result)
+    (concrete : conc_naked_result)
     (symbolic_f : Z3.context -> s_expr list -> s_expr)
-    x
-    y
     e1
     e2 : conc_result =
   let symbolic_f_curry ctx e1 e2 = symbolic_f ctx [e1; e2] in
-  op2 ctx m concrete_f symbolic_f_curry x y e1 e2
+  op2 ctx m concrete symbolic_f_curry e1 e2
 
 let handle_division
     ctx
     m
-    (concrete_f : 'x -> 'y -> conc_naked_result)
+    (concrete_f : unit -> conc_naked_result)
     (symbolic_f : Z3.context -> s_expr -> s_expr -> s_expr)
-    x
-    y
     e1
     e2 : conc_result =
   let e1_symb = get_symb_expr e1 in
@@ -946,7 +916,7 @@ let handle_division
   let zero = SymbExpr.mk_z3 (Z3.Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 0) in
   let den_zero = SymbExpr.app2_z3 (Z3.Boolean.mk_eq ctx.ctx_z3) e2_symb zero in
   try
-    let concrete = concrete_f x y in
+    let concrete = concrete_f () in
     let den_not_zero =
       SymbExpr.app_z3 (Z3.Boolean.mk_not ctx.ctx_z3) den_zero
     in
@@ -960,7 +930,7 @@ let handle_division
        evaluated expressions, and their constraints are handled by [EAppOp]. *)
     let constraints = [den_not_zero_pc] in
     add_conc_info_m m symb_expr ~constraints concrete
-  with Runtime.(Error (DivisionByZero, _)) ->
+  with Runtime.(Error (DivisionByZero, _, _)) ->
     let den_zero_pc = PathConstraint.mk_z3 den_zero (Expr.pos e2) true in
     make_error_divisionbyzeroerror m [den_zero_pc]
       [
@@ -970,12 +940,11 @@ let handle_division
       "division by zero at runtime"
 
 (* Call-by-value: the arguments are expected to be already evaluated here *)
-let rec evaluate_operator
+let evaluate_operator
     evaluate_expr
     ctx
     ((op, opos) : < overloaded : no ; .. > operator Mark.pos)
     (m : conc_info mark)
-    lang
     (args : conc_expr list) : conc_result =
   let pos = Expr.mark_pos m in
   let rpos () = Expr.pos_to_runtime opos in
@@ -984,21 +953,21 @@ let rec evaluate_operator
     Expr.pos_to_runtime
     @@ match args with _ :: denom :: _ -> Expr.pos denom | _ -> opos
   in
-  let protect f x y =
-    (* TODO CONC For now, I crash on date ambiguities, because they should not
-       happen: any duration expressed with months or years is rejected early
-       on. *)
-    let get_binop_args_pos = function
-      | (arg0 :: arg1 :: _ : ('t, 'm) gexpr list) ->
-        ["", Expr.pos arg0; "", Expr.pos arg1]
-      | _ -> assert false
-    in
-    try f (rpos ()) x y
-    with Runtime.(Error (UncomparableDurations, _)) ->
-      Message.error ~extra_pos:(get_binop_args_pos args)
-        "Cannot compare together durations that cannot be converted to a \
-         precise number of days"
-  in
+  (* let protect f x y = *)
+  (*   (\* TODO CONC For now, I crash on date ambiguities, because they should not *)
+  (*      happen: any duration expressed with months or years is rejected early *)
+  (*      on. *\) *)
+  (*   let get_binop_args_pos = function *)
+  (*     | (arg0 :: arg1 :: _ : ('t, 'm) gexpr list) -> *)
+  (*       ["", Expr.pos arg0; "", Expr.pos arg1] *)
+  (*     | _ -> assert false *)
+  (*   in *)
+  (*   try f (rpos ()) x y *)
+  (*   with Runtime.(Error (UncomparableValues, _, _)) -> *)
+  (*     Message.error ~extra_pos:(get_binop_args_pos args) *)
+  (*       "Cannot compare together durations that cannot be converted to a \ *)
+  (*        precise number of days" *)
+  (* in *)
   let err () =
     Message.error
       ~extra_pos:
@@ -1011,8 +980,7 @@ let rec evaluate_operator
         @ List.mapi
             (fun i arg ->
               ( Format.asprintf "Argument n°%d, value %a" (i + 1)
-                  (Print.UserFacing.expr lang)
-                  arg,
+                  (Print.expr ()) arg,
                 Expr.pos arg ))
             args)
       "Operator %a applied to the wrong@ arguments@ (should not happen if the \
@@ -1031,23 +999,30 @@ let rec evaluate_operator
     (* no constraints generated *)
     add_conc_info_m m symb_expr ~constraints:[] (ELit (LInt l))
     (* TODO INC *)
-  | Log _, _ -> failwith "Eop Log not implemented"
+  | Tag _, _ -> failwith "Tag evaluation not implemented"
   | (FromClosureEnv | ToClosureEnv), _ ->
     (* NOTE CONC used for typing only *)
     failwith "Eop From/ToClosureEnv should not appear in concolic evaluation"
   | Eq, [e1; e2] ->
-    let e1' = Mark.remove e1 in
-    let e2' = Mark.remove e2 in
-    let concrete =
-      ELit
-        (LBool
-           (handle_eq opos (evaluate_operator evaluate_expr ctx) m lang e1' e2'))
-    in
+    let concrete = ELit (LBool (handle_eq ctx.ctx_decl opos e1 e2)) in
     let s_e1 = get_symb_expr e1 in
     let s_e2 = get_symb_expr e2 in
     let symb_expr = SymbExpr.app2_z3 (Z3.Boolean.mk_eq ctx.ctx_z3) s_e1 s_e2 in
     (* TODO catch errors here, or maybe propagate [None]? *)
     add_conc_info_m m symb_expr ~constraints:[] concrete
+  | Lt, [e1; e2] ->
+    (* TODO CONC incompleteness warning for comparisons? eg on day < month *)
+    let concrete = ELit (LBool (handle_compare ctx.ctx_decl opos e1 e2 < 0)) in
+    op2 ctx m concrete Z3.Arithmetic.mk_lt e1 e2
+  | Lte, [e1; e2] ->
+    let concrete = ELit (LBool (handle_compare ctx.ctx_decl opos e1 e2 <= 0)) in
+    op2 ctx m concrete Z3.Arithmetic.mk_le e1 e2
+  | Gt, [e1; e2] ->
+    let concrete = ELit (LBool (handle_compare ctx.ctx_decl opos e1 e2 > 0)) in
+    op2 ctx m concrete Z3.Arithmetic.mk_gt e1 e2
+  | Gte, [e1; e2] ->
+    let concrete = ELit (LBool (handle_compare ctx.ctx_decl opos e1 e2 >= 0)) in
+    op2 ctx m concrete Z3.Arithmetic.mk_ge e1 e2
   | Map, [f; (EArray es, _)] ->
     let concrete =
       EArray
@@ -1150,42 +1125,24 @@ let rec evaluate_operator
            (make_ok init) es)
     in
     add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete
-  | ( (Length (* | Log _ *) | Eq | Map | Map2 | Concat | Filter | Fold | Reduce),
+  | Find, [_f; (EArray _es, _)] ->
+    failwith "Find evaluation not implemented yet"
+  | Sort _, _ :: _ -> failwith "sort evaluation not implemented yet"
+  | ArrayAccess _i, [(EArray _es, _)] ->
+    failwith "ArrayAccess evaluation not implemented yet"
+  | ( ( Length | Eq | Map | Map2 | Concat | Filter | Fold | Reduce | Find
+      | Sort _ | ArrayAccess _ ),
       _ ) ->
     err ()
   | Not, [((ELit (LBool b), _) as e)] ->
     op1 ctx m (fun x -> ELit (LBool (o_not x))) Z3.Boolean.mk_not b e
-  | GetDay, [(ELit (LDate d), _)] ->
-    let concrete = ELit (LInt (o_getDay d)) in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete
-  | GetMonth, [(ELit (LDate d), _)] ->
-    let concrete = ELit (LInt (o_getMonth d)) in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete
-  | GetYear, [(ELit (LDate d), _)] ->
-    let concrete = ELit (LInt (o_getYear d)) in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete
-  | FirstDayOfMonth, [(ELit (LDate d), _)] ->
-    let concrete = ELit (LDate (o_firstDayOfMonth d)) in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete
-  | LastDayOfMonth, [(ELit (LDate d), _)] ->
-    let concrete = ELit (LDate (o_lastDayOfMonth d)) in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete
   | And, [((ELit (LBool b1), _) as e1); ((ELit (LBool b2), _) as e2)] ->
-    op2list ctx m
-      (fun x y -> ELit (LBool (o_and x y)))
-      Z3.Boolean.mk_and b1 b2 e1 e2
+    op2list ctx m (ELit (LBool (o_and b1 b2))) Z3.Boolean.mk_and e1 e2
   | Or, [((ELit (LBool b1), _) as e1); ((ELit (LBool b2), _) as e2)] ->
-    op2list ctx m
-      (fun x y -> ELit (LBool (o_or x y)))
-      Z3.Boolean.mk_or b1 b2 e1 e2
+    op2list ctx m (ELit (LBool (o_or b1 b2))) Z3.Boolean.mk_or e1 e2
   | Xor, [((ELit (LBool b1), _) as e1); ((ELit (LBool b2), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_xor x y)))
-      Z3.Boolean.mk_xor b1 b2 e1 e2
-  | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-      | And | Or | Xor ),
-      _ ) ->
-    err ()
+    op2 ctx m (ELit (LBool (o_xor b1 b2))) Z3.Boolean.mk_xor e1 e2
+  | (Not | And | Or | Xor), _ -> err ()
   | Minus_int, [((ELit (LInt x), _) as e)] ->
     op1 ctx m
       (fun x -> ELit (LInt (o_minus_int x)))
@@ -1204,6 +1161,8 @@ let rec evaluate_operator
     op1 ctx m
       (fun x -> ELit (LDuration (o_minus_dur x)))
       DateEncoding.minus_dur x e
+  | ToInt_mon, [(ELit (LMoney _x), _)] ->
+    failwith "ToInt_mon not implemented yet"
   | ToInt_rat, [(ELit (LRat _x), _)] ->
     failwith "ToInt_rat not implemented yet" (* ELit (LInt (o_toint_rat x)) *)
   (* is this used? should it be [round] or floor?*)
@@ -1222,6 +1181,15 @@ let rec evaluate_operator
        [Div_mon_rat] because of rounding *)
     op1 ctx m
       (fun x -> ELit (LMoney (o_tomoney_rat x)))
+      (fun ctx e ->
+        let cents =
+          Z3.Arithmetic.mk_mul ctx [e; Z3.Arithmetic.Real.mk_numeral_i ctx 100]
+        in
+        z3_round ctx cents)
+      i e
+  | ToMoney_int, [((ELit (LInt i), _) as e)] ->
+    op1 ctx m
+      (fun x -> ELit (LMoney (o_tomoney_int x)))
       (fun ctx e ->
         let cents =
           Z3.Arithmetic.mk_mul ctx [e; Z3.Arithmetic.Real.mk_numeral_i ctx 100]
@@ -1249,224 +1217,119 @@ let rec evaluate_operator
       (fun ctx e -> z3_round ctx e)
       q e
   | Add_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
-    op2list ctx m
-      (fun x y -> ELit (LInt (o_add_int_int x y)))
-      Z3.Arithmetic.mk_add x y e1 e2
+    op2list ctx m (ELit (LInt (o_add_int_int x y))) Z3.Arithmetic.mk_add e1 e2
   | Add_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
-    op2list ctx m
-      (fun x y -> ELit (LRat (o_add_rat_rat x y)))
-      Z3.Arithmetic.mk_add x y e1 e2
+    op2list ctx m (ELit (LRat (o_add_rat_rat x y))) Z3.Arithmetic.mk_add e1 e2
   | Add_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
-    op2list ctx m
-      (fun x y -> ELit (LMoney (o_add_mon_mon x y)))
-      Z3.Arithmetic.mk_add x y e1 e2
+    op2list ctx m (ELit (LMoney (o_add_mon_mon x y))) Z3.Arithmetic.mk_add e1 e2
   | ( Add_dat_dur r,
       [((ELit (LDate x), _) as e1); ((ELit (LDuration y), _) as e2)] ) ->
     op2list ctx m
-      (fun x y -> ELit (LDate (o_add_dat_dur r (rpos ()) x y)))
-      DateEncoding.add_dat_dur x y e1 e2
+      (ELit (LDate (o_add_dat_dur r (rpos ()) x y)))
+      DateEncoding.add_dat_dur e1 e2
   | ( Add_dur_dur,
       [((ELit (LDuration x), _) as e1); ((ELit (LDuration y), _) as e2)] ) ->
     op2list ctx m
-      (fun x y -> ELit (LDuration (o_add_dur_dur x y)))
-      DateEncoding.add_dur_dur x y e1 e2
+      (ELit (LDuration (o_add_dur_dur x y)))
+      DateEncoding.add_dur_dur e1 e2
   | Sub_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
-    op2list ctx m
-      (fun x y -> ELit (LInt (o_sub_int_int x y)))
-      Z3.Arithmetic.mk_sub x y e1 e2
+    op2list ctx m (ELit (LInt (o_sub_int_int x y))) Z3.Arithmetic.mk_sub e1 e2
   | Sub_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
-    op2list ctx m
-      (fun x y -> ELit (LRat (o_sub_rat_rat x y)))
-      Z3.Arithmetic.mk_sub x y e1 e2
+    op2list ctx m (ELit (LRat (o_sub_rat_rat x y))) Z3.Arithmetic.mk_sub e1 e2
   | Sub_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
-    op2list ctx m
-      (fun x y -> ELit (LMoney (o_sub_mon_mon x y)))
-      Z3.Arithmetic.mk_sub x y e1 e2
+    op2list ctx m (ELit (LMoney (o_sub_mon_mon x y))) Z3.Arithmetic.mk_sub e1 e2
   | Sub_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
     op2list ctx m
-      (fun x y -> ELit (LDuration (o_sub_dat_dat x y)))
-      DateEncoding.sub_dat_dat x y e1 e2
+      (ELit (LDuration (o_sub_dat_dat x y)))
+      DateEncoding.sub_dat_dat e1 e2
   | ( Sub_dat_dur r,
       [((ELit (LDate x), _) as e1); ((ELit (LDuration y), _) as e2)] ) ->
     op2list ctx m
-      (fun x y -> ELit (LDate (o_sub_dat_dur r (rpos ()) x y)))
-      DateEncoding.sub_dat_dur x y e1 e2
+      (ELit (LDate (o_sub_dat_dur r (rpos ()) x y)))
+      DateEncoding.sub_dat_dur e1 e2
   | ( Sub_dur_dur,
       [((ELit (LDuration x), _) as e1); ((ELit (LDuration y), _) as e2)] ) ->
     op2list ctx m
-      (fun x y -> ELit (LDuration (o_sub_dur_dur x y)))
-      DateEncoding.sub_dur_dur x y e1 e2
+      (ELit (LDuration (o_sub_dur_dur x y)))
+      DateEncoding.sub_dur_dur e1 e2
   | Mult_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
-    op2list ctx m
-      (fun x y -> ELit (LInt (o_mult_int_int x y)))
-      Z3.Arithmetic.mk_mul x y e1 e2
+    op2list ctx m (ELit (LInt (o_mult_int_int x y))) Z3.Arithmetic.mk_mul e1 e2
   | Mult_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
-    op2list ctx m
-      (fun x y -> ELit (LRat (o_mult_rat_rat x y)))
-      Z3.Arithmetic.mk_mul x y e1 e2
+    op2list ctx m (ELit (LRat (o_mult_rat_rat x y))) Z3.Arithmetic.mk_mul e1 e2
   | Mult_mon_rat, [((ELit (LMoney x), _) as e1); ((ELit (LRat y), _) as e2)] ->
     op2 ctx m
-      (fun x y -> ELit (LMoney (o_mult_mon_rat x y)))
+      (ELit (LMoney (o_mult_mon_rat x y)))
       (fun ctx cents r ->
         let product = Z3.Arithmetic.mk_mul ctx [cents; r] in
         z3_round ctx product)
-      x y e1 e2
+      e1 e2
+  | Mult_mon_int, [((ELit (LMoney x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    op2 ctx m
+      (ELit (LMoney (o_mult_mon_int x y)))
+      (fun ctx cents r ->
+        let product = Z3.Arithmetic.mk_mul ctx [cents; r] in
+        z3_round ctx product)
+      e1 e2
   | Mult_dur_int, [((ELit (LDuration x), _) as e1); ((ELit (LInt y), _) as e2)]
     ->
     op2list ctx m
-      (fun x y -> ELit (LDuration (o_mult_dur_int x y)))
-      DateEncoding.mult_dur_int x y e1 e2
+      (ELit (LDuration (o_mult_dur_int x y)))
+      DateEncoding.mult_dur_int e1 e2
   | Div_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
     handle_division ctx m
-      (fun x y -> ELit (LRat (o_div_int_int (div_pos ()) x y)))
+      (fun () -> ELit (LRat (o_div_int_int (div_pos ()) x y)))
       (fun ctx e1 e2 ->
         (* convert e1 to a [Real] explicitely to avoid using integer division *)
         let e1_rat = z3_force_real ctx e1 in
         Z3.Arithmetic.mk_div ctx e1_rat e2)
-      x y e1 e2
+      e1 e2
   | Div_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
     handle_division ctx m
-      (fun x y -> ELit (LRat (o_div_rat_rat (div_pos ()) x y)))
+      (fun () -> ELit (LRat (o_div_rat_rat (div_pos ()) x y)))
       (* Z3.Arithmetic.mk_div x y e1 e2 *)
-        (fun ctx e1 e2 ->
+      (fun ctx e1 e2 ->
         (* convert e1 to a [Real] explicitely to avoid using integer division *)
         let e1_rat = z3_force_real ctx e1 in
         Z3.Arithmetic.mk_div ctx e1_rat e2)
-      x y e1 e2
+      e1 e2
   | Div_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
     handle_division ctx m
-      (fun x y -> ELit (LRat (o_div_mon_mon (div_pos ()) x y)))
+      (fun () -> ELit (LRat (o_div_mon_mon (div_pos ()) x y)))
       (fun ctx e1 e2 ->
         (* TODO factorize with [Div_int_int]? *)
         (* convert e1 to a [Real] explicitely to avoid using integer division *)
         let e1_rat = z3_force_real ctx e1 in
         Z3.Arithmetic.mk_div ctx e1_rat e2)
-      x y e1 e2
+      e1 e2
   | Div_mon_rat, [((ELit (LMoney x), _) as e1); ((ELit (LRat y), _) as e2)] ->
     handle_division ctx m
-      (fun x y -> ELit (LMoney (o_div_mon_rat (div_pos ()) x y)))
+      (fun () -> ELit (LMoney (o_div_mon_rat (div_pos ()) x y)))
       (fun ctx cents r ->
         (* TODO maybe factorize with [Mult_mon_rat] and [ToRat_int]? *)
         let cents_rat = z3_force_real ctx cents in
         let div = Z3.Arithmetic.mk_div ctx cents_rat r in
         z3_round ctx div)
-      x y e1 e2
+      e1 e2
+  | Div_mon_int, [((ELit (LMoney x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    handle_division ctx m
+      (fun () -> ELit (LMoney (o_div_mon_int (div_pos ()) x y)))
+      (fun ctx cents r ->
+        (* TODO maybe factorize with [Mult_mon_rat] and [ToRat_int]? *)
+        let cents_rat = z3_force_real ctx cents in
+        let div = Z3.Arithmetic.mk_div ctx cents_rat r in
+        z3_round ctx div)
+      e1 e2
   (* TODO with careful rounding *)
   | ( Div_dur_dur,
       [((ELit (LDuration x), _) as e1); ((ELit (LDuration y), _) as e2)] ) ->
     handle_division ctx m
-      (fun x y -> ELit (LRat (o_div_dur_dur (div_pos ()) x y)))
-      DateEncoding.div_dur_dur x y e1 e2
-  | Lt_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_lt_int_int x y)))
-      Z3.Arithmetic.mk_lt x y e1 e2
-  | Lt_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_lt_rat_rat x y)))
-      Z3.Arithmetic.mk_lt x y e1 e2
-  | Lt_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_lt_mon_mon x y)))
-      Z3.Arithmetic.mk_lt x y e1 e2
-  | Lt_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_lt_dat_dat x y)))
-      DateEncoding.lt_dat_dat x y e1 e2
-  | ( Lt_dur_dur,
-      [((ELit (LDuration x), _) as e1); ((ELit (LDuration y), _) as e2)] ) ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (protect o_lt_dur_dur x y)))
-      DateEncoding.lt_dur_dur x y e1 e2
-  | Lte_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_lte_int_int x y)))
-      Z3.Arithmetic.mk_le x y e1 e2
-  | Lte_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_lte_rat_rat x y)))
-      Z3.Arithmetic.mk_le x y e1 e2
-  | Lte_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_lte_mon_mon x y)))
-      Z3.Arithmetic.mk_le x y e1 e2
-  | Lte_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_lte_dat_dat x y)))
-      DateEncoding.lte_dat_dat x y e1 e2
-  | ( Lte_dur_dur,
-      [((ELit (LDuration x), _) as e1); ((ELit (LDuration y), _) as e2)] ) ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (protect o_lte_dur_dur x y)))
-      DateEncoding.lte_dur_dur x y e1 e2
-  | Gt_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_gt_int_int x y)))
-      Z3.Arithmetic.mk_gt x y e1 e2
-  | Gt_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_gt_rat_rat x y)))
-      Z3.Arithmetic.mk_gt x y e1 e2
-  | Gt_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_gt_mon_mon x y)))
-      Z3.Arithmetic.mk_gt x y e1 e2
-  | Gt_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_gt_dat_dat x y)))
-      DateEncoding.gt_dat_dat x y e1 e2
-  | ( Gt_dur_dur,
-      [((ELit (LDuration x), _) as e1); ((ELit (LDuration y), _) as e2)] ) ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (protect o_gt_dur_dur x y)))
-      DateEncoding.gt_dur_dur x y e1 e2
-  | Gte_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_gte_int_int x y)))
-      Z3.Arithmetic.mk_ge x y e1 e2
-  | Gte_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_gte_rat_rat x y)))
-      Z3.Arithmetic.mk_ge x y e1 e2
-  | Gte_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_gte_mon_mon x y)))
-      Z3.Arithmetic.mk_ge x y e1 e2
-  | Gte_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_gte_dat_dat x y)))
-      DateEncoding.gte_dat_dat x y e1 e2
-  | ( Gte_dur_dur,
-      [((ELit (LDuration x), _) as e1); ((ELit (LDuration y), _) as e2)] ) ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (protect o_gte_dur_dur x y)))
-      DateEncoding.gte_dur_dur x y e1 e2
-  | Eq_boo_boo, [(ELit (LBool _x), _); (ELit (LBool _y), _)] ->
-    failwith "Eq_boo_boo not implemented yet"
-    (* ELit (LBool (o_eq_boo_boo x y)) *)
-  | Eq_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_eq_int_int x y)))
-      Z3.Boolean.mk_eq x y e1 e2
-  | Eq_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_eq_rat_rat x y)))
-      Z3.Boolean.mk_eq x y e1 e2
-  | Eq_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_eq_mon_mon x y)))
-      Z3.Boolean.mk_eq x y e1 e2
-  | Eq_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (o_eq_dat_dat x y)))
-      DateEncoding.eq_dat_dat x y e1 e2
-  | ( Eq_dur_dur,
-      [((ELit (LDuration x), _) as e1); ((ELit (LDuration y), _) as e2)] ) ->
-    op2 ctx m
-      (fun x y -> ELit (LBool (protect o_eq_dur_dur x y)))
-      DateEncoding.eq_dur_dur x y e1 e2
+      (fun () -> ELit (LRat (o_div_dur_dur (div_pos ()) x y)))
+      DateEncoding.div_dur_dur e1 e2
   | HandleExceptions, [(EArray _exps, _)] ->
     failwith "HandleExceptions not implemented yet"
+  | ConstructorCheck _, _ -> failwith "ConstructorCheck not implemented yet"
+  | DebugPrint _, _ -> failwith "DebugPrint not implemented yet"
+  | ValueFromJson _, _ -> failwith "ValueFromJson not implemented yet"
   (* ( let valid_exceptions = ListLabels.filter exps ~f:(function | EInj { name;
      cons; _ }, _ when EnumName.equal name Expr.option_enum ->
      EnumConstructor.equal cons Expr.some_constr | _ -> err ()) in match
@@ -1475,18 +1338,14 @@ let rec evaluate_operator
      _)] when EnumName.equal name Expr.option_enum && EnumConstructor.equal cons
      Expr.some_constr -> e | [_] -> err () | excs -> raise Runtime.( Error
      (Conflict, List.map Expr.(fun e -> pos_to_runtime (pos e)) excs)) ) *)
-  | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToInt_rat | ToRat_int
-      | ToRat_mon | ToMoney_rat | Round_rat | Round_mon | Add_int_int
-      | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int
-      | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur _ | Sub_dur_dur
-      | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int
-      | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int
-      | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int
-      | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int
-      | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int
-      | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_boo_boo
-      | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur
-      | HandleExceptions ),
+  | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToInt_mon | ToInt_rat
+      | ToRat_int | ToRat_mon | ToMoney_int | ToMoney_rat | Round_rat
+      | Round_mon | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
+      | Add_dur_dur | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
+      | Sub_dat_dur _ | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_rat
+      | Mult_mon_int | Mult_dur_int | Div_int_int | Div_rat_rat | Div_mon_mon
+      | Div_mon_rat | Div_mon_int | Div_dur_dur | HandleExceptions | Lt | Gt
+      | Lte | Gte ),
       _ ) ->
     err ()
 
@@ -1603,9 +1462,7 @@ let rec evaluate_expr :
       propagate_generic_error_list args []
       @@ fun args ->
       let args_constraints = gather_constraints args in
-      let result =
-        evaluate_operator (evaluate_expr ctx lang) ctx op m lang args
-      in
+      let result = evaluate_operator (evaluate_expr ctx lang) ctx op m args in
       propagate_generic_error result args_constraints
       @@ fun result ->
       let r_symb = get_symb_expr result in
@@ -1631,7 +1488,6 @@ let rec evaluate_expr :
     | EStruct { fields = es; name } ->
       if Global.options.debug then Message.debug "... it's an EStruct";
       let fields, es = List.split (StructField.Map.bindings es) in
-
       (* compute all subexpressions *)
       let es = List.map (evaluate_expr ctx lang) es in
       propagate_generic_error_list es []
@@ -1643,12 +1499,9 @@ let rec evaluate_expr :
           SymbExpr.incomplete
         else SymbExpr.mk_z3 (make_z3_struct ctx name es)
       in
-
       (* TODO catch error... should not happen *)
-
       (* gather all constraints from sub-expressions *)
       let constraints = gather_constraints es in
-
       add_conc_info_m m symb_expr ~constraints
         (EStruct
            {
@@ -1695,10 +1548,11 @@ let rec evaluate_expr :
         Message.error ~pos:(Expr.pos e)
           "The expression %a should be a struct %a but is not (should not \
            happen if the term was well-typed)"
-          (Print.UserFacing.expr lang)
-          e StructName.format s)
+          (Print.expr ()) e StructName.format s)
     | ETuple _ -> failwith "ETuple not implemented"
     | ETupleAccess _ -> failwith "ETupleAccess not implemented"
+    | EBad -> assert false
+    | EPos _ -> failwith "EPos not implemented"
     | EInj { name; e; cons } ->
       if Global.options.debug then Message.debug "... it's an EInj";
       propagate_generic_error (evaluate_expr ctx lang e) []
@@ -1917,7 +1771,8 @@ let rec evaluate_expr :
            applied in this situation)"
       | e -> make_ok e
       (* just pass along the concrete and symbolic values, and the
-         constraints *))
+         constraints *)
+      )
     | EDefault
         {
           excepts =
@@ -2186,7 +2041,7 @@ let make_input_mark ctx m field (ty : typ) : conc_info mark =
          value is non-empty. See [make_reentrant_input]. *)
       if Global.options.debug then
         Message.debug "[make_input_mark] reentrant variable <%s> : %a" name
-          Print.typ_debug ty;
+          Print.typ ty;
       let _, inner_sort = translate_typ ctx (Mark.remove inner_ty) in
       let symbol = Z3.Expr.mk_const_s ctx.ctx_z3 name inner_sort in
       SymbExpr.mk_reentrant field symbol
@@ -2607,13 +2462,12 @@ struct
                 Z3Solver.solve ctx.ctx_z3 z3_constraints z3_soft_constraints)
               1
           in
-          begin
-            match status with
-            | Z3Sat (Some model_z3) ->
-              Sat (Some { model_z3; model_empty_reentrants })
-            | Z3Sat None -> Sat None
-            | Z3Unsat -> Unsat
-            | Z3Unknown info -> Unknown info
+          begin match status with
+          | Z3Sat (Some model_z3) ->
+            Sat (Some { model_z3; model_empty_reentrants })
+          | Z3Sat None -> Sat None
+          | Z3Unsat -> Unsat
+          | Z3Unknown info -> Unknown info
           end
         with Timeout ->
           if retry then begin
@@ -2658,7 +2512,7 @@ struct
     | TBool -> LBool true
     | TInt -> LInt (Z.of_int 0)
     | TMoney -> LMoney (Runtime.money_of_units_int 0)
-    | TUnit -> LUnit
+    | TUnit | TPos -> LUnit
     | TRat -> LRat (Runtime.decimal_of_string "0")
     | TDate -> LDate DateEncoding.default_date
     | TDuration -> LDuration DateEncoding.default_duration
@@ -2708,7 +2562,10 @@ struct
     | TOption _ -> failwith "[default_expr_of_typ] TOption not implemented"
     | TArray _ -> failwith "[default_expr_of_typ] TArray not implemented"
     | TDefault _ -> failwith "[default_expr_of_typ] TDefault not implemented"
-    | TAny -> failwith "[default_expr_of_typ] TAny not implemented"
+    | TForAll _ -> failwith "[default_expr_of_typ] TForAll not implemented"
+    | TVar _ -> failwith "[default_expr_of_typ] TVar not implemented"
+    | TAbstract _ -> failwith "[default_expr_of_typ] TAbstract not implemented"
+    | TError -> failwith "[default_expr_of_typ] TError not implemented"
     | TClosureEnv ->
       failwith "[default_expr_of_typ] TClosureEnv not implemented"
 
@@ -2728,7 +2585,8 @@ struct
       let money = Runtime.money_of_cents_integer cents in
       LMoney money
     | TRat -> LRat (decimal_of_symb_expr e)
-    | TUnit -> LUnit (* TODO maybe check that the Z3 value is indeed unit? *)
+    | TPos | TUnit ->
+      LUnit (* TODO maybe check that the Z3 value is indeed unit? *)
     | TDate -> LDate (DateEncoding.decode_date e)
     | TDuration -> LDuration (DateEncoding.decode_duration e)
 
@@ -2741,7 +2599,10 @@ struct
     | TLit tl ->
       let lit = value_of_symb_expr_lit tl e in
       Expr.elit lit mark
-    | TAny -> failwith "[value_of_symb_expr] TAny not implemented"
+    | TForAll _ -> failwith "[value_of_symb_expr] TForAll not implemented"
+    | TVar _ -> failwith "[value_of_symb_expr] TVar not implemented"
+    | TAbstract _ -> failwith "[value_of_symb_expr] TAbstract not implemented"
+    | TError -> failwith "[value_of_symb_expr] TError not implemented"
     | TClosureEnv -> failwith "[value_of_symb_expr] TClosureEnv not implemented"
     | TTuple _ -> failwith "[value_of_symb_expr] TTuple not implemented"
     | TStruct name ->
@@ -2938,25 +2799,13 @@ let apply_diff
   in
   List.iter f diff
 
-(* FIXME what do I print for context variables? *)
-let print_value language fmt value =
-  let f =
-    if Global.options.debug then Print.expr ()
-    else
-      match Mark.remove value with
-      | EPureDefault _ | EEmpty -> Print.expr ()
-      | _ -> Print.UserFacing.value language
-  in
-  f fmt value
-
-let print_fields language (prefix : string) fields =
+let print_fields (prefix : string) fields =
   let ordered_fields =
     List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) fields
   in
   List.iter
     (fun ((var, _), value) ->
-      Message.result "%s@[<hov 2>%s@ =@ %a@]%s" prefix var
-        (print_value language) value
+      Message.result "%s@[<hov 2>%s@ =@ %a@]%s" prefix var (Print.expr ()) value
         (if Global.options.debug then
            " | " ^ SymbExpr.to_string (_get_symb_expr_unsafe value)
          else ""))
@@ -3223,7 +3072,7 @@ let interpret_program_concolic
             (fun (fld, e) -> StructField.get_info fld, Expr.unbox e)
             (StructField.Map.bindings inputs)
         in
-        print_fields p.lang ". " inputs_list;
+        print_fields ". " inputs_list;
 
         let exec = Stats.stop_step s_inputs |> Stats.add_exec_step exec in
 
@@ -3233,25 +3082,24 @@ let interpret_program_concolic
 
         Message.result "Output of scope after evaluation:";
 
-        begin
-          match Mark.remove res with
-          | EStruct { fields; _ } ->
-            let outputs_list =
-              List.map
-                (fun (fld, e) -> StructField.get_info fld, e)
-                (StructField.Map.bindings fields)
-            in
-            print_fields p.lang ". " outputs_list
-          | EGenericError ->
-            (* TODO better error messages *)
-            (* TODO test the different cases *)
-            Message.result "Found error %a at %s" SymbExpr.formatter
-              (get_symb_expr_r res)
-              (Pos.to_string_short (Expr.pos res))
-          | _ ->
-            Message.error ~pos:(Expr.pos scope_e)
-              "The concolic interpretation of a program should always yield a \
-               struct corresponding to the scope variables"
+        begin match Mark.remove res with
+        | EStruct { fields; _ } ->
+          let outputs_list =
+            List.map
+              (fun (fld, e) -> StructField.get_info fld, e)
+              (StructField.Map.bindings fields)
+          in
+          print_fields ". " outputs_list
+        | EGenericError ->
+          (* TODO better error messages *)
+          (* TODO test the different cases *)
+          Message.result "Found error %a at %s" SymbExpr.formatter
+            (get_symb_expr_r res)
+            (Pos.to_string_short (Expr.pos res))
+        | _ ->
+          Message.error ~pos:(Expr.pos scope_e)
+            "The concolic interpretation of a program should always yield a \
+             struct corresponding to the scope variables"
         end;
         incr total_tests;
 

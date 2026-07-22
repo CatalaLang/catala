@@ -22,8 +22,8 @@ type ('c, 'e) conc_interpr_kind =
   ; scopeVarStates : no
   ; scopeVarSimpl : no
   ; explicitScopes : no
-  ; assertions : yes
   ; defaultTerms : yes
+  ; reifiedPos : no
   ; genericErrors : 'e
   ; custom : 'c >
 

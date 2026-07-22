@@ -14,7 +14,7 @@ scope A:
     consequence fulfilled
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala DCalc -s A
 let scope A (A_in: A_in {dur_in: duration; d_in: date}): A {o: bool} =
   let get dur : duration = A_in.dur_in in
@@ -32,7 +32,7 @@ let scope A (A_in: A_in {dur_in: duration; d_in: date}): A {o: bool} =
   return { A o = o; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ 

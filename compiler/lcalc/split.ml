@@ -52,7 +52,7 @@ let add_size (type a) : (a, typed) gexpr -> (a, size_mark) boxed_gexpr =
     let mk_mark n : size_mark mark = Custom { pos; custom = n, m } in
     match Mark.remove e with
     | EVar _ | EExternal _ | ELit _ | EEmpty | ECustom _ | EBad | EFatalError _
-      ->
+    | EGenericError ->
       let new_m = mk_mark 1 in
       1, Expr.map_marks ~f:(fun _ -> new_m) e
     | ELocation _ | EPos _ ->

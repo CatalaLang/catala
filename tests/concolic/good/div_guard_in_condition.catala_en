@@ -33,7 +33,7 @@ NEGATE (y!=42)
 => output: division by zero error
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ 

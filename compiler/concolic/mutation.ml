@@ -21,8 +21,8 @@ let random p =
   f < p
 
 type ('e, 'c, 't) mutation_type =
-  ((yes, 'c) interpr_kind, 't) gexpr boxed ->
-  ((yes, 'c) interpr_kind, 't) gexpr boxed
+  ((yes, 'c, yes) interpr_kind, 't) gexpr boxed ->
+  ((yes, 'c, yes) interpr_kind, 't) gexpr boxed
 
 let remove_excepts_n = ref 0
 
@@ -96,8 +96,8 @@ let apply_mutations
     expr =
   let op = Fun.id in
   let rec f :
-      ((yes, c) interpr_kind, 't) gexpr ->
-      ((yes, c) interpr_kind, 't) gexpr boxed = function
+      ((yes, c, yes) interpr_kind, 't) gexpr ->
+      ((yes, c, yes) interpr_kind, 't) gexpr boxed = function
     | (EDefault { excepts; just; cons }, m) as e ->
       if Global.options.debug then
         Message.debug "[mutation] looking at expression %a (%n)" (Print.expr ())
@@ -174,8 +174,8 @@ let get_stats expr =
   in
   let op = Fun.id in
   let rec f :
-      ((yes, 'c) interpr_kind, 't) gexpr ->
-      ((yes, 'c) interpr_kind, 't) gexpr boxed = function
+      ((yes, 'c, yes) interpr_kind, 't) gexpr ->
+      ((yes, 'c, yes) interpr_kind, 't) gexpr boxed = function
     | (EIfThenElse _, _) as e ->
       stats.ifs <- stats.ifs + 1;
       Expr.map ~op ~f e
@@ -208,8 +208,8 @@ let mutate_default_at_index
   let op = Fun.id in
   let i = ref 0 in
   let rec f :
-      ((yes, c) interpr_kind, 't) gexpr ->
-      ((yes, c) interpr_kind, 't) gexpr boxed = function
+      ((yes, c, yes) interpr_kind, 't) gexpr ->
+      ((yes, c, yes) interpr_kind, 't) gexpr boxed = function
     | (EDefault { excepts; just; cons }, m) as e ->
       if excepts <> [] || not only_with_excepts then incr i;
       if !i = goal then begin
@@ -226,8 +226,8 @@ let mutate_default_at_index
   in
   f expr
 
-let create_one_conflict (expr : ((yes, 'c) interpr_kind, 't) gexpr) :
-    ((yes, 'c) interpr_kind, 't) gexpr boxed =
+let create_one_conflict (expr : ((yes, 'c, yes) interpr_kind, 't) gexpr) :
+    ((yes, 'c, yes) interpr_kind, 't) gexpr boxed =
   let stats = get_stats expr in
   let goal = Random.int stats.defaults_with_excepts + 1 in
   mutate_default_at_index duplicate_excepts true goal expr
