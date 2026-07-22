@@ -31,8 +31,8 @@ end
       bare [!var].
     - command literal: spaceable (a path) -> {!quote_arg}; a flag -> bare
       string.
-    - [def] binding values: never contain a quote char ({!binding_words} quotes
-      cmd_only vars at emit; direct execs read values as argv).
+    - variable definition values: never contain a quote char ({!binding_words}
+      quotes cmd_only vars at emit; direct execs read values as argv).
     - {!get_var} output is direct-exec argv: use as-is, never quote or strip. *)
 
 (** {1 Ninja variable names} *)
@@ -86,16 +86,17 @@ val ( ! ) : t -> string
 
 val quote_arg : string -> string
 (** Double-quote one shell argument for a rule command — a literal or a
-    [!var / ...] reference that may expand with spaces. Never for the words of a
-    [def] binding (see {!cmd_only}) or for ninja paths. *)
+    [!var / ...] reference that may expand with spaces. Never inside a variable
+    definition's value (see {!cmd_only}) or a ninja path. *)
 
 val binding_words : t -> string list -> string list
-(** A binding's words as written to the ninja file: shell-quoted for cmd_only
-    vars, verbatim otherwise. *)
+(** Quotes a variable definition for emission: cmd_only words shell-quoted,
+    others verbatim — the one place quote chars are introduced. *)
 
 val check_value : t -> string list -> string list
-(** Identity; errors out if a cmd_only binding word contains a quote char
-    (quoting is applied at emission, never stored). *)
+(** Identity; errors out if a cmd_only value word contains a quote char (quoting
+    is applied at emission, never stored), or if a non-cmd_only value holds
+    several words (it may be path-read: one [${v}] is one path). *)
 
 val check_path : string -> string
 (** Identity; errors out if the string references a cmd_only variable, whose

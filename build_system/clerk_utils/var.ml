@@ -70,16 +70,25 @@ let binding_words var words =
   if is_cmd_only var then List.map quote_arg words else words
 
 let check_value var words =
-  if is_cmd_only var then
-    List.iter
-      (fun w ->
-        if String.contains w '"' then
-          Message.error
-            "Invalid word %S in the value of variable @{<blue;bold>$%s@}: \
-             quote characters are not allowed, shell quoting is applied \
-             automatically"
-            w (name var))
-      words;
+  (if is_cmd_only var then
+     List.iter
+       (fun w ->
+         if String.contains w '"' then
+           Message.error
+             "Invalid word %S in the value of variable @{<blue;bold>$%s@}: \
+              quote characters are not allowed, shell quoting is applied \
+              automatically"
+             w (name var))
+       words
+   else
+     match words with
+     | [] | [_] -> ()
+     | _ ->
+       Message.error
+         "Variable @{<blue;bold>$%s@} holds %d words but is not \
+          @{<bold>cmd_only@}: it may be read as a ninja path, where a \
+          @{<bold>${var}@} is a single path"
+         (name var) (List.length words));
   words
 
 let re_var =
