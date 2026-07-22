@@ -81,6 +81,16 @@ let test_check_value_accepts_clean () =
   check_list "clean cmd_only value passes through" ["-O"; "--trace"]
     (CVar.check_value CVar.catala_flags ["-O"; "--trace"])
 
+let test_check_value_rejects_multiword_untagged () =
+  Alcotest.(check bool)
+    "multi-word value of a non-cmd_only var is rejected" true
+    (raises_compiler_error (fun () ->
+         CVar.check_value CVar.catala_exe ["catala.exe"; "--stray"]))
+
+let test_check_value_accepts_single_untagged () =
+  check_list "single-word non-cmd_only value passes through" ["catala.exe"]
+    (CVar.check_value CVar.catala_exe ["catala.exe"])
+
 let test_check_path_rejects_cmd_only_ref () =
   Alcotest.(check bool)
     "cmd_only ref in a path position is rejected" true
@@ -182,6 +192,10 @@ let () =
             test_check_value_rejects_quote;
           test_case "check_value passes clean words" `Quick
             test_check_value_accepts_clean;
+          test_case "check_value rejects multi-word untagged" `Quick
+            test_check_value_rejects_multiword_untagged;
+          test_case "check_value passes single-word untagged" `Quick
+            test_check_value_accepts_single_untagged;
           test_case "check_path rejects cmd_only ref" `Quick
             test_check_path_rejects_cmd_only_ref;
           test_case "check_path passes path-var refs" `Quick
