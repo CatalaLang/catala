@@ -65,7 +65,6 @@ let cat_files = make "cat_files" (* Useful on Windows only *)
 (* let scope = make "scope" *)
 let test_id = make "test-id"
 let ( ! ) = Ninja_utils.Var.v
-let quoted x = "\"" ^ !x ^ "\""
 let quote_arg s = "\"" ^ s ^ "\""
 
 let binding_words var words =
