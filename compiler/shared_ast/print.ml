@@ -479,6 +479,7 @@ module Precedence = struct
     | EErrorOnEmpty _ -> App
     | EPos _ -> Contained
     | ECustom _ -> Contained
+    | EGenericError -> Contained
     | EBad -> Contained
 
   let needs_parens ~context ?(rhs = false) e =
@@ -854,6 +855,7 @@ module ExprGen (C : EXPR_PARAM) = struct
         Catala_runtime.Value.format fmt
           (Catala_runtime.Value.V (E.rtype, Obj.obj obj))
       | ECustom _ -> Format.pp_print_string fmt "<obj>"
+      | EGenericError -> lit_style fmt "↯"
       | EBad -> Format.pp_print_string fmt "<bad>"
 
   let expr ppf e = expr_aux Bindlib.empty_ctxt colors ppf e
@@ -1324,6 +1326,7 @@ let rec s_expr : type a m.
   | EEmpty -> pf fmt "Empty"
   | EErrorOnEmpty e -> pf fmt "@[<hov 1>ErrorOnEmpty(@,%a)@]" s_expr e
   | ECustom _ -> pf fmt "Custom<..>"
+  | EGenericError -> pf fmt "GenericError"
   | EBad -> pf fmt "Bad"
 
 let runtime_to_pos rpos =

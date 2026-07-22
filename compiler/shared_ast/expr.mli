@@ -135,6 +135,7 @@ val eerroronempty :
   'm mark ->
   ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
 
+val egenericerror : 'm mark -> (< genericErrors : yes ; .. >, 'm) boxed_gexpr
 val elocation : 'a glocation -> 'm mark -> ((< .. > as 'a), 'm) boxed_gexpr
 
 val estruct :

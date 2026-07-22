@@ -22,7 +22,7 @@ a b/c conflict, the engine tries (4,2,3,42) where there is still a b/c conflict
 (which we already caught) but it raises a DivisionByZero error.
 See below this test block for an example with the optimization.
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ 
@@ -614,7 +614,7 @@ $ catala Concolic --conc-optim=incremental -s A
 With the optimization there are only 15 evaluations (solve: 216ms, eval: 52ms,
 total: 288ms). The type of case mentioned above does not happen anymore.
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ 

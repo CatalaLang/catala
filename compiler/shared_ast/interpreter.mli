@@ -20,6 +20,8 @@
 open Catala_utils
 open Definitions
 
+val is_empty_error : ('a, 'm) gexpr -> bool
+
 val evaluate_operator :
   decl_ctx ->
   ((((_, _, yes) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
