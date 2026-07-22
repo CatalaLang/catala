@@ -26,12 +26,13 @@ end
     Quoting belongs to the boundary a value crosses, never to the stored value:
     - declaring: holds shell arguments -> {!cmd_only}; names build-statement
       paths -> {!make}. Dual-use (CATALA_EXE): [make], quote each command ref.
-    - command ref: expands to one argument -> {!quoted}; to several -> bare
-      [!var].
-    - command literal: spaceable (a path) -> {!quote_arg}; a flag -> bare.
+    - command ref: expands to one argument -> [quote_arg !var]; to several ->
+      bare [!var].
+    - command literal: spaceable (a path) -> {!quote_arg}; a flag -> bare
+      string.
     - [def] binding values: never contain a quote char ({!binding_words} quotes
       cmd_only vars at emit; direct execs read values as argv).
-    - {!get_var} output is argv: use as-is, never quote or strip. *)
+    - {!get_var} output is direct-exec argv: use as-is, never quote or strip. *)
 
 (** {1 Ninja variable names} *)
 
@@ -46,14 +47,13 @@ val catala_flags : t
 val make : string -> t
 
 val cmd_only : t -> t
-(** [cmd_only (make "V")] declares that [${V}] is only ever consumed as shell
+(** [cmd_only (make "V")] declares that [${V}] is only consumed as shell
     arguments (rule commands, direct-exec argv), never as a build-statement
-    path: its words are shell-quoted when the binding is written to the ninja
-    file ({!binding_words}), and stay unquoted in the stored value. Not for vars
-    with a path consumer (builddir, tdir, CATALA_EXE, ...), where the quotes
-    would be literal file-name chars. A word-list var with a path consumer is
-    not expressible in ninja anyway (variables expand after tokenization: one
-    [${v}] is exactly one path); pass the concrete OCaml list instead. *)
+    path: {!binding_words} shell-quotes its words at emission; the stored value
+    stays unquoted. Not for vars with a path consumer (builddir, CATALA_EXE,
+    ...), where the quotes would be literal file-name chars. No var needs both:
+    ninja expands variables after tokenizing, so [${v}] in a path position is
+    always exactly one path, never a word list. *)
 
 val is_cmd_only : t -> bool
 val runtime : t
@@ -81,13 +81,10 @@ type bindings = (t * string list) list
 val ( ! ) : t -> string
 (** Run-time reference to the given variable [!var = "${xvarname}"] *)
 
-val quoted : t -> string
-(** Double-quote a variable reference for use as a shell argument in a rule
-    command (spaced paths). Not for ninja input/output paths. *)
-
 val quote_arg : string -> string
-(** Like {!quoted} but for a literal string. Rule-command literals only, never
-    binding values (see {!cmd_only}). *)
+(** Double-quote one shell argument for a rule command — a literal or a
+    [!var / ...] reference that may expand with spaces. Never for the words of
+    a [def] binding (see {!cmd_only}) or for ninja paths. *)
 
 val binding_words : t -> string list -> string list
 (** A binding's words as written to the ninja file: shell-quoted for cmd_only

@@ -76,7 +76,7 @@ let static_base_rules ~tests enabled_backends =
         Nj.rule "tests"
           ~command:
             [
-              quoted clerk_exe;
+              quote_arg !clerk_exe;
               "runtest";
               !clerk_flags;
               !input;

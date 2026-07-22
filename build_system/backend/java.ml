@@ -157,7 +157,7 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-java"
-        ~command:[quoted catala_exe; name; !catala_flags; !catala_flags_java;
+        ~command:[quote_arg !catala_exe; name; !catala_flags; !catala_flags_java;
                   "-o"; !output; "--"; !input]
         ~description:["<catala>"; name; "⇒"; !output];
       Nj.rule "java-class"
