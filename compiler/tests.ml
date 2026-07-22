@@ -27,16 +27,15 @@ let test_remove_prefix_drive_case () =
   @@ fun () ->
   check "lower-case-drive prefix removed from upper-case-drive path"
     {|lib\src\data|}
-    (Path.remove_prefix ~cwd:{|c:\proj|} {|c:\proj|}
-       {|C:\proj\lib\src\data|})
+    (Path.remove_prefix ~cwd:{|c:\proj|} {|c:\proj|} {|C:\proj\lib\src\data|})
 
 let test_reverse_path_no_drive_strip () =
   with_os true
   @@ fun () ->
   check "include-dir relativized to project root (drive not stripped)"
     {|lib\src\data\enums|}
-    (Path.reverse ~cwd:{|c:\proj|} ~from_dir:{|c:\proj|}
-       ~to_dir:{|.|} {|C:\proj\lib\src\data\enums|})
+    (Path.reverse ~cwd:{|c:\proj|} ~from_dir:{|c:\proj|} ~to_dir:{|.|}
+       {|C:\proj\lib\src\data\enums|})
 
 let test_make_relative_to_drive_case () =
   with_os true
@@ -156,7 +155,7 @@ let test_jar_argfile_escaping () =
 
 let () =
   let open Alcotest in
-  run "Catala-utils"
+  run "Unit tests"
     [
       ( "Iota-reduction",
         [

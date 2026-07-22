@@ -20,7 +20,6 @@ open Catala_utils
 include Ninja_utils.Var
 (** Ninja variable names *)
 
-(* See [cmd_only] in the mli. *)
 let cmd_only_names = ref String.Set.empty
 let is_cmd_only v = String.Set.mem (name v) !cmd_only_names
 
