@@ -21,7 +21,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = $0.00
+│ . x_in = ¤0.00
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -36,7 +36,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = $150.01
+│ . x_in = ¤150.01
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -51,7 +51,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = $5.58
+│ . x_in = ¤5.58
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -66,7 +66,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = $1.01
+│ . x_in = ¤2.93
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -81,7 +81,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = $0.01
+│ . x_in = ¤0.01
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -96,7 +96,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = -$0.09
+│ . x_in = ¤-0.09
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -110,7 +110,7 @@ $ catala Concolic -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
@@ -124,7 +124,7 @@ $ catala Concolic --conc-optim=soft --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = $0.00
+│ . x_in = ¤0.00
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -139,7 +139,7 @@ $ catala Concolic --conc-optim=soft --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = $200.00
+│ . x_in = ¤200.00
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -154,7 +154,7 @@ $ catala Concolic --conc-optim=soft --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = $10.00
+│ . x_in = ¤10.00
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -169,7 +169,7 @@ $ catala Concolic --conc-optim=soft --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = $2.00
+│ . x_in = ¤2.00
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -184,7 +184,7 @@ $ catala Concolic --conc-optim=soft --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = $0.01
+│ . x_in = ¤0.01
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -199,7 +199,7 @@ $ catala Concolic --conc-optim=soft --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = -$0.01
+│ . x_in = ¤-0.01
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -213,7 +213,7 @@ $ catala Concolic --conc-optim=soft --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

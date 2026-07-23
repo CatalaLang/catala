@@ -41,50 +41,19 @@ scope A:
 
 ```catala-test-cli
 $ catala DCalc -s A
-let scope A
-  (A_in:
-     A_in {
-       a_in: EnumA[A1: integer | A2: bool];
-       s_in: StructS {a: EnumA[A1: integer | A2: bool]};
-       b_in:
-         EnumB[B1: EnumA[A1: integer | A2: bool] | B2:
-           StructS {a: EnumA[A1: integer | A2: bool]}];
-       t_in:
-         StructT {
-           a: EnumA[A1: integer | A2: bool];
-           s: StructS {a: EnumA[A1: integer | A2: bool]};
-           b:
-             EnumB[B1: EnumA[A1: integer | A2: bool] | B2:
-               StructS {a: EnumA[A1: integer | A2: bool]}]
-         }
-     })
-  : A {o: integer}
-  =
-  let get a : EnumA[A1: integer | A2: bool] = A_in.a_in in
-  let get s : StructS {a: EnumA[A1: integer | A2: bool]} = A_in.s_in in
-  let get b :
-      EnumB[B1: EnumA[A1: integer | A2: bool] | B2:
-        StructS {a: EnumA[A1: integer | A2: bool]}] =
-    A_in.b_in
-  in
-  let get t :
-      StructT {
-        a: EnumA[A1: integer | A2: bool];
-        s: StructS {a: EnumA[A1: integer | A2: bool]};
-        b:
-          EnumB[B1: EnumA[A1: integer | A2: bool] | B2:
-            StructS {a: EnumA[A1: integer | A2: bool]}]
-      } =
-    A_in.t_in
-  in
+let scope A (A_in: A_in): A =
+  let get a : EnumA = A_in.a_in in
+  let get s : StructS = A_in.s_in in
+  let get b : EnumB = A_in.b_in in
+  let get t : StructT = A_in.t_in in
   let set o : integer =
     error_empty
-      ⟨ ⟨ ⟨(~ (a = A1 42))
+      ⟨ ⟨ ⟨(a ≠ A1 42)
            && s.a = A2 false
            && b = B2 s
-           && (~ (t.a = a))
+           && (t.a ≠ a)
            && t.s.a = a
-           && ~ (t.b = B1 a)
+           && t.b ≠ B1 a
            ⊢ ⟨1⟩⟩
         | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨-1⟩⟩ | false ⊢ ∅ ⟩ ⟩
@@ -104,13 +73,13 @@ $ catala Concolic --conc-optim=incremental -s A
 │ . a_in = A1 0
 └─
 ┌─[RESULT]─
-│ . b_in = B1 A1 0
+│ . b_in = B1 (A1 0)
 └─
 ┌─[RESULT]─
-│ . s_in = StructS { -- a: A1 0 }
+│ . s_in = { StructS a = A1 0; }
 └─
 ┌─[RESULT]─
-│ . t_in = StructT { -- a: A1 0 -- s: StructS { -- a: A1 0 } -- b: B1 A1 0 }
+│ . t_in = { StructT a = A1 0; s = { StructS a = A1 0; }; b = B1 (A1 0); }
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -125,16 +94,21 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . a_in = A1 2
+│ . a_in = A2 false
 └─
 ┌─[RESULT]─
-│ . b_in = B2 StructS { -- a: A2 false }
+│ . b_in = B2 { StructS a = A2 false; }
 └─
 ┌─[RESULT]─
-│ . s_in = StructS { -- a: A2 false }
+│ . s_in = { StructS a = A2 false; }
 └─
 ┌─[RESULT]─
-│ . t_in = StructT { -- a: A1 3 -- s: StructS { -- a: A1 2 } -- b: B1 A1 4 }
+│ . t_in =
+│     { StructT
+│       a = A2 true;
+│       s = { StructS a = A2 false; };
+│       b = B1 (A2 true);
+│     }
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -148,7 +122,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

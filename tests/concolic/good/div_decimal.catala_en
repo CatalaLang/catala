@@ -21,19 +21,19 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = 0.0
+│ . d_in = 0.
 └─
 ┌─[RESULT]─
-│ . x_in = 0.0
+│ . x_in = 0.
 └─
 ┌─[RESULT]─
-│ . y_in = 0.0
+│ . y_in = 0.
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/div_decimal.catala_en:12.44-12.45,tests/concolic/good/div_decimal.catala_en:12.42-12.45,)↯ at tests/concolic/good/div_decimal.catala_en:12.42-12.45
+│ Found error ↯DivisionByZero(tests/concolic/good/div_decimal.catala_en:12.44-45,tests/concolic/good/div_decimal.catala_en:12.42-45,)↯ at tests/concolic/good/div_decimal.catala_en:12.42-45
 └─
 ┌─[RESULT]─
 │ 
@@ -42,13 +42,13 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = 0.0
+│ . d_in = 0.
 └─
 ┌─[RESULT]─
-│ . x_in = 0.0
+│ . x_in = 0.
 └─
 ┌─[RESULT]─
-│ . y_in = 2.0
+│ . y_in = 2.
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -63,13 +63,13 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = 0.562,5
+│ . d_in = 0.5625
 └─
 ┌─[RESULT]─
-│ . x_in = -0.562,5
+│ . x_in = -0.5625
 └─
 ┌─[RESULT]─
-│ . y_in = -1.0
+│ . y_in = -1.
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -83,7 +83,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

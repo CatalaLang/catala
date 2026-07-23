@@ -32,20 +32,8 @@ scope A:
 
 ```catala-test-cli
 $ catala DCalc -s A
-let scope A
-  (A_in:
-     A_in {
-       e_in:
-         E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit |
-           E7: unit | E8: unit | E9: unit]
-     })
-  : A {o: integer}
-  =
-  let get e :
-      E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit | E7:
-        unit | E8: unit | E9: unit] =
-    A_in.e_in
-  in
+let scope A (A_in: A_in): A =
+  let get e : E = A_in.e_in in
   let set o : integer =
     error_empty
       ⟨ ⟨ ⟨match e with
@@ -78,23 +66,38 @@ let scope A
 
 ```catala-test-cli
 $ catala DCalc -s A --optimize
-let scope A
-  (A_in:
-     A_in {
-       e_in:
-         E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit |
-           E7: unit | E8: unit | E9: unit]
-     })
-  : A {o: integer}
-  =
-  let get e :
-      E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit | E7:
-        unit | E8: unit | E9: unit] =
-    A_in.e_in
-  in
+let scope A (A_in: A_in): A =
+  let get e : E = A_in.e_in in
   let set o : integer =
     error_empty
-      ⟨ ⟨ ⟨e = E1 () || e = E9 () ⊢ ⟨1⟩⟩, ⟨e = E1 () || e = E2 () ⊢ ⟨2⟩⟩
+      ⟨ ⟨ if
+            match e with
+            | E1 → true
+            | E2 → false
+            | E3 → false
+            | E4 → false
+            | E5 → false
+            | E6 → false
+            | E7 → false
+            | E8 → false
+            | E9 → true
+          then
+            ⟨1⟩
+          else ∅,
+          if
+            match e with
+            | E1 → true
+            | E2 → true
+            | E3 → false
+            | E4 → false
+            | E5 → false
+            | E6 → false
+            | E7 → false
+            | E8 → false
+            | E9 → false
+          then
+            ⟨2⟩
+          else ∅
         | false ⊢ ∅ ⟩
       | true ⊢ ⟨0⟩ ⟩
   in
@@ -110,13 +113,13 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E1 ()
+│ . e_in = E1
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/ugly_pattern.catala_en:30.24-30.25,tests/concolic/good/ugly_pattern.catala_en:24.24-24.25,)↯ at tests/concolic/good/ugly_pattern.catala_en:15.12-15.13
+│ Found error ↯Conflict(tests/concolic/good/ugly_pattern.catala_en:30.24-25,tests/concolic/good/ugly_pattern.catala_en:24.24-25,)↯ at tests/concolic/good/ugly_pattern.catala_en:15.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -125,7 +128,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E2 ()
+│ . e_in = E2
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -140,7 +143,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E3 ()
+│ . e_in = E3
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -155,7 +158,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E4 ()
+│ . e_in = E4
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -170,7 +173,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E5 ()
+│ . e_in = E5
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -185,7 +188,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E6 ()
+│ . e_in = E6
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -200,7 +203,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E7 ()
+│ . e_in = E7
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -215,7 +218,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E8 ()
+│ . e_in = E8
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -230,7 +233,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E9 ()
+│ . e_in = E9
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -244,7 +247,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
@@ -258,13 +261,13 @@ $ catala Concolic --conc-optim=incremental -s A --optimize --conc-optim=lineariz
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E1 ()
+│ . e_in = E1
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/ugly_pattern.catala_en:30.24-30.25,tests/concolic/good/ugly_pattern.catala_en:24.24-24.25,)↯ at tests/concolic/good/ugly_pattern.catala_en:15.12-15.13
+│ Found error ↯Conflict(tests/concolic/good/ugly_pattern.catala_en:30.24-25,tests/concolic/good/ugly_pattern.catala_en:24.24-25,)↯ at tests/concolic/good/ugly_pattern.catala_en:15.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -273,7 +276,7 @@ $ catala Concolic --conc-optim=incremental -s A --optimize --conc-optim=lineariz
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E9 ()
+│ . e_in = E9
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -288,22 +291,7 @@ $ catala Concolic --conc-optim=incremental -s A --optimize --conc-optim=lineariz
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . e_in = E2 ()
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E3 ()
+│ . e_in = E3
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -315,9 +303,24 @@ $ catala Concolic --conc-optim=incremental -s A --optimize --conc-optim=lineariz
 │ 
 └─
 ┌─[RESULT]─
-│ Concolic interpreter done
+│ Evaluating with inputs:
 └─
 ┌─[RESULT]─
+│ . e_in = E2
+└─
+┌─[RESULT]─
+│ Output of scope after evaluation:
+└─
+┌─[RESULT]─
+│ . o = 2
+└─
+┌─[RESULT]─
+│ 
+└─
+┌─[RESULT]─
+│ Concolic interpreter done
+└─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

@@ -20,10 +20,10 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = [10 days]
+│ . x_in = [0 years, 0 months, 10 days]
 └─
 ┌─[RESULT]─
-│ . y_in = [10 days]
+│ . y_in = [0 years, 0 months, 10 days]
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -38,10 +38,10 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = [-1 day]
+│ . x_in = [0 years, 0 months, -1 days]
 └─
 ┌─[RESULT]─
-│ . y_in = [-2 days]
+│ . y_in = [0 years, 0 months, -2 days]
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -56,16 +56,16 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = [10 days]
+│ . x_in = [0 years, 0 months, 10 days]
 └─
 ┌─[RESULT]─
-│ . y_in = [0 day]
+│ . y_in = [0 years, 0 months, 0 days]
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/div_duration.catala_en:11.44-11.45,tests/concolic/good/div_duration.catala_en:11.42-11.45,)↯ at tests/concolic/good/div_duration.catala_en:11.42-11.45
+│ Found error ↯DivisionByZero(tests/concolic/good/div_duration.catala_en:11.44-45,tests/concolic/good/div_duration.catala_en:11.42-45,)↯ at tests/concolic/good/div_duration.catala_en:11.42-45
 └─
 ┌─[RESULT]─
 │ 
@@ -73,7 +73,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

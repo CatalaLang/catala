@@ -18,6 +18,22 @@ conflict when trying to compute the value in this case.
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
+┌─[WARNING]─
+│
+│  Multiple conflicting definitions:
+│  these have the same conditions and will always trigger a conflict at runtime.
+│
+├─➤ tests/concolic/good/context_conflict_on_default.catala_en:9.16-17:
+│   │
+│ 9 │     definition x equals 0
+│   │                ‾
+├─ Article
+│
+├─➤ tests/concolic/good/context_conflict_on_default.catala_en:10.16-17:
+│    │
+│ 10 │     definition x equals 1
+│    │                ‾
+└─ Article
 ┌─[RESULT]─
 │ 
 └─
@@ -67,7 +83,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/context_conflict_on_default.catala_en:10.25-10.26,tests/concolic/good/context_conflict_on_default.catala_en:9.25-9.26,)↯ at tests/concolic/good/context_conflict_on_default.catala_en:5.20-5.21
+│ Found error ↯Conflict(tests/concolic/good/context_conflict_on_default.catala_en:10.25-26,tests/concolic/good/context_conflict_on_default.catala_en:9.25-26,)↯ at tests/concolic/good/context_conflict_on_default.catala_en:5.20-21
 └─
 ┌─[RESULT]─
 │ 
@@ -75,7 +91,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

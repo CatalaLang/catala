@@ -94,7 +94,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -142,7 +142,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-16.83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-15.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -166,7 +166,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -214,7 +214,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-16.83,tests/concolic/good/except_conflict_lazy.catala_en:14.67-14.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -238,7 +238,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -262,7 +262,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-15.68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-14.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -286,7 +286,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-16.83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-15.68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-14.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -310,7 +310,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -358,7 +358,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-16.83,tests/concolic/good/except_conflict_lazy.catala_en:13.67-13.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -382,7 +382,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -406,7 +406,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-15.68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-13.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -430,7 +430,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-16.83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-15.68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-13.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -454,7 +454,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -478,7 +478,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:14.67-14.68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-13.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -502,7 +502,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-16.83,tests/concolic/good/except_conflict_lazy.catala_en:14.67-14.68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-13.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -526,7 +526,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -550,7 +550,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-15.68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-14.68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-13.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -574,7 +574,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-16.83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-15.68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-14.68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-13.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -598,7 +598,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -606,7 +606,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
@@ -686,7 +686,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -734,7 +734,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-16.83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-15.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -758,7 +758,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -806,7 +806,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-16.83,tests/concolic/good/except_conflict_lazy.catala_en:14.67-14.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -830,7 +830,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -854,7 +854,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-15.68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-14.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -902,7 +902,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-16.83,tests/concolic/good/except_conflict_lazy.catala_en:13.67-13.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -926,7 +926,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.55-16.61,tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-16.62
+│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
 └─
 ┌─[RESULT]─
 │ 
@@ -950,7 +950,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-15.68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-13.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -974,7 +974,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:14.67-14.68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-13.68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-9.13
+│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -982,7 +982,7 @@ $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
