@@ -665,8 +665,9 @@ let make_z3_struct ctx (name : StructName.t) (es : conc_expr list) : s_expr =
       | Symb_abs -> ctx.ctx_dummy_const
       | Symb_none ->
         Message.error ~pos:(Expr.pos e)
-          "Fields of structs must have a symbolic expression. This should not\n\
-          \          happen if the evaluation of fields worked."
+          "Fields of structs that are not functions or context variables must \
+           have a symbolic expression. This should not happen if the \
+           evaluation of fields worked."
       | Symb_incomplete ->
         Message.error ~pos:(Expr.pos e)
           "Fields of structs cannot be incomplete" (* TODO INC *)
@@ -1377,7 +1378,10 @@ let rec evaluate_expr :
       Message.error ~pos
         "free variable found at evaluation (should not happen if term was \
          well-typed)"
-    | EExternal _ -> failwith "EExternal not implemented"
+    | EExternal _ ->
+      (* failwith "EExternal not implemented" *)
+      let e = Concrete.evaluate_expr ctx.ctx_decl lang e in
+      add_conc_info_e Symb_incomplete e |> make_ok
     | EApp { f = e1; args; _ } -> (
       if Global.options.debug then Message.debug "... it's an EApp";
       let e1 = evaluate_expr ctx lang e1 in
@@ -1410,8 +1414,6 @@ let rec evaluate_expr :
             Message.debug "EApp>EAbs vars are %a"
               (Format.pp_print_list Print.var_debug)
               (Array.to_list vars);
-          (* if Global.options.debug then Message.debug "EApp>EAbs args are %a"
-             (Format.pp_print_list (Print.expr ())) args; *)
           if Global.options.debug then Message.debug "EApp>EAbs args are";
           List.iter
             (fun arg ->
@@ -1462,7 +1464,11 @@ let rec evaluate_expr :
             "wrong function call, expected %d arguments, got %d"
             (Bindlib.mbinder_arity binder)
             (List.length args)
-      | ECustom _ -> failwith "EApp of ECustom not implemented"
+      | ECustom _ ->
+        (* failwith "EExternal not implemented" *)
+        let e = Concrete.evaluate_expr ctx.ctx_decl lang e in
+        add_conc_info_e Symb_incomplete e |> make_ok
+        (* failwith "EApp of ECustom not implemented" *)
       | _ ->
         Message.error ~pos
           "function has not been reduced to a lambda at evaluation (should not \

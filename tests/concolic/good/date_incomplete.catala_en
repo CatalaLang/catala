@@ -11,16 +11,16 @@ scope A:
     exception definition o under condition x = 1 consequence equals 1
     exception definition o under condition x = 2 consequence equals 2
     exception definition o under condition x >= 3 and x < 20 consequence equals
-        if get_month of |2024-10-16| = x then 10 else 20
+        if Date.get_month of |2024-10-16| = x then 10 else 20
     exception definition o under condition x >= 20 consequence equals
-        if last_day_of_month of |2024-02-10| = |2024-02-29| and x=30 then 100 else 200
+        if Date.last_day_of_month of |2024-02-10| = |2024-02-29| and x=30 then 100 else 200
 ```
 
-When encountering the condition that depends on a date operation we don't yet
-encode symbolically, the engine explains this branch cannot be investigated
-further, returns the concrete value it was still able to compute, and then
-backtracks the same way if would if it had found an error (by discaring the
-last constraint).
+When encountering the condition that depends on a date operation we
+don't yet encode symbolically, the engine explains this branch cannot
+be investigated further, returns the concrete value it was still able
+to compute, and then backtracks the same way if would if it had found
+an error (by discarding the last constraint).
 
 ```catala-test-cli
 $ catala Concolic -s A
@@ -137,7 +137,7 @@ $ catala Concolic -s A
 │  Please note that the concolic execution may be incomplete: it could systematically explore the whole program.
 │
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
