@@ -37,7 +37,8 @@ let run
       ~dead_value_assignment:true ~no_struct_literals:false
       ~keep_module_names:false ~monomorphize_types:false
       ~renaming:(Some Scalc.To_python.renaming)
-      ~lift_pos:(Some Scalc.To_python.op_needs_pos)
+      ~lift_pos:(Some Scalc.To_python.op_needs_pos) ~split_threshold:None
+      ~split_scope_var_defs:false
   in
 
   Message.debug "Compiling program into Python...";

@@ -871,6 +871,17 @@ let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
 (* Could also be done with [rebox] followed by [Bindlib.free_vars], if that
    returned more than a context *)
 
+let rec free_vars_marked : ('a, 'm) gexpr -> (('a, 'm) gexpr, 'm mark) Var.Map.t
+    = function
+  | EVar v, m -> Var.Map.singleton v m
+  | EAbs { binder; _ }, _ ->
+    let vs, body = Bindlib.unmbind binder in
+    Array.fold_right Var.Map.remove vs (free_vars_marked body)
+  | e ->
+    shallow_fold
+      (fun e -> Var.Map.union (fun _ l _ -> Some l) (free_vars_marked e))
+      e Var.Map.empty
+
 (* This function is first defined in [Print], only for dependency reasons *)
 let skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = Print.skip_wrappers
 

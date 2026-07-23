@@ -132,9 +132,11 @@ let loc =
     <toplevel_defs:77.24-49>; <toplevel_defs:98.10-11>;
     <toplevel_defs:101.24-35>]
 
-let glob1 = 44.12
+let glob1 =
+  44.12
 
-let glob2 = A {"y": ≥ nth(2) loc glob1 30., "z": 123. * 17.}
+let glob2 =
+  A {"y": ≥ nth(2) loc glob1 30., "z": 123. * 17.}
 
 let s (s_in: #[test] S_in) =
   decl a : decimal;
@@ -154,7 +156,8 @@ let s (s_in: #[test] S_in) =
     b = arg."0";
   return S {"a": a, "b": b}
 
-let glob3 (x: money) = return to_rat x + 10.
+let glob3 (x: money) =
+  return to_rat x + 10.
 
 let s2 (s2_in: #[test] S2_in) =
   decl a : decimal;
@@ -167,7 +170,8 @@ let s2 (s2_in: #[test] S2_in) =
     a = arg."0";
   return S2 {"a": a}
 
-let glob4 (x: money) (y: decimal) = return to_rat x * y + 10.
+let glob4 (x: money) (y: decimal) =
+  return to_rat x * y + 10.
 
 let s3 (s3_in: #[test] S3_in) =
   decl a : decimal;
@@ -187,7 +191,8 @@ let glob5_init =
   y = 1000.;
   return x * y
 
-let glob5 = glob5_init ()
+let glob5 =
+  glob5_init ()
 
 let s4 (s4_in: #[test] S4_in) =
   decl a : decimal;

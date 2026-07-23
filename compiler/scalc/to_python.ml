@@ -641,6 +641,9 @@ let format_code_item ctx fmt = function
   | SVar { var; expr; typ = _; visibility = _ } ->
     Format.fprintf fmt "@[<hv 4>%a = (@,%a@;<0 -4>)@]@," VarName.format var
       (format_expression ctx) expr
+  | SScope { scope_body_var_defs = Some _; _ } ->
+    Message.error ~internal:true
+      "Found unexpected split scope variable definitions."
   | SFunc { var; func; visibility = _ }
   | SScope { scope_body_var = var; scope_body_func = func; _ } ->
     Format.fprintf fmt "@[<v 4>@[<hov 2>def %a(@,%a@;<0 -2>) -> %a:@]@ %a@]@,"

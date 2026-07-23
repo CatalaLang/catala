@@ -188,27 +188,53 @@ and format_block
     ?(debug : bool = false)
     (fmt : Format.formatter)
     (block : block) : unit =
+  Format.pp_open_vbox fmt 0;
   Format.pp_print_list
     ~pp_sep:(fun fmt () ->
       Print.punctuation fmt ";";
       Format.pp_print_space fmt ())
     (format_statement decl_ctx ~debug)
-    fmt block
+    fmt block;
+  Format.pp_close_box fmt ()
 
 let format_item decl_ctx ?debug ppf def =
-  Format.pp_open_hvbox ppf 2;
-  Format.pp_open_hovbox ppf 4;
-  Print.keyword ppf "let ";
   let () =
     match def with
     | SVar { var; expr; typ = _; visibility = _ } ->
+      Format.pp_open_vbox ppf 2;
+      Format.pp_open_hovbox ppf 4;
+      Print.keyword ppf "let ";
       format_var_name ppf var;
       Print.punctuation ppf " =";
       Format.pp_close_box ppf ();
       Format.pp_print_space ppf ();
       format_expr decl_ctx ?debug ppf expr
-    | SScope { scope_body_var = var; scope_body_func = func; _ }
-    | SFunc { var; func; visibility = _ } ->
+    | SScope
+        { scope_body_var = var; scope_body_func = func; scope_body_var_defs; _ }
+      ->
+      let scope_body_var_defs = Option.value ~default:[] scope_body_var_defs in
+      List.iter
+        (fun (_var_name, var_func_name, var_func) ->
+          Format.pp_open_vbox ppf 2;
+          Format.pp_open_hovbox ppf 4;
+          Print.keyword ppf "let ";
+          format_func_name ppf var_func_name;
+          Format.pp_print_list
+            (fun ppf (arg, ty) ->
+              Format.fprintf ppf "@ (%a: %a)" format_var_name (Mark.remove arg)
+                format_type ty)
+            ppf var_func.func_params;
+          Print.punctuation ppf " =";
+          Format.pp_close_box ppf ();
+          Format.pp_print_cut ppf ();
+          format_block decl_ctx ?debug ppf var_func.func_body;
+          Format.pp_close_box ppf ();
+          Format.pp_print_cut ppf ();
+          Format.pp_print_newline ppf ())
+        scope_body_var_defs;
+      Format.pp_open_vbox ppf 2;
+      Format.pp_open_hovbox ppf 4;
+      Print.keyword ppf "let ";
       format_func_name ppf var;
       Format.pp_print_list
         (fun ppf (arg, ty) ->
@@ -217,7 +243,21 @@ let format_item decl_ctx ?debug ppf def =
         ppf func.func_params;
       Print.punctuation ppf " =";
       Format.pp_close_box ppf ();
-      Format.pp_print_space ppf ();
+      Format.pp_print_cut ppf ();
+      format_block decl_ctx ?debug ppf func.func_body
+    | SFunc { var; func; visibility = _ } ->
+      Format.pp_open_vbox ppf 2;
+      Format.pp_open_hovbox ppf 4;
+      Print.keyword ppf "let ";
+      format_func_name ppf var;
+      Format.pp_print_list
+        (fun ppf (arg, ty) ->
+          Format.fprintf ppf "@ (%a: %a)" format_var_name (Mark.remove arg)
+            format_type ty)
+        ppf func.func_params;
+      Print.punctuation ppf " =";
+      Format.pp_close_box ppf ();
+      Format.pp_print_cut ppf ();
       format_block decl_ctx ?debug ppf func.func_body
   in
   Format.pp_close_box ppf ();

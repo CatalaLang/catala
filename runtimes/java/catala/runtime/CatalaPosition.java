@@ -8,18 +8,16 @@ public final class CatalaPosition
     public int startColumn;
     public int endLine;
     public int endColumn;
-    public String[] law_headings;
 
-    public CatalaPosition(String filename, int startLine, int startColumn, int endLine, int endColumn, String[] law_headings) {
+    public CatalaPosition(String filename, int startLine, int startColumn, int endLine, int endColumn) {
         this.filename = filename;
         this.startLine = startLine;
         this.startColumn = startColumn;
         this.endLine = endLine;
         this.endColumn = endColumn;
-        this.law_headings = law_headings;
     }
 
-    public final static CatalaPosition empty = new CatalaPosition("", 0, 0, 0, 0, new String[]{});
+    public final static CatalaPosition empty = new CatalaPosition("", 0, 0, 0, 0);
 
     @Override
     public CatalaBool equalsTo(CatalaPosition p, CatalaPosition o) {
@@ -67,11 +65,6 @@ public final class CatalaPosition
         p_pos.accept(this.startLine, this.startColumn);
         b.append(",\"end\":");
         p_pos.accept(this.endLine, this.endColumn);
-        if (!(this.law_headings == null || this.law_headings.length == 0)) {
-            for (String s : this.law_headings) {
-                b.append(",").append(s);
-            }
-        }
         return b.append("}").toString();
     }
 }

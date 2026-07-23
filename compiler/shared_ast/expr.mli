@@ -500,6 +500,11 @@ val compare : ('a, 'm) gexpr -> ('a, 'm) gexpr -> int
 val is_value : ('a any, 'm) gexpr -> bool
 val free_vars : ('a any, 'm) gexpr -> ('a, 'm) gexpr Var.Set.t
 
+val free_vars_marked : ('a any, 'm) gexpr -> (('a, 'm) gexpr, 'm mark) Var.Map.t
+(** Returns the free variables of the given expression with their marked
+    expression. Note that only it only returns the first occurence of duplicate
+    variables. *)
+
 val size : ('a, 'm) gexpr -> int
 (** Used by the optimizer to know when to stop *)
 

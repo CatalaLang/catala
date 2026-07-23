@@ -1036,6 +1036,34 @@ and format_block (ctx : ctx) (env : env) (fmt : Format.formatter) (b : block) :
     in
     List.iter (format_statement ctx env fmt) remaining
 
+let format_func ~ppc ~pph ctx env var func visibility =
+  let { func_params; func_body; func_return_typ } = func in
+  let local_vars =
+    VarName.Set.of_list (List.map (fun (v, _) -> Mark.remove v) func_params)
+  in
+  let pp_intf = if visibility = Public then [pph] else [] in
+  pp (ppc :: pp_intf) "@,@[<v 2>@[<hov 4>%s%a@ @[<hv 1>(%a)@]@]"
+    (if visibility = Public then "" else "static ")
+    (format_typ ~const:true ctx.decl_ctx (fun fmt ->
+         Format.pp_print_space fmt ();
+         FuncName.format fmt var))
+    func_return_typ
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+       (fun fmt (var, typ) ->
+         Format.pp_open_hovbox fmt 2;
+         (format_typ ~const:true ctx.decl_ctx (fun fmt ->
+              Format.pp_print_space fmt ();
+              VarName.format fmt (Mark.remove var)))
+           fmt typ;
+         Format.pp_close_box fmt ()))
+    func_params;
+  pp pp_intf "@];@,";
+  pp [ppc] "@;<1 -2>{%a@]@,}@,"
+    (format_block ctx { env with local_vars })
+    func_body;
+  env
+
 let format_code_item ctx ~ppc ~pph env = function
   | SVar
       {
@@ -1090,40 +1118,20 @@ let format_code_item ctx ~ppc ~pph env = function
       expr;
     pp [ppc] "@;<1 -2>}@]@,";
     { env with global_vars = VarName.Set.add var env.global_vars }
-  | SFunc { var; func; visibility }
+  | SFunc { var; func; visibility } ->
+    format_func ~ppc ~pph ctx env var func visibility
   | SScope
       {
         scope_body_var = var;
         scope_body_func = func;
         scope_body_visibility = visibility;
+        scope_body_var_defs = None;
         _;
       } ->
-    let { func_params; func_body; func_return_typ } = func in
-    let local_vars =
-      VarName.Set.of_list (List.map (fun (v, _) -> Mark.remove v) func_params)
-    in
-    let pp_intf = if visibility = Public then [pph] else [] in
-    pp (ppc :: pp_intf) "@,@[<v 2>@[<hov 4>%s%a@ @[<hv 1>(%a)@]@]"
-      (if visibility = Public then "" else "static ")
-      (format_typ ~const:true ctx.decl_ctx (fun fmt ->
-           Format.pp_print_space fmt ();
-           FuncName.format fmt var))
-      func_return_typ
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt (var, typ) ->
-           Format.pp_open_hovbox fmt 2;
-           (format_typ ~const:true ctx.decl_ctx (fun fmt ->
-                Format.pp_print_space fmt ();
-                VarName.format fmt (Mark.remove var)))
-             fmt typ;
-           Format.pp_close_box fmt ()))
-      func_params;
-    pp pp_intf "@];@,";
-    pp [ppc] "@;<1 -2>{%a@]@,}@,"
-      (format_block ctx { env with local_vars })
-      func_body;
-    env
+    format_func ~ppc ~pph ctx env var func visibility
+  | SScope { scope_body_var_defs = Some _; _ } ->
+    Message.error ~internal:true
+      "Found unexpected split scope variable definitions."
 
 let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
   Format.pp_open_vbox fmt 0;

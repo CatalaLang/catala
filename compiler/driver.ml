@@ -141,6 +141,7 @@ module Passes = struct
       ~closure_conversion
       ~keep_special_ops
       ~monomorphize_types
+      ~split_threshold
       ~renaming
       ~lift_pos :
       typed Lcalc.Ast.program * TypeIdent.t list * Renaming.context option =
@@ -199,6 +200,13 @@ module Passes = struct
         Message.debug "Lifting inline code locations...";
         Lcalc.Lift_positions.process_program ~op_needs_pos prg
     in
+    let prg =
+      match split_threshold with
+      | None -> prg
+      | Some threshold ->
+        Message.debug "Splitting expressions larger than %d nodes..." threshold;
+        Lcalc.Split.split_program ~threshold prg
+    in
     match renaming with
     | None -> prg, type_ordering, None
     | Some renaming ->
@@ -228,12 +236,14 @@ module Passes = struct
       ~no_struct_literals
       ~keep_module_names
       ~monomorphize_types
+      ~split_threshold
+      ~split_scope_var_defs
       ~renaming
       ~lift_pos : Scalc.Ast.program * TypeIdent.t list * Renaming.context =
     let prg, type_ordering, renaming_context =
       lcalc options ~includes ~stdlib ~optimize ~check_invariants ~autotest
         ~typed:Expr.typed ~closure_conversion ~keep_special_ops
-        ~monomorphize_types ~renaming ~lift_pos
+        ~monomorphize_types ~split_threshold ~renaming ~lift_pos
     in
     let renaming_context =
       match renaming_context with
@@ -249,6 +259,7 @@ module Passes = struct
             no_struct_literals;
             keep_module_names;
             renaming_context;
+            split_scope_var_defs;
           }
         prg,
       type_ordering,
@@ -850,6 +861,7 @@ module Commands = struct
       closure_conversion
       keep_special_ops
       monomorphize_types
+      split_threshold
       ex_scopes =
     let options =
       if closure_conversion then disable_trace options else options
@@ -857,7 +869,8 @@ module Commands = struct
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops ~typed
-        ~monomorphize_types ~renaming:(Some Renaming.default) ~lift_pos:None
+        ~monomorphize_types ~split_threshold ~renaming:(Some Renaming.default)
+        ~lift_pos:None
     in
     get_output_format options output
     @@ fun _ fmt ->
@@ -897,6 +910,7 @@ module Commands = struct
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.monomorphize_types
+        $ Cli.Flags.split_threshold
         $ Cli.Flags.ex_scopes)
 
   let interpret_lcalc
@@ -918,7 +932,8 @@ module Commands = struct
     let prg, _, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest:false ~closure_conversion ~keep_special_ops
-        ~monomorphize_types ~typed ~renaming:None ~lift_pos:None
+        ~monomorphize_types ~split_threshold:None ~typed ~renaming:None
+        ~lift_pos:None
     in
     Interpreter.load_runtime_modules
       ~hashf:(Hash.finalise ~monomorphize_types)
@@ -1005,7 +1020,8 @@ module Commands = struct
     let prg, type_ordering, _ =
       Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~typed:Expr.typed ~closure_conversion ~keep_special_ops:true
-        ~monomorphize_types:false ~renaming:(Some Lcalc.To_ocaml.renaming)
+        ~monomorphize_types:false ~split_threshold:None
+        ~renaming:(Some Lcalc.To_ocaml.renaming)
         ~lift_pos:(Some Lcalc.To_ocaml.op_needs_pos)
     in
     Message.debug "Compiling program into OCaml...";
@@ -1043,6 +1059,7 @@ module Commands = struct
       dead_value_assignment
       no_struct_literals
       monomorphize_types
+      split_threshold
       ex_scope_opt =
     let options =
       if closure_conversion then disable_trace options else options
@@ -1051,6 +1068,7 @@ module Commands = struct
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops ~dead_value_assignment
         ~no_struct_literals ~keep_module_names:false ~monomorphize_types
+        ~split_threshold ~split_scope_var_defs:false
         ~renaming:(Some Renaming.default)
         ~lift_pos:(Some Lcalc.To_ocaml.op_needs_pos)
     in
@@ -1090,6 +1108,7 @@ module Commands = struct
         $ Cli.Flags.dead_value_assignment
         $ Cli.Flags.no_struct_literals
         $ Cli.Flags.monomorphize_types
+        $ Cli.Flags.split_threshold
         $ Cli.Flags.ex_scope_opt)
 
   let python
@@ -1100,7 +1119,8 @@ module Commands = struct
       optimize
       check_invariants
       autotest
-      closure_conversion =
+      closure_conversion
+      split_threshold =
     let options = disable_trace options in
     let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
@@ -1108,7 +1128,8 @@ module Commands = struct
         ~dead_value_assignment:true ~no_struct_literals:false
         ~keep_module_names:false ~monomorphize_types:false
         ~renaming:(Some Scalc.To_python.renaming)
-        ~lift_pos:(Some Scalc.To_python.op_needs_pos)
+        ~lift_pos:(Some Scalc.To_python.op_needs_pos) ~split_threshold
+        ~split_scope_var_defs:false
     in
     Message.debug "Compiling program into Python...";
     get_output_format options output
@@ -1129,24 +1150,30 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest
-        $ Cli.Flags.closure_conversion)
+        $ Cli.Flags.closure_conversion
+        $ Cli.Flags.split_threshold)
 
   let java
       options
       includes
       stdlib
       (output : Global.raw_file option)
-      _optimize
+      optimize
       check_invariants
       autotest
-      closure_conversion =
+      closure_conversion
+      split_threshold =
     let options =
       if closure_conversion then disable_trace options else options
     in
-    let optimize =
-      (* javac has a limit on bytecode statement per method, without
-         optimizations we easily reach it. We mitigate by enforcing them. *)
-      true
+    let split_threshold : int option =
+      (* [javac] has a limit on the number of bytecode statements per
+         method: by default, we set a split threshold limit of
+         10_000. This value was determined empirically as there is no
+         direct relation between lcalc AST size and the generated java
+         bytecode size. Hence, this value may be too big or too large
+         depending on the program shape. *)
+      Option.(some (value split_threshold ~default:10_000))
     in
     let prg, _type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
@@ -1154,7 +1181,8 @@ module Commands = struct
         ~dead_value_assignment:true ~no_struct_literals:false
         ~keep_module_names:true ~monomorphize_types:false
         ~renaming:(Some Scalc.To_java.renaming)
-        ~lift_pos:(Some Scalc.To_java.op_needs_pos)
+        ~lift_pos:(Some Scalc.To_java.op_needs_pos) ~split_threshold
+        ~split_scope_var_defs:true
     in
     Message.debug "Compiling program into Java...";
     get_output_format options output
@@ -1186,9 +1214,18 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.autotest
-        $ Cli.Flags.closure_conversion)
+        $ Cli.Flags.closure_conversion
+        $ Cli.Flags.split_threshold)
 
-  let c options includes stdlib output optimize check_invariants autotest =
+  let c
+      options
+      includes
+      stdlib
+      output
+      optimize
+      check_invariants
+      autotest
+      split_threshold =
     let options = disable_trace options in
     let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
@@ -1196,7 +1233,8 @@ module Commands = struct
         ~dead_value_assignment:false ~no_struct_literals:true
         ~keep_module_names:false ~monomorphize_types:false
         ~renaming:(Some Scalc.To_c.renaming)
-        ~lift_pos:(Some Scalc.To_c.op_needs_pos)
+        ~lift_pos:(Some Scalc.To_c.op_needs_pos) ~split_threshold
+        ~split_scope_var_defs:false
     in
     Message.debug "Compiling program into C...";
     get_output_format options output
@@ -1216,7 +1254,8 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.autotest)
+        $ Cli.Flags.autotest
+        $ Cli.Flags.split_threshold)
 
   let depends options includes stdlib prefix subdir extension extra_files =
     let file = Global.input_src_file options.Global.input_src in

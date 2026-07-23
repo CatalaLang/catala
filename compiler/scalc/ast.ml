@@ -101,6 +101,8 @@ type scope_body = {
   scope_body_var : FuncName.t;
   scope_body_func : func;
   scope_body_visibility : visibility;
+  scope_body_var_defs :
+    (VarName.t Mark.pos * FuncName.t * func) list option (* only set in java *);
 }
 
 type code_item =
