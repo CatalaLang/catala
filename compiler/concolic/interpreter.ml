@@ -356,15 +356,27 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
       ctx.ctx_dummy_sort
       (* TODO maybe put a better sort here? this should not be read anyway... *)
     )
-  | TForAll _ -> failwith "[translate_typ] TForAll not implemented"
+  | TForAll b ->
+    let vars, _ = Bindlib.unmbind b in
+    begin match vars with
+    | [| v |] ->
+      ( ctx,
+        Z3.Sort.mk_uninterpreted_s ctx.ctx_z3
+          (Bindlib.name_of v ^ (Bindlib.uid_of v |> string_of_int)) )
+    | _ -> failwith "[translate_typ] TForAll(tuple) not implemented"
+    end
   | TClosureEnv -> failwith "[translate_typ] TClosureEnv not implemented"
   | TDefault _ ->
     (* context variable *)
     ctx, ctx.ctx_reentrant_sort
-  | TVar _ ->
-    (* A type variable being an unresolved type, it can't be deconstructed, so
-       we can let it pass through. *)
-    failwith "[translate_typ] TVar not implemented"
+  | TVar v ->
+    (* (\* A type variable being an unresolved type, it can't be deconstructed, so *)
+    (*    we can let it pass through. *\) *)
+    (* failwith "[translate_typ] TVar not implemented" *)
+    (* ?? *)
+    ( ctx,
+      Z3.Sort.mk_uninterpreted_s ctx.ctx_z3
+        (Bindlib.name_of v ^ (Bindlib.uid_of v |> string_of_int)) )
   | TAbstract _ -> failwith "[translate_typ] TAbstract not implemented"
   | TError -> assert false
 
