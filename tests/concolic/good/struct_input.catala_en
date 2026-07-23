@@ -20,18 +20,10 @@ scope A:
 
 ```catala-test-cli
 $ catala DCalc -s A
-let scope A
-  (A_in:
-     A_in {
-       m_in: integer;
-       s_in: S {a: integer; b: T {c: bool}};
-       t_in: T {c: bool}
-     })
-  : A {o: bool}
-  =
+let scope A (A_in: A_in): A =
   let get m : integer = A_in.m_in in
-  let get s : S {a: integer; b: T {c: bool}} = A_in.s_in in
-  let get t : T {c: bool} = A_in.t_in in
+  let get s : S = A_in.s_in in
+  let get t : T = A_in.t_in in
   let set o : bool =
     error_empty
       ⟨ ⟨ ⟨(s.a = m || s.b.c) && (t = s.b || t.c = false) ⊢ ⟨true⟩⟩
@@ -53,10 +45,10 @@ $ catala Concolic --conc-optim=incremental -s A
 │ . m_in = 0
 └─
 ┌─[RESULT]─
-│ . s_in = S { -- a: 0 -- b: T { -- c: true } }
+│ . s_in = { S a = 0; b = { T c = true; }; }
 └─
 ┌─[RESULT]─
-│ . t_in = T { -- c: true }
+│ . t_in = { T c = true; }
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -74,10 +66,10 @@ $ catala Concolic --conc-optim=incremental -s A
 │ . m_in = 0
 └─
 ┌─[RESULT]─
-│ . s_in = S { -- a: 2 -- b: T { -- c: false } }
+│ . s_in = { S a = 2; b = { T c = false; }; }
 └─
 ┌─[RESULT]─
-│ . t_in = T { -- c: true }
+│ . t_in = { T c = true; }
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -91,7 +83,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

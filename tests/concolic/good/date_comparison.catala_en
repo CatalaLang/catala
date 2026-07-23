@@ -26,13 +26,15 @@ scope A:
 
 ```catala-test-cli
 $ catala DCalc -s A
-let scope A (A_in: A_in {d_in: date}): A {o: integer} =
+let scope A (A_in: A_in): A =
   let get d : date = A_in.d_in in
   let set o : integer =
     error_empty
-      ⟨ ⟨ ⟨d <= 1954-06-07 ⊢ ⟨0⟩⟩, ⟨d > 1954-06-07 && d < 2010-01-01 ⊢ ⟨1⟩⟩,
-          ⟨d = 2010-01-01 ⊢ ⟨2⟩⟩, ⟨d > 2010-01-01 && d < 2024-01-15 ⊢ ⟨3⟩⟩,
-          ⟨d >= 2024-01-15 ⊢ ⟨4⟩⟩
+      ⟨ ⟨ ⟨d ≤ |1954-06-07| ⊢ ⟨0⟩⟩,
+          ⟨d > |1954-06-07| && d < |2010-01-01| ⊢ ⟨1⟩⟩,
+          ⟨d = |2010-01-01| ⊢ ⟨2⟩⟩,
+          ⟨d > |2010-01-01| && d < |2024-01-15| ⊢ ⟨3⟩⟩,
+          ⟨d ≥ |2024-01-15| ⊢ ⟨4⟩⟩
         | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨-1⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
@@ -48,7 +50,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = 2010-01-01
+│ . d_in = |2010-01-01|
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -63,7 +65,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = 2010-01-02
+│ . d_in = |2010-01-02|
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -78,7 +80,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = 2024-01-15
+│ . d_in = |2024-01-15|
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -93,7 +95,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = 2009-12-31
+│ . d_in = |2009-12-31|
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -108,7 +110,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = 1954-06-07
+│ . d_in = |1954-06-07|
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -122,7 +124,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

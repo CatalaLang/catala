@@ -87,7 +87,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/div_guard_in_condition.catala_en:11.57-11.63,tests/concolic/good/div_guard_in_condition.catala_en:11.54-11.64,)↯ at tests/concolic/good/div_guard_in_condition.catala_en:11.54-11.64
+│ Found error ↯DivisionByZero(tests/concolic/good/div_guard_in_condition.catala_en:11.56-64,tests/concolic/good/div_guard_in_condition.catala_en:11.54-64,)↯ at tests/concolic/good/div_guard_in_condition.catala_en:11.54-64
 └─
 ┌─[RESULT]─
 │ 
@@ -95,7 +95,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

@@ -16,14 +16,14 @@ scope A:
 
 ```catala-test-cli
 $ catala DCalc -s A
-let scope A (A_in: A_in {dur_in: duration; d_in: date}): A {o: bool} =
+let scope A (A_in: A_in): A =
   let get dur : duration = A_in.dur_in in
   let get d : date = A_in.d_in in
   let set o : bool =
     error_empty
-      ⟨ ⟨ ⟨2024-10-16 - (dur * 3 - [0 years, 0 months, 3 days])
-           = d + 2023-01-11 - 2023-01-01 + [0 years, 0 months, 7 days]
-           && (~ (dur = [0 years, 0 months, 0 days]))
+      ⟨ ⟨ ⟨|2024-10-16| - (dur * 3 - [0 years, 0 months, 3 days])
+           = d + |2023-01-11| - |2023-01-01| + [0 years, 0 months, 7 days]
+           && (dur ≠ [0 years, 0 months, 0 days])
            && dur / [0 years, 0 months, 3 days] = 2.
            ⊢ ⟨true⟩⟩
         | false ⊢ ∅ ⟩
@@ -41,10 +41,10 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = 2010-01-01
+│ . d_in = |2010-01-01|
 └─
 ┌─[RESULT]─
-│ . dur_in = [10 days]
+│ . dur_in = [0 years, 0 months, 10 days]
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -59,10 +59,10 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = 2024-09-14
+│ . d_in = |2024-09-14|
 └─
 ┌─[RESULT]─
-│ . dur_in = [6 days]
+│ . dur_in = [0 years, 0 months, 6 days]
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -76,7 +76,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
