@@ -14,7 +14,7 @@ scope A:
 
 ```catala-test-cli
 $ catala DCalc -s A
-let scope A (A_in: A_in {x_in: integer}): A {o: integer} =
+let scope A (A_in: A_in): A =
   let get x : integer = A_in.x_in in
   let set o : integer =
     error_empty
@@ -55,7 +55,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Empty↯ at tests/concolic/good/default_conflict_and_empty.catala_en:6.12-6.13
+│ Found error ↯Empty↯ at tests/concolic/good/default_conflict_and_empty.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -115,7 +115,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/default_conflict_and_empty.catala_en:12.76-12.77,tests/concolic/good/default_conflict_and_empty.catala_en:11.69-11.70,)↯ at tests/concolic/good/default_conflict_and_empty.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/default_conflict_and_empty.catala_en:12.76-77,tests/concolic/good/default_conflict_and_empty.catala_en:11.69-70,)↯ at tests/concolic/good/default_conflict_and_empty.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -123,7 +123,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

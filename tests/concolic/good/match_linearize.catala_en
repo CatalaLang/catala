@@ -35,22 +35,8 @@ scope A:
 
 ```catala-test-cli
 $ catala DCalc -s A
-let scope A
-  (A_in:
-     A_in {
-       résidence_in:
-         Collectivité[Guadeloupe: unit | Guyane: unit | Martinique: unit |
-           LaRéunion: unit | SaintBarthélemy: unit | SaintMartin: unit |
-           Métropole: unit | SaintPierreEtMiquelon: unit | Mayotte: unit]
-     })
-  : A {o: integer}
-  =
-  let get résidence :
-      Collectivité[Guadeloupe: unit | Guyane: unit | Martinique: unit |
-        LaRéunion: unit | SaintBarthélemy: unit | SaintMartin: unit |
-        Métropole: unit | SaintPierreEtMiquelon: unit | Mayotte: unit] =
-    A_in.résidence_in
-  in
+let scope A (A_in: A_in): A =
+  let get résidence : Collectivité = A_in.résidence_in in
   let set o : integer =
     error_empty
       ⟨ ⟨ ⟨match résidence with
@@ -79,7 +65,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = Guadeloupe ()
+│ . résidence_in = Guadeloupe
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -94,7 +80,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = Guyane ()
+│ . résidence_in = Guyane
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -109,7 +95,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = Martinique ()
+│ . résidence_in = Martinique
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -124,7 +110,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = LaRéunion ()
+│ . résidence_in = LaRéunion
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -139,7 +125,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = SaintBarthélemy ()
+│ . résidence_in = SaintBarthélemy
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -154,7 +140,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = SaintMartin ()
+│ . résidence_in = SaintMartin
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -169,7 +155,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = Métropole ()
+│ . résidence_in = Métropole
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -184,7 +170,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = SaintPierreEtMiquelon ()
+│ . résidence_in = SaintPierreEtMiquelon
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -199,7 +185,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = Mayotte ()
+│ . résidence_in = Mayotte
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -213,38 +199,31 @@ $ catala Concolic -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
 
 ```catala-test-cli
 $ catala DCalc -O -s A
-let scope A
-  (A_in:
-     A_in {
-       résidence_in:
-         Collectivité[Guadeloupe: unit | Guyane: unit | Martinique: unit |
-           LaRéunion: unit | SaintBarthélemy: unit | SaintMartin: unit |
-           Métropole: unit | SaintPierreEtMiquelon: unit | Mayotte: unit]
-     })
-  : A {o: integer}
-  =
-  let get résidence :
-      Collectivité[Guadeloupe: unit | Guyane: unit | Martinique: unit |
-        LaRéunion: unit | SaintBarthélemy: unit | SaintMartin: unit |
-        Métropole: unit | SaintPierreEtMiquelon: unit | Mayotte: unit] =
-    A_in.résidence_in
-  in
+let scope A (A_in: A_in): A =
+  let get résidence : Collectivité = A_in.résidence_in in
   let set o : integer =
     error_empty
-      ⟨ ⟨résidence = Guadeloupe ()
-         || résidence = Martinique ()
-         || résidence = LaRéunion ()
-         || résidence = SaintBarthélemy ()
-         || résidence = SaintMartin ()
-         || résidence = Mayotte ()
-         ⊢ ⟨1⟩⟩
+      ⟨ if
+          match résidence with
+          | Guadeloupe → true
+          | Guyane → false
+          | Martinique → true
+          | LaRéunion → true
+          | SaintBarthélemy → true
+          | SaintMartin → true
+          | Métropole → false
+          | SaintPierreEtMiquelon → false
+          | Mayotte → true
+        then
+          ⟨1⟩
+        else ∅
       | true ⊢ ⟨0⟩ ⟩
   in
   return { A o = o; }
@@ -259,7 +238,7 @@ $ catala Concolic --conc-optim=linearize-match -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = Guadeloupe ()
+│ . résidence_in = Guadeloupe
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -274,7 +253,7 @@ $ catala Concolic --conc-optim=linearize-match -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = Guyane ()
+│ . résidence_in = Guyane
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -288,7 +267,7 @@ $ catala Concolic --conc-optim=linearize-match -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
@@ -302,7 +281,7 @@ $ catala Concolic -O --conc-optim=linearize-match -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = Guadeloupe ()
+│ . résidence_in = Guadeloupe
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -317,7 +296,7 @@ $ catala Concolic -O --conc-optim=linearize-match -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . résidence_in = Guyane ()
+│ . résidence_in = Guyane
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -331,7 +310,7 @@ $ catala Concolic -O --conc-optim=linearize-match -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

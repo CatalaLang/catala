@@ -23,16 +23,15 @@ scope A:
 
 ```catala-test-cli
 $ catala DCalc -s A
-let scope A (A_in: A_in {n_in: integer; m_in: integer}): A {x: integer} =
+let scope A (A_in: A_in): A =
   let get n : integer = A_in.n_in in
   let get m : integer = A_in.m_in in
-  let set y : S {a: integer; b: T {c: bool; d: integer}} =
-    error_empty
-      ⟨ ⟨true ⊢ ⟨{ S a = n; b = { T c = false; d = 0; }; }⟩⟩ | false ⊢ ∅ ⟩
+  let set y : ⟪S⟫ =
+    ⟨ ⟨true ⊢ ⟨{ S a = n; b = { T c = false; d = 0; }; }⟩⟩ | false ⊢ ∅ ⟩
   in
   let set x : integer =
     error_empty
-      ⟨ ⟨ ⟨y.a = m || y.b.c ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩
+      ⟨ ⟨ ⟨(error_empty y).a = m || (error_empty y).b.c ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨42⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
   return { A x = x; }
@@ -82,7 +81,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

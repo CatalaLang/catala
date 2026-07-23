@@ -6,37 +6,48 @@ declaration scope A:
   output o content integer
 
 scope A:
-    definition o equals -1 # never reached
-    exception definition o
-        under condition d<=(-15 day)
-        consequence equals 0
-    exception definition o
-        under condition d>(-15 day) and d<(0 day)
-        consequence equals 1
-    exception definition o
-        under condition d=0 day
-        consequence equals 2
-    exception definition o
-        under condition d>0 day and d<15 day
-        consequence equals 3
-    exception definition o
-        under condition d>=15 day
-        consequence equals 4
+  definition o equals -1
+  # never reached
+  exception
+  definition o
+  under condition d <= (-15 day)
+  consequence equals
+    0
+  exception
+  definition o
+  under condition d > (-15 day) and d < (0 day)
+  consequence equals
+    1
+  exception
+  definition o
+  under condition d = 0 day
+  consequence equals
+    2
+  exception
+  definition o
+  under condition d > 0 day and d < 15 day
+  consequence equals
+    3
+  exception
+  definition o
+  under condition d >= 15 day
+  consequence equals
+    4
 ```
 
 ```catala-test-cli
 $ catala DCalc -s A
-let scope A (A_in: A_in {d_in: duration}): A {o: integer} =
+let scope A (A_in: A_in): A =
   let get d : duration = A_in.d_in in
   let set o : integer =
     error_empty
-      ⟨ ⟨ ⟨d <= [0 years, 0 months, -15 days] ⊢ ⟨0⟩⟩,
+      ⟨ ⟨ ⟨d ≤ [0 years, 0 months, -15 days] ⊢ ⟨0⟩⟩,
           ⟨d > [0 years, 0 months, -15 days]
            && d < [0 years, 0 months, 0 days]
            ⊢ ⟨1⟩⟩, ⟨d = [0 years, 0 months, 0 days] ⊢ ⟨2⟩⟩,
           ⟨d > [0 years, 0 months, 0 days]
            && d < [0 years, 0 months, 15 days]
-           ⊢ ⟨3⟩⟩, ⟨d >= [0 years, 0 months, 15 days] ⊢ ⟨4⟩⟩
+           ⊢ ⟨3⟩⟩, ⟨d ≥ [0 years, 0 months, 15 days] ⊢ ⟨4⟩⟩
         | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨-1⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
@@ -52,7 +63,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = [10 days]
+│ . d_in = [0 years, 0 months, 10 days]
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -67,7 +78,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = [15 days]
+│ . d_in = [0 years, 0 months, 15 days]
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -82,7 +93,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = [0 day]
+│ . d_in = [0 years, 0 months, 0 days]
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -97,7 +108,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = [-1 day]
+│ . d_in = [0 years, 0 months, -1 days]
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -112,7 +123,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . d_in = [-15 days]
+│ . d_in = [0 years, 0 months, -15 days]
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
@@ -126,8 +137,7 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
-

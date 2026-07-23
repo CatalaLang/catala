@@ -36,7 +36,7 @@ $ catala Concolic -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-15.71,tests/concolic/good/packing.catala_en:14.71-14.72,tests/concolic/good/packing.catala_en:11.71-11.72,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-71,tests/concolic/good/packing.catala_en:14.71-72,tests/concolic/good/packing.catala_en:11.71-72,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -57,7 +57,7 @@ $ catala Concolic -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-13.70,tests/concolic/good/packing.catala_en:12.69-12.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-70,tests/concolic/good/packing.catala_en:12.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -78,7 +78,7 @@ $ catala Concolic -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-15.71,tests/concolic/good/packing.catala_en:12.69-12.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-71,tests/concolic/good/packing.catala_en:12.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -99,7 +99,7 @@ $ catala Concolic -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-15.71,tests/concolic/good/packing.catala_en:14.71-14.72,tests/concolic/good/packing.catala_en:13.69-13.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-71,tests/concolic/good/packing.catala_en:14.71-72,tests/concolic/good/packing.catala_en:13.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -120,7 +120,7 @@ $ catala Concolic -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-15.71,tests/concolic/good/packing.catala_en:11.71-11.72,tests/concolic/good/packing.catala_en:10.69-10.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-71,tests/concolic/good/packing.catala_en:11.71-72,tests/concolic/good/packing.catala_en:10.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -141,7 +141,7 @@ $ catala Concolic -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-13.70,tests/concolic/good/packing.catala_en:12.69-12.70,tests/concolic/good/packing.catala_en:10.69-10.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-70,tests/concolic/good/packing.catala_en:12.69-70,tests/concolic/good/packing.catala_en:10.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -162,7 +162,7 @@ $ catala Concolic -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-15.71,tests/concolic/good/packing.catala_en:12.69-12.70,tests/concolic/good/packing.catala_en:10.69-10.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-71,tests/concolic/good/packing.catala_en:12.69-70,tests/concolic/good/packing.catala_en:10.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -183,7 +183,7 @@ $ catala Concolic -s A
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-15.71,tests/concolic/good/packing.catala_en:13.69-13.70,tests/concolic/good/packing.catala_en:10.69-10.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-71,tests/concolic/good/packing.catala_en:13.69-70,tests/concolic/good/packing.catala_en:10.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -191,7 +191,7 @@ $ catala Concolic -s A
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
@@ -217,7 +217,7 @@ $ catala Concolic -s A --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:14.71-14.72,tests/concolic/good/packing.catala_en:11.71-11.72,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:14.71-72,tests/concolic/good/packing.catala_en:11.71-72,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -238,7 +238,7 @@ $ catala Concolic -s A --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-13.70,tests/concolic/good/packing.catala_en:12.69-12.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-70,tests/concolic/good/packing.catala_en:12.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -259,7 +259,7 @@ $ catala Concolic -s A --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-15.71,tests/concolic/good/packing.catala_en:12.69-12.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-71,tests/concolic/good/packing.catala_en:12.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -280,7 +280,7 @@ $ catala Concolic -s A --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:14.71-14.72,tests/concolic/good/packing.catala_en:13.69-13.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:14.71-72,tests/concolic/good/packing.catala_en:13.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -301,7 +301,7 @@ $ catala Concolic -s A --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:11.71-11.72,tests/concolic/good/packing.catala_en:10.69-10.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:11.71-72,tests/concolic/good/packing.catala_en:10.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -322,7 +322,7 @@ $ catala Concolic -s A --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:12.69-12.70,tests/concolic/good/packing.catala_en:10.69-10.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:12.69-70,tests/concolic/good/packing.catala_en:10.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -343,7 +343,7 @@ $ catala Concolic -s A --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-13.70,tests/concolic/good/packing.catala_en:10.69-10.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-70,tests/concolic/good/packing.catala_en:10.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -351,7 +351,7 @@ $ catala Concolic -s A --conc-optim=lazy-default
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
@@ -377,7 +377,7 @@ $ catala Concolic -s A --conc-optim=packing --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:14.71-14.72,tests/concolic/good/packing.catala_en:11.71-11.72,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:14.71-72,tests/concolic/good/packing.catala_en:11.71-72,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -398,7 +398,7 @@ $ catala Concolic -s A --conc-optim=packing --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-13.70,tests/concolic/good/packing.catala_en:12.69-12.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-70,tests/concolic/good/packing.catala_en:12.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -419,7 +419,7 @@ $ catala Concolic -s A --conc-optim=packing --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-15.71,tests/concolic/good/packing.catala_en:12.69-12.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:15.70-71,tests/concolic/good/packing.catala_en:12.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -440,7 +440,7 @@ $ catala Concolic -s A --conc-optim=packing --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:14.71-14.72,tests/concolic/good/packing.catala_en:13.69-13.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:14.71-72,tests/concolic/good/packing.catala_en:13.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -461,7 +461,7 @@ $ catala Concolic -s A --conc-optim=packing --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:11.71-11.72,tests/concolic/good/packing.catala_en:10.69-10.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:11.71-72,tests/concolic/good/packing.catala_en:10.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -482,7 +482,7 @@ $ catala Concolic -s A --conc-optim=packing --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:12.69-12.70,tests/concolic/good/packing.catala_en:10.69-10.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:12.69-70,tests/concolic/good/packing.catala_en:10.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -503,7 +503,7 @@ $ catala Concolic -s A --conc-optim=packing --conc-optim=lazy-default
 │ Output of scope after evaluation:
 └─
 ┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-13.70,tests/concolic/good/packing.catala_en:10.69-10.70,)↯ at tests/concolic/good/packing.catala_en:6.12-6.13
+│ Found error ↯Conflict(tests/concolic/good/packing.catala_en:13.69-70,tests/concolic/good/packing.catala_en:10.69-70,)↯ at tests/concolic/good/packing.catala_en:6.12-13
 └─
 ┌─[RESULT]─
 │ 
@@ -511,7 +511,7 @@ $ catala Concolic -s A --conc-optim=packing --conc-optim=lazy-default
 ┌─[RESULT]─
 │ Concolic interpreter done
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```

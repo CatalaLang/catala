@@ -113,7 +113,7 @@ $ catala Concolic -s A
 │  Please note that the concolic execution may be incomplete: it could systematically explore the whole program.
 │
 └─
-┌─[RESULT]─
+┌─[RESULT]─ A ─
 │ Computation successful!
 └─
 ```
