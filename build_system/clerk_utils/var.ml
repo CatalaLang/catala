@@ -53,16 +53,9 @@ let re_var =
 
 type bindings = (string * string list) list
 
+let has_ref = Re.execp (Re.compile re_var)
+
 let of_words (type a) (v : a t) (words : string list) : a =
-  List.iter
-    (fun w ->
-      if String.contains w '"' then
-        Message.error
-          "Invalid word %S in the value of variable @{<blue;bold>$%s@}: quote \
-           characters are not supported (values are quoted automatically; for \
-           C string macros, prefer an included header)"
-          w (name v))
-    words;
   match kind v with
   | Scalar -> (
     match words with
@@ -71,6 +64,26 @@ let of_words (type a) (v : a t) (words : string list) : a =
       Message.error "Variable @{<blue;bold>$%s@} expects a single word, got %d"
         (name v) (List.length ws))
   | Vector -> List.map (fun w -> Ninja_utils.Expr.Word w) words
+
+(* border guards: overrides only — authored defaults legitimately contain
+   refs. Refs would expand in direct exec but quote-glue at emission; reject
+   rather than diverge (composition is served by the append form). *)
+let of_override_words (type a) (v : a t) (words : string list) : a =
+  List.iter
+    (fun w ->
+      if has_ref w then
+        Message.error
+          "Invalid word %S in the value of variable @{<blue;bold>$%s@}: \
+           variable references are not supported in overrides"
+          w (name v);
+      if String.contains w '"' then
+        Message.error
+          "Invalid word %S in the value of variable @{<blue;bold>$%s@}: quote \
+           characters are not supported (values are quoted automatically; for \
+           C string macros, prefer an included header)"
+          w (name v))
+    words;
+  of_words v words
 
 let to_words (type a) (v : a t) (x : a) : string list =
   let expr_words e =

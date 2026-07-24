@@ -22,12 +22,9 @@ open Clerk_lib
 
 module Flags = struct
   let def ~variables var value =
-    let value =
-      match List.assoc_opt (Var.name var) variables with
-      | Some vl -> vl
-      | None -> Lazy.force value
-    in
-    Binding.make_any var (Var.of_words var value)
+    match List.assoc_opt (Var.name var) variables with
+    | Some vl -> Binding.make_any var (Var.of_override_words var vl)
+    | None -> Binding.make_any var (Var.of_words var (Lazy.force value))
 
   (* Unquoted: cmd_only binding values, quoted at emission
      ([Var.binding_words]). *)
