@@ -23,7 +23,7 @@ module Flags : sig
     variables:Var.bindings ->
     'a Var.t ->
     string list lazy_t ->
-    string * string list
+    Ninja_utils.Binding.any
 
   val includes : ?backend:string -> string list -> string list
   val include_flags : backend:string -> string list -> Ninja_utils.Expr.t
@@ -40,7 +40,7 @@ module Flags : sig
     trace:bool ->
     inplace:bool ->
     config:Clerk_cli.config ->
-    (string * string list) list
+    Ninja_utils.Binding.any list
 end
 
 module Ninja : sig

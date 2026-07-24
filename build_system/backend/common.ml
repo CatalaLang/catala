@@ -27,7 +27,7 @@ module Flags = struct
       | Some vl -> vl
       | None -> Lazy.force value
     in
-    Var.name var, value
+    Binding.make_any var (Var.of_words var value)
 
   (* Unquoted: cmd_only binding values, quoted at emission
      ([Var.binding_words]). *)

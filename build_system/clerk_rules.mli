@@ -29,7 +29,7 @@ val base_bindings :
   enabled_backends:backend list ->
   inplace:bool ->
   config:Clerk_cli.config ->
-  Var.bindings
+  Ninja_utils.Binding.any list
 
 exception Stop_ninja
 

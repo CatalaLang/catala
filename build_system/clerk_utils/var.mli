@@ -62,6 +62,15 @@ val test_id : Expr.atom t
 
 type bindings = (string * string list) list
 
+val of_words : 'a t -> string list -> 'a
+(** Packs kindless outside words (toml/CLI overrides) into a typed payload;
+    errors if an atom var receives several words *)
+
+val to_words : 'a t -> 'a -> string list
+(** Projection to the string-level env consumed by {!get_var}/direct exec *)
+
+val env_of_bindings : Ninja_utils.Binding.any list -> bindings
+
 val ( ! ) : Expr.atom t -> string
 (** Run-time reference to the given variable [!var = "${xvarname}"] *)
 
