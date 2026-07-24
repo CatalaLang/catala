@@ -29,7 +29,7 @@ val base_bindings :
   enabled_backends:backend list ->
   inplace:bool ->
   config:Clerk_cli.config ->
-  (Var.t * string list) list
+  Var.bindings
 
 exception Stop_ninja
 
@@ -45,7 +45,7 @@ val run_ninja :
   autotest:bool ->
   ?clean_up_env:bool ->
   ?ninja_flags:string list ->
-  (Format.formatter -> Scan.item list -> (Var.t * string list) list -> 'a) ->
+  (Format.formatter -> Scan.item list -> Var.bindings -> 'a) ->
   'a
 (** Scan the source tree, run a ninja process, and send to it the expected build
     instructions. A callback can be supplied to retrieve the source items, and

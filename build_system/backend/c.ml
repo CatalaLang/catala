@@ -19,14 +19,14 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
-let catala_flags_c = Var.cmd_only (Var.make "CATALA_FLAGS_C")
-let cc_exe = Var.cmd_only (Var.make "CC")
-let c_flags = Var.cmd_only (Var.make "CFLAGS")
-let c_include = Var.cmd_only (Var.make "C_INCLUDE_FLAGS")
+let catala_flags_c = Var.make_expr "CATALA_FLAGS_C"
+let cc_exe = Var.make_expr "CC"
+let c_flags = Var.make_expr "CFLAGS"
+let c_include = Var.make_expr "C_INCLUDE_FLAGS"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
-  Var.get_var var_bindings cc_exe
+  Var.get_var var_bindings (Var.name cc_exe)
   @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
   @ [build_dir / Scan.libcatala / "c" / "catala_runtime.o"]
   @ List.map
@@ -36,8 +36,8 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
       (link_deps item)
   @ ["-lgmp"]
   @ [target -.- "o"; File.remove_extension target ^ "+main.o"]
-  @ Var.get_var var_bindings c_flags
-  @ Var.get_var var_bindings c_include
+  @ Var.get_var var_bindings (Var.name c_flags)
+  @ Var.get_var var_bindings (Var.name c_include)
   @ ["-o"; target -.- "exe"]
 
 let run_artifact ~test ?scope src =
@@ -75,7 +75,7 @@ module Backend = struct
         Common.Flags.catala_backend_flags ~autotest ~use_default_flags
           ~test_flags ~accepts_closure_conversion:false
       in
-      let def = def ~variables in
+      let def v x = def ~variables v x in
       [
         def catala_flags_c (lazy catala_flags);
         def cc_exe (lazy ["cc"]);
@@ -102,13 +102,14 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
   [
     Nj.rule "catala-c"
-      ~command:[quote_arg !catala_exe; name; !catala_flags; !catala_flags_c;
-                "-o"; !output; "--"; !input]
-      ~description:["<catala>"; name; "⇒"; !output];
+      ~command:[Atom !catala_exe; Atom name; Var catala_flags; Var catala_flags_c;
+                Atom "-o"; Raw !output; Atom "--"; Raw !input]
+      ~description:[Atom "<catala>"; Atom name; Atom "⇒"; Raw !output];
     Nj.rule "c-object"
       ~command:
-        [!cc_exe; !input; !c_flags; !c_include; !includes; "-c"; "-o"; !output]
-      ~description:["<cc>"; "⇒"; !output];
+        [Var cc_exe; Raw !input; Var c_flags; Var c_include; Var includes;
+         Atom "-c"; Atom "-o"; Raw !output]
+      ~description:[Atom "<cc>"; Atom "⇒"; Raw !output];
   ]
 
   let external_copy item =
@@ -125,10 +126,10 @@ module Backend = struct
       ~filename:item.Scan.file_name;
     List.to_seq
       [
-        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[c]
-          ~outputs:[Ninja.target ~backend:name "c"];
-        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[h]
-          ~outputs:[Ninja.target ~backend:name "h"];
+        Nj.build "copy" ~implicit_in:[Atom catala_src] ~inputs:[Atom c]
+          ~outputs:[Atom (Ninja.target ~backend:name "c")];
+        Nj.build "copy" ~implicit_in:[Atom catala_src] ~inputs:[Atom h]
+          ~outputs:[Atom (Ninja.target ~backend:name "h")];
       ]
 
   let runtime_build_statements ~options:_ ~stdbase =
@@ -138,52 +139,55 @@ module Backend = struct
       Nj.build "phony"
         ~inputs:
           [
-            c_base -.- "c";
-            c_base -.- "h";
-            (c_base /../ "dates_calc") -.- "c";
-            (c_base /../ "dates_calc") -.- "h";
+            Atom (c_base -.- "c");
+            Atom (c_base -.- "h");
+            Atom ((c_base /../ "dates_calc") -.- "c");
+            Atom ((c_base /../ "dates_calc") -.- "h");
           ]
-        ~outputs:["@runtime-" ^ name ^ "-src"];
+        ~outputs:[Atom ("@runtime-" ^ name ^ "-src")];
       Nj.build "phony"
         ~inputs:
           [
-            c_base -.- "o";
-            c_base -.- "h";
-            (c_base /../ "dates_calc") -.- "o";
-            (c_base /../ "dates_calc") -.- "h";
-            Var.(!catala_exe);
+            Atom (c_base -.- "o");
+            Atom (c_base -.- "h");
+            Atom ((c_base /../ "dates_calc") -.- "o");
+            Atom ((c_base /../ "dates_calc") -.- "h");
+            Atom Var.(!catala_exe);
           ]
-        ~outputs:["@runtime-" ^ name];
+        ~outputs:[Atom ("@runtime-" ^ name)];
       Nj.build "copy"
-        ~inputs:[c_src / "catala_runtime.h"]
-        ~outputs:[c_base -.- "h"];
+        ~inputs:[Atom (c_src / "catala_runtime.h")]
+        ~outputs:[Atom (c_base -.- "h")];
       Nj.build "copy"
-        ~inputs:[c_src / "catala_runtime.c"]
-        ~outputs:[c_base -.- "c"];
+        ~inputs:[Atom (c_src / "catala_runtime.c")]
+        ~outputs:[Atom (c_base -.- "c")];
       Nj.build "copy"
-        ~inputs:[c_src / "dates_calc.h"]
-        ~outputs:[(c_base /../ "dates_calc") -.- "h"];
+        ~inputs:[Atom (c_src / "dates_calc.h")]
+        ~outputs:[Atom ((c_base /../ "dates_calc") -.- "h")];
       Nj.build "copy"
-        ~inputs:[c_src / "dates_calc.c"]
-        ~outputs:[(c_base /../ "dates_calc") -.- "c"];
+        ~inputs:[Atom (c_src / "dates_calc.c")]
+        ~outputs:[Atom ((c_base /../ "dates_calc") -.- "c")];
       Nj.build "c-object"
-        ~inputs:[c_base -.- "c"]
-        ~implicit_in:[c_base -.- "h"]
-        ~outputs:[c_base -.- "o"];
+        ~inputs:[Atom (c_base -.- "c")]
+        ~implicit_in:[Atom (c_base -.- "h")]
+        ~outputs:[Atom (c_base -.- "o")];
       Nj.build "c-object"
-        ~inputs:[(c_base /../ "dates_calc") -.- "c"]
-        ~implicit_in:[(c_base /../ "dates_calc") -.- "h"]
-        ~outputs:[(c_base /../ "dates_calc") -.- "o"];
+        ~inputs:[Atom ((c_base /../ "dates_calc") -.- "c")]
+        ~implicit_in:[Atom ((c_base /../ "dates_calc") -.- "h")]
+        ~outputs:[Atom ((c_base /../ "dates_calc") -.- "o")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in has_scope_tests =
     let implicit_out =
-      if has_scope_tests then [Ninja.target ~backend:name "+main.c"] else []
+      if has_scope_tests then
+        [Nj.Expr.Atom (Ninja.target ~backend:name "+main.c")]
+      else []
     in
     Seq.return
       (Nj.build "catala-c" ?vars ~inputs ~implicit_in
-         ~outputs:[Ninja.target ~backend:name "c"]
-         ~implicit_out:(Ninja.target ~backend:name "h" :: implicit_out))
+         ~outputs:[Atom (Ninja.target ~backend:name "c")]
+         ~implicit_out:
+           (Nj.Expr.Atom (Ninja.target ~backend:name "h") :: implicit_out))
 
   let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
 
@@ -195,27 +199,31 @@ module Backend = struct
   let build_object ~include_dirs ~same_dir_modules ~item has_scope_tests =
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
-    let implicit_modules = List.map (module_target same_dir_modules) modules in
+    let implicit_modules =
+      List.map
+        (fun m -> Nj.Expr.Atom (module_target same_dir_modules m))
+        modules
+    in
     let obj =
       Nj.build "c-object"
-        ~inputs:[Ninja.target ~backend:name "c"]
+        ~inputs:[Atom (Ninja.target ~backend:name "c")]
         ~implicit_in:
-          (Ninja.target ~backend:name "h"
-          :: ("@runtime-" ^ name)
+          (Nj.Expr.Atom (Ninja.target ~backend:name "h")
+          :: Atom ("@runtime-" ^ name)
           :: implicit_modules)
-        ~outputs:[Ninja.target ~backend:name "o"]
-        ~vars:[Var.includes, includes include_dirs]
+        ~outputs:[Atom (Ninja.target ~backend:name "o")]
+        ~vars:[Nj.Binding.make_any Var.includes (includes include_dirs)]
       ::
       (if has_scope_tests then
          [
            Nj.build "c-object"
-             ~inputs:[Ninja.target ~backend:name "+main.c"]
+             ~inputs:[Atom (Ninja.target ~backend:name "+main.c")]
              ~implicit_in:
-               (Ninja.target ~backend:name "h"
-               :: ("@runtime-" ^ name)
+               (Nj.Expr.Atom (Ninja.target ~backend:name "h")
+               :: Atom ("@runtime-" ^ name)
                :: implicit_modules)
-             ~outputs:[Ninja.target ~backend:name "+main.o"]
-             ~vars:[Var.includes, includes include_dirs];
+             ~outputs:[Atom (Ninja.target ~backend:name "+main.o")]
+             ~vars:[Nj.Binding.make_any Var.includes (includes include_dirs)];
          ]
        else [])
     in
@@ -224,9 +232,12 @@ module Backend = struct
   let expose_module ~same_dir_modules ~used_modules =
     [
       Nj.build "phony"
-        ~inputs:[Ninja.target ~backend:name "h"]
-        ~implicit_in:(List.map (module_target same_dir_modules) used_modules)
-        ~outputs:[Ninja.target ~backend:name module_ext];
+        ~inputs:[Atom (Ninja.target ~backend:name "h")]
+        ~implicit_in:
+          (List.map
+             (fun m -> Nj.Expr.Atom (module_target same_dir_modules m))
+             used_modules)
+        ~outputs:[Atom (Ninja.target ~backend:name module_ext)];
     ]
 
   let runtime_dir : File.t Lazy.t =

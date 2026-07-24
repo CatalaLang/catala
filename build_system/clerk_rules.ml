@@ -74,20 +74,28 @@ let static_base_rules ~tests enabled_backends =
         Nj.rule "tests"
           ~command:
             [
-              quote_arg !clerk_exe;
-              "runtest";
-              !clerk_flags;
-              !input;
-              "--report";
-              !output;
+              Atom !clerk_exe;
+              Atom "runtest";
+              Var clerk_flags;
+              Raw !input;
+              Atom "--report";
+              Raw !output;
             ]
-          ~description:["<catala>"; "tests"; "⇐"; !input];
+          ~description:[Atom "<catala>"; Atom "tests"; Atom "⇐"; Raw !input];
         Nj.rule "dir-tests"
           ~command:
             (if Sys.win32 then
-               ["cmd"; "/c"; "copy /by >nul"; !cat_files; !output]
-             else ["cat"; !input; ">"; !output])
-          ~description:["<test>"; !test_id];
+               [
+                 Raw "cmd";
+                 Raw "/c";
+                 Raw "copy";
+                 Raw "/by";
+                 Raw ">nul";
+                 Raw !cat_files;
+                 Raw !output;
+               ]
+             else [Atom "cat"; Raw !input; Raw ">"; Raw !output])
+          ~description:[Atom "<test>"; Atom !test_id];
       ]
     else []
   in
@@ -113,8 +121,8 @@ let gen_build_statements
   let dir = dirname src in
   let def_vars =
     [
-      Nj.binding Var.src [basename src];
-      Nj.binding Var.dst [basename (Scan.target_file_name item)];
+      Nj.binding Var.src (basename src);
+      Nj.binding Var.dst (basename (Scan.target_file_name item));
     ]
   in
   let modules = List.rev_map Mark.remove item.used_modules in
@@ -124,19 +132,21 @@ let gen_build_statements
   let catala_src = !Var.tdir / !Var.src in
   let include_deps =
     Nj.build "copy"
-      ~inputs:[dir / !Var.src]
+      ~inputs:[Atom (dir / !Var.src)]
       ~implicit_in:
         (List.map
            (fun (f, _) ->
-             if dir / basename f = f then !Var.tdir / basename f
-             else !Var.builddir / f)
+             Nj.Expr.Atom
+               (if dir / basename f = f then !Var.tdir / basename f
+                else !Var.builddir / f))
            item.included_files
         @ List.map
             (fun m ->
-              try !Var.tdir / basename (List.assoc m same_dir_modules)
-              with Not_found -> m ^ "@src")
+              Nj.Expr.Atom
+                (try !Var.tdir / basename (List.assoc m same_dir_modules)
+                 with Not_found -> m ^ "@src"))
             modules)
-      ~outputs:[catala_src]
+      ~outputs:[Atom catala_src]
   in
   let module_deps =
     match item.module_def with
@@ -155,16 +165,23 @@ let gen_build_statements
           Backend.external_copy item)
         enabled_backends
     else
-      let inputs = [catala_src] in
+      let inputs = [Nj.Expr.Atom catala_src] in
       let implicit_in =
         (* autotest requires interpretation at compile-time, which makes use of
            the dependent OCaml modules (cmxs) *)
-        !Var.catala_exe
-        :: (if autotest then List.map module_target modules else [])
+        Nj.Expr.Atom !Var.catala_exe
+        ::
+        (if autotest then
+           List.map (fun m -> Nj.Expr.Atom (module_target m)) modules
+         else [])
       in
       let vars =
         if is_stdlib then
-          Some [Var.catala_flags, [Var.(!catala_flags); "--no-stdlib"]]
+          Some
+            [
+              Nj.Binding.make_any Var.catala_flags
+                [Nj.Expr.Var Var.catala_flags; Atom "--no-stdlib"];
+            ]
         else None
       in
       List.map
@@ -196,15 +213,19 @@ let gen_build_statements
         List.map
           (fun (module Backend : Clerk_backends.Backend.S) ->
             Nj.build "phony"
-              ~outputs:[Format.sprintf "%s@%s-module" modname Backend.name]
+              ~outputs:
+                [Atom (Format.sprintf "%s@%s-module" modname Backend.name)]
               ~inputs:
                 [
-                  Backend.modfile ~is_stdlib same_dir_modules Backend.module_ext
-                    modname;
+                  Nj.Expr.Atom
+                    (Backend.modfile ~is_stdlib same_dir_modules
+                       Backend.module_ext modname);
                 ])
           enabled_backends
       in
-      Nj.build "phony" ~outputs:[modname ^ "@src"] ~inputs:[catala_src]
+      Nj.build "phony"
+        ~outputs:[Atom (modname ^ "@src")]
+        ~inputs:[Atom catala_src]
       :: backends_module
     | _ -> []
   in
@@ -212,14 +233,16 @@ let gen_build_statements
     if not (item.has_inline_tests || Lazy.force item.has_scope_tests) then []
     else
       [
-        Nj.build "tests" ~inputs:[catala_src]
+        Nj.build "tests" ~inputs:[Atom catala_src]
           ~implicit_in:
-            (!Var.clerk_exe
+            (Nj.Expr.Atom !Var.clerk_exe
             :: List.map
-                 (Ninja.modfile ~backend:"ocaml" same_dir_modules
-                    "@ocaml-module")
+                 (fun m ->
+                   Nj.Expr.Atom
+                     (Ninja.modfile ~backend:"ocaml" same_dir_modules
+                        "@ocaml-module" m))
                  modules)
-          ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"];
+          ~outputs:[Atom (catala_src ^ "@test"); Atom (catala_src ^ "@out")];
       ]
   in
   let statements_backend =
@@ -275,7 +298,7 @@ let gen_build_statements_dir
   Seq.cons (Nj.comment "")
   @@ Seq.cons (Nj.comment ("--- " ^ dir ^ " ---"))
   @@ Seq.cons (Nj.comment "")
-  @@ Seq.cons (Nj.binding Var.tdir [!Var.builddir / dir])
+  @@ Seq.cons (Nj.binding Var.tdir (!Var.builddir / dir))
   @@ Seq.flat_map
        (gen_build_statements ~tests ~is_stdlib include_dirs enabled_backends
           autotest same_dir_modules)
@@ -307,13 +330,16 @@ let dir_test_rules dir subdirs items =
     [
       Nj.Comment "";
       Nj.build "dir-tests"
-        ~outputs:[(Var.(!builddir) / dir) ^ "@test"]
-        ~inputs
+        ~outputs:[Atom ((Var.(!builddir) / dir) ^ "@test")]
+        ~inputs:(List.map (fun s -> Nj.Expr.Atom s) inputs)
         ~vars:
-          ((Var.test_id, [dir])
+          (Nj.Binding.make_any Var.test_id dir
           ::
           (if Sys.win32 then
-             [Var.cat_files, [String.concat "+" ("nul" :: inputs)]]
+             [
+               Nj.Binding.make_any Var.cat_files
+                 (String.concat "+" ("nul" :: inputs));
+             ]
            else []));
     ]
 
@@ -331,9 +357,36 @@ let output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings =
     (Nj.Comment
        (Printf.sprintf "File generated by Clerk v.%s\n" Catala_utils.Cli.version));
   pp (Nj.Comment "- Global variables - #\n");
+  let shell_vars =
+    String.Set.of_list
+      [
+        "CLERK_FLAGS";
+        "CATALA_FLAGS";
+        "CATALA_FLAGS_C";
+        "CC";
+        "CFLAGS";
+        "C_INCLUDE_FLAGS";
+        "CATALA_FLAGS_OCAML";
+        "OCAMLC_EXE";
+        "OCAMLOPT_EXE";
+        "OCAML_FLAGS";
+        "OCAML_INCLUDE";
+        "CATALA_FLAGS_JAVA";
+        "JAVAC";
+        "JAVAC_FLAGS";
+        "jar";
+        "JAVA";
+        "CATALA_FLAGS_PYTHON";
+        "PYTHON";
+      ]
+  in
   List.iter
-    (fun (var, contents) ->
-      pp (Nj.binding var (Var.binding_words var contents)))
+    (fun (v, contents) ->
+      if String.Set.mem v shell_vars then
+        pp
+          (Nj.binding (Var.make_expr v)
+             (List.map (fun w -> Nj.Expr.Atom w) contents))
+      else pp (Nj.binding (Var.make_atom v) (String.concat " " contents)))
     var_bindings;
   pp (Nj.Comment "\n- Base rules - #\n");
   List.iter pp (static_base_rules ~tests enabled_backends);
@@ -390,8 +443,8 @@ let output_ninja_file
   pp (Nj.Comment "\n- Global rules and defaults - #\n");
   if tests then
     pp
-      (Nj.build "phony" ~outputs:["test"]
-         ~inputs:[File.(Var.(!builddir / ".@test"))]);
+      (Nj.build "phony" ~outputs:[Atom "test"]
+         ~inputs:[Atom File.(Var.(!builddir / ".@test"))]);
   Seq.Nil
 
 (** {1 Driver} *)

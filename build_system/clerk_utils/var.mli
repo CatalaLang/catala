@@ -1,7 +1,8 @@
 (* This file is part of the Catala build system, a specification language for
    tax and social benefits computation rules. Copyright (C) 2020-2025 Inria,
    contributors: Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley
-   <emile.rolley@tuta.io>, Louis Gesbert <louis.gesbert@inria.fr>
+   <emile.rolley@tuta.io>, Louis Gesbert <louis.gesbert@inria.fr>,
+   Romain Primet <romain.prikmet@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +17,7 @@
    the License. *)
 
 open Catala_utils
+open Ninja_utils
 
 include module type of struct
   include Ninja_utils.Var
@@ -23,94 +25,53 @@ end
 
 (** {1 Quoting rules}
 
-    Quoting belongs to the boundary a value crosses, never to the stored value:
-    - declaring: who will read [${V}]? a shell -> {!cmd_only}; ninja path
-      positions -> {!make}. Dual-use (CATALA_EXE): [make], quote each command
-      ref.
-    - command ref: expands to one argument -> [quote_arg !var]; to several ->
-      bare [!var].
-    - command literal: spaceable (a path) -> {!quote_arg}; a flag -> bare
-      string.
-    - variable definition values: never contain a quote char ({!binding_words}
-      quotes cmd_only vars at emit; direct execs read values as argv).
-    - {!get_var} output is direct-exec argv: use as-is, never quote or strip. *)
+    Quoting belongs to the boundary a value crosses, never to the stored value;
+    the variable's type says what crosses: [Expr.atom t] expands to exactly one
+    word (quoted at emission where the consumer requires it), [Expr.t t] to a
+    word list (spliced). *)
 
 (** {1 Ninja variable names} *)
 
 (** {2 Global vars: always defined, at toplevel} *)
 
-val ninja_required_version : t
-val builddir : t
-val clerk_exe : t
-val clerk_flags : t
-val catala_exe : t
-val catala_flags : t
-val make : string -> t
-
-val cmd_only : t -> t
-(** [cmd_only (make "V")] declares that [${V}] is only consumed as shell
-    arguments (rule commands, direct-exec argv), never as a build-statement
-    path: {!binding_words} shell-quotes its words at emission; the stored value
-    stays unquoted. Mandatory for word lists (a quoted ref is one glued
-    argument); a convenience over [quote_arg !v] for single-word vars. Not for
-    vars with a path consumer (builddir, CATALA_EXE, ...), where the quotes
-    would be literal file-name chars. No var needs both: ninja expands variables
-    after tokenizing, so [${v}] in a path position is always exactly one path,
-    never a word list. *)
-
-val is_cmd_only : t -> bool
-val runtime : t
-val all_vars : t String.Map.t
+val ninja_required_version : Expr.atom t
+val builddir : Expr.atom t
+val clerk_exe : Expr.atom t
+val clerk_flags : Expr.t t
+val catala_exe : Expr.atom t
+val catala_flags : Expr.t t
+val runtime : Expr.atom t
+val all_vars : String.Set.t
 
 (** {2 Definition spreading different rules} *)
 
-val tdir : t
-val includes : t
+val tdir : Expr.atom t
+val includes : Expr.t t
 
 (** {2 Rule vars, Used in specific rules} *)
 
-val input : t
-val output : t
-val src : t
-val dst : t
-val class_path : t
-val cat_files : t
-val test_id : t
+val input : Expr.atom t
+val output : Expr.atom t
+val src : Expr.atom t
+val dst : Expr.atom t
+val class_path : Expr.atom t
+val cat_files : Expr.atom t
+val test_id : Expr.atom t
 
 (** {1 Utility functions} *)
 
-type bindings = (t * string list) list
+type bindings = (string * string list) list
 
-val ( ! ) : t -> string
+val ( ! ) : Expr.atom t -> string
 (** Run-time reference to the given variable [!var = "${xvarname}"] *)
 
-val quote_arg : string -> string
-(** Double-quote one shell argument for a rule command — a literal or a
-    [!var / ...] reference that may expand with spaces. Never inside a variable
-    definition's value (see {!cmd_only}) or a ninja path. *)
-
-val binding_words : t -> string list -> string list
-(** Quotes a variable definition for emission: cmd_only words shell-quoted,
-    others verbatim — the one place quote chars are introduced. *)
-
-val check_value : t -> string list -> string list
-(** Identity; errors out if a cmd_only value word contains a quote char (quoting
-    is applied at emission, never stored), or if a non-cmd_only value holds
-    several words (it may be path-read: one [${v}] is one path). *)
-
-val check_path : string -> string
-(** Identity; errors out if the string references a cmd_only variable, whose
-    expansion (shell-quoted words) must never reach a ninja path position. *)
-
-(** {!Ninja_utils} with the path fields of [build] statements checked through
-    {!check_path}. *)
 module Nj : sig
   include module type of struct
     include Ninja_utils
   end
 end
 
-val get_var : bindings -> t -> string list
+val get_var : bindings -> string -> string list
 (** replaces [${xvar}] with its value, recursively *)
 
 val expand_vars : bindings -> string -> string

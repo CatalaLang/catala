@@ -32,7 +32,7 @@ module type S = sig
       use_default_flags:bool ->
       test_flags:string list ->
       include_dirs:string list ->
-      (Var.t * string list) list
+      (string * string list) list
     (** [defaut ~variables ~autotest ~use_default_flags ~test_flags
          ~include_dirs] returns a list of variables assigned for the Ninja file
         generated. Those variables can be the compiler exec of your backends,
@@ -89,7 +89,7 @@ module type S = sig
       copies it in the build directory along others modules *)
 
   val catala :
-    ?vars:(Var.t * Ninja_utils.Expr.t) list ->
+    ?vars:Ninja_utils.Binding.any list ->
     is_stdlib:bool ->
     inputs:Ninja_utils.Expr.t ->
     implicit_in:Ninja_utils.Expr.t ->
