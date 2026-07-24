@@ -53,6 +53,31 @@ let re_var =
 
 type bindings = (string * string list) list
 
+let of_words (type a) (v : a t) (words : string list) : a =
+  match kind v with
+  | Word -> (
+    match words with
+    | [w] -> w
+    | ws ->
+      Message.error "Variable @{<blue;bold>$%s@} expects a single word, got %d"
+        (name v) (List.length ws))
+  | Words -> List.map (fun w -> Ninja_utils.Expr.Atom w) words
+
+let to_words (type a) (v : a t) (x : a) : string list =
+  let rec expr_words e =
+    List.concat_map
+      (function
+        | Ninja_utils.Expr.Atom w -> [w]
+        | List l -> expr_words l
+        | Var v -> [Printf.sprintf "${%s}" (name v)]
+        | Raw s -> [s])
+      e
+  in
+  match kind v with Word -> [x] | Words -> expr_words x
+
+let env_of_bindings bs =
+  List.map (fun (Ninja_utils.Binding.Any (v, x)) -> name v, to_words v x) bs
+
 let rec get_var : bindings -> string -> string list =
   (* replaces ${var} with its value, recursively *)
   let re_single_var = Re.(compile (whole_string re_var)) in

@@ -32,7 +32,7 @@ module type S = sig
       use_default_flags:bool ->
       test_flags:string list ->
       include_dirs:string list ->
-      (string * string list) list
+      Ninja_utils.Binding.any list
     (** [defaut ~variables ~autotest ~use_default_flags ~test_flags
          ~include_dirs] returns a list of variables assigned for the Ninja file
         generated. Those variables can be the compiler exec of your backends,
