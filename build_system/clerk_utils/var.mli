@@ -61,8 +61,12 @@ val test_id : string t
 type bindings = (string * string list) list
 
 val of_words : 'a t -> string list -> 'a
-(** Packs kindless outside words (toml/CLI overrides) into a typed payload;
-    errors if an atom var receives several words *)
+(** Packs flat words into a typed payload; errors if a scalar var receives
+    several words *)
+
+val of_override_words : 'a t -> string list -> 'a
+(** {!of_words} plus the border guards (no refs, no quote characters) — for
+    user-supplied override values only *)
 
 val to_words : 'a t -> 'a -> string list
 (** Projection to the string-level env consumed by {!get_var}/direct exec *)
