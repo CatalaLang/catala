@@ -26,7 +26,7 @@ end
 (** {1 Quoting rules}
 
     Quoting belongs to the boundary a value crosses, never to the stored value;
-    the variable's type says what crosses: [Expr.atom t] expands to exactly one
+    the variable's type says what crosses: [string t] expands to exactly one
     word (quoted at emission where the consumer requires it), [Expr.t t] to a
     word list (spliced). *)
 
@@ -34,29 +34,29 @@ end
 
 (** {2 Global vars: always defined, at toplevel} *)
 
-val ninja_required_version : Expr.atom t
-val builddir : Expr.atom t
-val clerk_exe : Expr.atom t
+val ninja_required_version : string t
+val builddir : string t
+val clerk_exe : string t
 val clerk_flags : Expr.t t
-val catala_exe : Expr.atom t
+val catala_exe : string t
 val catala_flags : Expr.t t
-val runtime : Expr.atom t
+val runtime : string t
 val all_vars : String.Set.t
 
 (** {2 Definition spreading different rules} *)
 
-val tdir : Expr.atom t
+val tdir : string t
 val includes : Expr.t t
 
 (** {2 Rule vars, Used in specific rules} *)
 
-val input : Expr.atom t
-val output : Expr.atom t
-val src : Expr.atom t
-val dst : Expr.atom t
-val class_path : Expr.atom t
-val cat_files : Expr.atom t
-val test_id : Expr.atom t
+val input : string t
+val output : string t
+val src : string t
+val dst : string t
+val class_path : string t
+val cat_files : string t
+val test_id : string t
 
 (** {1 Utility functions} *)
 
@@ -71,7 +71,7 @@ val to_words : 'a t -> 'a -> string list
 
 val env_of_bindings : Ninja_utils.Binding.any list -> bindings
 
-val ( ! ) : Expr.atom t -> string
+val ( ! ) : string t -> string
 (** Run-time reference to the given variable [!var = "${xvarname}"] *)
 
 module Nj : sig

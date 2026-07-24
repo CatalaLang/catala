@@ -19,10 +19,10 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
-let catala_flags_c = Var.make_expr "CATALA_FLAGS_C"
-let cc_exe = Var.make_expr "CC"
-let c_flags = Var.make_expr "CFLAGS"
-let c_include = Var.make_expr "C_INCLUDE_FLAGS"
+let catala_flags_c = Var.make_vector "CATALA_FLAGS_C"
+let cc_exe = Var.make_vector "CC"
+let c_flags = Var.make_vector "CFLAGS"
+let c_include = Var.make_vector "C_INCLUDE_FLAGS"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
@@ -102,14 +102,14 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
   [
     Nj.rule "catala-c"
-      ~command:[Atom !catala_exe; Atom name; Var catala_flags; Var catala_flags_c;
-                Atom "-o"; Raw !output; Atom "--"; Raw !input]
-      ~description:[Atom "<catala>"; Atom name; Atom "⇒"; Raw !output];
+      ~command:[Word !catala_exe; Word name; Splice catala_flags; Splice catala_flags_c;
+                Word "-o"; Raw !output; Word "--"; Raw !input]
+      ~description:[Word "<catala>"; Word name; Word "⇒"; Raw !output];
     Nj.rule "c-object"
       ~command:
-        [Var cc_exe; Raw !input; Var c_flags; Var c_include; Var includes;
-         Atom "-c"; Atom "-o"; Raw !output]
-      ~description:[Atom "<cc>"; Atom "⇒"; Raw !output];
+        [Splice cc_exe; Raw !input; Splice c_flags; Splice c_include; Splice includes;
+         Word "-c"; Word "-o"; Raw !output]
+      ~description:[Word "<cc>"; Word "⇒"; Raw !output];
   ]
 
   let external_copy item =
@@ -126,10 +126,10 @@ module Backend = struct
       ~filename:item.Scan.file_name;
     List.to_seq
       [
-        Nj.build "copy" ~implicit_in:[Atom catala_src] ~inputs:[Atom c]
-          ~outputs:[Atom (Ninja.target ~backend:name "c")];
-        Nj.build "copy" ~implicit_in:[Atom catala_src] ~inputs:[Atom h]
-          ~outputs:[Atom (Ninja.target ~backend:name "h")];
+        Nj.build "copy" ~implicit_in:[Word catala_src] ~inputs:[Word c]
+          ~outputs:[Word (Ninja.target ~backend:name "c")];
+        Nj.build "copy" ~implicit_in:[Word catala_src] ~inputs:[Word h]
+          ~outputs:[Word (Ninja.target ~backend:name "h")];
       ]
 
   let runtime_build_statements ~options:_ ~stdbase =
@@ -139,55 +139,55 @@ module Backend = struct
       Nj.build "phony"
         ~inputs:
           [
-            Atom (c_base -.- "c");
-            Atom (c_base -.- "h");
-            Atom ((c_base /../ "dates_calc") -.- "c");
-            Atom ((c_base /../ "dates_calc") -.- "h");
+            Word (c_base -.- "c");
+            Word (c_base -.- "h");
+            Word ((c_base /../ "dates_calc") -.- "c");
+            Word ((c_base /../ "dates_calc") -.- "h");
           ]
-        ~outputs:[Atom ("@runtime-" ^ name ^ "-src")];
+        ~outputs:[Word ("@runtime-" ^ name ^ "-src")];
       Nj.build "phony"
         ~inputs:
           [
-            Atom (c_base -.- "o");
-            Atom (c_base -.- "h");
-            Atom ((c_base /../ "dates_calc") -.- "o");
-            Atom ((c_base /../ "dates_calc") -.- "h");
-            Atom Var.(!catala_exe);
+            Word (c_base -.- "o");
+            Word (c_base -.- "h");
+            Word ((c_base /../ "dates_calc") -.- "o");
+            Word ((c_base /../ "dates_calc") -.- "h");
+            Word Var.(!catala_exe);
           ]
-        ~outputs:[Atom ("@runtime-" ^ name)];
+        ~outputs:[Word ("@runtime-" ^ name)];
       Nj.build "copy"
-        ~inputs:[Atom (c_src / "catala_runtime.h")]
-        ~outputs:[Atom (c_base -.- "h")];
+        ~inputs:[Word (c_src / "catala_runtime.h")]
+        ~outputs:[Word (c_base -.- "h")];
       Nj.build "copy"
-        ~inputs:[Atom (c_src / "catala_runtime.c")]
-        ~outputs:[Atom (c_base -.- "c")];
+        ~inputs:[Word (c_src / "catala_runtime.c")]
+        ~outputs:[Word (c_base -.- "c")];
       Nj.build "copy"
-        ~inputs:[Atom (c_src / "dates_calc.h")]
-        ~outputs:[Atom ((c_base /../ "dates_calc") -.- "h")];
+        ~inputs:[Word (c_src / "dates_calc.h")]
+        ~outputs:[Word ((c_base /../ "dates_calc") -.- "h")];
       Nj.build "copy"
-        ~inputs:[Atom (c_src / "dates_calc.c")]
-        ~outputs:[Atom ((c_base /../ "dates_calc") -.- "c")];
+        ~inputs:[Word (c_src / "dates_calc.c")]
+        ~outputs:[Word ((c_base /../ "dates_calc") -.- "c")];
       Nj.build "c-object"
-        ~inputs:[Atom (c_base -.- "c")]
-        ~implicit_in:[Atom (c_base -.- "h")]
-        ~outputs:[Atom (c_base -.- "o")];
+        ~inputs:[Word (c_base -.- "c")]
+        ~implicit_in:[Word (c_base -.- "h")]
+        ~outputs:[Word (c_base -.- "o")];
       Nj.build "c-object"
-        ~inputs:[Atom ((c_base /../ "dates_calc") -.- "c")]
-        ~implicit_in:[Atom ((c_base /../ "dates_calc") -.- "h")]
-        ~outputs:[Atom ((c_base /../ "dates_calc") -.- "o")];
+        ~inputs:[Word ((c_base /../ "dates_calc") -.- "c")]
+        ~implicit_in:[Word ((c_base /../ "dates_calc") -.- "h")]
+        ~outputs:[Word ((c_base /../ "dates_calc") -.- "o")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in has_scope_tests =
     let implicit_out =
       if has_scope_tests then
-        [Nj.Expr.Atom (Ninja.target ~backend:name "+main.c")]
+        [Nj.Expr.Word (Ninja.target ~backend:name "+main.c")]
       else []
     in
     Seq.return
       (Nj.build "catala-c" ?vars ~inputs ~implicit_in
-         ~outputs:[Atom (Ninja.target ~backend:name "c")]
+         ~outputs:[Word (Ninja.target ~backend:name "c")]
          ~implicit_out:
-           (Nj.Expr.Atom (Ninja.target ~backend:name "h") :: implicit_out))
+           (Nj.Expr.Word (Ninja.target ~backend:name "h") :: implicit_out))
 
   let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
 
@@ -201,28 +201,28 @@ module Backend = struct
     let modules = List.rev_map Mark.remove item.used_modules in
     let implicit_modules =
       List.map
-        (fun m -> Nj.Expr.Atom (module_target same_dir_modules m))
+        (fun m -> Nj.Expr.Word (module_target same_dir_modules m))
         modules
     in
     let obj =
       Nj.build "c-object"
-        ~inputs:[Atom (Ninja.target ~backend:name "c")]
+        ~inputs:[Word (Ninja.target ~backend:name "c")]
         ~implicit_in:
-          (Nj.Expr.Atom (Ninja.target ~backend:name "h")
-          :: Atom ("@runtime-" ^ name)
+          (Nj.Expr.Word (Ninja.target ~backend:name "h")
+          :: Word ("@runtime-" ^ name)
           :: implicit_modules)
-        ~outputs:[Atom (Ninja.target ~backend:name "o")]
+        ~outputs:[Word (Ninja.target ~backend:name "o")]
         ~vars:[Nj.Binding.make_any Var.includes (includes include_dirs)]
       ::
       (if has_scope_tests then
          [
            Nj.build "c-object"
-             ~inputs:[Atom (Ninja.target ~backend:name "+main.c")]
+             ~inputs:[Word (Ninja.target ~backend:name "+main.c")]
              ~implicit_in:
-               (Nj.Expr.Atom (Ninja.target ~backend:name "h")
-               :: Atom ("@runtime-" ^ name)
+               (Nj.Expr.Word (Ninja.target ~backend:name "h")
+               :: Word ("@runtime-" ^ name)
                :: implicit_modules)
-             ~outputs:[Atom (Ninja.target ~backend:name "+main.o")]
+             ~outputs:[Word (Ninja.target ~backend:name "+main.o")]
              ~vars:[Nj.Binding.make_any Var.includes (includes include_dirs)];
          ]
        else [])
@@ -232,12 +232,12 @@ module Backend = struct
   let expose_module ~same_dir_modules ~used_modules =
     [
       Nj.build "phony"
-        ~inputs:[Atom (Ninja.target ~backend:name "h")]
+        ~inputs:[Word (Ninja.target ~backend:name "h")]
         ~implicit_in:
           (List.map
-             (fun m -> Nj.Expr.Atom (module_target same_dir_modules m))
+             (fun m -> Nj.Expr.Word (module_target same_dir_modules m))
              used_modules)
-        ~outputs:[Atom (Ninja.target ~backend:name module_ext)];
+        ~outputs:[Word (Ninja.target ~backend:name module_ext)];
     ]
 
   let runtime_dir : File.t Lazy.t =

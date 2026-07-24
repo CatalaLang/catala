@@ -61,13 +61,13 @@ module Flags = struct
 
   let include_flags ~backend include_dirs =
     let open File in
-    Expr.Atom "-I"
-    :: Atom Var.(!tdir / backend)
+    Expr.Word "-I"
+    :: Word Var.(!tdir / backend)
     :: List.concat_map
          (fun d ->
            [
-             Expr.Atom "-I";
-             Atom
+             Expr.Word "-I";
+             Word
                ((if Filename.is_relative d then Var.(!builddir) / d else d)
                / backend);
            ])
@@ -165,7 +165,7 @@ module Ninja = struct
                Raw !output;
              ]
              (* The "+nul" forces the timestamp of the new file to be updated *)
-           else [Atom "cp"; Atom "-f"; Raw !input; Raw !output])
-        ~description:[Atom "<copy>"; Raw !input];
+           else [Word "cp"; Word "-f"; Raw !input; Raw !output])
+        ~description:[Word "<copy>"; Raw !input];
     ]
 end
