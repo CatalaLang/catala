@@ -19,11 +19,11 @@ open Clerk_utils
 open Catala_utils
 open File
 
-let catala_flags_java = Var.make_expr "CATALA_FLAGS_JAVA"
-let javac = Var.make_expr "JAVAC"
-let javac_flags = Var.make_expr "JAVAC_FLAGS"
-let jar = Var.make_expr "jar"
-let java = Var.make_expr "JAVA"
+let catala_flags_java = Var.make_vector "CATALA_FLAGS_JAVA"
+let javac = Var.make_vector "JAVAC"
+let javac_flags = Var.make_vector "JAVAC_FLAGS"
+let jar = Var.make_vector "jar"
+let java = Var.make_vector "JAVA"
 let backend_name = "java"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
@@ -160,16 +160,16 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-java"
-        ~command:[Atom !catala_exe; Atom name; Var catala_flags; Var catala_flags_java;
-                  Atom "-o"; Raw !output; Atom "--"; Raw !input]
-        ~description:[Atom "<catala>"; Atom name; Atom "⇒"; Raw !output];
+        ~command:[Word !catala_exe; Word name; Splice catala_flags; Splice catala_flags_java;
+                  Word "-o"; Raw !output; Word "--"; Raw !input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; Raw !output];
       Nj.rule "java-class"
-        ~command:[Var javac; Atom "-cp";
-                  Atom (File.(Var.(!builddir) / Scan.libcatala / name)
+        ~command:[Splice javac; Word "-cp";
+                  Word (File.(Var.(!builddir) / Scan.libcatala / name)
                         ^ Path.list_sep ()
                         ^ !class_path);
-                  Var javac_flags; Raw !input]
-        ~description:[Atom "<catala>"; Atom name; Atom "⇒"; Raw !output];
+                  Splice javac_flags; Raw !input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; Raw !output];
     ]
 
   let external_copy item =
@@ -182,10 +182,10 @@ module Backend = struct
       ~filename:item.Scan.file_name;
     List.to_seq
       [
-        Nj.build "copy" ~implicit_in:[Atom catala_src] ~inputs:[Atom java]
+        Nj.build "copy" ~implicit_in:[Word catala_src] ~inputs:[Word java]
           ~outputs:
             [
-              Atom
+              Word
                 (if item.is_stdlib then stdlib_target "java"
                  else Ninja.target ~backend:name "java");
             ];
@@ -229,33 +229,33 @@ module Backend = struct
     Nj.build "phony"
       ~inputs:
         (List.map
-           (fun f -> Nj.Expr.Atom ((java_base / f) -.- "java"))
+           (fun f -> Nj.Expr.Word ((java_base / f) -.- "java"))
            java_files)
-      ~outputs:[Atom ("@runtime-" ^ name ^ "-src")]
+      ~outputs:[Word ("@runtime-" ^ name ^ "-src")]
     :: Nj.build "phony"
          ~inputs:
            (List.map
-              (fun f -> Nj.Expr.Atom ((java_base / f) -.- "class"))
+              (fun f -> Nj.Expr.Word ((java_base / f) -.- "class"))
               java_files)
-         ~outputs:[Atom ("@runtime-" ^ name)]
+         ~outputs:[Word ("@runtime-" ^ name)]
     :: Nj.build "java-class" ~inputs:[]
          ~implicit_in:
-           (Nj.Expr.Atom java_list_file
-           :: List.map (fun f -> Nj.Expr.Atom (java_base / f)) java_files)
+           (Nj.Expr.Word java_list_file
+           :: List.map (fun f -> Nj.Expr.Word (java_base / f)) java_files)
          ~outputs:
            (List.map
-              (fun f -> Nj.Expr.Atom ((java_base / f) -.- "class"))
+              (fun f -> Nj.Expr.Word ((java_base / f) -.- "class"))
               java_files)
          ~vars:
            [
              Nj.Binding.make_any javac_flags
-               [Var javac_flags; Atom ("@" ^ java_list_file)];
+               [Splice javac_flags; Word ("@" ^ java_list_file)];
            ]
     :: List.map
          (fun f ->
            Nj.build "copy"
-             ~inputs:[Atom (java_src / f)]
-             ~outputs:[Atom (java_base / f)])
+             ~inputs:[Word (java_src / f)]
+             ~outputs:[Word (java_base / f)])
          java_files
 
   let catala ?vars ~is_stdlib ~inputs ~implicit_in _has_scope_tests =
@@ -263,7 +263,7 @@ module Backend = struct
       (Nj.build "catala-java" ?vars ~inputs ~implicit_in
          ~outputs:
            [
-             Atom
+             Word
                (if is_stdlib then stdlib_target "java"
                 else Ninja.target ~backend:name "java");
            ])
@@ -280,16 +280,16 @@ module Backend = struct
       (Nj.build "java-class"
          ~inputs:
            [
-             Atom
+             Word
                (if item.is_stdlib then stdlib_target "java"
                 else Ninja.target ~backend:name "java");
            ]
          ~implicit_in:
-           (Nj.Expr.Atom ("@runtime-" ^ name)
-           :: List.map (fun m -> Nj.Expr.Atom (module_target m)) modules)
+           (Nj.Expr.Word ("@runtime-" ^ name)
+           :: List.map (fun m -> Nj.Expr.Word (module_target m)) modules)
          ~outputs:
            [
-             Atom
+             Word
                (if item.is_stdlib then stdlib_target "class"
                 else Ninja.target ~backend:name "class");
            ]

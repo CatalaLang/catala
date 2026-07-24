@@ -20,11 +20,11 @@ open Catala_utils
 open Clerk_lib
 
 let backend_name = "ocaml"
-let catala_flags_ocaml = Var.make_expr "CATALA_FLAGS_OCAML"
-let ocamlc_exe = Var.make_expr "OCAMLC_EXE"
-let ocamlopt_exe = Var.make_expr "OCAMLOPT_EXE"
-let ocaml_flags = Var.make_expr "OCAML_FLAGS"
-let ocaml_includes = Var.make_expr "OCAML_INCLUDE"
+let catala_flags_ocaml = Var.make_vector "CATALA_FLAGS_OCAML"
+let ocamlc_exe = Var.make_vector "OCAMLC_EXE"
+let ocamlopt_exe = Var.make_vector "OCAMLOPT_EXE"
+let ocaml_flags = Var.make_vector "OCAML_FLAGS"
+let ocaml_includes = Var.make_vector "OCAML_INCLUDE"
 
 module Flags = struct
   let ocaml_include_and_lib : (string list * string list) Lazy.t =
@@ -127,29 +127,29 @@ module Backend = struct
     in
          [
       Nj.rule "catala-ocaml"
-        ~command:[Atom !catala_exe; Atom name; Var catala_flags; Var catala_flags_ocaml;
-                  Atom "-o"; Raw !output; Atom "--"; Raw !input]
-        ~description:[Atom "<catala>"; Atom name; Atom "⇒"; Raw !output];
+        ~command:[Word !catala_exe; Word name; Splice catala_flags; Splice catala_flags_ocaml;
+                  Word "-o"; Raw !output; Word "--"; Raw !input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; Raw !output];
       Nj.rule "ocaml-bytobject"
         ~command:[
-          Var ocamlc_exe; Atom "-c"; Var ocaml_flags; Var ocaml_includes;
-          Atom "-I"; Atom runtime_include; Var includes; Raw !input
+          Splice ocamlc_exe; Word "-c"; Splice ocaml_flags; Splice ocaml_includes;
+          Word "-I"; Word runtime_include; Splice includes; Raw !input
         ]
-        ~description:[Atom ("<" ^ name ^ ">"); Atom "⇒"; Raw !output];
+        ~description:[Word ("<" ^ name ^ ">"); Word "⇒"; Raw !output];
 
       Nj.rule "ocaml-natobject"
         ~command:[
-          Var ocamlopt_exe; Atom "-c"; Var ocaml_flags; Var ocaml_includes;
-          Atom "-I"; Atom runtime_include; Var includes; Raw !input
+          Splice ocamlopt_exe; Word "-c"; Splice ocaml_flags; Splice ocaml_includes;
+          Word "-I"; Word runtime_include; Splice includes; Raw !input
         ]
-        ~description:[Atom ("<" ^ name ^ ">"); Atom "⇒"; Raw !output];
+        ~description:[Word ("<" ^ name ^ ">"); Word "⇒"; Raw !output];
 
       Nj.rule "ocaml-module"
         ~command:
-          [Var ocamlopt_exe; Atom "-shared"; Var ocaml_flags; Var ocaml_includes;
-           Atom "-I"; Atom runtime_include; Raw !input;
-           Atom "-o"; Raw !output]
-        ~description:[Atom ("<" ^ name ^ ">"); Atom "⇒"; Raw !output];
+          [Splice ocamlopt_exe; Word "-shared"; Splice ocaml_flags; Splice ocaml_includes;
+           Word "-I"; Word runtime_include; Raw !input;
+           Word "-o"; Raw !output]
+        ~description:[Word ("<" ^ name ^ ">"); Word "⇒"; Raw !output];
     ]
 
   let runtime_dir : File.t Lazy.t =
@@ -172,10 +172,10 @@ module Backend = struct
       ~filename:item.file_name;
     List.to_seq
       [
-        Nj.build "copy" ~implicit_in:[Atom catala_src] ~inputs:[Atom ml]
-          ~outputs:[Atom (Ninja.target ~backend:name "ml")];
-        Nj.build "copy" ~implicit_in:[Atom catala_src] ~inputs:[Atom mli]
-          ~outputs:[Atom (Ninja.target ~backend:name "mli")];
+        Nj.build "copy" ~implicit_in:[Word catala_src] ~inputs:[Word ml]
+          ~outputs:[Word (Ninja.target ~backend:name "ml")];
+        Nj.build "copy" ~implicit_in:[Word catala_src] ~inputs:[Word mli]
+          ~outputs:[Word (Ninja.target ~backend:name "mli")];
       ]
 
   let runtime_build_statements ~options:_ ~stdbase =
@@ -212,59 +212,59 @@ module Backend = struct
       Nj.build "phony"
         ~inputs:
           [
-            Atom (dates_base -.- "mli");
-            Atom (dates_base -.- "cmi");
-            Atom (ocaml_base -.- "mli");
-            Atom (ocaml_base -.- "cmi");
-            Atom Var.(!catala_exe);
+            Word (dates_base -.- "mli");
+            Word (dates_base -.- "cmi");
+            Word (ocaml_base -.- "mli");
+            Word (ocaml_base -.- "cmi");
+            Word Var.(!catala_exe);
           ]
-        ~outputs:[Atom "@runtime-cmi"];
+        ~outputs:[Word "@runtime-cmi"];
       Nj.build "phony"
         ~inputs:
           [
-            Atom (dates_base -.- "ml");
-            Atom (dates_base -.- "mli");
-            Atom (ocaml_base -.- "ml");
-            Atom (ocaml_base -.- "mli");
+            Word (dates_base -.- "ml");
+            Word (dates_base -.- "mli");
+            Word (ocaml_base -.- "ml");
+            Word (ocaml_base -.- "mli");
           ]
-        ~outputs:[Atom ("@runtime-" ^ name ^ "-src")];
+        ~outputs:[Word ("@runtime-" ^ name ^ "-src")];
       Nj.build "phony"
-        ~inputs:[Atom (ocaml_base -.- "cmx")]
-        ~implicit_in:[Atom (dates_base -.- "cmi")]
-        ~outputs:[Atom ("@runtime-" ^ name)];
+        ~inputs:[Word (ocaml_base -.- "cmx")]
+        ~implicit_in:[Word (dates_base -.- "cmi")]
+        ~outputs:[Word ("@runtime-" ^ name)];
       Nj.build "copy"
-        ~inputs:[Atom (ocaml_src / "catala_runtime.mli")]
-        ~outputs:[Atom (ocaml_base -.- "mli")];
-      Nj.build "copy" ~inputs:[Atom runtime_cmi]
-        ~outputs:[Atom (ocaml_base -.- "cmi")];
-      Nj.build "copy" ~inputs:[Atom dates_cmi]
-        ~outputs:[Atom (dates_base -.- "cmi")];
+        ~inputs:[Word (ocaml_src / "catala_runtime.mli")]
+        ~outputs:[Word (ocaml_base -.- "mli")];
+      Nj.build "copy" ~inputs:[Word runtime_cmi]
+        ~outputs:[Word (ocaml_base -.- "cmi")];
+      Nj.build "copy" ~inputs:[Word dates_cmi]
+        ~outputs:[Word (dates_base -.- "cmi")];
       Nj.build "copy"
-        ~inputs:[Atom (ocaml_src / "catala_runtime.ml")]
-        ~outputs:[Atom (ocaml_base -.- "ml")];
+        ~inputs:[Word (ocaml_src / "catala_runtime.ml")]
+        ~outputs:[Word (ocaml_base -.- "ml")];
       Nj.build "copy"
-        ~inputs:[Atom (dates_cmi -.- "ml")]
-        ~outputs:[Atom (dates_base -.- "ml")];
+        ~inputs:[Word (dates_cmi -.- "ml")]
+        ~outputs:[Word (dates_base -.- "ml")];
       Nj.build "copy"
-        ~inputs:[Atom (dates_cmi -.- "mli")]
-        ~outputs:[Atom (dates_base -.- "mli")];
+        ~inputs:[Word (dates_cmi -.- "mli")]
+        ~outputs:[Word (dates_base -.- "mli")];
       Nj.build "ocaml-natobject"
-        ~inputs:[Atom (dates_base -.- "ml"); Atom (ocaml_base -.- "ml")]
-        ~implicit_in:[Atom (dates_base -.- "cmi"); Atom (ocaml_base -.- "cmi")]
-        ~outputs:[Atom (ocaml_base -.- "cmx"); Atom (ocaml_base -.- "o")];
+        ~inputs:[Word (dates_base -.- "ml"); Word (ocaml_base -.- "ml")]
+        ~implicit_in:[Word (dates_base -.- "cmi"); Word (ocaml_base -.- "cmi")]
+        ~outputs:[Word (ocaml_base -.- "cmx"); Word (ocaml_base -.- "o")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in has_scope_tests =
     let implicit_out =
       if has_scope_tests then
-        [Nj.Expr.Atom (Ninja.target ~backend:name "+main.ml")]
+        [Nj.Expr.Word (Ninja.target ~backend:name "+main.ml")]
       else []
     in
     Seq.return
       (Nj.build "catala-ocaml" ?vars ~inputs ~implicit_in
-         ~outputs:[Atom (Ninja.target ~backend:name "ml")]
+         ~outputs:[Word (Ninja.target ~backend:name "ml")]
          ~implicit_out:
-           (Nj.Expr.Atom (Ninja.target ~backend:name "mli") :: implicit_out))
+           (Nj.Expr.Word (Ninja.target ~backend:name "mli") :: implicit_out))
 
   let module_target same_dir_modules =
     Ninja.modfile ~backend:name same_dir_modules module_ext
@@ -277,7 +277,7 @@ module Backend = struct
     let modules = List.rev_map Mark.remove item.used_modules in
     let implicit_modules =
       List.map
-        (fun m -> Nj.Expr.Atom (module_target same_dir_modules m))
+        (fun m -> Nj.Expr.Word (module_target same_dir_modules m))
         modules
     in
     let obj =
@@ -285,27 +285,27 @@ module Backend = struct
         Nj.build "ocaml-bytobject"
           ~inputs:
             [
-              Atom (target ~backend:name "mli"); Atom (target ~backend:name "ml");
+              Word (target ~backend:name "mli"); Word (target ~backend:name "ml");
             ]
-          ~implicit_in:(implicit_modules @ [Atom "@runtime-cmi"])
+          ~implicit_in:(implicit_modules @ [Word "@runtime-cmi"])
           ~outputs:
             (List.map
-               (fun ext -> Nj.Expr.Atom (target ~backend:name ext))
+               (fun ext -> Nj.Expr.Word (target ~backend:name ext))
                ["cmi"; "cmo"])
           ~vars:
             [
               Nj.Binding.make_any Var.includes (includes include_dirs);
               Nj.Binding.make_any ocaml_flags
-                [Var ocaml_flags; Atom "-opaque"; Atom "-no-alias-deps"];
+                [Splice ocaml_flags; Word "-opaque"; Word "-no-alias-deps"];
             ];
         Nj.build "ocaml-natobject"
-          ~inputs:[Atom (target ~backend:name "ml")]
+          ~inputs:[Word (target ~backend:name "ml")]
           ~implicit_in:
-            ((Nj.Expr.Atom (target ~backend:name "cmi") :: implicit_modules)
-            @ [Atom "@runtime-cmi"])
+            ((Nj.Expr.Word (target ~backend:name "cmi") :: implicit_modules)
+            @ [Word "@runtime-cmi"])
           ~outputs:
             (List.map
-               (fun ext -> Nj.Expr.Atom (target ~backend:name ext))
+               (fun ext -> Nj.Expr.Word (target ~backend:name ext))
                ["cmx"; "o"])
           ~vars:[Nj.Binding.make_any Var.includes (includes include_dirs)];
       ]
@@ -316,29 +316,29 @@ module Backend = struct
           obj
           @ [
               Nj.build "ocaml-module"
-                ~inputs:[Atom (target ~backend:name "cmx")]
-                ~outputs:[Atom (target ~backend:name "cmxs")];
+                ~inputs:[Word (target ~backend:name "cmx")]
+                ~outputs:[Word (target ~backend:name "cmxs")];
             ]
         | None -> obj)
       @
       if has_scope_tests then
         [
           Nj.build "ocaml-natobject"
-            ~inputs:[Atom (target ~backend:name "+main.ml")]
+            ~inputs:[Word (target ~backend:name "+main.ml")]
             ~implicit_in:
               [
-                Atom (target ~backend:name "cmi");
-                Atom (target ~backend:name "cmx");
+                Word (target ~backend:name "cmi");
+                Word (target ~backend:name "cmx");
               ]
             ~outputs:
               (List.map
                  (fun ext ->
-                   Nj.Expr.Atom (target ~backend:name ("+main." ^ ext)))
+                   Nj.Expr.Word (target ~backend:name ("+main." ^ ext)))
                  ["cmx"; "o"])
             ~vars:
               [
                 Nj.Binding.make_any Var.includes
-                  (includes include_dirs @ [Atom "-w"; Atom "-24"]);
+                  (includes include_dirs @ [Word "-w"; Word "-24"]);
               ];
         ]
       else []
@@ -350,13 +350,13 @@ module Backend = struct
       Nj.build "phony"
         ~inputs:
           [
-            Atom (Ninja.target ~backend:name "cmi");
-            Atom (Ninja.target ~backend:name "cmxs");
+            Word (Ninja.target ~backend:name "cmi");
+            Word (Ninja.target ~backend:name "cmxs");
           ]
         ~implicit_in:
           (List.map
-             (fun m -> Nj.Expr.Atom (module_target same_dir_modules m))
+             (fun m -> Nj.Expr.Word (module_target same_dir_modules m))
              used_modules)
-        ~outputs:[Atom (Ninja.target ~backend:name module_ext)];
+        ~outputs:[Word (Ninja.target ~backend:name module_ext)];
     ]
 end

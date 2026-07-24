@@ -385,7 +385,7 @@ let build_clerk_target
     in
     Nj.format_def nin_ppf
       (Nj.Default
-         (Nj.Default.make (List.map (fun t -> Nj.Expr.Atom t) all_targets)));
+         (Nj.Default.make (List.map (fun t -> Nj.Expr.Word t) all_targets)));
     install_targets, all_modules_deps
   in
   let open File in
@@ -603,7 +603,7 @@ let build_direct_targets
       Nj.format_def nin_ppf
         (Nj.Default
            (Nj.Default.make
-              (List.map (fun t -> Nj.Expr.Atom t) final_ninja_targets)));
+              (List.map (fun t -> Nj.Expr.Word t) final_ninja_targets)));
       ninja_targets, exec_targets, var_bindings, link_deps
     in
     let link_cmd = linking_command ~build_dir ~var_bindings link_deps in
@@ -862,7 +862,7 @@ let build_test_deps
   in
   Nj.format_def nin_ppf
     (Nj.Default
-       (Nj.Default.make (List.map (fun t -> Nj.Expr.Atom t) ninja_targets)));
+       (Nj.Default.make (List.map (fun t -> Nj.Expr.Word t) ninja_targets)));
   base_targets, link_deps, var_bindings
 
 let run_targets
@@ -1096,7 +1096,7 @@ let typecheck_cmd =
             Nj.format_def nin_ppf
               (Nj.Default
                  (Nj.Default.make
-                    (List.map (fun t -> Nj.Expr.Atom t) ninja_targets)));
+                    (List.map (fun t -> Nj.Expr.Word t) ninja_targets)));
             target_items, var_bindings)
     with
     | exception Nothing_to_do -> Message.error "Nothing to typecheck."
@@ -1280,7 +1280,7 @@ let run_clerk_test
             Nj.format_def nin_ppf
               (Nj.Default
                  (Nj.Default.make
-                    (List.map (fun t -> Nj.Expr.Atom t) test_targets)));
+                    (List.map (fun t -> Nj.Expr.Word t) test_targets)));
           test_targets)
     in
     let open Clerk_report in
@@ -1421,7 +1421,7 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
     (fun nin_ppf _ _ ->
       Nj.format_def nin_ppf
         (Nj.Default
-           (Nj.Default.make (List.map (fun t -> Nj.Expr.Atom t) default)));
+           (Nj.Default.make (List.map (fun t -> Nj.Expr.Word t) default)));
       cont ())
 
 let start_cmd =

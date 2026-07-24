@@ -19,8 +19,8 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
-let catala_flags_python = Var.make_expr "CATALA_FLAGS_PYTHON"
-let python = Var.make_expr "PYTHON"
+let catala_flags_python = Var.make_vector "CATALA_FLAGS_PYTHON"
+let python = Var.make_vector "PYTHON"
 
 let linking_command ~build_dir link_deps item target =
   (* a "linked" python module is a "Module.py" folder containing the module .py
@@ -99,9 +99,9 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-python"
-        ~command:[Atom !catala_exe; Atom name; Var catala_flags; Var catala_flags_python;
-                  Atom "-o"; Raw !output; Atom "--"; Raw !input]
-        ~description:[Atom "<catala>"; Atom name; Atom "⇒"; Raw !output];
+        ~command:[Word !catala_exe; Word name; Splice catala_flags; Splice catala_flags_python;
+                  Word "-o"; Raw !output; Word "--"; Raw !input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; Raw !output];
     ]
 
   let external_copy item =
@@ -114,8 +114,8 @@ module Backend = struct
       ~filename:item.Scan.file_name;
     List.to_seq
       [
-        Nj.build "copy" ~implicit_in:[Atom catala_src] ~inputs:[Atom py]
-          ~outputs:[Atom (Ninja.target ~backend:name "py")];
+        Nj.build "copy" ~implicit_in:[Word catala_src] ~inputs:[Word py]
+          ~outputs:[Word (Ninja.target ~backend:name "py")];
       ]
 
   let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
@@ -127,23 +127,23 @@ module Backend = struct
       Nj.build "phony"
         ~inputs:
           [
-            Atom (python_base -.- "py");
-            Atom (python_base /../ "dates.py");
-            Atom Var.(!catala_exe);
+            Word (python_base -.- "py");
+            Word (python_base /../ "dates.py");
+            Word Var.(!catala_exe);
           ]
-        ~outputs:[Atom ("@runtime-" ^ name)];
+        ~outputs:[Word ("@runtime-" ^ name)];
       Nj.build "copy"
-        ~inputs:[Atom (python_src / "dates.py")]
-        ~outputs:[Atom (python_base /../ "dates.py")];
+        ~inputs:[Word (python_src / "dates.py")]
+        ~outputs:[Word (python_base /../ "dates.py")];
       Nj.build "copy"
-        ~inputs:[Atom (python_src / "catala_runtime.py")]
-        ~outputs:[Atom (python_base -.- "py")];
+        ~inputs:[Word (python_src / "catala_runtime.py")]
+        ~outputs:[Word (python_base -.- "py")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in _has_scope_tests =
     Seq.return
       (Nj.build "catala-python" ?vars ~inputs ~implicit_in
-         ~outputs:[Atom (Ninja.target ~backend:name "py")])
+         ~outputs:[Word (Ninja.target ~backend:name "py")])
 
   let build_object ~include_dirs:_ ~same_dir_modules:_ ~item:_ _has_scope_tests
       =

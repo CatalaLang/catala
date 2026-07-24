@@ -22,30 +22,30 @@ include Ninja_utils.Var
 
 (** Global vars: always defined, at toplevel *)
 
-let ninja_required_version = make_atom "ninja_required_version"
-let builddir = make_atom "builddir"
-let clerk_exe = make_atom "CLERK_EXE"
-let clerk_flags = make_expr "CLERK_FLAGS"
-let catala_exe = make_atom "CATALA_EXE"
-let catala_flags = make_expr "CATALA_FLAGS"
-let runtime = make_atom "CATALA_RUNTIME"
+let ninja_required_version = make_scalar "ninja_required_version"
+let builddir = make_scalar "builddir"
+let clerk_exe = make_scalar "CLERK_EXE"
+let clerk_flags = make_vector "CLERK_FLAGS"
+let catala_exe = make_scalar "CATALA_EXE"
+let catala_flags = make_vector "CATALA_FLAGS"
+let runtime = make_scalar "CATALA_RUNTIME"
 
 (* Definition spreading different rules *)
 
-let tdir = make_atom "tdir"
-let includes = make_expr "includes"
+let tdir = make_scalar "tdir"
+let includes = make_vector "includes"
 
 (* Rule vars, Used in specific rules *)
 
-let input = make_atom "in"
-let output = make_atom "out"
-let src = make_atom "src"
-let dst = make_atom "dst"
-let class_path = make_atom "class_path"
-let cat_files = make_atom "cat_files" (* Useful on Windows only *)
+let input = make_scalar "in"
+let output = make_scalar "out"
+let src = make_scalar "src"
+let dst = make_scalar "dst"
+let class_path = make_scalar "class_path"
+let cat_files = make_scalar "cat_files" (* Useful on Windows only *)
 
 (* let scope = make "scope" *)
-let test_id = make_atom "test-id"
+let test_id = make_scalar "test-id"
 
 let re_var =
   let open Re in
@@ -55,25 +55,24 @@ type bindings = (string * string list) list
 
 let of_words (type a) (v : a t) (words : string list) : a =
   match kind v with
-  | Word -> (
+  | Scalar -> (
     match words with
     | [w] -> w
     | ws ->
       Message.error "Variable @{<blue;bold>$%s@} expects a single word, got %d"
         (name v) (List.length ws))
-  | Words -> List.map (fun w -> Ninja_utils.Expr.Atom w) words
+  | Vector -> List.map (fun w -> Ninja_utils.Expr.Word w) words
 
 let to_words (type a) (v : a t) (x : a) : string list =
-  let rec expr_words e =
+  let expr_words e =
     List.concat_map
       (function
-        | Ninja_utils.Expr.Atom w -> [w]
-        | List l -> expr_words l
-        | Var v -> [Printf.sprintf "${%s}" (name v)]
+        | Ninja_utils.Expr.Word w -> [w]
+        | Splice v -> [Printf.sprintf "${%s}" (name v)]
         | Raw s -> [s])
       e
   in
-  match kind v with Word -> [x] | Words -> expr_words x
+  match kind v with Scalar -> [x] | Vector -> expr_words x
 
 let env_of_bindings bs =
   List.map (fun (Ninja_utils.Binding.Any (v, x)) -> name v, to_words v x) bs
