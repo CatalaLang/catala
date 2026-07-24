@@ -19,8 +19,8 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
-let catala_flags_python = Var.cmd_only (Var.make "CATALA_FLAGS_PYTHON")
-let python = Var.cmd_only (Var.make "PYTHON")
+let catala_flags_python = Var.make_expr "CATALA_FLAGS_PYTHON"
+let python = Var.make_expr "PYTHON"
 
 let linking_command ~build_dir link_deps item target =
   (* a "linked" python module is a "Module.py" folder containing the module .py
@@ -47,7 +47,7 @@ let run_artifact config ~test ?scope ~var_bindings src =
   let build_dir = config.Clerk_cli.options.global.build_dir in
   let cmd =
     let base = Filename.basename (File.remove_extension src) in
-    Var.get_var var_bindings python
+    Var.get_var var_bindings (Var.name python)
     @ ["-m"; base ^ "." ^ base]
     @ Option.to_list scope
     @ (if test && not Global.options.debug then ["--test"] else [])
@@ -87,7 +87,7 @@ module Backend = struct
         Common.Flags.catala_backend_flags ~autotest ~use_default_flags
           ~test_flags ~accepts_closure_conversion:true
       in
-      let def = Common.Flags.def ~variables in
+      let def v x = Common.Flags.def ~variables v x in
       [
         def catala_flags_python (lazy catala_flags);
         def python (lazy ["python3"]);
@@ -97,9 +97,9 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-python"
-        ~command:[quote_arg !catala_exe; name; !catala_flags; !catala_flags_python;
-                  "-o"; !output; "--"; !input]
-        ~description:["<catala>"; name; "⇒"; !output];
+        ~command:[Atom !catala_exe; Atom name; Var catala_flags; Var catala_flags_python;
+                  Atom "-o"; Raw !output; Atom "--"; Raw !input]
+        ~description:[Atom "<catala>"; Atom name; Atom "⇒"; Raw !output];
     ]
 
   let external_copy item =
@@ -112,8 +112,8 @@ module Backend = struct
       ~filename:item.Scan.file_name;
     List.to_seq
       [
-        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[py]
-          ~outputs:[Ninja.target ~backend:name "py"];
+        Nj.build "copy" ~implicit_in:[Atom catala_src] ~inputs:[Atom py]
+          ~outputs:[Atom (Ninja.target ~backend:name "py")];
       ]
 
   let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
@@ -124,20 +124,24 @@ module Backend = struct
     [
       Nj.build "phony"
         ~inputs:
-          [python_base -.- "py"; python_base /../ "dates.py"; Var.(!catala_exe)]
-        ~outputs:["@runtime-" ^ name];
+          [
+            Atom (python_base -.- "py");
+            Atom (python_base /../ "dates.py");
+            Atom Var.(!catala_exe);
+          ]
+        ~outputs:[Atom ("@runtime-" ^ name)];
       Nj.build "copy"
-        ~inputs:[python_src / "dates.py"]
-        ~outputs:[python_base /../ "dates.py"];
+        ~inputs:[Atom (python_src / "dates.py")]
+        ~outputs:[Atom (python_base /../ "dates.py")];
       Nj.build "copy"
-        ~inputs:[python_src / "catala_runtime.py"]
-        ~outputs:[python_base -.- "py"];
+        ~inputs:[Atom (python_src / "catala_runtime.py")]
+        ~outputs:[Atom (python_base -.- "py")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in _has_scope_tests =
     Seq.return
       (Nj.build "catala-python" ?vars ~inputs ~implicit_in
-         ~outputs:[Ninja.target ~backend:name "py"])
+         ~outputs:[Atom (Ninja.target ~backend:name "py")])
 
   let build_object ~include_dirs:_ ~same_dir_modules:_ ~item:_ _has_scope_tests
       =

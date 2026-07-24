@@ -19,7 +19,7 @@ open Clerk_utils
 
 val linking_command :
   build_dir:string ->
-  var_bindings:(Var.t * string list) list ->
+  var_bindings:Var.bindings ->
   ('a -> Scan.item list) ->
   'a ->
   string ->

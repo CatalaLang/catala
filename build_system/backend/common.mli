@@ -20,13 +20,13 @@ open Clerk_lib
 
 module Flags : sig
   val def :
-    variables:(string * string list) list ->
-    Var.t ->
+    variables:Var.bindings ->
+    'a Var.t ->
     string list lazy_t ->
-    Var.t * string list
+    string * string list
 
   val includes : ?backend:string -> string list -> string list
-  val include_flags : backend:string -> string list -> string list
+  val include_flags : backend:string -> string list -> Ninja_utils.Expr.t
 
   val catala_backend_flags :
     autotest:bool ->
@@ -41,7 +41,7 @@ module Flags : sig
     trace_format:Catala_utils.Global.format_enum option ->
     inplace:bool ->
     config:Clerk_cli.config ->
-    (Var.t * string list) list
+    (string * string list) list
 end
 
 module Ninja : sig

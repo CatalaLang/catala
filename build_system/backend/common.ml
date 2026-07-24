@@ -15,6 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Ninja_utils
 open Clerk_utils
 open Catala_utils
 open Clerk_lib
@@ -26,7 +27,7 @@ module Flags = struct
       | Some vl -> vl
       | None -> Lazy.force value
     in
-    var, Var.check_value var value
+    Var.name var, value
 
   (* Unquoted: cmd_only binding values, quoted at emission
      ([Var.binding_words]). *)
@@ -58,16 +59,15 @@ module Flags = struct
           | _ -> false)
         test_flags
 
-  (* Quoted here: emit-only rule-scoped bindings, never read back. *)
   let include_flags ~backend include_dirs =
     let open File in
-    "-I"
-    :: Var.quote_arg Var.(!tdir / backend)
+    Expr.Atom "-I"
+    :: Atom Var.(!tdir / backend)
     :: List.concat_map
          (fun d ->
            [
-             "-I";
-             Var.quote_arg
+             Expr.Atom "-I";
+             Atom
                ((if Filename.is_relative d then Var.(!builddir) / d else d)
                / backend);
            ])
@@ -112,7 +112,7 @@ module Flags = struct
     in
     let includes = includes options.global.include_dirs in
     let test_flags = config.Clerk_cli.test_flags in
-    let def = def ~variables:options.variables in
+    let def v x = def ~variables:options.variables v x in
     [
       def Var.ninja_required_version (lazy ["1.7"]);
       (* use of implicit outputs *)
@@ -154,9 +154,18 @@ module Ninja = struct
       Nj.rule "copy"
         ~command:
           (if Sys.win32 then
-             ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
+             [
+               Raw "cmd";
+               Raw "/c";
+               Raw "copy";
+               Raw "/by";
+               Raw ">nul";
+               Raw !input;
+               Raw "+nul";
+               Raw !output;
+             ]
              (* The "+nul" forces the timestamp of the new file to be updated *)
-           else ["cp"; "-f"; !input; !output])
-        ~description:["<copy>"; !input];
+           else [Atom "cp"; Atom "-f"; Raw !input; Raw !output])
+        ~description:[Atom "<copy>"; Raw !input];
     ]
 end
