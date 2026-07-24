@@ -24,8 +24,7 @@ val backend_from_config : Clerk_config.backend -> backend
 
 val base_bindings :
   code_coverage:bool ->
-  trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] option ->
-  trace_format:Catala_utils.Global.format_enum option ->
+  trace:bool ->
   autotest:bool ->
   enabled_backends:backend list ->
   inplace:bool ->
@@ -42,8 +41,7 @@ val run_ninja :
   quiet:bool ->
   default:'a ->
   code_coverage:bool ->
-  ?trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] ->
-  ?trace_format:Catala_utils.Global.format_enum ->
+  trace:bool ->
   autotest:bool ->
   ?clean_up_env:bool ->
   ?ninja_flags:string list ->

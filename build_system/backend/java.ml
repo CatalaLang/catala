@@ -89,7 +89,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
         ["-C"; java_dir_prefix; File.remove_prefix java_dir_prefix clazz])
       runtime_class_files
 
-let run_artifact ~var_bindings ~test ?scope src =
+let run_artifact ~var_bindings ~test ~trace ?scope src =
   let open Clerk_lib in
   let target_main = File.remove_extension (Filename.basename src) in
   let cmd =
@@ -97,7 +97,9 @@ let run_artifact ~var_bindings ~test ?scope src =
     @ ["-cp"; src -.- "jar"; target_main]
     @ Option.to_list scope
     @ (if test && not Global.options.debug then ["--test"] else [])
-    @ if Global.options.output_format = JSON then ["--json"] else []
+    @
+    if Global.options.output_format = JSON then ["--json"]
+    else [] @ if trace then ["--trace"] else []
   in
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
   Clerk_cli.run_command_line cmd

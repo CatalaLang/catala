@@ -46,7 +46,6 @@ let backend_from_config = function
 let base_bindings
     ~code_coverage
     ~trace
-    ~trace_format
     ~autotest
     ~enabled_backends
     ~inplace
@@ -55,8 +54,7 @@ let base_bindings
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
   let default_flags =
-    Backend_common.Flags.default ~code_coverage ~trace ~trace_format ~inplace
-      ~config
+    Backend_common.Flags.default ~code_coverage ~trace ~inplace ~config
   in
   let backend_flags =
     List.concat_map
@@ -529,15 +527,14 @@ let run_ninja
     ~quiet
     ~default
     ~code_coverage
-    ?trace
-    ?trace_format
+    ~trace
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
   let var_bindings =
-    base_bindings ~code_coverage ~trace ~trace_format ~config ~enabled_backends
-      ~autotest ~inplace:false
+    base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
+      ~inplace:false
   in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet ~default
     (fun nin_ppf ->

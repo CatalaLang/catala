@@ -32,6 +32,7 @@ val linking_command :
 val run_artifact :
   var_bindings:(Var.t * string list) list ->
   test:bool ->
+  trace:bool ->
   ?scope:string ->
   string ->
   int
