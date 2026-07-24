@@ -117,20 +117,3 @@ module Nj = struct
 end
 
 let ( ! ) = ref
-
-let all_vars =
-  String.Set.of_list
-    (List.map name
-       [
-         builddir;
-         clerk_exe;
-         catala_exe;
-         runtime;
-         tdir;
-         src;
-         dst;
-         test_id;
-         class_path;
-         cat_files;
-       ]
-    @ List.map name [clerk_flags; catala_flags; includes])

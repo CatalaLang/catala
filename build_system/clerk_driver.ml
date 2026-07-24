@@ -1563,12 +1563,9 @@ let list_vars_cmd =
     in
     Format.eprintf "Defined variables:@.";
     Format.open_vbox 0;
-    String.Set.iter
-      (fun s ->
-        match List.assoc_opt s var_bindings with
-        | Some value -> Format.printf "%s=%S@," s (String.concat " " value)
-        | None -> ())
-      Var.all_vars;
+    List.iter
+      (fun (s, value) -> Format.printf "%s=%S@," s (String.concat " " value))
+      (List.sort compare var_bindings);
     Format.close_box ();
     0
   in

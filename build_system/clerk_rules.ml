@@ -570,6 +570,19 @@ let run_ninja
       ~inplace:false
   in
   let var_bindings = Var.env_of_bindings bindings in
+  let known =
+    List.fold_left
+      (fun acc (n, _) -> String.Set.add n acc)
+      String.Set.empty var_bindings
+  in
+  List.iter
+    (fun (n, _) ->
+      if not (String.Set.mem n known) then
+        Message.warning
+          "Variable @{<blue;bold>$%s@} from the configuration is not used by \
+           this invocation"
+          n)
+    config.Clerk_cli.options.variables;
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet ~default
     (fun nin_ppf ->
       let insource = Lazy.force Poll.catala_source_tree_root <> None in
