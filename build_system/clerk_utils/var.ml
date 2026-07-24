@@ -54,6 +54,15 @@ let re_var =
 type bindings = (string * string list) list
 
 let of_words (type a) (v : a t) (words : string list) : a =
+  List.iter
+    (fun w ->
+      if String.contains w '"' then
+        Message.error
+          "Invalid word %S in the value of variable @{<blue;bold>$%s@}: quote \
+           characters are not supported (values are quoted automatically; for \
+           C string macros, prefer an included header)"
+          w (name v))
+    words;
   match kind v with
   | Scalar -> (
     match words with
