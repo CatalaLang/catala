@@ -16,7 +16,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
 open Ninja_utils
 
 include module type of struct
@@ -41,7 +40,6 @@ val clerk_flags : Expr.t t
 val catala_exe : string t
 val catala_flags : Expr.t t
 val runtime : string t
-val all_vars : String.Set.t
 
 (** {2 Definition spreading different rules} *)
 
