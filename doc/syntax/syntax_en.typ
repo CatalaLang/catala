@@ -315,7 +315,7 @@ maximum of lst
 ```catala-en-code
 content of x among lst
   such that x.fld1 = ...
-```, [Search by criterion],
+```, [First element satisfying the condition],
 ```catala-en-code
 content of x among lst
   such that x * x is minimum
