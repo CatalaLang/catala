@@ -63,54 +63,6 @@ scope T:
 
 ```catala-test-cli
 $ catala interpret -s T --trace
-→ Applying function f
-─➤ tests/trace/good/bit_of_everything.catala_en:2.13-14:
-  │
-2 │ declaration f
-  │             ‾
-  ⊡ Condition evaluated to true
-  ─➤ tests/trace/good/bit_of_everything.catala_en:6.8-9:
-    │
-  6 │     if x then not x else not x
-    │        ‾
-  ⊸ Branch taken
-  ─➤ tests/trace/good/bit_of_everything.catala_en:6.15-20:
-    │
-  6 │     if x then not x else not x
-    │               ‾‾‾‾‾
-← Function f applied: false
-→ Applying function f
-─➤ tests/trace/good/bit_of_everything.catala_en:2.13-14:
-  │
-2 │ declaration f
-  │             ‾
-  ⊡ Condition evaluated to false
-  ─➤ tests/trace/good/bit_of_everything.catala_en:6.8-9:
-    │
-  6 │     if x then not x else not x
-    │        ‾
-  ⊸ Branch taken
-  ─➤ tests/trace/good/bit_of_everything.catala_en:6.26-31:
-    │
-  6 │     if x then not x else not x
-    │                          ‾‾‾‾‾
-← Function f applied: true
-→ Applying function f
-─➤ tests/trace/good/bit_of_everything.catala_en:2.13-14:
-  │
-2 │ declaration f
-  │             ‾
-  ⊡ Condition evaluated to true
-  ─➤ tests/trace/good/bit_of_everything.catala_en:6.8-9:
-    │
-  6 │     if x then not x else not x
-    │        ‾
-  ⊸ Branch taken
-  ─➤ tests/trace/good/bit_of_everything.catala_en:6.15-20:
-    │
-  6 │     if x then not x else not x
-    │               ‾‾‾‾‾
-← Function f applied: false
 → Entering scope T
 ─➤ tests/trace/good/bit_of_everything.catala_en:24.19-20:
    │

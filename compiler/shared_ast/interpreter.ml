@@ -1013,6 +1013,7 @@ let evaluate_expr_trace : type d r.
     ((d, r, yes) interpr_kind, 't) gexpr ->
     ((d, r, yes) interpr_kind, 't) gexpr =
  fun ?on_expr ?(disable_trace = false) ctx lang s e ->
+  Runtime.reset_trace ();
   Fun.protect
     (fun () ->
       let f () = evaluate_expr ?on_expr ctx lang e in
