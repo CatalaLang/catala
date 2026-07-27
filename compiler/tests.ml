@@ -59,9 +59,11 @@ let test_file_url_unc () =
     "server/share/dir/file.catala_en"
     (Path.url_of_absolute {|\\server\share\dir\file.catala_en|})
 
-(* The cmd_only guards must fail loudly on any platform, not just spaced-dir
-   Windows: stored quote chars double-quote at emission; a cmd_only ref in a
-   path position puts quote chars in file names. *)
+(* The override border guards must fail loudly on any platform, not just
+   spaced-dir Windows: stored quote chars double-quote at emission, refs
+   would expand in direct exec but quote-glue at emission. (The old
+   check_path property — no vector ref in a path — is now static:
+   Var.ref only accepts scalars, and emission rejects Splice in paths.) *)
 
 module CVar = Clerk_utils.Var
 
@@ -71,45 +73,53 @@ let raises_compiler_error f =
     false
   with Catala_utils.Message.CompilerError _ -> true
 
-let test_check_value_rejects_quote () =
+let test_override_rejects_quote () =
   Alcotest.(check bool)
-    "quote char in a cmd_only value is rejected" true
+    "quote char in an override value is rejected" true
     (raises_compiler_error (fun () ->
-         CVar.check_value CVar.catala_flags [{|"boom"|}]))
+         CVar.of_override_words CVar.catala_flags [{|"boom"|}]))
 
-let test_check_value_accepts_clean () =
-  check_list "clean cmd_only value passes through" ["-O"; "--trace"]
-    (CVar.check_value CVar.catala_flags ["-O"; "--trace"])
-
-let test_check_value_rejects_multiword_untagged () =
+let test_override_rejects_ref () =
   Alcotest.(check bool)
-    "multi-word value of a non-cmd_only var is rejected" true
+    "variable reference in an override value is rejected" true
     (raises_compiler_error (fun () ->
-         CVar.check_value CVar.catala_exe ["catala.exe"; "--stray"]))
+         CVar.of_override_words CVar.catala_flags ["${builddir}/x"]))
 
-let test_check_value_accepts_single_untagged () =
-  check_list "single-word non-cmd_only value passes through" ["catala.exe"]
-    (CVar.check_value CVar.catala_exe ["catala.exe"])
+let test_override_accepts_clean () =
+  check_list "clean vector override passes through" ["-O"; "--trace"]
+    (CVar.to_words CVar.catala_flags
+       (CVar.of_override_words CVar.catala_flags ["-O"; "--trace"]))
 
-let test_check_path_rejects_cmd_only_ref () =
+let test_override_rejects_multiword_scalar () =
   Alcotest.(check bool)
-    "cmd_only ref in a path position is rejected" true
-    (raises_compiler_error (fun () -> CVar.check_path "${CATALA_FLAGS}/foo.cmx"))
+    "multi-word value of a scalar var is rejected" true
+    (raises_compiler_error (fun () ->
+         CVar.of_override_words CVar.catala_exe ["catala.exe"; "--stray"]))
 
-let test_check_path_accepts_path_vars () =
-  check "path-var refs pass through" "${builddir}/x/${tdir}/y"
-    (CVar.check_path "${builddir}/x/${tdir}/y")
+let test_override_accepts_single_scalar () =
+  check_list "single-word scalar value passes through" ["catala.exe"]
+    (CVar.to_words CVar.catala_exe
+       (CVar.of_override_words CVar.catala_exe ["catala.exe"]))
 
 (* include_flags feeds rule-scoped ninja bindings spliced into compile
-   commands, which the shell re-parses: each dir must be shell-quoted or a
-   spaced path (C:\Program Files\...) word-splits. Emit-only values, never read
-   back for direct exec (see Var.cmd_only). *)
+   commands, which the shell re-parses: each dir must stay a single Word so
+   that a spaced path (C:\Program Files\...) is quoted as one shell word at
+   emission. *)
 
-let test_include_flags_quote_absolute () =
-  check_list "include_flags: each -I dir is shell-quoted"
-    ["-I"; {|"${tdir}/ocaml"|}; "-I"; {|"/opt/some dir/ocaml"|}]
+let expr_words e =
+  List.map
+    (function
+      | CVar.Nj.Expr.Word w -> w
+      | CVar.Nj.Expr.Splice v -> "${" ^ CVar.name v ^ "}"
+      | CVar.Nj.Expr.Raw s -> s)
+    e
+
+let test_include_flags_single_words () =
+  check_list "include_flags: one Word per flag and per dir"
+    ["-I"; "${tdir}/ocaml"; "-I"; "/opt/some dir/ocaml"]
     (List.map fwd
-       (Common.Flags.include_flags ~backend:"ocaml" [{|/opt/some dir|}]))
+       (expr_words
+          (Common.Flags.include_flags ~backend:"ocaml" [{|/opt/some dir|}])))
 
 (* The separator differs by OS; the reftests only run on Linux, so the Windows
    case needs a unit test. *)
@@ -186,25 +196,23 @@ let () =
           test_case "file_url drive path" `Quick test_file_url_drive;
           test_case "file_url UNC path" `Quick test_file_url_unc;
         ] );
-      ( "Clerk cmd_only runtime guards",
+      ( "Clerk override border guards",
         [
-          test_case "check_value rejects quote char" `Quick
-            test_check_value_rejects_quote;
-          test_case "check_value passes clean words" `Quick
-            test_check_value_accepts_clean;
-          test_case "check_value rejects multi-word untagged" `Quick
-            test_check_value_rejects_multiword_untagged;
-          test_case "check_value passes single-word untagged" `Quick
-            test_check_value_accepts_single_untagged;
-          test_case "check_path rejects cmd_only ref" `Quick
-            test_check_path_rejects_cmd_only_ref;
-          test_case "check_path passes path-var refs" `Quick
-            test_check_path_accepts_path_vars;
+          test_case "override rejects quote char" `Quick
+            test_override_rejects_quote;
+          test_case "override rejects variable ref" `Quick
+            test_override_rejects_ref;
+          test_case "override passes clean vector words" `Quick
+            test_override_accepts_clean;
+          test_case "override rejects multi-word scalar" `Quick
+            test_override_rejects_multiword_scalar;
+          test_case "override passes single-word scalar" `Quick
+            test_override_accepts_single_scalar;
         ] );
       ( "Clerk include-dir quoting (spaces in install dir)",
         [
-          test_case "include_flags shell-quotes each -I dir" `Quick
-            test_include_flags_quote_absolute;
+          test_case "include_flags keeps each -I dir a single word" `Quick
+            test_include_flags_single_words;
         ] );
       ( "Backend path separators (Windows drive-colon)",
         [
