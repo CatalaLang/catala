@@ -384,8 +384,7 @@ let build_clerk_target
         all_target_files
     in
     Nj.format_def nin_ppf
-      (Nj.Default
-         (Nj.Default.make (List.map (fun t -> Nj.Expr.Word t) all_targets)));
+      (Nj.default (List.map (fun t -> Nj.Expr.Word t) all_targets));
     install_targets, all_modules_deps
   in
   let open File in
@@ -601,9 +600,7 @@ let build_direct_targets
         List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
       in
       Nj.format_def nin_ppf
-        (Nj.Default
-           (Nj.Default.make
-              (List.map (fun t -> Nj.Expr.Word t) final_ninja_targets)));
+        (Nj.default (List.map (fun t -> Nj.Expr.Word t) final_ninja_targets));
       ninja_targets, exec_targets, var_bindings, link_deps
     in
     let link_cmd = linking_command ~build_dir ~var_bindings link_deps in
@@ -861,8 +858,7 @@ let build_test_deps
     |> String.Set.elements
   in
   Nj.format_def nin_ppf
-    (Nj.Default
-       (Nj.Default.make (List.map (fun t -> Nj.Expr.Word t) ninja_targets)));
+    (Nj.default (List.map (fun t -> Nj.Expr.Word t) ninja_targets));
   base_targets, link_deps, var_bindings
 
 let run_targets
@@ -1094,9 +1090,7 @@ let typecheck_cmd =
                 target_items
             in
             Nj.format_def nin_ppf
-              (Nj.Default
-                 (Nj.Default.make
-                    (List.map (fun t -> Nj.Expr.Word t) ninja_targets)));
+              (Nj.default (List.map (fun t -> Nj.Expr.Word t) ninja_targets));
             target_items, var_bindings)
     with
     | exception Nothing_to_do -> Message.error "Nothing to typecheck."
@@ -1278,9 +1272,7 @@ let run_clerk_test
           in
           if test_targets <> [] then
             Nj.format_def nin_ppf
-              (Nj.Default
-                 (Nj.Default.make
-                    (List.map (fun t -> Nj.Expr.Word t) test_targets)));
+              (Nj.default (List.map (fun t -> Nj.Expr.Word t) test_targets));
           test_targets)
     in
     let open Clerk_report in
@@ -1420,8 +1412,7 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
     ~default:0 ~config ~enabled_backends ~autotest:false ~ninja_flags
     (fun nin_ppf _ _ ->
       Nj.format_def nin_ppf
-        (Nj.Default
-           (Nj.Default.make (List.map (fun t -> Nj.Expr.Word t) default)));
+        (Nj.default (List.map (fun t -> Nj.Expr.Word t) default));
       cont ())
 
 let start_cmd =

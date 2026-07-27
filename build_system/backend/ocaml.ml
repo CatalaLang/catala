@@ -294,8 +294,8 @@ module Backend = struct
                ["cmi"; "cmo"])
           ~vars:
             [
-              Nj.Binding.make_any Var.includes (includes include_dirs);
-              Nj.Binding.make_any ocaml_flags
+              Nj.Binding.make Var.includes (includes include_dirs);
+              Nj.Binding.make ocaml_flags
                 [Splice ocaml_flags; Word "-opaque"; Word "-no-alias-deps"];
             ];
         Nj.build "ocaml-natobject"
@@ -307,7 +307,7 @@ module Backend = struct
             (List.map
                (fun ext -> Nj.Expr.Word (target ~backend:name ext))
                ["cmx"; "o"])
-          ~vars:[Nj.Binding.make_any Var.includes (includes include_dirs)];
+          ~vars:[Nj.Binding.make Var.includes (includes include_dirs)];
       ]
     in
     let obj =
@@ -337,7 +337,7 @@ module Backend = struct
                  ["cmx"; "o"])
             ~vars:
               [
-                Nj.Binding.make_any Var.includes
+                Nj.Binding.make Var.includes
                   (includes include_dirs @ [Word "-w"; Word "-24"]);
               ];
         ]

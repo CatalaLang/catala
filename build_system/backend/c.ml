@@ -212,7 +212,7 @@ module Backend = struct
           :: Word ("@runtime-" ^ name)
           :: implicit_modules)
         ~outputs:[Word (Ninja.target ~backend:name "o")]
-        ~vars:[Nj.Binding.make_any Var.includes (includes include_dirs)]
+        ~vars:[Nj.Binding.make Var.includes (includes include_dirs)]
       ::
       (if has_scope_tests then
          [
@@ -223,7 +223,7 @@ module Backend = struct
                :: Word ("@runtime-" ^ name)
                :: implicit_modules)
              ~outputs:[Word (Ninja.target ~backend:name "+main.o")]
-             ~vars:[Nj.Binding.make_any Var.includes (includes include_dirs)];
+             ~vars:[Nj.Binding.make Var.includes (includes include_dirs)];
          ]
        else [])
     in

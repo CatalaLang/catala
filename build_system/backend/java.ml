@@ -248,7 +248,7 @@ module Backend = struct
               java_files)
          ~vars:
            [
-             Nj.Binding.make_any javac_flags
+             Nj.Binding.make javac_flags
                [Splice javac_flags; Word ("@" ^ java_list_file)];
            ]
     :: List.map
@@ -293,7 +293,7 @@ module Backend = struct
                (if item.is_stdlib then stdlib_target "class"
                 else Ninja.target ~backend:name "class");
            ]
-         ~vars:[Nj.Binding.make_any Var.class_path java_class_path])
+         ~vars:[Nj.Binding.make Var.class_path java_class_path])
 
   let expose_module ~same_dir_modules:_ ~used_modules:_ = []
 
