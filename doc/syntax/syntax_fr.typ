@@ -323,7 +323,7 @@ maximum de lst
 ```catala-fr-code
 contenu de x parmi lst
   tel que x.chp1 = 0
-```, [Recherche par critère],
+```, [Premier élément qui satisfait la condition],
 ```catala-fr-code
 contenu de x parmi lst
   tel que x * x est minimum
