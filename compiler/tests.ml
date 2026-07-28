@@ -90,11 +90,12 @@ let test_override_accepts_clean () =
     (CVar.to_words CVar.catala_flags
        (CVar.of_override_words CVar.catala_flags ["-O"; "--trace"]))
 
-let test_override_rejects_multiword_scalar () =
-  Alcotest.(check bool)
-    "multi-word value of a scalar var is rejected" true
-    (raises_compiler_error (fun () ->
-         CVar.of_override_words CVar.catala_exe ["catala.exe"; "--stray"]))
+(* the CLI splits override values on spaces before kinds are known, so a
+   scalar must rejoin them: a spaced path is one value, not two words *)
+let test_override_rejoins_spaced_scalar () =
+  check_list "spaced scalar value is kept whole" ["/a b/catala"]
+    (CVar.to_words CVar.catala_exe
+       (CVar.of_override_words CVar.catala_exe ["/a"; "b/catala"]))
 
 let test_override_accepts_single_scalar () =
   check_list "single-word scalar value passes through" ["catala.exe"]
@@ -204,8 +205,8 @@ let () =
             test_override_rejects_ref;
           test_case "override passes clean vector words" `Quick
             test_override_accepts_clean;
-          test_case "override rejects multi-word scalar" `Quick
-            test_override_rejects_multiword_scalar;
+          test_case "override rejoins spaced scalar" `Quick
+            test_override_rejoins_spaced_scalar;
           test_case "override passes single-word scalar" `Quick
             test_override_accepts_single_scalar;
         ] );

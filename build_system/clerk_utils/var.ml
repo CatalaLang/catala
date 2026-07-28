@@ -57,12 +57,9 @@ let has_ref = Re.execp (Re.compile re_var)
 
 let of_words (type a) (v : a t) (words : string list) : a =
   match v with
-  | Scalar _ -> (
-    match words with
-    | [w] -> w
-    | ws ->
-      Message.error "Variable @{<blue;bold>$%s@} expects a single word, got %d"
-        (name v) (List.length ws))
+  (* the CLI splits values on spaces before kinds are known; a scalar is one
+     value, so rejoin (lossless: the split was on a single space) *)
+  | Scalar _ -> String.concat " " words
   | Vector _ -> List.map (fun w -> Ninja_utils.Expr.Word w) words
 
 (* border guards: overrides only — authored defaults legitimately contain
