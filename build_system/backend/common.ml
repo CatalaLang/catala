@@ -26,8 +26,7 @@ module Flags = struct
     | Some vl -> Binding.make var (Var.of_override_words var vl)
     | None -> Binding.make var (Var.of_words var (Lazy.force value))
 
-  (* Unquoted: cmd_only binding values, quoted at emission
-     ([Var.binding_words]). *)
+  (* stored unquoted: quoting happens at emission *)
   let includes ?backend include_dirs =
     List.fold_right
       (fun dir flags ->

@@ -2,7 +2,7 @@
    tax and social benefits computation rules. Copyright (C) 2020-2025 Inria,
    contributors: Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley
    <emile.rolley@tuta.io>, Louis Gesbert <louis.gesbert@inria.fr>,
-   Romain Primet <romain.prikmet@inria.fr>
+   Romain Primet <romain.primet@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
