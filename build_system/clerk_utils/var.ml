@@ -67,7 +67,8 @@ let of_words (type a) (v : a t) (words : string list) : a =
 
 (* border guards: overrides only — authored defaults legitimately contain
    refs. Refs would expand in direct exec but quote-glue at emission; reject
-   rather than diverge (composition is served by the append form). *)
+   rather than diverge. Composition would need an append form (--vars X+=y),
+   not implemented. *)
 let of_override_words (type a) (v : a t) (words : string list) : a =
   List.iter
     (fun w ->
