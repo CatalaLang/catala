@@ -313,16 +313,13 @@ let items_in_subdirs items dirs =
 
 let sort_user_target_args
     config
+    ~autotest
     ~backends
     items
     (info : Clerk_rules.callback_info)
     (args : string list) : user_target_args =
-  (* todo: handle the different defaults for different commands:
-     - default targets for build
-     - `.` for test
-     - error for run ?
-  *)
   let build_dir = config.Cli.options.global.build_dir in
+  let backends = if autotest then `OCaml :: backends else backends in
   let clerk_targets, others =
     List.partition_map
       (fun arg ->
@@ -342,7 +339,10 @@ let sort_user_target_args
   in
   let others =
     List.map
-      (fun f -> String.remove_prefix ~prefix:build_dir (config.Cli.fix_path f))
+      (fun f ->
+        String.remove_prefix
+          ~prefix:File.(build_dir / "")
+          (config.Cli.fix_path f))
       others
   in
   let directories, others =
@@ -405,7 +405,13 @@ let ninja_interp_test_targets
     List.concat_map (fun t -> t.Config.ttests) clerk_targets
     @ List.map fst directories
   in
-  List.map File.(fun dir -> (build_dir / dir) ^ "@test") dirs
+  let no_trailing_slash dir =
+    let suffix = Filename.dir_sep in
+    if String.ends_with ~suffix dir then
+      String.sub dir 0 (String.length dir - String.length suffix)
+    else dir
+  in
+  List.map File.(fun dir -> (build_dir / no_trailing_slash dir) ^ "@test") dirs
   @ List.map
       File.(fun m -> (build_dir / m.Clerk_rules.item.file_name) ^ "@test")
       modules
@@ -436,6 +442,7 @@ let module_backends info backends modname =
 let ninja_build_targets
     ?(exec_targets = false)
     config
+    ~autotest
     backends
     items
     info
@@ -458,6 +465,9 @@ let ninja_build_targets
         | Some (m, _) -> module_backends info backends m
         | None -> backends)
     in
+    let backends_full =
+      if exec_targets && autotest then `OCaml :: backends else backends
+    in
     List.concat_map
       (fun backend ->
         let t =
@@ -467,13 +477,19 @@ let ninja_build_targets
               Clerk_backends.(name (get (backend_to_config backend)))
           | _ -> make_target ~build_dir ~backend it
         in
-        if exec_targets then
+        if exec_targets && List.mem backend backends then
           match backend with
           | `OCaml | `C ->
             let t1 = make_target ~build_dir ~backend it in
             [t; File.(remove_extension t1 ^ ("+main" -.- extension t1))]
           | _ -> [t]
         else [t])
+      backends_full
+  in
+  let runtimes =
+    List.map
+      (fun bk ->
+        "@runtime-" ^ Clerk_backends.(name (get (backend_to_config bk))))
       backends
   in
   let from_clerk_targets =
@@ -484,22 +500,24 @@ let ninja_build_targets
             (fun bk -> List.mem (backend_to_config bk) t.Clerk_config.backends)
             backends
         in
-        if backends = [] then
+        if backends = [] then (
           Message.warning
             "Target @{<yellow>%s@}@ does@ not@ support@ any@ of@ the@ \
              selected@ backends"
             t.tname;
-        let items =
-          List.filter
-            (fun it -> Lazy.force it.Scan.has_scope_tests > 0)
-            (items_in_subdirs items t.Config.ttests)
-        in
-        if items = [] then
-          Message.warning
-            "Nothing to run was found in the test directories of target@ \
-             @{<yellow>%s@}"
-            t.tname;
-        List.concat_map (item_exec_target ~backends) items)
+          [])
+        else
+          let items =
+            List.filter
+              (fun it -> Lazy.force it.Scan.has_scope_tests > 0)
+              (items_in_subdirs items t.Config.ttests)
+          in
+          if items = [] then
+            Message.warning
+              "Nothing to run was found in the test directories of target@ \
+               @{<yellow>%s@}"
+              t.tname;
+          List.concat_map (item_exec_target ~backends) items)
       clerk_targets
   in
   let from_modules =
@@ -539,7 +557,8 @@ let ninja_build_targets
         t)
       direct_targets
   in
-  from_clerk_targets
+  runtimes
+  @ from_clerk_targets
   @ from_modules
   @ from_directories
   @ from_sources
@@ -579,6 +598,13 @@ let test_exec_targets
       (fun t ->
         List.concat_map
           (fun it ->
+            let backends =
+              List.filter
+                (fun bk ->
+                  let bk = backend_to_config bk in
+                  List.mem bk t.Config.backends)
+                backends
+            in
             if Lazy.force it.Scan.has_scope_tests = 0 then []
             else item_exec_target ~backends it)
           (items_in_subdirs items t.Config.ttests))
@@ -753,7 +779,8 @@ let run_targets
     if test then "Running backend tests..." else "Running compiled targets..."
   in
   let print_status fmt =
-    if show_progress then Printf.fprintf stdout (fmt ^^ "\r%!\x1b[K")
+    if show_progress then
+      Printf.fprintf stdout (fmt ^^ "\r\x1b[?25l%!\x1b[?25h\x1b[K")
     (* Print message, return to beginning of line, flush, then clear line but without
        flushing it yet; the ?25 codes are for hiding and showing back the cursor *)
       else Printf.ifprintf stdout fmt
@@ -906,9 +933,7 @@ let build_cmd : int Cmd.t =
       trace
       trace_format =
     let backends =
-      if backends = [] then [`OCaml; `C; `Python; `Java]
-      else if autotest then `OCaml :: backends
-      else backends
+      if backends = [] then [`OCaml; `C; `Python; `Java] else backends
     in
     let enabled_backends = backends_to_config backends in
     let targets, info =
@@ -918,11 +943,13 @@ let build_cmd : int Cmd.t =
       @@ fun nin_ppf items info ->
       let targets =
         if target_args = [] then default_targets config
-        else sort_user_target_args config ~backends items info target_args
+        else
+          sort_user_target_args config ~autotest ~backends items info
+            target_args
       in
       target_debug_message targets;
       let ninja_targets =
-        ninja_build_targets config backends items info targets
+        ninja_build_targets config ~autotest backends items info targets
       in
       set_ninja_targets nin_ppf ninja_targets;
       targets, info
@@ -1030,12 +1057,14 @@ let run_cmd =
       @@ fun nin_ppf items info ->
       let targets =
         if target_args = [] then default_targets config
-        else sort_user_target_args config ~backends items info target_args
+        else
+          sort_user_target_args config ~autotest:false ~backends items info
+            target_args
       in
       target_debug_message targets;
       let ninja_targets =
-        ninja_build_targets ~exec_targets:true config backends items info
-          targets
+        ninja_build_targets ~exec_targets:true config ~autotest:false backends
+          items info targets
       in
       set_ninja_targets nin_ppf ninja_targets;
       targets, items, info
@@ -1224,12 +1253,7 @@ let test_cmd =
       (diff_command : string option option)
       (ninja_flags : string list) : int =
     let enable_backend_tests = List.exists (( <> ) `Interpret) backends in
-    let backends =
-      if backends = [] then [`Interpret]
-      else if enable_backend_tests && not (List.mem `OCaml backends) then
-        `OCaml :: backends (* needed for --autotest *)
-      else backends
-    in
+    let backends = if backends = [] then [`Interpret] else backends in
     let build_dir = config.Cli.options.global.build_dir in
     setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
       code_coverage;
@@ -1261,7 +1285,10 @@ let test_cmd =
     let _test_only =
       if List.mem `Interpret backends then `Cli_or_scope else `Scope
     in
-    let enabled_backends = backends_to_config backends in
+    let enabled_backends =
+      backends_to_config (`Interpret :: backends)
+      (* Autotests always require the interpret (OCaml) objects *)
+    in
     let targets, items, info, test_targets =
       Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
         ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true
@@ -1281,27 +1308,21 @@ let test_cmd =
                   items_in_subdirs items [Filename.current_dir_name] );
               ];
           }
-        else sort_user_target_args config ~backends items info target_args
+        else
+          sort_user_target_args config ~autotest:true ~backends items info
+            target_args
       in
       target_debug_message targets;
       let test_targets = ninja_interp_test_targets config targets in
       let ninja_targets =
         if enable_backend_tests then
-          ninja_build_targets ~exec_targets:true config backends items info
-            targets
+          ninja_build_targets ~exec_targets:true config ~autotest:true backends
+            items info targets
           @ test_targets
         else test_targets
       in
       set_ninja_targets nin_ppf ninja_targets;
       targets, items, info, test_targets
-    in
-    let backend_tests =
-      if enable_backend_tests then
-        let exec_targets =
-          test_exec_targets config backends items info targets
-        in
-        run_targets ~test:true config "interpret" None None (exec_targets, info)
-      else []
     in
     let open Clerk_report in
     let test_reports =
@@ -1309,16 +1330,9 @@ let test_cmd =
         List.concat_map read_many test_targets
       else []
     in
-    if reset_test_outputs then
-      let () =
-        if report_format = `JUnitXML then
-          Message.error
-            "Options @{<cyan>--report-format=xml@} and @{<cyan>--reset@} are \
-             incompatible";
-        if report_format = `VSCodeJSON then
-          Message.error
-            "Options @{<cyan>--report-format=json@} and @{<cyan>--reset@} are \
-             incompatible";
+    let test_reports =
+      if not reset_test_outputs then test_reports
+      else
         let ppf = Message.formatter_of_out_channel stdout () in
         match
           List.filter
@@ -1327,7 +1341,8 @@ let test_cmd =
         with
         | [] ->
           Format.fprintf ppf
-            "[@{<green>DONE@}] All cli tests passed, nothing to reset@."
+            "[@{<green>DONE@}] All cli tests passed, nothing to reset@.";
+          test_reports
         | need_reset ->
           List.iter
             (fun f ->
@@ -1350,9 +1365,19 @@ let test_cmd =
           Format.fprintf ppf
             "[@{<green>DONE@}] @{<yellow;bold>%d@} test files were \
              @{<yellow>RESET@}@."
-            (List.length need_reset)
-      in
-      raise (Catala_utils.Cli.Exit_with 0)
+            (List.length need_reset);
+          List.map (fun f -> { f with successful = f.total }) test_reports
+    in
+    let backend_tests =
+      if enable_backend_tests then
+        let exec_targets =
+          test_exec_targets config backends items info targets
+        in
+        run_targets ~test:true config "interpret" None None (exec_targets, info)
+      else []
+    in
+    if reset_test_outputs && report_format = `Terminal && backend_tests = []
+    then raise (Catala_utils.Cli.Exit_with 0)
     else if
       (match report_format with
       | `JUnitXML -> print_xml

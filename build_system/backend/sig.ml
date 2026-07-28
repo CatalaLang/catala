@@ -57,14 +57,15 @@ module type S = sig
 
   val modfile :
     is_stdlib:bool -> (string * string) list -> string -> string -> string
-  (** [modfile ~is_stdlib same_dir_modules ext modname] is a function that
-      return the name of the rule to generates a file in a backend. The
-      - [same_dir_modules] is a flag that tells if the rules that makes a call
-        to modfile generates a file in the same directory than modname.
+  (** [modfile ~is_stdlib same_dir_modules ext modname] is a function that returns
+      the name of the rule that generates a file in a backend. The
+      - [same_dir_modules] lists the modules that are neighbours of the
+        current module in context, in the form [(modname, path)] ; those are
+        referred to directly without going through a global @module alias.
       - [ext] is the extension of the file.
       - [modname] is the module name exposed by this file.
 
-      This is more of an internal function but it's needed to be exposed for a
+      This is more of an internal function but it needs to be exposed for a
       construction in clerk_rules (so that code is not duplicated in each
       backend) *)
 

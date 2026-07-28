@@ -533,7 +533,16 @@ let summary ~build_dir ?(backend_tests = []) tests =
   if disp_flags.files <> `None then
     List.iter (fun f -> display_file ~build_dir ppf f) tests;
   let result_box =
-    if
+    if files = 0 && String.Map.is_empty backend_results then (
+      let columns = Message.terminal_columns () in
+      let title = "NO TESTS WERE RUN" in
+      let tpad = columns - String.width title - 4 in
+      Format.fprintf ppf "@,@{<yellow>%t @{<bold;reverse> %s @} %t@}@,"
+        (Message.pad (tpad / 2) "━")
+        title
+        (Message.pad (tpad - (tpad / 2)) "━");
+      fun _ -> ())
+    else if
       success < total
       || String.Map.exists
            (fun _ (success, total) -> success < total)
@@ -571,7 +580,7 @@ let summary ~build_dir ?(backend_tests = []) tests =
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
           success_files files ratio (success_files, files);
-      if files > 1 || String.Map.is_empty backend_results then
+      if files > 1 then
         box.print_line
           "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
            @{<bold>%a@}"

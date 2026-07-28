@@ -52,7 +52,9 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
         |> function
         | Some dir_classes -> dir_classes
         | None ->
-          let dir_contents = Sys.readdir dirname in
+          let dir_contents =
+            try Sys.readdir dirname with Sys_error _ -> [||]
+          in
           let dir_classes =
             Seq.filter
               (String.ends_with ~suffix:".class")
