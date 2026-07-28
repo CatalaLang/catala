@@ -44,7 +44,7 @@ depends: [
   "crunch" {>= "3.0.0"}
   "hex" { >= "1.5.0"}
   "alcotest" {>= "1.5.0"}
-  "ninja_utils" {= "1.0.0"}
+  "ninja_utils" {= "2.0.0"}
   "otoml" {>= "1.0"}
   "json-data-encoding" { >= "1.0.1" }
   "odoc" {with-doc}
@@ -77,3 +77,5 @@ depexts: [
   ["python-pygments"] {?cataladevmode & cataladevmode & os-family = "arch"}
 ]
 dev-repo: "git+https://github.com/CatalaLang/catala"
+
+pin-depends: ["ninja_utils.2.0.0" "git+https://github.com/CatalaLang/ninja_utils#vartyp"]

@@ -56,14 +56,14 @@ type bindings = (string * string list) list
 let has_ref = Re.execp (Re.compile re_var)
 
 let of_words (type a) (v : a t) (words : string list) : a =
-  match kind v with
-  | Scalar -> (
+  match v with
+  | Scalar _ -> (
     match words with
     | [w] -> w
     | ws ->
       Message.error "Variable @{<blue;bold>$%s@} expects a single word, got %d"
         (name v) (List.length ws))
-  | Vector -> List.map (fun w -> Ninja_utils.Expr.Word w) words
+  | Vector _ -> List.map (fun w -> Ninja_utils.Expr.Word w) words
 
 (* border guards: overrides only — authored defaults legitimately contain
    refs. Refs would expand in direct exec but quote-glue at emission; reject
@@ -94,7 +94,7 @@ let to_words (type a) (v : a t) (x : a) : string list =
         | Raw s -> [s])
       e
   in
-  match kind v with Scalar -> [x] | Vector -> expr_words x
+  match v with Scalar _ -> [x] | Vector _ -> expr_words x
 
 let env_of_bindings bs =
   List.map (fun (Ninja_utils.Binding.Any (v, x)) -> name v, to_words v x) bs
