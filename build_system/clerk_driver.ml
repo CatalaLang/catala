@@ -754,7 +754,9 @@ let run_targets
   in
   let print_status fmt =
     if show_progress then Printf.fprintf stdout (fmt ^^ "\r%!\x1b[K")
-    else Printf.ifprintf stdout fmt
+    (* Print message, return to beginning of line, flush, then clear line but without
+       flushing it yet; the ?25 codes are for hiding and showing back the cursor *)
+      else Printf.ifprintf stdout fmt
   in
   print_status "%s" progress_pfx;
   let msg target =

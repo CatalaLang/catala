@@ -19,19 +19,21 @@
 
 (**{1 Terminal formatting}*)
 
-type Format.stag += Link of string
+type Format.stag += Link of string | Clear_line
 
-let add_link_tags ppf =
+let add_custom_tags ppf =
   let start = "\x1b]8;;" in
   (* OSC(OS command) 8 ;; *)
   let stop = "\x1b\\" in
   (* ST(String terminator) *)
   let funs = Format.pp_get_formatter_stag_functions ppf () in
   let mark_open_stag = function
+    | Clear_line -> "\x1b[J" (* ANSI clear screen from cursor *)
     | Link target -> start ^ target ^ stop
     | tag -> funs.mark_open_stag tag
   in
   let mark_close_stag = function
+    | Clear_line -> ""
     | Link _ -> start ^ stop
     | tag -> funs.mark_close_stag tag
   in
@@ -110,7 +112,7 @@ let formatter_of_out_channel ?(nocolor = false) oc =
       (if
          (Global.options.color = Always || Lazy.force tty)
          && Sys.getenv_opt "TERM" <> Some "dumb"
-       then add_link_tags (Lazy.force ppf)
+       then add_custom_tags (Lazy.force ppf)
        else Lazy.force ppf)
   in
   fun () ->
@@ -305,8 +307,11 @@ module Content = struct
             if n >= 2 then ppf_out_fcts.out_indent (n - 1));
       };
     Format.pp_open_vbox ppf 1;
-    Format.fprintf ppf "@{<blue>@<2>%s[%t]@<2>%s@}" "┌─" (pp_marker target) "─";
+    Format.pp_open_stag ppf Clear_line;
+    (* Clear a possible status line from Clerk *)
+    Format.fprintf ppf "@{<blue>@<2>%s[%t]@<1>%s@}" "┌─" (pp_marker target) "─";
     Option.iter (fun h -> Format.fprintf ppf " %s @{<blue>─@}" h) header;
+    Format.pp_close_stag ppf ();
     (* Returns true when a finaliser is needed *)
     let print_elt ppf ?(islast = false) = function
       | MainMessage msg ->
