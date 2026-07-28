@@ -28,6 +28,16 @@ let c_include = Var.make "C_INCLUDE_FLAGS"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
+  let target_objs =
+    let base = Filename.chop_extension target in
+    let suffix = "+main" in
+    if String.ends_with ~suffix base then
+      [
+        String.sub base 0 (String.length base - String.length suffix) -.- "o";
+        target -.- "o";
+      ]
+    else [target -.- "o"]
+  in
   Var.get_var var_bindings cc_exe
   @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
   @ [build_dir / Scan.libcatala / "c" / "catala_runtime.o"]
@@ -37,7 +47,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
         (build_dir / dirname f / "c" / basename f) ^ ".o")
       (link_deps item)
   @ ["-lgmp"]
-  @ [target -.- "o"; File.remove_extension target ^ "+main.o"]
+  @ target_objs
   @ Var.get_var var_bindings c_flags
   @ Var.get_var var_bindings c_include
   @ ["-o"; target -.- "exe"]

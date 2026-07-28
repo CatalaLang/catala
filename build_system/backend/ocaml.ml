@@ -81,6 +81,16 @@ end
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
+  let target_objs =
+    let base = Filename.chop_extension target in
+    let suffix = "+main" in
+    if String.ends_with ~suffix base then
+      [
+        String.sub base 0 (String.length base - String.length suffix) -.- "cmx";
+        target -.- "cmx";
+      ]
+    else [target -.- "cmx"]
+  in
   Var.get_var var_bindings ocamlopt_exe
   @ List.map (Var.expand_vars var_bindings) (Lazy.force Flags.ocaml_link)
   @ [build_dir / Scan.libcatala / backend_name / "dates_calc.cmx"]
@@ -92,12 +102,8 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
         let f = Scan.target_file_name it in
         (build_dir / dirname f / backend_name / basename f) ^ ".cmx")
       (link_deps item)
-  @ [
-      target -.- "cmx";
-      (* File.remove_extension target ^ "+main.cmx"; *)
-      "-o";
-      target -.- "exe";
-    ]
+  @ target_objs
+  @ ["-o"; target -.- "exe"]
 
 let run_artifact
     ~test
