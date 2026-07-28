@@ -19,8 +19,6 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
-type Clerk_config.backend += T
-
 let catala_flags_c = Var.make "CATALA_FLAGS_C"
 let cc_exe = Var.make "CC"
 let c_flags = Var.make "CFLAGS"
@@ -38,7 +36,7 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
       ]
     else [target -.- "o"]
   in
-  Var.get_var var_bindings cc_exe
+  Var.get var_bindings cc_exe
   @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
   @ [build_dir / Scan.libcatala / "c" / "catala_runtime.o"]
   @ List.map
@@ -48,8 +46,8 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
       (link_deps item)
   @ ["-lgmp"]
   @ target_objs
-  @ Var.get_var var_bindings c_flags
-  @ Var.get_var var_bindings c_include
+  @ Var.get var_bindings c_flags
+  @ Var.get var_bindings c_include
   @ ["-o"; target -.- "exe"]
 
 let run_artifact ~test ?scope ?quiet src =
@@ -62,58 +60,49 @@ let run_artifact ~test ?scope ?quiet src =
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
   Clerk_cli.run_command_line ?quiet cmd
 
-module Backend = struct
+module Spec : Sig.Spec = struct
   open Var
   open File
   module Nj = Ninja_utils
 
   let name = "c"
-  let config_backend = T
-  let () = Clerk_lib.Clerk_config.register_backend ~name config_backend
-  let module_ext = "@" ^ name ^ "-module"
   let src_extensions = ["c"; "h"]
-  let obj_extensions = ["o"]
+  let module_extensions = ["h"]
+  let obj_extension = "o"
+  let all_obj_extensions = ["o"]
+  let stdlib_subdir = "."
 
-  let runtime_targets ~only_source =
-    [(if only_source then "@runtime-" ^ name ^ "-src" else "@runtime-" ^ name)]
+  let var_defs ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
+      =
+    let open Flags in
+    let catala_flags =
+      catala_backend_flags ~autotest ~use_default_flags ~test_flags
+        ~accepts_closure_conversion:false
+    in
+    let def = def ~variables in
+    [
+      def catala_flags_c (lazy catala_flags);
+      def cc_exe (lazy ["cc"]);
+      def c_flags
+        (lazy
+          [
+            "-std=c89";
+            "-pedantic";
+            "-Wall";
+            "-Wno-unused-function";
+            "-Wno-unused-variable";
+            "-Wno-unused-but-set-variable";
+            "-Werror";
+            "-fPIC";
+            "-g";
+          ]);
+      def c_include
+        (lazy
+          (["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]
+          @ Flags.includes ~name include_dirs));
+    ]
 
-  module Flags = struct
-    let default
-        ~variables
-        ~autotest
-        ~use_default_flags
-        ~test_flags
-        ~include_dirs =
-      let open Common.Flags in
-      let catala_flags =
-        Common.Flags.catala_backend_flags ~autotest ~use_default_flags
-          ~test_flags ~accepts_closure_conversion:false
-      in
-      let def = def ~variables in
-      [
-        def catala_flags_c (lazy catala_flags);
-        def cc_exe (lazy ["cc"]);
-        def c_flags
-          (lazy
-            [
-              "-std=c89";
-              "-pedantic";
-              "-Wall";
-              "-Wno-unused-function";
-              "-Wno-unused-variable";
-              "-Wno-unused-but-set-variable";
-              "-Werror";
-              "-fPIC";
-              "-g";
-            ]);
-        def c_include
-          (lazy
-            (["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]
-            @ Common.Flags.includes ~backend:name include_dirs));
-      ]
-  end
-
-  let[@ocamlformat "disable"] static_base_rules =
+  let[@ocamlformat "disable"] rules =
   [
     Nj.rule "catala-c"
       ~command:[!catala_exe; name; !catala_flags; !catala_flags_c;
@@ -125,25 +114,7 @@ module Backend = struct
       ~description:["<cc>"; "⇒"; !output];
   ]
 
-  let external_copy item =
-    let catala_src = !Var.tdir / !Var.src in
-    let c, missing =
-      Ninja.extern_src ~backend:name ~ext:"c" ~missing:[]
-        ~filename:item.Scan.file_name
-    in
-    let h, _missing =
-      Ninja.extern_src ~backend:name ~ext:"h" ~missing
-        ~filename:item.Scan.file_name
-    in
-    List.to_seq
-      [
-        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[c]
-          ~outputs:[Ninja.target ~backend:name "c"];
-        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[h]
-          ~outputs:[Ninja.target ~backend:name "h"];
-      ]
-
-  let runtime_build_statements ~options:_ ~stdbase =
+  let build_runtime ~options:_ ~stdbase =
     let c_base = stdbase / name / "catala_runtime" in
     let c_src = Var.(!runtime) / name in
     [
@@ -155,7 +126,7 @@ module Backend = struct
             (c_base /../ "dates_calc") -.- "c";
             (c_base /../ "dates_calc") -.- "h";
           ]
-        ~outputs:["@runtime-" ^ name ^ "-src"];
+        ~outputs:["@c/runtime/src"];
       Nj.build "phony"
         ~inputs:
           [
@@ -165,7 +136,7 @@ module Backend = struct
             (c_base /../ "dates_calc") -.- "h";
             Var.(!catala_exe);
           ]
-        ~outputs:["@runtime-" ^ name];
+        ~outputs:["@c/runtime/obj"];
       Nj.build "copy"
         ~inputs:[c_src / "catala_runtime.h"]
         ~outputs:[c_base -.- "h"];
@@ -188,61 +159,43 @@ module Backend = struct
         ~outputs:[(c_base /../ "dates_calc") -.- "o"];
     ]
 
-  let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in has_scope_tests =
+  let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in ~has_scope_tests =
     let implicit_out =
-      if has_scope_tests then [Ninja.target ~backend:name "+main.c"] else []
+      if has_scope_tests then [Common.target ~name "+main.c"] else []
     in
     Seq.return
       (Nj.build "catala-c" ?vars ~inputs ~implicit_in
-         ~outputs:[Ninja.target ~backend:name "c"]
-         ~implicit_out:(Ninja.target ~backend:name "h" :: implicit_out))
+         ~outputs:[Common.target ~name "c"]
+         ~implicit_out:(Common.target ~name "h" :: implicit_out))
 
-  let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
-
-  let module_target same_dir_modules =
-    Ninja.modfile ~backend:name same_dir_modules module_ext
-
-  let includes = Common.Flags.include_flags ~backend:name
-
-  let build_object ~include_dirs ~same_dir_modules ~item has_scope_tests =
+  let build_object ~include_dirs ~same_dir_modules:_ item =
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
-    let implicit_modules = List.map (module_target same_dir_modules) modules in
+    let implicit_modules = List.map (Common.module_dep ~name) modules in
+    (* fixme: the criterion for is_stdlib matches the wrong item. Justify if it's still OK (in other bks as well) *)
     let obj =
       Nj.build "c-object"
-        ~inputs:[Ninja.target ~backend:name "c"]
+        ~inputs:[Common.target ~name "c"]
         ~implicit_in:
-          (Ninja.target ~backend:name "h"
-          :: ("@runtime-" ^ name)
-          :: implicit_modules)
-        ~outputs:[Ninja.target ~backend:name "o"]
-        ~vars:[Var.includes, includes include_dirs]
+          (Common.target ~name "h" :: "@c/runtime/src" :: implicit_modules)
+        ~outputs:[Common.target ~name "o"]
+        ~vars:[Var.includes, Flags.include_flags ~name include_dirs]
       ::
-      (if has_scope_tests then
+      (if Lazy.force item.has_scope_tests > 0 then
          [
            Nj.build "c-object"
-             ~inputs:[Ninja.target ~backend:name "+main.c"]
+             ~inputs:[Common.target ~name "+main.c"]
              ~implicit_in:
-               (Ninja.target ~backend:name "h"
-               :: ("@runtime-" ^ name)
-               :: implicit_modules)
-             ~outputs:[Ninja.target ~backend:name "+main.o"]
-             ~vars:[Var.includes, includes include_dirs];
+               (Common.target ~name "h" :: "@c/runtime/src" :: implicit_modules)
+             ~outputs:[Common.target ~name "+main.o"]
+             ~vars:[Var.includes, Flags.include_flags ~name include_dirs];
          ]
        else [])
     in
     List.to_seq obj
 
-  let expose_module ~same_dir_modules ~used_modules =
-    [
-      Nj.build "phony"
-        ~inputs:[Ninja.target ~backend:name "h"]
-        ~implicit_in:(List.map (module_target same_dir_modules) used_modules)
-        ~outputs:[Ninja.target ~backend:name module_ext];
-    ]
-
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
 end
 
-let () = Common.register (module Backend)
+include Common.Make_backend (Spec)

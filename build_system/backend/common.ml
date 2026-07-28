@@ -20,144 +20,6 @@ open Catala_utils
 open Clerk_lib
 include Sig
 
-module Flags = struct
-  let def ~variables var value =
-    let value =
-      match List.assoc_opt (Var.name var) variables with
-      | Some vl -> vl
-      | None -> Lazy.force value
-    in
-    var, value
-
-  let includes ?backend include_dirs =
-    List.fold_right
-      (fun dir flags ->
-        if Filename.is_relative dir then
-          "-I"
-          :: File.(
-               Var.(!builddir)
-               / match backend with Some b -> dir / b | None -> dir)
-          :: flags
-        else "-I" :: dir :: flags)
-      include_dirs []
-
-  let catala_backend_flags
-      ~autotest
-      ~use_default_flags
-      ~test_flags
-      ~accepts_closure_conversion =
-    (if autotest then ["--autotest"] else [])
-    @
-    if use_default_flags then ["-O"]
-    else
-      List.filter
-        (function
-          | "-O" | "--optimize" -> true
-          | "--closure-conversion" -> accepts_closure_conversion
-          | _ -> false)
-        test_flags
-
-  let include_flags ~backend include_dirs =
-    let open File in
-    "-I"
-    :: Var.(!tdir / backend)
-    :: List.concat_map
-         (fun d ->
-           [
-             "-I";
-             (if Filename.is_relative d then Var.(!builddir) / d else d)
-             / backend;
-           ])
-         include_dirs
-
-  let default
-      ~code_coverage
-      ~(trace : [ `FileName of Catala_utils.Global.raw_file | `Stdout ] option)
-      ~(trace_format : Catala_utils.Global.format_enum option)
-      ~inplace
-      ~config =
-    let options = config.Clerk_cli.options in
-    let open Clerk_config in
-    let options =
-      if inplace then
-        {
-          options with
-          global =
-            {
-              options.global with
-              build_dir =
-                File.make_relative_to ~dir:File.original_cwd
-                  Filename.current_dir_name;
-            };
-        }
-      else options
-    in
-    let catala_flags =
-      (if inplace then "--stdlib=" ^ Lazy.force Poll.stdlib_dir
-       else "--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
-      :: ("--directory=" ^ Var.(!builddir))
-      ::
-      (match trace with
-      | None -> []
-      | Some (`FileName f) -> ["--trace=" ^ (f :> string)]
-      | Some `Stdout -> ["--trace"])
-      @ (match trace_format with
-        | None -> []
-        | Some Human -> ["--trace-format=human"]
-        | Some JSON -> ["--trace-format=json"])
-      @ options.global.catala_opts
-    in
-    let includes = includes options.global.include_dirs in
-    let test_flags = config.Clerk_cli.test_flags in
-    let def = def ~variables:options.variables in
-    [
-      def Var.ninja_required_version (lazy ["1.7"]);
-      (* use of implicit outputs *)
-      def Var.builddir (lazy [options.global.build_dir]);
-      def Var.runtime (lazy [Lazy.force Poll.runtime_dir]);
-      def Var.clerk_exe (lazy [Lazy.force Poll.clerk_exe]);
-      def Var.catala_exe
-        (lazy
-          [
-            (match options.global.catala_exe with
-            | Some e -> File.check_exec e
-            | None -> Lazy.force Poll.catala_exe);
-          ]);
-      def Var.catala_flags
-        (lazy
-          (catala_flags
-          @ (if Message.has_color stderr then ["--color=always"] else [])
-          @ includes));
-      def Var.clerk_flags
-        (lazy
-          ("-e"
-           :: Var.(!catala_exe)
-           :: ("--test-flags=" ^ String.concat "," test_flags)
-           :: includes
-          @ (if code_coverage then ["--code-coverage"] else [])
-          @ List.map
-              (fun f -> "--catala-opts=" ^ f)
-              (catala_flags @ if code_coverage then ["--whole-program"] else [])
-          ));
-    ]
-end
-
-module Ninja = struct
-  module Nj = Ninja_utils
-
-  let static_base_rules =
-    let open Var in
-    [
-      Nj.rule "copy"
-        ~command:
-          (if Sys.win32 then
-             ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
-             (* The "+nul" forces the timestamp of the new file to be updated *)
-           else ["cp"; "-f"; !input; !output])
-        ~description:["<copy>"; !input];
-    ]
-end
-
 type t = (module Sig.S)
 
 let backends : (Clerk_config.backend, t) Hashtbl.t = Hashtbl.create 7
@@ -170,3 +32,130 @@ let get bk = Hashtbl.find backends bk
 let all () = Hashtbl.to_seq_values backends |> List.of_seq
 let name (module B : S) = B.name
 let id (module B : S) = B.config_backend
+
+open File
+open Var
+
+let static_base_rules =
+  [
+    Ninja_utils.rule "copy"
+      ~command:
+        (if Sys.win32 then
+           ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
+           (* The "+nul" forces the timestamp of the new file to be updated *)
+         else ["cp"; "-f"; !input; !output])
+      ~description:["<copy>"; !input];
+  ]
+
+let extern_src ~filename ~name:backend ~ext ~missing =
+  let f = filename -.- ext in
+  match check_file f with
+  | Some f -> f, missing
+  | None -> (
+    match
+      check_file
+        ((dirname f / backend / String.to_id (remove_extension (basename f)))
+        -.- ext)
+    with
+    | Some f -> f, missing
+    | None -> f, f :: missing)
+
+let target ?name:backend (* ?(is_stdlib=false)  *) ext =
+  let ext =
+    match ext.[0] with
+    | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> "." ^ ext
+    | _ -> ext
+  in
+  let dir = !Var.tdir in
+  (* let dir = if is_stdlib then dir / Scan.libcatala else dir in *)
+  let dir = match backend with Some b -> dir / b | None -> dir in
+  (dir / !Var.dst) ^ ext
+
+let catala_obj_target modname = "@catala" / "obj" / String.to_id modname
+
+let module_dep ~name:backend modname =
+  "@" ^ (backend / "interface" / String.to_id modname)
+
+let obj_dep ~name:backend item =
+  match item.Scan.module_def with
+  | Some (m, _) -> "@" ^ (backend / "obj" / String.to_id m)
+  | None ->
+    ("@" ^ backend)
+    / "obj"
+    / dirname item.file_name
+    / String.to_id (basename item.file_name -.- "")
+
+module Make_backend (A : Sig.Spec) : Sig.S = struct
+  module Backend = struct
+    include A
+
+    type Clerk_lib.Clerk_config.backend += T
+
+    let config_backend = T
+    let () = Clerk_lib.Clerk_config.register_backend ~name config_backend
+
+    let current_target item ext =
+      if item.Scan.is_stdlib then
+        (!Var.tdir / name / stdlib_subdir / !Var.dst) -.- ext
+      else target ~name ext
+
+    let runtime_targets ~only_source =
+      if only_source then ["@" ^ name ^ "/runtime/src"]
+      else ["@" ^ name ^ "/runtime/obj"]
+
+    (* FIXME *)
+    (* let modfile ~is_stdlib ~same_dir_modules ext modname =
+     *   match List.assoc_opt modname same_dir_modules with
+     *   | Some _ ->
+     *     let subdir = if is_stdlib then stdlib_subdir else name in
+     *     !Var.tdir / subdir / String.to_id modname ^ ext
+     *   | _ ->
+     *     modname ^ module_suffix *)
+
+    let external_copy item =
+      let catala_src = !Var.tdir / !Var.src in
+      let srcs, _missing =
+        List.fold_right
+          (fun ext (srcs, missing) ->
+            let src, missing =
+              extern_src ~filename:item.Scan.file_name ~name ~ext ~missing
+            in
+            Seq.cons (src, ext) srcs, missing)
+          src_extensions (Seq.empty, [])
+      in
+      (* FIXME: this message is needed, but has to be printed once we know
+       * the backends that are active for it (depending on the targets defined
+       * in clerk.toml and the whole dependency graph)
+       *  if missing <> [] then
+       *   let modname, pos =
+       *     Option.get item.Scan.module_def
+       *   in
+       *   Message.error
+       *     ~pos
+       *     "@[<v>@[<hov>Module @{<blue>%s@} is marked as external,@ but@ the@ \
+       *      following@ files@ are@ missing:@ %a@]@,\
+       *      @,\
+       *      @[<hov 2>@{<bold>Hint:@} to generate a template, you can use:@ \
+       *      @{<magenta>catala %s --gen-external %s@}@]@]"
+       *     modname
+       *     (Format.pp_print_list
+       *        ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+       *        File.format)
+       *     missing name item.Scan.file_name
+       * else *)
+      Seq.map
+        (fun (src, ext) ->
+          let output =
+            if item.is_stdlib then
+              (!Var.tdir / name / stdlib_subdir / !Var.dst) -.- ext
+            else (!Var.tdir / name / !Var.dst) -.- ext
+          in
+          Ninja_utils.build "copy" ~implicit_in:[catala_src] ~inputs:[src]
+            ~outputs:[output])
+        srcs
+  end
+
+  let () = register (module Backend)
+
+  include Backend
+end

@@ -21,7 +21,7 @@ module Nj = Ninja_utils
 module Cli = Clerk_cli
 module Var = Clerk_utils.Var
 module Config = Clerk_config
-module OCaml = Clerk_backends.Ocaml
+module OCaml = Clerk_backends.OCaml
 
 (* - Utility functions - *)
 
@@ -34,7 +34,8 @@ let backend_src_extensions () =
 
 let backend_obj_extensions () =
   List.map
-    (fun (module B : Clerk_backends.S) -> B.config_backend, B.obj_extensions)
+    (fun (module B : Clerk_backends.S) ->
+      B.config_backend, B.all_obj_extensions)
     (Clerk_backends.all ())
 
 let backend_extensions () =
@@ -44,7 +45,7 @@ let backend_extensions () =
     (backend_src_extensions ())
 
 let extensions_backend () =
-  ("cmxa", Clerk_backends.Ocaml.T)
+  ("cmxa", Clerk_backends.OCaml.T)
   :: List.flatten
        (List.map
           (fun (bk, exts) -> List.map (fun e -> e, bk) exts)
@@ -72,7 +73,7 @@ let backend_subdir bk = List.assoc bk (backend_subdir_list ())
 let rule_subdir rule = backend_subdir rule.Config.backend
 
 let backend_to_config = function
-  | `Interpret | `OCaml -> Clerk_backends.Ocaml.T
+  | `Interpret | `OCaml -> Clerk_backends.OCaml.T
   | `C -> Clerk_backends.C.T
   | `Python -> Clerk_backends.Python.T
   | `Java -> Clerk_backends.Java.T
@@ -90,7 +91,7 @@ let linking_command ~build_dir ~backend ~info item target =
   in
   match backend with
   | `OCaml ->
-    Clerk_backends.Ocaml.linking_command ~build_dir ~var_bindings link_deps item
+    Clerk_backends.OCaml.linking_command ~build_dir ~var_bindings link_deps item
       target
   | `C ->
     Clerk_backends.C.linking_command ~build_dir ~var_bindings link_deps item
@@ -120,9 +121,9 @@ let linking_command ~build_dir ~backend ~info item target =
     @@ List.map
          (fun s ->
            if String.length s > 1 && s.[0] = '$' && s.[1] <> '{' then
-             Var.get_var var_bindings
+             Var.get var_bindings
                (Var.make (String.sub s 1 (String.length s - 1)))
-           else [Var.expand_vars var_bindings s])
+           else [Var.expand var_bindings s])
          rule.Config.commandline
 
 let backend_from_arg config ~enabled_backends t =
@@ -173,17 +174,21 @@ let backend_from_arg config ~enabled_backends t =
       disambiguate_using_subdir t
         (List.filter
            (function
-             | Clerk_backends.Ocaml.T | Clerk_backends.C.T -> true | _ -> false)
+             | Clerk_backends.OCaml.T | Clerk_backends.C.T -> true | _ -> false)
            enabled_backends)
         ext)
   | ext -> aux ext
 
 let config_backend = function
-  | Clerk_backends.Ocaml.T -> `OCaml
+  | Clerk_backends.OCaml.T -> `OCaml
   | Clerk_backends.C.T -> `C
   | Clerk_backends.Python.T -> `Python
   | Clerk_backends.Java.T -> `Java
   | _ -> invalid_arg __FUNCTION__
+
+let obj_target ~build_dir:_ ~backend item =
+  let name = Clerk_backends.(name (get (backend_to_config backend))) in
+  Clerk_backends.obj_dep ~name item
 
 let make_target ~build_dir ~backend item =
   let open File in
@@ -226,7 +231,7 @@ let setup_report_format ?fix_path verbosity diff_command coverage =
 
 let run_artifact config ~backend ~var_bindings ?scope ?quiet ~test ~trace src =
   match backend with
-  | `OCaml -> Clerk_backends.Ocaml.run_artifact ~test ~trace ?scope ?quiet src
+  | `OCaml -> Clerk_backends.OCaml.run_artifact ~test ~trace ?scope ?quiet src
   | `C -> Clerk_backends.C.run_artifact ~test ?scope ?quiet src
   | `Python ->
     Clerk_backends.Python.run_artifact config ~test ?scope ?quiet ~var_bindings
@@ -437,6 +442,14 @@ let module_backends info backends modname =
       (fun bk -> List.mem (backend_to_config bk) target_backends)
       backends
 
+let item_backends info backends item =
+  match item.Scan.module_def with
+  | Some (m, _) -> module_backends info backends m
+  | None ->
+    List.fold_left
+      (fun backends (m, _) -> module_backends info backends m)
+      backends item.Scan.used_modules
+
 (* Note: these are the prerequisites for running that are built by ninja: the
    linking and execution are done further below, directly by Clerk *)
 let ninja_build_targets
@@ -451,45 +464,37 @@ let ninja_build_targets
   (* This function is only concerned with the built artifacts *)
   let build_dir = config.Cli.options.global.build_dir in
   let item_exec_target ?backends:explicit_backends it =
-    let is_in_include () =
-      (* deprecate this ? *)
-      List.mem
-        (File.dirname it.Scan.file_name)
-        config.Clerk_cli.options.global.include_dirs
-    in
     let backends =
       match explicit_backends with
       | Some bks -> bks
-      | None -> (
-        match it.Scan.module_def with
-        | Some (m, _) -> module_backends info backends m
-        | None -> backends)
+      | None -> item_backends info backends it
     in
     let backends_full =
       if exec_targets && autotest then `OCaml :: backends else backends
     in
     List.concat_map
       (fun backend ->
-        let t =
-          match it.Scan.module_def with
-          | Some (m, _) when is_in_include () ->
-            Printf.sprintf "%s@%s-module" m
-              Clerk_backends.(name (get (backend_to_config backend)))
-          | _ -> make_target ~build_dir ~backend it
-        in
-        if exec_targets && List.mem backend backends then
-          match backend with
-          | `OCaml | `C ->
-            let t1 = make_target ~build_dir ~backend it in
-            [t; File.(remove_extension t1 ^ ("+main" -.- extension t1))]
-          | _ -> [t]
-        else [t])
+        if List.mem backend backends then
+          if exec_targets then
+            let t = obj_target ~build_dir ~backend it in
+            (* builds all the obj deps transitively *)
+            match backend with
+            | `OCaml | `C ->
+              let t1 = make_target ~build_dir ~backend it in
+              [t; File.(remove_extension t1 ^ ("+main" -.- extension t1))]
+            | _ -> [t]
+          else [make_target ~build_dir ~backend it]
+            (* builds only the individual object *)
+        else [])
       backends_full
   in
   let runtimes =
     List.map
       (fun bk ->
-        "@runtime-" ^ Clerk_backends.(name (get (backend_to_config bk))))
+        "@"
+        ^ Clerk_backends.(name (get (backend_to_config bk)))
+        ^ "/runtime/"
+        ^ if exec_targets then "obj" else "src")
       backends
   in
   let from_clerk_targets =
@@ -538,7 +543,7 @@ let ninja_build_targets
         List.concat_map
           (fun it ->
             if Lazy.force it.Scan.has_scope_tests = 0 then []
-            else item_exec_target ~backends it)
+            else item_exec_target it)
           items)
       directories
   in
@@ -578,10 +583,7 @@ let test_exec_targets
     let backends =
       match explicit_backends with
       | Some bks -> bks
-      | None -> (
-        match it.Scan.module_def with
-        | Some (m, _) -> module_backends info backends m
-        | None -> backends)
+      | None -> item_backends info backends it
     in
     List.map
       (fun backend ->
@@ -781,8 +783,9 @@ let run_targets
   let print_status fmt =
     if show_progress then
       Printf.fprintf stdout (fmt ^^ "\r\x1b[?25l%!\x1b[?25h\x1b[K")
-    (* Print message, return to beginning of line, flush, then clear line but without
-       flushing it yet; the ?25 codes are for hiding and showing back the cursor *)
+    (* Print message, return to beginning of line, flush, then clear line but
+       without flushing it yet; the ?25 codes are for hiding and showing back
+       the cursor *)
       else Printf.ifprintf stdout fmt
   in
   print_status "%s" progress_pfx;
@@ -833,7 +836,7 @@ let run_targets
              single target."
       in
       let catala_flags =
-        Var.get_var info.Clerk_rules.var_bindings Var.catala_flags
+        Var.get info.Clerk_rules.var_bindings Var.catala_flags
         @ (match scope with
           | None -> []
           | Some scope -> [Printf.sprintf "--scope=%s" scope])
@@ -845,7 +848,7 @@ let run_targets
             ])
         @ if whole_program then ["--whole-program"] else []
       in
-      let exec = Var.get_var info.Clerk_rules.var_bindings Var.catala_exe in
+      let exec = Var.get info.Clerk_rules.var_bindings Var.catala_exe in
       let cmd = exec @ [cmd; target] @ catala_flags in
       msg target;
       Message.debug "Running command: '%s'..." (String.concat " " cmd);
@@ -1069,8 +1072,10 @@ let run_cmd =
       set_ninja_targets nin_ppf ninja_targets;
       targets, items, info
     in
-    Message.result "@[<v 4>Build successful@]";
-    if prepare_only then Cmd.Exit.ok
+    target_debug_message targets;
+    if prepare_only then (
+      Message.result "@[<v 4>Build successful@]";
+      Cmd.Exit.ok)
     else
       let exec_targets = test_exec_targets config backends items info targets in
       let results =
@@ -1186,7 +1191,7 @@ let typecheck_cmd =
                     if
                       it.is_stdlib
                       || List.mem dir config.options.global.include_dirs
-                    then Mark.remove mdef ^ "@src"
+                    then "@src/" ^ String.to_id (Mark.remove mdef)
                     else src
                   | None -> it.file_name)
                 target_items
@@ -1196,8 +1201,8 @@ let typecheck_cmd =
     with
     | exception Nothing_to_do -> Message.error "Nothing to typecheck."
     | target_items, var_bindings ->
-      let catala_flags = Var.get_var var_bindings Var.catala_flags in
-      let exec = Var.get_var var_bindings Var.catala_exe in
+      let catala_flags = Var.get var_bindings Var.catala_flags in
+      let exec = Var.get var_bindings Var.catala_exe in
       let ret =
         List.filter_map
           (fun it ->
@@ -1313,7 +1318,11 @@ let test_cmd =
             target_args
       in
       target_debug_message targets;
-      let test_targets = ninja_interp_test_targets config targets in
+      let test_targets =
+        if List.mem `Interpret backends then
+          ninja_interp_test_targets config targets
+        else []
+      in
       let ninja_targets =
         if enable_backend_tests then
           ninja_build_targets ~exec_targets:true config ~autotest:true backends
@@ -1457,11 +1466,11 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
   let default =
     List.fold_left
       (fun default_rules (module B : Clerk_backends.S) ->
-        let rule_stdlib_fr = Format.sprintf "Stdlib_fr@%s-module" B.name in
-        let rule_stdlib_en = Format.sprintf "Stdlib_en@%s-module" B.name in
-        let runtime_rule = Format.sprintf "@runtime-%s" B.name in
-        runtime_rule :: rule_stdlib_fr :: rule_stdlib_en :: default_rules)
-      ["Stdlib_fr@src"; "Stdlib_en@src"]
+        ("@" ^ B.name ^ "/runtime/src")
+        :: Clerk_backends.module_dep ~name:B.name "Stdlib_fr"
+        :: Clerk_backends.module_dep ~name:B.name "Stdlib_en"
+        :: default_rules)
+      ["@src/Stdlib_fr"; "@src/Stdlib_en"]
       enabled_backends
   in
   Clerk_rules.run_ninja ~include_dir:false ~code_coverage:false ~quiet
@@ -1634,8 +1643,8 @@ let json_schema_cmd =
       Clerk_rules.base_bindings ~autotest:false ~code_coverage:false ~trace:None
         ~trace_format:None ~enabled_backends:[] ~config ~inplace:true
     in
-    let catala_exe = Var.get_var var_bindings Var.catala_exe in
-    let catala_flags = Var.get_var var_bindings Var.catala_flags in
+    let catala_exe = Var.get var_bindings Var.catala_exe in
+    let catala_flags = Var.get var_bindings Var.catala_flags in
     let cmd =
       catala_exe @ ["json-schema"; file; "--scope"; scope] @ catala_flags
     in
@@ -1662,8 +1671,8 @@ let exceptions_cmd =
       Clerk_rules.base_bindings ~autotest:false ~code_coverage:false ~trace:None
         ~trace_format:None ~enabled_backends:[] ~config ~inplace:true
     in
-    let catala_exe = Var.get_var var_bindings Var.catala_exe in
-    let catala_flags = Var.get_var var_bindings Var.catala_flags in
+    let catala_exe = Var.get var_bindings Var.catala_exe in
+    let catala_flags = Var.get var_bindings Var.catala_flags in
     let cmd =
       catala_exe
       @ ["exceptions"; file; "--scope"; scope; "--variable"; variable]

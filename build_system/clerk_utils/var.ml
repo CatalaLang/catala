@@ -56,7 +56,12 @@ let cat_files = make "cat_files" (* Useful on Windows only *)
 
 (* let scope = make "scope" *)
 let test_id = make "test-id"
-let ( ! ) = Ninja_utils.Var.v
+
+module Op = struct
+  let ( ! ) = Ninja_utils.Var.v
+end
+
+include Op
 
 let re_var =
   let open Re in
@@ -64,7 +69,7 @@ let re_var =
 
 type bindings = (t * string list) list
 
-let rec get_var =
+let rec get =
   (* replaces ${var} with its value, recursively *)
   let re_single_var = Re.(compile (whole_string re_var)) in
   fun var_bindings v ->
@@ -75,18 +80,18 @@ let rec get_var =
           "Clerk configuration error: variable @{<blue;bold>$%s@} is undefined"
           (name v)
     in
-    let get_var = get_var (List.remove_assoc v var_bindings) in
+    let get_var = get (List.remove_assoc v var_bindings) in
     List.concat_map
       (fun s ->
         match Re.exec_opt re_single_var s with
         | Some g -> get_var (make (Re.Group.get g 1))
-        | None -> [expand_vars var_bindings s])
+        | None -> [expand var_bindings s])
       s
 
-and expand_vars =
+and expand =
   let re_var = Re.(compile re_var) in
   fun var_bindings s ->
     Re.replace ~all:true re_var
       ~f:(fun g ->
-        String.concat " " (get_var var_bindings (make (Re.Group.get g 1))))
+        String.concat " " (get var_bindings (make (Re.Group.get g 1))))
       s

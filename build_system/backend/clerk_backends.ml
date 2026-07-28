@@ -15,8 +15,10 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+let default_flags = Flags.default
+
 include Common
-module Ocaml = Ocaml
+module OCaml = Ocaml
 module C = C
 module Java = Java
 module Python = Python

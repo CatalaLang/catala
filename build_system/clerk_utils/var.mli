@@ -54,11 +54,15 @@ val test_id : t
 
 type bindings = (t * string list) list
 
-val ( ! ) : t -> string
-(** Run-time reference to the given variable [!var = "${xvarname}"] *)
-
-val get_var : bindings -> t -> string list
+val get : bindings -> t -> string list
 (** replaces [${xvar}] with its value, recursively *)
 
-val expand_vars : bindings -> string -> string
+val expand : bindings -> string -> string
 (** expands [${xvar}] references in the given string *)
+
+module Op : sig
+  val ( ! ) : t -> string
+  (** Run-time reference to the given variable [!var = "${xvarname}"] *)
+end
+
+include module type of Op

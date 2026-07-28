@@ -33,14 +33,14 @@ let base_bindings
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
   let default_flags =
-    Clerk_backends.Flags.default ~code_coverage ~trace ~trace_format ~inplace
+    Clerk_backends.default_flags ~code_coverage ~trace ~trace_format ~inplace
       ~config
   in
   let backend_flags =
     List.concat_map
       (fun bk ->
         let module Backend : Clerk_backends.S = (val Clerk_backends.get bk) in
-        Backend.Flags.default ~variables:options.variables ~autotest
+        Backend.var_defs ~variables:options.variables ~autotest
           ~use_default_flags ~test_flags
           ~include_dirs:options.global.include_dirs)
       enabled_backends
@@ -67,10 +67,10 @@ let static_base_rules ~tests enabled_backends =
   in
   let backend_static_rules =
     List.concat_map
-      (fun (module Backend : Clerk_backends.S) -> Backend.static_base_rules)
+      (fun (module Backend : Clerk_backends.S) -> Backend.rules)
       enabled_backends
   in
-  Clerk_backends.Ninja.static_base_rules @ backend_static_rules @ test_rules
+  Clerk_backends.static_base_rules @ backend_static_rules @ test_rules
 
 let gen_build_statements
     (include_dirs : string list)
@@ -91,9 +91,6 @@ let gen_build_statements
     ]
   in
   let modules = List.rev_map Mark.remove item.used_modules in
-  let module_target x =
-    Ninja.modfile ~backend:"ocaml" same_dir_modules "@ocaml-module" x
-  in
   let catala_src = !Var.tdir / !Var.src in
   let include_deps =
     Nj.build "copy"
@@ -107,18 +104,9 @@ let gen_build_statements
         @ List.map
             (fun m ->
               try !Var.tdir / basename (List.assoc m same_dir_modules)
-              with Not_found -> m ^ "@src")
+              with Not_found -> "@src" / String.to_id m)
             modules)
       ~outputs:[catala_src]
-  in
-  let module_deps =
-    match item.module_def with
-    | None -> []
-    | Some _ ->
-      List.concat_map
-        (fun (module Backend : Clerk_backends.S) ->
-          Backend.expose_module ~same_dir_modules ~used_modules:modules)
-        enabled_backends
   in
   let has_scope_tests = Lazy.force item.has_scope_tests > 0 in
   let backend_sources =
@@ -132,7 +120,9 @@ let gen_build_statements
         (* autotest requires interpretation at compile-time, which makes use of
            the dependent OCaml modules (cmxs) *)
         !Var.catala_exe
-        :: (if autotest then List.map module_target modules else [])
+        ::
+        (if autotest then List.map Clerk_backends.catala_obj_target modules
+         else [])
       in
       let vars =
         if is_stdlib then
@@ -141,52 +131,51 @@ let gen_build_statements
       in
       List.map
         (fun (module Backend : Clerk_backends.S) ->
-          Backend.catala ?vars ~is_stdlib ~inputs ~implicit_in has_scope_tests)
+          Backend.catala ?vars ~is_stdlib ~inputs ~implicit_in ~has_scope_tests)
         enabled_backends
   in
   let backend_objects =
     List.map
       (fun (module Backend : Clerk_backends.S) ->
-        Backend.build_object ~include_dirs ~same_dir_modules ~item
-          has_scope_tests)
+        Backend.build_object ~include_dirs ~same_dir_modules item)
       enabled_backends
   in
-  let expose_module =
-    (* Note: these rules define global (top-level) aliases for module targets of
-       modules that are in include-dirs, so that Ninja can find them from
-       wherever; they are only in implicit-in, because once they are built the
-       compilers will find them independently through their '-I' arguments.
-
-       This works but it might make things simpler to resolve these aliases at
-       the Clerk level ; this would force an initial scan of the included dirs
-       but then we could use the already resolved target files directly and get
-       rid of these aliases. *)
-    match item.module_def with
-    | Some m when item.is_stdlib || List.mem dir include_dirs ->
-      let modname = Mark.remove m in
-      let backends_module =
-        List.map
-          (fun (module Backend : Clerk_backends.S) ->
-            Nj.build "phony"
-              ~outputs:[Format.sprintf "%s@%s-module" !Var.dst Backend.name]
-              ~inputs:
+  let phony_targets =
+    (match item.module_def with
+      | Some _ ->
+        [Nj.build "phony" ~outputs:["@src/" ^ !Var.dst] ~inputs:[catala_src]]
+      | None -> [])
+    @ List.concat_map
+        (fun (module Backend : Clerk_backends.S) ->
+          let interface_alias =
+            match item.module_def with
+            | Some _ ->
+              [
+                Ninja_utils.build "phony"
+                  ~inputs:
+                    (List.map
+                       (Backend.current_target item)
+                       Backend.module_extensions)
+                  ~outputs:["@" ^ Backend.name ^ "/interface/" ^ !Var.dst];
+              ]
+            | None -> []
+          in
+          let obj_alias =
+            Ninja_utils.build "phony"
+              ~inputs:[Backend.current_target item Backend.obj_extension]
+              ~implicit_in:
+                (List.map
+                   (fun (m, _) -> "@" ^ Backend.name ^ "/obj/" ^ String.to_id m)
+                   item.used_modules)
+              ~outputs:
                 [
-                  Backend.modfile ~is_stdlib same_dir_modules Backend.module_ext
-                    modname;
-                ])
-          enabled_backends
-      in
-      Nj.build "phony" ~outputs:[!Var.dst ^ "@src"] ~inputs:[catala_src]
-      :: Nj.build "phony"
-           ~outputs:[!Var.dst ^ "@module"]
-           ~inputs:
-             (List.map
-                (fun bk ->
-                  Format.sprintf "%s@%s-module" !Var.dst
-                    (Clerk_backends.name bk))
-                enabled_backends)
-      :: backends_module
-    | _ -> []
+                  (match item.module_def with
+                  | Some _ -> "@" ^ Backend.name ^ "/obj/" ^ !Var.dst
+                  | None -> Clerk_backends.obj_dep ~name:Backend.name item);
+                ]
+          in
+          interface_alias @ [obj_alias])
+        enabled_backends
   in
   let tests_rules =
     if not (item.has_inline_tests || Lazy.force item.has_scope_tests > 0) then
@@ -195,11 +184,7 @@ let gen_build_statements
       [
         Nj.build "tests" ~inputs:[catala_src]
           ~implicit_in:
-            (!Var.clerk_exe
-            :: List.map
-                 (Ninja.modfile ~backend:"ocaml" same_dir_modules
-                    "@ocaml-module")
-                 modules)
+            (!Var.clerk_exe :: List.map Clerk_backends.catala_obj_target modules)
           ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"];
       ]
   in
@@ -211,8 +196,7 @@ let gen_build_statements
       Seq.return (Nj.comment "");
       List.to_seq def_vars;
       Seq.return include_deps;
-      List.to_seq expose_module;
-      List.to_seq module_deps;
+      List.to_seq phony_targets;
     ]
     @ if tests then [List.to_seq tests_rules] else []
   in
@@ -304,7 +288,7 @@ let runtime_build_statements ~config enabled_backends =
   let options = config.Clerk_lib.Clerk_cli.options in
   List.concat_map
     (fun (module Backend : Clerk_backends.S) ->
-      Backend.runtime_build_statements ~options ~stdbase)
+      Backend.build_runtime ~options ~stdbase)
     enabled_backends
 
 let output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings =

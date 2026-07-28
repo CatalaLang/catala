@@ -15,37 +15,50 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Clerk_utils
 open Clerk_lib
 
 module type S = Sig.S
 
-module Flags : sig
-  val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
-  val includes : ?backend:string -> string list -> string list
-  val include_flags : backend:string -> string list -> string list
+type t = (module S)
 
-  val catala_backend_flags :
-    autotest:bool ->
-    use_default_flags:bool ->
-    test_flags:string list ->
-    accepts_closure_conversion:bool ->
-    string list
+(** Functions useful for the backend rules definitions. [~name] is for the
+    backend name here, for convenience *)
 
-  val default :
-    code_coverage:bool ->
-    trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] option ->
-    trace_format:Catala_utils.Global.format_enum option ->
-    inplace:bool ->
-    config:Clerk_cli.config ->
-    (Var.t * string list) list
-end
+val static_base_rules : Ninja_utils.def list
 
-module Ninja : sig
-  val static_base_rules : Ninja_utils.def list
-end
+val extern_src :
+  filename:string ->
+  name:string ->
+  ext:string ->
+  missing:string list ->
+  string * string list
+(** The [missing] argument is simply an accumulator, returned as snd with any
+    missing files added *)
 
-type t = (module Sig.S)
+(** We use 3 types of pseudo-targets for compiled objets. The <modname> below is
+    the normalised module name (using String.to_id)
+    - <modname>@catala-obj ([catala_obj_target]) is what is needed for Catala
+      evaluation (an OCaml cmxs)
+    - <modname>@<backend>-module ([module_target]) is the possibly compiled
+      interface that dependent modules will need to be compiled (e,g, .h, .cmi)
+    - <modname>@<backend>-obj or <filename>@<backend-obj> ([obj_target]) is the
+      compiled object for linking, including all its dependencies. This allows
+      transitive compilation of required objects before linking *)
+
+val catala_obj_target : string -> string
+(** From a module name, gives the pseudo-target that builds the Catala object
+    required for interpretation (i.e. actually the OCaml dynlink object, .cmxs
+    or .cmo) *)
+
+val target : ?name:string -> string -> string
+
+val module_dep : name:string -> string -> string
+(** backend name, module name -> target name *)
+
+val obj_dep : name:string -> Clerk_utils.Scan.item -> string
+(** backend name, source item -> target name *)
+
+module Make_backend : functor (A : Sig.Spec) -> Sig.S
 
 val register : t -> unit
 val get : Clerk_config.backend -> t

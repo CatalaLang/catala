@@ -15,23 +15,24 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
+open Clerk_utils
+open Clerk_lib
 
-val extern_src :
-  filename:string ->
-  backend:string ->
-  ext:string ->
-  missing:string list ->
-  string * string list
+val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
+val includes : ?name:string -> string list -> string list
+val include_flags : name:string -> string list -> string list
 
-val check_missing :
-  backend:string ->
-  module_def:string Mark.pos option ->
-  missing:string list ->
-  filename:string ->
-  unit
+val catala_backend_flags :
+  autotest:bool ->
+  use_default_flags:bool ->
+  test_flags:string list ->
+  accepts_closure_conversion:bool ->
+  string list
 
-val target : ?backend:string -> string -> string
-
-val modfile :
-  backend:string -> (string * string) list -> string -> string -> string
+val default :
+  code_coverage:bool ->
+  trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] option ->
+  trace_format:Catala_utils.Global.format_enum option ->
+  inplace:bool ->
+  config:Clerk_cli.config ->
+  (Var.t * string list) list

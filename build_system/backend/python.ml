@@ -19,8 +19,6 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
-type Clerk_config.backend += T
-
 let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
 let python = Var.make "PYTHON"
 
@@ -49,7 +47,7 @@ let run_artifact config ~test ?scope ~var_bindings ?quiet src =
   let build_dir = config.Clerk_cli.options.global.build_dir in
   let cmd =
     let base = Filename.basename (File.remove_extension src) in
-    Var.get_var var_bindings python
+    Var.get var_bindings python
     @ ["-m"; base ^ "." ^ base]
     @ Option.to_list scope
     @ (if test && not Global.options.debug then ["--test"] else [])
@@ -67,38 +65,32 @@ let run_artifact config ~test ?scope ~var_bindings ?quiet src =
     (String.concat " " cmd);
   Clerk_cli.run_command_line ~setenv:["PYTHONPATH", pythonpath] ?quiet cmd
 
-module Backend : Sig.S = struct
+module Spec : Sig.Spec = struct
   open Var
   open File
   module Nj = Ninja_utils
 
   let name = "python"
-  let config_backend = T
-  let () = Clerk_lib.Clerk_config.register_backend ~name config_backend
-  let module_ext = ".py"
   let src_extensions = ["py"]
-  let obj_extensions = []
-  let runtime_targets ~only_source:_ = ["@runtime-" ^ name]
+  let module_extensions = ["py"]
+  let obj_extension = "py"
+  let all_obj_extensions = ["py"]
+  let stdlib_subdir = "."
 
-  module Flags = struct
-    let default
-        ~variables
-        ~autotest
-        ~use_default_flags
-        ~test_flags
-        ~include_dirs:_ =
-      let catala_flags =
-        Common.Flags.catala_backend_flags ~autotest ~use_default_flags
-          ~test_flags ~accepts_closure_conversion:true
-      in
-      let def = Common.Flags.def ~variables in
-      [
-        def catala_flags_python (lazy catala_flags);
-        def python (lazy ["python3"]);
-      ]
-  end
+  let var_defs
+      ~variables
+      ~autotest
+      ~use_default_flags
+      ~test_flags
+      ~include_dirs:_ =
+    let catala_flags =
+      Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
+        ~accepts_closure_conversion:true
+    in
+    let def = Flags.def ~variables in
+    [def catala_flags_python (lazy catala_flags); def python (lazy ["python3"])]
 
-  let[@ocamlformat "disable"] static_base_rules =
+  let[@ocamlformat "disable"] rules =
     [
       Nj.rule "catala-python"
         ~command:[!catala_exe; name; !catala_flags; !catala_flags_python;
@@ -106,28 +98,14 @@ module Backend : Sig.S = struct
         ~description:["<catala>"; name; "⇒"; !output];
     ]
 
-  let external_copy item =
-    let catala_src = !Var.tdir / !Var.src in
-    let py, _missing =
-      Ninja.extern_src ~filename:item.Scan.file_name ~backend:name ~ext:"py"
-        ~missing:[]
-    in
-    List.to_seq
-      [
-        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[py]
-          ~outputs:[Ninja.target ~backend:name "py"];
-      ]
-
-  let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
-
-  let runtime_build_statements ~options:_ ~stdbase =
+  let build_runtime ~options:_ ~stdbase =
     let python_base = stdbase / name / "catala_runtime" in
     let python_src = Var.(!runtime) / name / "src" / "catala" in
     [
       Nj.build "phony"
         ~inputs:
           [python_base -.- "py"; python_base /../ "dates.py"; Var.(!catala_exe)]
-        ~outputs:["@runtime-" ^ name];
+        ~outputs:["@python/runtime/src"; "@python/runtime/obj"];
       Nj.build "copy"
         ~inputs:[python_src / "dates.py"]
         ~outputs:[python_base /../ "dates.py"];
@@ -136,19 +114,15 @@ module Backend : Sig.S = struct
         ~outputs:[python_base -.- "py"];
     ]
 
-  let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in _has_scope_tests =
+  let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in ~has_scope_tests:_ =
     Seq.return
       (Nj.build "catala-python" ?vars ~inputs ~implicit_in
-         ~outputs:[Ninja.target ~backend:name "py"])
+         ~outputs:[Common.target ~name "py"])
 
-  let build_object ~include_dirs:_ ~same_dir_modules:_ ~item:_ _has_scope_tests
-      =
-    Seq.empty
-
-  let expose_module ~same_dir_modules:_ ~used_modules:_ = []
+  let build_object ~include_dirs:_ ~same_dir_modules:_ _ = Seq.empty
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name / "src" / "catala")
 end
 
-let () = Common.register (module Backend)
+include Common.Make_backend (Spec)
