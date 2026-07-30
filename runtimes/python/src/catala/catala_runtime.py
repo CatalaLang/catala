@@ -160,10 +160,10 @@ class SourcePosition(Value):
         )
 
 class CatalaError(Exception):
-    __slots__ = ( 'name', 'message', 'source_positions', 'note' )
+    __slots__ = ( 'source_positions', 'note' )
 
-    name: str
-    message: str
+    name: ClassVar[str]
+    message: ClassVar[str]
     source_positions: List[SourcePosition]
     note: str | None
 
@@ -183,39 +183,39 @@ class CatalaError(Exception):
             "" if self.note is None else (". " + self.note))
 
 class AssertionFailed(CatalaError):
-    name = "AssertionFailed"
+    name = __name__
     message = "this assertion doesn't hold"
 
 class NoValue(CatalaError):
-    name = "NoValue"
+    name = __name__
     message = "no computation with valid conditions found"
 
 class Conflict(CatalaError):
-    name = "Conflict"
+    name = __name__
     message = "two or more concurring valid computations"
 
 class DivisionByZero(CatalaError):
-    name = "DivisionByZero"
+    name = __name__
     message = "division by zero"
 
 class ListEmpty(CatalaError):
-    name = "ListEmpty"
+    name = __name__
     message = "the list was empty"
 
 class NotSameLength(CatalaError):
-    name = "NotSameLength"
+    name = __name__
     message = "traversing multiple lists of different lengths"
 
 class UncomparableValues(CatalaError):
-    name = "UncomparableValues"
+    name = __name__
     message = "comparison of values of these types is not supported"
 
 class DateError(CatalaError):
-    name = "DateError"
+    name = __name__
     message = "Date error"
 
 class Impossible(CatalaError):
-    name = "Impossible"
+    name = __name__
     message = '"impossible" computation reached'
 
 
@@ -874,11 +874,7 @@ dead_value: Any = 0
 
 
 class TraceKind:
-    __slots__ = "kind"
-    kind: str
-
-    def __init__(self, kind: str) -> None:
-        self.kind = kind
+    kind: ClassVar[str]
 
     def to_json_kind(self, json_payload: str | None = None) -> str:
         if json_payload is None:
@@ -906,8 +902,9 @@ class ScopeCall(TraceKind):
     __slots__ = "var_def"
     var_def: TraceVarDef
 
+    kind = "scope_call"
+
     def __init__(self, var_name: str, decl_pos: SourcePosition) -> None:
-        super().__init__("scope_call")
         self.var_def = TraceVarDef(var_name, decl_pos)
 
     def to_json(self) -> str:
@@ -926,10 +923,11 @@ class ScopeVarDef(TraceKind):
     io_input: Input
     output: Bool
 
+    kind = "scope_var"
+
     def __init__(
         self, var_name: str, decl_pos: SourcePosition, io_input: Input, output: Bool
     ) -> None:
-        super().__init__("scope_var")
         self.var_def = TraceVarDef(var_name, decl_pos)
         self.io_input = io_input
         self.output = output
@@ -946,8 +944,9 @@ class LocalVarDef(TraceKind):
     __slots__ = "name"
     name: str
 
+    kind = "local_var"
+
     def __init__(self, name: str) -> None:
-        super().__init__("local_var")
         self.name = name
 
     def to_json(self) -> str:
@@ -958,8 +957,9 @@ class LocalTupDef(TraceKind):
     __slots__ = "names"
     names: List[str]
 
+    kind = "local_tup"
+
     def __init__(self, names: List[str]) -> None:
-        super().__init__("local_tup")
         self.names = names
 
     def to_json(self) -> str:
@@ -967,11 +967,12 @@ class LocalTupDef(TraceKind):
 
 
 class FunCall(TraceKind):
-    _slots__ = "var_def"
+    __slots__ = "var_def"
     var_def: TraceVarDef
 
+    kind = "function_call"
+
     def __init__(self, var_name: str, decl_pos: SourcePosition) -> None:
-        super().__init__("function_call")
         self.var_def = TraceVarDef(var_name, decl_pos)
 
     def to_json(self) -> str:
@@ -979,34 +980,38 @@ class FunCall(TraceKind):
 
 
 class BranchingCondition(TraceKind):
-    def __init__(self):
-        super().__init__("branch_condition")
+    __slots__ = ()
+
+    kind = "branch_condition"
 
     def to_json(self) -> str:
         return self.to_json_kind()
 
 
 class IfBranching(TraceKind):
-    def __init__(self):
-        super().__init__("if_branching")
+    __slots__ = ()
+
+    kind = "if_branching"
 
     def to_json(self) -> str:
         return self.to_json_kind()
 
 
 class Assertion(TraceKind):
-    def __init__(self):
-        super().__init__("assertion")
+    __slots__ = ()
+
+    kind = "assertion"
 
     def to_json(self) -> str:
         return self.to_json_kind()
 
 class MatchBranching(TraceKind):
-    _slots__ = "constr_name"
+    __slots____ = "constr_name"
     constr_name: str
 
+    kind = "match_branching"
+
     def __init__(self, constr_name: str) -> None:
-        super().__init__("match_branching")
         self.constr_name = constr_name
 
     def to_json(self) -> str:
@@ -1019,10 +1024,11 @@ class ExceptionTrace(TraceKind):
     label_pos: SourcePosition | None
     cons_pos: SourcePosition
 
+    kind = "exception"
+
     def __init__(
         self, label: str | None, label_pos: SourcePosition | None, cons_pos: SourcePosition
     ) -> None:
-        super().__init__("exception")
         self.label = label
         self.label_pos = label_pos
         self.cons_pos = cons_pos
@@ -1040,8 +1046,9 @@ class ErrorTrace(TraceKind):
     error: CatalaError
     related_pos: List[SourcePosition]
 
+    kind = "error"
+
     def __init__(self, error: CatalaError, related_pos : List[SourcePosition] = []) -> None:
-        super().__init__("error")
         self.error = error
         self.related_pos = related_pos
 
