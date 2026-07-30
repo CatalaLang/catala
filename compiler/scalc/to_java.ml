@@ -269,9 +269,10 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
         format_lit
         (Mark.copy l (LInt (Q.den i)))
   | LMoney e when Z.fits_int64 e ->
-    if Z.(rem e (of_int 100) = zero) then
+    let z_100 = Z.of_int 100 in
+    if Z.(rem e z_100 = zero) then
       fprintf ppf "new CatalaMoney(%s%s)"
-        Runtime.(integer_to_string (money_round e))
+        Runtime.(integer_to_string (Z.div e z_100))
         (if Z.fits_int32 e then "" else "l")
     else
       fprintf ppf "CatalaMoney.ofCents(%s%s)"
