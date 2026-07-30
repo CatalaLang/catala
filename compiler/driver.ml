@@ -1121,7 +1121,9 @@ module Commands = struct
       autotest
       closure_conversion
       split_threshold =
-    let options = disable_trace options in
+    let options =
+      if closure_conversion then disable_trace options else options
+    in
     let prg, type_ordering, _ren_ctx =
       Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
         ~autotest ~closure_conversion ~keep_special_ops:false

@@ -54,8 +54,8 @@ $ catala interpret -s T --trace -O
           │                               ‾‾
       ← Function abs_f applied: 42
 ← Exiting Scope T: T {
-                       -- result: 42
-                     }
+                     -- result: 42
+                   }
 ┌─[RESULT]─ T ─
 │ result = 42
 └─

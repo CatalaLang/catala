@@ -269,9 +269,10 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
         format_lit
         (Mark.copy l (LInt (Q.den i)))
   | LMoney e when Z.fits_int64 e ->
-    if Z.(rem e (of_int 100) = zero) then
+    let z_100 = Z.of_int 100 in
+    if Z.(rem e z_100 = zero) then
       fprintf ppf "new CatalaMoney(%s%s)"
-        Runtime.(integer_to_string (money_round e))
+        Runtime.(integer_to_string (Z.div e z_100))
         (if Z.fits_int32 e then "" else "l")
     else
       fprintf ppf "CatalaMoney.ofCents(%s%s)"
@@ -1031,7 +1032,8 @@ let format_tests ctx ppf p =
        fprintf ppf "try {@\n";
        (if Global.options.trace <> None then
           let scope_pos = Mark.get (ScopeName.get_info scope_name) in
-          format_begin_trace ctx ppf (ScopeCall scope_name, scope_pos));
+          fprintf ppf "%a@\n" (format_begin_trace ctx)
+            (ScopeCall scope_name, scope_pos));
        fprintf ppf "%a@\n" (format_block ~toplevel:true ctx) block;
        if Global.options.trace <> None then
          fprintf ppf "CatalaTrace.end(%s);@\n" (VarName.to_string var);
@@ -1041,8 +1043,8 @@ let format_tests ctx ppf p =
        pp_close_box ppf ();
        fprintf ppf
          "@\n\
-          } catch (RuntimeException e) { CatalaGlobals.displayError(\"%a\", \
-          e); } }"
+          } catch (RuntimeException e) { CatalaGlobals.displayError(\"%a\", e);@\n\
+          throw e; } }"
          ScopeName.format_original scope_name;
        pp_close_box ppf ()
      in

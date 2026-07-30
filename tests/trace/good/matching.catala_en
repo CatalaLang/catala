@@ -69,9 +69,9 @@ $ catala interpret -s T --trace -O
         │                                                         ‾
     ← Function proj applied: 2
 ← Exiting Scope T: T {
-                       -- r1: 0
-                       -- r2: 2
-                     }
+                     -- r1: 0
+                     -- r2: 2
+                   }
 ┌─[RESULT]─ T ─
 │ r1 = 0
 │ r2 = 2

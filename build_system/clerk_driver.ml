@@ -749,7 +749,8 @@ let run_artifact config ~backend ~var_bindings ?scope ~test ~(trace : bool) src
   | `OCaml -> Clerk_backends.Ocaml.run_artifact ~test ~trace ?scope src
   | `C -> Clerk_backends.C.run_artifact ~test ?scope src
   | `Python ->
-    Clerk_backends.Python.run_artifact config ~test ?scope ~var_bindings src
+    Clerk_backends.Python.run_artifact config ~trace ~test ?scope ~var_bindings
+      src
   | `Java ->
     Clerk_backends.Java.run_artifact ~var_bindings ~test ~trace ?scope src
 
