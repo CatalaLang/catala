@@ -1042,8 +1042,8 @@ let format_tests ctx ppf p =
        pp_close_box ppf ();
        fprintf ppf
          "@\n\
-          } catch (RuntimeException e) { CatalaGlobals.displayError(\"%a\", \
-          e); } }"
+          } catch (RuntimeException e) { CatalaGlobals.displayError(\"%a\", e);@\n\
+          throw e; } }"
          ScopeName.format_original scope_name;
        pp_close_box ppf ()
      in
