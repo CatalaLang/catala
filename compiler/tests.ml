@@ -162,6 +162,29 @@ let backends_format_pos =
     "OCaml", Lcalc.To_ocaml.format_pos;
   ]
 
+(* Same hazard in the trace the runtime emits: an unescaped backslash makes the
+   JSON unparseable, so the trace viewer rejects every Windows trace. *)
+
+let test_trace_json_escaping () =
+  let pos =
+    Catala_runtime.
+      {
+        filename = {|baremes\tests\N007.catala_fr|};
+        start_line = 1;
+        start_column = 2;
+        end_line = 3;
+        end_column = 4;
+        law_headings = [];
+      }
+  in
+  let json =
+    Catala_runtime.Json.trace
+      [{ kind = BranchingCondition; pos; value = None; sub_trace = [] }]
+  in
+  Alcotest.(check bool)
+    "trace escapes backslashes in the position filename" true
+    (contains ~sub:{|"file":"baremes\\tests\\N007.catala_fr"|} json)
+
 (* Thousands of '-C <dir> <file>' pairs overflow the Windows command-line limit,
    so clerk spills them to a jar argfile; backslash escapes there, so Windows
    paths must be forward-slashed and quoted for spaces. *)
@@ -226,6 +249,11 @@ let () =
             test_case (name ^ " escapes backslashes") `Quick (fun () ->
                 Alcotest.(check bool) name true (pos_escaped fmt_pos)))
           backends_format_pos );
+      ( "Runtime trace JSON escaping (Windows backslash)",
+        [
+          test_case "trace escapes a Windows path" `Quick
+            test_trace_json_escaping;
+        ] );
       ( "Java jar @argfile (command-line length + path escaping)",
         [
           test_case "argfile escapes a Windows path" `Quick

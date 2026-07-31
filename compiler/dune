@@ -21,6 +21,7 @@
   catala.clerk_backends
   catala.scalc
   catala.lcalc
+  catala.runtime_ocaml
   alcotest))
 
 (rule

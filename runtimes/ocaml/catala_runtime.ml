@@ -876,8 +876,9 @@ module BufferedJson = struct
 
   let code_location buf pos =
     Printf.bprintf buf
-      {|{"file":"%s","start":{"line":%d,"character":%d},"end":{"line":%d,"character":%d}|}
-      pos.filename pos.start_line pos.start_column pos.end_line pos.end_column;
+      {|{"file":%a,"start":{"line":%d,"character":%d},"end":{"line":%d,"character":%d}|}
+      quote pos.filename pos.start_line pos.start_column pos.end_line
+      pos.end_column;
     if pos.law_headings <> [] then
       Printf.bprintf buf {|,"law_headings":[%a]|} (list quote) pos.law_headings;
     Printf.bprintf buf "}"
