@@ -17,7 +17,6 @@
 
 open Clerk_utils
 open Catala_utils
-open Clerk_lib
 include Sig
 
 type t = (module Sig.S)
@@ -89,10 +88,10 @@ module Make_backend (A : Sig.Spec) : Sig.S = struct
   module Backend = struct
     include A
 
-    type Clerk_lib.Clerk_config.backend += T
+    type Clerk_config.backend += T
 
     let config_backend = T
-    let () = Clerk_lib.Clerk_config.register_backend ~name config_backend
+    let () = Clerk_config.register_backend ~name config_backend
 
     let current_target item ext =
       if item.Scan.is_stdlib then

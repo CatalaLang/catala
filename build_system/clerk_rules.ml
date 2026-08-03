@@ -285,7 +285,7 @@ let dir_test_rules dir subdirs items =
 let runtime_build_statements ~config enabled_backends =
   let open File in
   let stdbase = Var.(!builddir) / Scan.libcatala in
-  let options = config.Clerk_lib.Clerk_cli.options in
+  let options = config.Clerk_cli.options in
   List.concat_map
     (fun (module Backend : Clerk_backend.S) ->
       Backend.build_runtime ~options ~stdbase)

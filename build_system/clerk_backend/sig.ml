@@ -67,7 +67,7 @@ module type Spec = sig
   (** List of base Ninja rules needed by the backend *)
 
   val build_runtime :
-    options:Clerk_lib.Clerk_config.t -> stdbase:string -> Ninja_utils.def list
+    options:Clerk_config.t -> stdbase:string -> Ninja_utils.def list
   (** Returns a set of Ninja rules, in charge of building
       ["@<name>/runtime/src"] and ["@<name>/runtime/obj"] *)
 
@@ -103,9 +103,9 @@ end
 module type S = sig
   include Spec
 
-  type Clerk_lib.Clerk_config.backend += T
+  type Clerk_config.backend += T
 
-  val config_backend : Clerk_lib.Clerk_config.backend
+  val config_backend : Clerk_config.backend
 
   val current_target : Scan.item -> string -> string
   (** Returns the current target (in the Clerk file context) with the given

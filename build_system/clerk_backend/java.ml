@@ -91,7 +91,6 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
       runtime_class_files
 
 let run_artifact ~var_bindings ~test ?scope ?quiet src =
-  let open Clerk_lib in
   let target_main = File.remove_extension (Filename.basename src) in
   let cmd =
     Var.get var_bindings java
@@ -152,9 +151,7 @@ module Spec : Sig.Spec = struct
     let java_src = Var.(!runtime) / name in
     let runtime_orig =
       match
-        List.assoc_opt
-          Var.(name runtime)
-          options.Clerk_lib.Clerk_config.variables
+        List.assoc_opt Var.(name runtime) options.Clerk_config.variables
       with
       | Some r -> lazy (String.concat " " r)
       | None -> Poll.runtime_dir

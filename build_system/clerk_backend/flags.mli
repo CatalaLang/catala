@@ -16,7 +16,6 @@
    the License. *)
 
 open Clerk_utils
-open Clerk_lib
 
 val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
 val includes : ?name:string -> string list -> string list

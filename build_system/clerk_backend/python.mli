@@ -16,7 +16,6 @@
    the License. *)
 
 open Clerk_utils
-open Clerk_lib
 
 val linking_command :
   build_dir:string -> ('a -> Scan.item list) -> 'a -> string -> string list

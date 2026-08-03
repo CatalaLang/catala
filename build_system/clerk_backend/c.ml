@@ -17,7 +17,6 @@
 
 open Clerk_utils
 open Catala_utils
-open Clerk_lib
 
 let catala_flags_c = Var.make "CATALA_FLAGS_C"
 let cc_exe = Var.make "CC"

@@ -17,7 +17,6 @@
 
 open Clerk_utils
 open Catala_utils
-open Clerk_lib
 
 let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
 let python = Var.make "PYTHON"

@@ -15,8 +15,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Clerk_lib
-
 module type S = Sig.S
 
 type t = (module S)

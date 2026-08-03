@@ -17,7 +17,6 @@
 
 open Clerk_utils
 open Catala_utils
-open Clerk_lib
 
 let name = "ocaml"
 let catala_flags_ocaml = Var.make "CATALA_FLAGS_OCAML"

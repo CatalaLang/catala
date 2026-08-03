@@ -17,7 +17,6 @@
 
 open Clerk_utils
 open Catala_utils
-open Clerk_lib
 
 let def ~variables var value =
   let value =
