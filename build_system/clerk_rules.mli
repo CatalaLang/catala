@@ -61,6 +61,7 @@ val run_ninja :
   ?enabled_backends:Clerk_config.backend list ->
   quiet:bool ->
   default:'a ->
+  ?keep_going:bool ->
   code_coverage:bool ->
   ?trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] ->
   ?trace_format:Catala_utils.Global.format_enum ->

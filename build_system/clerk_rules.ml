@@ -395,6 +395,7 @@ let with_ninja_process
     ~ninja_flags
     ~quiet
     ~default
+    ?(keep_going = false)
     (callback : Format.formatter -> 'a) =
   let env = if clean_up_env then cleaned_up_env () else Unix.environment () in
   let fname =
@@ -433,15 +434,28 @@ let with_ninja_process
             out Unix.stderr)
     in
     let rec wait () =
+      if (not Global.options.debug) && Unix.isatty Unix.stdout then
+        Printf.fprintf stdout "Compiling...\r\x1b[?25l%!\x1b[?25h\x1b[K";
+      (* Print message, return to beginning of line, flush, then clear line but
+         without flushing it yet; the ?25 codes are for hiding and showing back
+         the cursor *)
       match Unix.waitpid [] npid with
-      | _, Unix.WEXITED n -> n
-      | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
+      | _, Unix.WEXITED n ->
+        flush stdout;
+        n
+      | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) ->
+        flush stdout;
+        128 - n
       | exception Unix.Unix_error (Unix.EINTR, _, _) -> wait ()
-      | exception Unix.Unix_error (Unix.ECHILD, _, _) -> 130
+      | exception Unix.Unix_error (Unix.ECHILD, _, _) ->
+        flush stdout;
+        130
     in
     ( npid,
       fun () ->
-        match wait () with 0 -> () | n -> raise (Catala_utils.Cli.Exit_with n) )
+        match wait () with
+        | 0 -> ()
+        | n -> if not keep_going then raise (Catala_utils.Cli.Exit_with n) )
   in
   match fname with
   | Some fname -> (
@@ -968,6 +982,7 @@ let run_ninja
     ?(enabled_backends = List.map snd (Clerk_config.registered_backends ()))
     ~quiet
     ~default
+    ?keep_going
     ~code_coverage
     ?trace
     ?trace_format
@@ -985,7 +1000,7 @@ let run_ninja
     List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
   in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet ~default
-    (fun nin_ppf ->
+    ?keep_going (fun nin_ppf ->
       (* Design note: the idea here is to write the ninja file as a stream while
          the directories are being crawled, with the ninja exec already
          consuming the end of the pipe in parallel. Therefore, refrain from

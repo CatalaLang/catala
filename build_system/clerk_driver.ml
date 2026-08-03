@@ -619,7 +619,7 @@ let test_exec_targets
         List.concat_map
           (fun it ->
             if Lazy.force it.Scan.has_scope_tests = 0 then []
-            else item_exec_target ~backends it)
+            else item_exec_target it)
           items)
       directories
   in
@@ -1293,8 +1293,9 @@ let test_cmd =
       (* Autotests always require the interpret (OCaml) objects *)
     in
     let targets, items, info, test_targets =
-      Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
-        ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true
+      Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~keep_going:true
+        ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest:true
+        ~tests:true
         ~default:(empty_targets, [], Clerk_rules.empty_info, [])
       @@ fun nin_ppf items info ->
       (* TODO: keep_going:true, to be able to still show a test report.
