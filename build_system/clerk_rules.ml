@@ -33,13 +33,13 @@ let base_bindings
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
   let default_flags =
-    Clerk_backends.default_flags ~code_coverage ~trace ~trace_format ~inplace
+    Clerk_backend.default_flags ~code_coverage ~trace ~trace_format ~inplace
       ~config
   in
   let backend_flags =
     List.concat_map
       (fun bk ->
-        let module Backend : Clerk_backends.S = (val Clerk_backends.get bk) in
+        let module Backend : Clerk_backend.S = (val Clerk_backend.get bk) in
         Backend.var_defs ~variables:options.variables ~autotest
           ~use_default_flags ~test_flags
           ~include_dirs:options.global.include_dirs)
@@ -67,15 +67,15 @@ let static_base_rules ~tests enabled_backends =
   in
   let backend_static_rules =
     List.concat_map
-      (fun (module Backend : Clerk_backends.S) -> Backend.rules)
+      (fun (module Backend : Clerk_backend.S) -> Backend.rules)
       enabled_backends
   in
-  Clerk_backends.static_base_rules @ backend_static_rules @ test_rules
+  Clerk_backend.static_base_rules @ backend_static_rules @ test_rules
 
 let gen_build_statements
     (include_dirs : string list)
     ~(tests : bool)
-    (enabled_backends : (module Clerk_backends.S) list)
+    (enabled_backends : (module Clerk_backend.S) list)
     (autotest : bool)
     (same_dir_modules : (string * File.t) list)
     ~is_stdlib
@@ -112,7 +112,7 @@ let gen_build_statements
   let backend_sources =
     if item.extrnal then
       List.map
-        (fun (module Backend : Clerk_backends.S) -> Backend.external_copy item)
+        (fun (module Backend : Clerk_backend.S) -> Backend.external_copy item)
         enabled_backends
     else
       let inputs = [catala_src] in
@@ -121,7 +121,7 @@ let gen_build_statements
            the dependent OCaml modules (cmxs) *)
         !Var.catala_exe
         ::
-        (if autotest then List.map Clerk_backends.catala_obj_target modules
+        (if autotest then List.map Clerk_backend.catala_obj_target modules
          else [])
       in
       let vars =
@@ -130,13 +130,13 @@ let gen_build_statements
         else None
       in
       List.map
-        (fun (module Backend : Clerk_backends.S) ->
+        (fun (module Backend : Clerk_backend.S) ->
           Backend.catala ?vars ~is_stdlib ~inputs ~implicit_in ~has_scope_tests)
         enabled_backends
   in
   let backend_objects =
     List.map
-      (fun (module Backend : Clerk_backends.S) ->
+      (fun (module Backend : Clerk_backend.S) ->
         Backend.build_object ~include_dirs ~same_dir_modules item)
       enabled_backends
   in
@@ -146,7 +146,7 @@ let gen_build_statements
         [Nj.build "phony" ~outputs:["@src/" ^ !Var.dst] ~inputs:[catala_src]]
       | None -> [])
     @ List.concat_map
-        (fun (module Backend : Clerk_backends.S) ->
+        (fun (module Backend : Clerk_backend.S) ->
           let interface_alias =
             match item.module_def with
             | Some _ ->
@@ -171,7 +171,7 @@ let gen_build_statements
                 [
                   (match item.module_def with
                   | Some _ -> "@" ^ Backend.name ^ "/obj/" ^ !Var.dst
-                  | None -> Clerk_backends.obj_dep ~name:Backend.name item);
+                  | None -> Clerk_backend.obj_dep ~name:Backend.name item);
                 ]
           in
           interface_alias @ [obj_alias])
@@ -184,7 +184,7 @@ let gen_build_statements
       [
         Nj.build "tests" ~inputs:[catala_src]
           ~implicit_in:
-            (!Var.clerk_exe :: List.map Clerk_backends.catala_obj_target modules)
+            (!Var.clerk_exe :: List.map Clerk_backend.catala_obj_target modules)
           ~outputs:[catala_src ^ "@test"; catala_src ^ "@out"];
       ]
   in
@@ -207,7 +207,7 @@ let gen_build_statements_dir
     (dir : string)
     (include_dirs : string list)
     ~(tests : bool)
-    (enabled_backends : (module Clerk_backends.S) list)
+    (enabled_backends : (module Clerk_backend.S) list)
     (autotest : bool)
     (items : Scan.item list) : Nj.ninja =
   let same_dir_modules =
@@ -287,7 +287,7 @@ let runtime_build_statements ~config enabled_backends =
   let stdbase = Var.(!builddir) / Scan.libcatala in
   let options = config.Clerk_lib.Clerk_cli.options in
   List.concat_map
-    (fun (module Backend : Clerk_backends.S) ->
+    (fun (module Backend : Clerk_backend.S) ->
       Backend.build_runtime ~options ~stdbase)
     enabled_backends
 
@@ -655,7 +655,7 @@ let organise_modules ~config items =
                      backend@ @{<cyan>%s@},@ but@ it@ depends@ on@ \
                      @{<yellow>%s@}@ which@ doesn't@ support@ it."
                     t
-                    Clerk_backends.(name (get bk))
+                    Clerk_backend.(name (get bk))
                     t1)
               t_backends)
           (G.succ target_g t))
@@ -982,7 +982,7 @@ let run_ninja
       ~autotest ~inplace:false
   in
   let enabled_backends =
-    List.map Clerk_backends.get (List.sort_uniq compare enabled_backends)
+    List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
   in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet ~default
     (fun nin_ppf ->
@@ -1085,11 +1085,11 @@ let run_ninja
       String.Map.iter
         (fun t target ->
           let modules = target.Clerk_config.tmodules in
-          let conf_backend_name bk = Clerk_backends.(name (get bk)) in
+          let conf_backend_name bk = Clerk_backend.(name (get bk)) in
           let backends =
             let open String.Set in
             inter
-              (of_list (List.map Clerk_backends.name enabled_backends))
+              (of_list (List.map Clerk_backend.name enabled_backends))
               (of_list (List.map conf_backend_name target.backends))
           in
           String.Set.iter

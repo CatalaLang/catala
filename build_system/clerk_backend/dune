@@ -1,4 +1,4 @@
 (library
- (name clerk_backends)
- (public_name catala.clerk_backends)
+ (name clerk_backend)
+ (public_name catala.clerk_backend)
  (libraries clerk_lib clerk_utils catala.catala_utils catala.surface otoml))

@@ -19,9 +19,8 @@ open Catala_utils
 open Clerk_utils
 module Nj = Ninja_utils
 module Cli = Clerk_cli
-module Var = Clerk_utils.Var
 module Config = Clerk_config
-module OCaml = Clerk_backends.OCaml
+module OCaml = Clerk_backend.OCaml
 
 (* - Utility functions - *)
 
@@ -29,14 +28,13 @@ let lastdirname f = File.(basename (dirname f))
 
 let backend_src_extensions () =
   List.map
-    (fun (module B : Clerk_backends.S) -> B.config_backend, B.src_extensions)
-    (Clerk_backends.all ())
+    (fun (module B : Clerk_backend.S) -> B.config_backend, B.src_extensions)
+    (Clerk_backend.all ())
 
 let backend_obj_extensions () =
   List.map
-    (fun (module B : Clerk_backends.S) ->
-      B.config_backend, B.all_obj_extensions)
-    (Clerk_backends.all ())
+    (fun (module B : Clerk_backend.S) -> B.config_backend, B.all_obj_extensions)
+    (Clerk_backend.all ())
 
 let backend_extensions () =
   let bk_exts = backend_obj_extensions () in
@@ -45,7 +43,7 @@ let backend_extensions () =
     (backend_src_extensions ())
 
 let extensions_backend () =
-  ("cmxa", Clerk_backends.OCaml.T)
+  ("cmxa", Clerk_backend.OCaml.T)
   :: List.flatten
        (List.map
           (fun (bk, exts) -> List.map (fun e -> e, bk) exts)
@@ -53,16 +51,16 @@ let extensions_backend () =
 
 let backend_subdir_list () =
   List.map
-    (fun (module B : Clerk_backends.S) -> B.config_backend, B.name)
-    (Clerk_backends.all ())
+    (fun (module B : Clerk_backend.S) -> B.config_backend, B.name)
+    (Clerk_backend.all ())
 
 let normalize_backends backends =
   let bks =
-    List.sort_uniq Stdlib.compare backends |> List.map Clerk_backends.get
+    List.sort_uniq Stdlib.compare backends |> List.map Clerk_backend.get
   in
   Message.debug "@[<h>Enabled backends: %a@]"
     (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf b ->
-         Format.fprintf ppf "@{<green>%s@}" (Clerk_backends.name b)))
+         Format.fprintf ppf "@{<green>%s@}" (Clerk_backend.name b)))
     bks;
   bks
 
@@ -73,10 +71,10 @@ let backend_subdir bk = List.assoc bk (backend_subdir_list ())
 let rule_subdir rule = backend_subdir rule.Config.backend
 
 let backend_to_config = function
-  | `Interpret | `OCaml -> Clerk_backends.OCaml.T
-  | `C -> Clerk_backends.C.T
-  | `Python -> Clerk_backends.Python.T
-  | `Java -> Clerk_backends.Java.T
+  | `Interpret | `OCaml -> Clerk_backend.OCaml.T
+  | `C -> Clerk_backend.C.T
+  | `Python -> Clerk_backend.Python.T
+  | `Java -> Clerk_backend.Java.T
 
 let backends_to_config bks =
   List.sort_uniq Stdlib.compare (List.map backend_to_config bks)
@@ -91,15 +89,15 @@ let linking_command ~build_dir ~backend ~info item target =
   in
   match backend with
   | `OCaml ->
-    Clerk_backends.OCaml.linking_command ~build_dir ~var_bindings link_deps item
+    Clerk_backend.OCaml.linking_command ~build_dir ~var_bindings link_deps item
       target
   | `C ->
-    Clerk_backends.C.linking_command ~build_dir ~var_bindings link_deps item
+    Clerk_backend.C.linking_command ~build_dir ~var_bindings link_deps item
       target
   | `Python ->
-    Clerk_backends.Python.linking_command ~build_dir link_deps item target
+    Clerk_backend.Python.linking_command ~build_dir link_deps item target
   | `Java ->
-    Clerk_backends.Java.linking_command ~build_dir ~var_bindings link_deps item
+    Clerk_backend.Java.linking_command ~build_dir ~var_bindings link_deps item
       target
   | `Custom rule ->
     let var_bindings =
@@ -174,21 +172,21 @@ let backend_from_arg config ~enabled_backends t =
       disambiguate_using_subdir t
         (List.filter
            (function
-             | Clerk_backends.OCaml.T | Clerk_backends.C.T -> true | _ -> false)
+             | Clerk_backend.OCaml.T | Clerk_backend.C.T -> true | _ -> false)
            enabled_backends)
         ext)
   | ext -> aux ext
 
 let config_backend = function
-  | Clerk_backends.OCaml.T -> `OCaml
-  | Clerk_backends.C.T -> `C
-  | Clerk_backends.Python.T -> `Python
-  | Clerk_backends.Java.T -> `Java
+  | Clerk_backend.OCaml.T -> `OCaml
+  | Clerk_backend.C.T -> `C
+  | Clerk_backend.Python.T -> `Python
+  | Clerk_backend.Java.T -> `Java
   | _ -> invalid_arg __FUNCTION__
 
 let obj_target ~build_dir:_ ~backend item =
-  let name = Clerk_backends.(name (get (backend_to_config backend))) in
-  Clerk_backends.obj_dep ~name item
+  let name = Clerk_backend.(name (get (backend_to_config backend))) in
+  Clerk_backend.obj_dep ~name item
 
 let make_target ~build_dir ~backend item =
   let open File in
@@ -231,13 +229,13 @@ let setup_report_format ?fix_path verbosity diff_command coverage =
 
 let run_artifact config ~backend ~var_bindings ?scope ?quiet ~test ~trace src =
   match backend with
-  | `OCaml -> Clerk_backends.OCaml.run_artifact ~test ~trace ?scope ?quiet src
-  | `C -> Clerk_backends.C.run_artifact ~test ?scope ?quiet src
+  | `OCaml -> Clerk_backend.OCaml.run_artifact ~test ~trace ?scope ?quiet src
+  | `C -> Clerk_backend.C.run_artifact ~test ?scope ?quiet src
   | `Python ->
-    Clerk_backends.Python.run_artifact config ~test ?scope ?quiet ~var_bindings
+    Clerk_backend.Python.run_artifact config ~test ?scope ?quiet ~var_bindings
       src
   | `Java ->
-    Clerk_backends.Java.run_artifact ~var_bindings ~test ?scope ?quiet src
+    Clerk_backend.Java.run_artifact ~var_bindings ~test ?scope ?quiet src
 
 (* - Ninja target distribution - *)
 (* these functions take place in the clerk_run continuation, and explicit its targets. *)
@@ -492,7 +490,7 @@ let ninja_build_targets
     List.map
       (fun bk ->
         "@"
-        ^ Clerk_backends.(name (get (backend_to_config bk)))
+        ^ Clerk_backend.(name (get (backend_to_config bk)))
         ^ "/runtime/"
         ^ if exec_targets then "obj" else "src")
       backends
@@ -558,7 +556,7 @@ let ninja_build_targets
              @{<green>clerk.toml@} that @{<blue>%s@}@ supports@ the@ %s@ \
              backend?"
             str item.file_name
-            Clerk_backends.(name (get backend));
+            Clerk_backend.(name (get backend));
         t)
       direct_targets
   in
@@ -652,7 +650,7 @@ let install_backend_targets
     (targets : Clerk_config.target list)
     (bk : Clerk_config.backend) =
   let open File in
-  let module B = (val Clerk_backends.get bk) in
+  let module B = (val Clerk_backend.get bk) in
   let target_dir = config.Cli.options.global.target_dir in
   let build_dir = config.Cli.options.global.build_dir in
   let local_runtime_dir bk = build_dir / Scan.libcatala / backend_subdir bk in
@@ -670,7 +668,7 @@ let install_backend_targets
       remove dir;
       ensure_dir dir;
       match bk with
-      | Clerk_backends.Java.T ->
+      | Clerk_backend.Java.T ->
         List.iter
           (fun subdir ->
             copy_dir ()
@@ -684,7 +682,7 @@ let install_backend_targets
         let () =
           match bk with
           (* install runtime *)
-          | Clerk_backends.Python.T ->
+          | Clerk_backend.Python.T ->
             copy_dir ()
               ~filter:(fun f ->
                 Filename.check_suffix f ".py" && f <> "__init__.py")
@@ -1465,17 +1463,17 @@ let runtest_cmd =
 let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
   let default =
     List.fold_left
-      (fun default_rules (module B : Clerk_backends.S) ->
+      (fun default_rules (module B : Clerk_backend.S) ->
         ("@" ^ B.name ^ "/runtime/src")
-        :: Clerk_backends.module_dep ~name:B.name "Stdlib_fr"
-        :: Clerk_backends.module_dep ~name:B.name "Stdlib_en"
+        :: Clerk_backend.module_dep ~name:B.name "Stdlib_fr"
+        :: Clerk_backend.module_dep ~name:B.name "Stdlib_en"
         :: default_rules)
       ["@src/Stdlib_fr"; "@src/Stdlib_en"]
       enabled_backends
   in
   Clerk_rules.run_ninja ~include_dir:false ~code_coverage:false ~quiet
     ~default:0 ~config
-    ~enabled_backends:(List.map Clerk_backends.id enabled_backends)
+    ~enabled_backends:(List.map Clerk_backend.id enabled_backends)
     ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
       Nj.format_def nin_ppf (Nj.Default (Nj.Default.make default));
       cont ())
@@ -1527,7 +1525,7 @@ let ci_cmd =
           report_format code_coverage diff_command []);
     let clerk_targets = config.Cli.options.targets in
     let enabled_backends =
-      (* TODO *) List.map Clerk_backends.id (Clerk_backends.all ())
+      (* TODO *) List.map Clerk_backend.id (Clerk_backend.all ())
     in
     if clerk_targets = [] then raise (Catala_utils.Cli.Exit_with 0);
     build_targets ~quiet ~config ~enabled_backends ~ninja_flags:[]
