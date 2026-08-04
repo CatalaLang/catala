@@ -35,13 +35,13 @@ val extern_src :
 
 (** We use 3 types of pseudo-targets for compiled objets. The <modname> below is
     the normalised module name (using String.to_id)
-    - <modname>@catala-obj ([catala_obj_target]) is what is needed for Catala
+    - @catala-obj/<modname> ([catala_obj_target]) is what is needed for Catala
       evaluation (an OCaml cmxs)
-    - <modname>@<backend>-module ([module_target]) is the possibly compiled
+    - @<backend>/interface/<modname> ([module_target]) is the possibly compiled
       interface that dependent modules will need to be compiled (e,g, .h, .cmi)
-    - <modname>@<backend>-obj or <filename>@<backend-obj> ([obj_target]) is the
-      compiled object for linking, including all its dependencies. This allows
-      transitive compilation of required objects before linking *)
+    - @<backend>/obj/<modname> or @<backend>/obj/<filename> ([obj_target]) is
+      the compiled object for linking, including all its dependencies. This
+      allows transitive compilation of required objects before linking *)
 
 val catala_obj_target : string -> string
 (** From a module name, gives the pseudo-target that builds the Catala object

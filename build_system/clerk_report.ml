@@ -496,10 +496,8 @@ let summary ~build_dir ?(backend_tests = []) tests =
   let backend_results =
     List.fold_left
       (fun acc ((_, bk, _), (success, total)) ->
-        if bk = `Interpret then assert false
-        (* acc *)
-        (* already reported as normal tests *)
-          else
+        if bk = `Interpret then acc (* already reported as normal tests *)
+        else
           let bk =
             match bk with
             | `Interpret -> "Interpreted"
@@ -532,6 +530,12 @@ let summary ~build_dir ?(backend_tests = []) tests =
   in
   if disp_flags.files <> `None then
     List.iter (fun f -> display_file ~build_dir ppf f) tests;
+  let all_successful =
+    success = total
+    && String.Map.for_all
+         (fun _ (success, total) -> success = total)
+         backend_results
+  in
   let result_box =
     if files = 0 && String.Map.is_empty backend_results then (
       let columns = Message.terminal_columns () in
@@ -542,16 +546,11 @@ let summary ~build_dir ?(backend_tests = []) tests =
         title
         (Message.pad (tpad - (tpad / 2)) "━");
       fun _ -> ())
-    else if
-      success < total
-      || String.Map.exists
-           (fun _ (success, total) -> success < total)
-           backend_results
-    then print_box (fun ppf -> Format.fprintf ppf "@{<red>") ppf "TESTS FAILED"
-    else
+    else if all_successful then
       print_box
         (fun ppf -> Format.fprintf ppf "@{<green>")
         ppf "ALL TESTS PASSED"
+    else print_box (fun ppf -> Format.fprintf ppf "@{<red>") ppf "TESTS FAILED"
   in
   result_box (fun box ->
       box.print_line "@{<ul>%-13s %10s %10s %10s %10s@}" "" "FAILED" "PASSED"
@@ -569,9 +568,9 @@ let summary ~build_dir ?(backend_tests = []) tests =
       in
       if files > 1 then
         box.print_line
-          "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
-           @{<bold>%a@}"
-          "files"
+          "@{<hi_blue;bold>%-13s@} @{<red;bold>%a@} @{<green;bold>%a@} \
+           @{<bold>%10d@} @{<bold>%a@}"
+          "Files"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
@@ -580,11 +579,11 @@ let summary ~build_dir ?(backend_tests = []) tests =
             | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
           success_files files ratio (success_files, files);
-      if files > 1 then
+      if files > 0 then
         box.print_line
-          "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
-           @{<bold>%a@}"
-          "tests"
+          "@{<hi_blue;bold>%-13s@} @{<red;bold>%a@} @{<green;bold>%a@} \
+           @{<bold>%10d@} @{<bold>%a@}"
+          "Tests"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
@@ -595,9 +594,9 @@ let summary ~build_dir ?(backend_tests = []) tests =
           success total ratio (success, total);
       if disp_flags.coverage then
         box.print_line
-          "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
-           @{<bold>%a@}"
-          "lines covered"
+          "@{<hi_magenta;bold>%-13s@} @{<red;bold>%a@} @{<green;bold>%a@} \
+           @{<bold>%10d@} @{<bold>%a@}"
+          "Lines covered"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
@@ -610,8 +609,8 @@ let summary ~build_dir ?(backend_tests = []) tests =
       String.Map.iter
         (fun bk (success, total) ->
           box.print_line
-            "%-13s @{<red;bold>%a@} @{<green;bold>%a@} @{<bold>%10d@} \
-             @{<bold>%a@}"
+            "@{<blue;bold>%-13s@} @{<red;bold>%a@} @{<green;bold>%a@} \
+             @{<bold>%10d@} @{<bold>%a@}"
             bk
             (fun ppf -> function
               | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
@@ -624,7 +623,7 @@ let summary ~build_dir ?(backend_tests = []) tests =
         backend_results);
   Format.pp_close_box ppf ();
   Format.pp_print_flush ppf ();
-  success = total
+  all_successful
 
 let print_json ~(build_dir : string) (tests : file list) =
   let cwd = Sys.getcwd () in

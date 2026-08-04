@@ -156,6 +156,11 @@ let gen_build_statements
                     (List.map
                        (Backend.current_target item)
                        Backend.module_extensions)
+                  ~implicit_in:
+                    (List.map
+                       (fun (m, _) ->
+                         "@" ^ Backend.name ^ "/interface/" ^ String.to_id m)
+                       item.used_modules)
                   ~outputs:["@" ^ Backend.name ^ "/interface/" ^ !Var.dst];
               ]
             | None -> []
@@ -1116,7 +1121,7 @@ let run_ninja
                 List.fold_left
                   (fun acc m ->
                     (* We could want to include Backend.runtime_targets here as well ? *)
-                    Printf.sprintf "%s@%s-module" m bk_name :: acc)
+                    Printf.sprintf "@%s/interface/%s" bk_name m :: acc)
                   inputs modules
               in
               pp (Nj.build "phony" ~outputs:[mk_target bk_name t] ~inputs))

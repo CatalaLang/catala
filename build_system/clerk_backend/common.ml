@@ -102,15 +102,6 @@ module Make_backend (A : Sig.Spec) : Sig.S = struct
       if only_source then ["@" ^ name ^ "/runtime/src"]
       else ["@" ^ name ^ "/runtime/obj"]
 
-    (* FIXME *)
-    (* let modfile ~is_stdlib ~same_dir_modules ext modname =
-     *   match List.assoc_opt modname same_dir_modules with
-     *   | Some _ ->
-     *     let subdir = if is_stdlib then stdlib_subdir else name in
-     *     !Var.tdir / subdir / String.to_id modname ^ ext
-     *   | _ ->
-     *     modname ^ module_suffix *)
-
     let external_copy item =
       let catala_src = !Var.tdir / !Var.src in
       let srcs, _missing =

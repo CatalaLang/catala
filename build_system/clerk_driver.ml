@@ -422,8 +422,8 @@ let ninja_interp_test_targets
       File.(fun item -> (build_dir / item.Scan.file_name) ^ "@test")
       source_files
 
-(* The backends for a given module are detected by analysing what clerk targets it
-   belongs to *)
+(* The backends for a given module are detected by analysing what clerk targets
+   it belongs to *)
 let module_backends info backends modname =
   let m = String.Map.find modname info.Clerk_rules.modules_map in
   if String.Set.is_empty m.Clerk_rules.targets then backends
@@ -455,7 +455,7 @@ let ninja_build_targets
     config
     ~autotest
     backends
-    items
+    _items
     info
     { clerk_targets; modules; directories; source_files; direct_targets } =
   let backends = List.filter (( <> ) `Interpret) backends in
@@ -509,18 +509,7 @@ let ninja_build_targets
              selected@ backends"
             t.tname;
           [])
-        else
-          let items =
-            List.filter
-              (fun it -> Lazy.force it.Scan.has_scope_tests > 0)
-              (items_in_subdirs items t.Config.ttests)
-          in
-          if items = [] then
-            Message.warning
-              "Nothing to run was found in the test directories of target@ \
-               @{<yellow>%s@}"
-              t.tname;
-          List.concat_map (item_exec_target ~backends) items)
+        else ["#" ^ t.tname])
       clerk_targets
   in
   let from_modules =
@@ -741,21 +730,41 @@ let install_backend_targets
         Message.debug "Installing target: %s" (B.name / target.tname);
         File.remove dir;
         ensure_dir dir;
-        List.iter
-          (fun m ->
-            let item = (String.Map.find m build_info.modules_map).item in
-            let base_src =
-              build_dir
-              / item.file_name
-              /../ backend_subdir bk
-              / Scan.target_basename item
-            in
-            List.iter
-              (fun ext -> copy_in ~dir ~src:(base_src -.- ext))
-              extensions)
-          target.Config.tmodules
+        String.Map.iter
+          (fun _ mod_info ->
+            if String.Set.mem target.tname mod_info.Clerk_rules.targets then
+              let item = mod_info.item in
+              let base_src =
+                build_dir
+                / item.file_name
+                /../ backend_subdir bk
+                / Scan.target_basename item
+              in
+              List.iter
+                (fun ext -> copy_in ~dir ~src:(base_src -.- ext))
+                extensions)
+          build_info.modules_map
     in
-    List.iter install_target targets
+    let rec targets_and_deps acc targets =
+      (* Always install its dependencies together with a target *)
+      match targets with
+      | [] -> acc
+      | t :: targets ->
+        if
+          List.exists (fun t1 -> t1.Config.tname = t.Config.tname) acc
+          || t.tname = Scan.libcatala
+        then targets_and_deps acc targets
+        else
+          let acc = t :: acc in
+          let deps =
+            List.map
+              (fun t -> String.Map.find t build_info.targets_map)
+              t.dependencies
+          in
+          let acc = targets_and_deps acc deps in
+          targets_and_deps acc targets
+    in
+    List.iter install_target (targets_and_deps [] targets)
 (* if target.Config.include_sources then
  *   all_modules_deps
  *   |> List.map (fun it -> it.Scan.file_name)
@@ -952,6 +961,7 @@ let build_cmd : int Cmd.t =
       let ninja_targets =
         ninja_build_targets config ~autotest backends items info targets
       in
+      Message.debug "Ninja targets => %s" (String.concat " " ninja_targets);
       set_ninja_targets nin_ppf ninja_targets;
       targets, info
     in

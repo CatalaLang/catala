@@ -171,7 +171,6 @@ module Spec : Sig.Spec = struct
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
     let implicit_modules = List.map (Common.module_dep ~name) modules in
-    (* fixme: the criterion for is_stdlib matches the wrong item. Justify if it's still OK (in other bks as well) *)
     let obj =
       Nj.build "c-object"
         ~inputs:[Common.target ~name "c"]
