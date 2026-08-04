@@ -235,6 +235,26 @@ module Spec : Sig.Spec = struct
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
+
+  let write_target_def_file ~options:_ ~dir:_ _target = ()
+  (* TODO: generate some kind of Java project file ? *)
+
+  let install_runtime ~options =
+    let open File in
+    let extensions =
+      src_extensions
+      @ if options.Clerk_config.global.include_objects then ["class"] else []
+    in
+    let dir = options.global.target_dir / name / Scan.libcatala in
+    remove dir;
+    ensure_dir dir;
+    List.iter
+      (fun subdir ->
+        copy_dir ()
+          ~filter:(fun f -> List.exists (Filename.check_suffix f) extensions)
+          ~src:(options.global.build_dir / Scan.libcatala / name / subdir)
+          ~dst:(dir / subdir))
+      ["catala"; "org"]
 end
 
 include Common.Make_backend (Spec)

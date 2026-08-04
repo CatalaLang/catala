@@ -194,6 +194,31 @@ module Spec : Sig.Spec = struct
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
+
+  let write_target_def_file ~options:_ ~dir:_ _target = ()
+  (* TODO: generate a Makefile ? Or at least a depfile ? *)
+
+  let install_runtime ~options =
+    let open File in
+    let extensions =
+      src_extensions
+      @ if options.Clerk_config.global.include_objects then ["o"] else []
+    in
+    let dir = options.global.target_dir / name / Scan.libcatala in
+    remove dir;
+    ensure_dir dir;
+    List.iter
+      (fun ext ->
+        let src_libcatala =
+          (options.global.build_dir / Scan.libcatala / name / "catala_runtime")
+          -.- ext
+        in
+        let src =
+          Lazy.force Poll.stdlib_dir / name / ("catala_runtime" -.- ext)
+        in
+        if File.exists src_libcatala then copy_in ~dir ~src:src_libcatala
+        else if File.exists src then copy_in ~dir ~src)
+      extensions
 end
 
 include Common.Make_backend (Spec)

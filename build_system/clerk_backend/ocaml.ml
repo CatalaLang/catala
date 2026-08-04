@@ -315,6 +315,58 @@ module Spec : Sig.Spec = struct
       else []
     in
     List.to_seq obj
+
+  let write_target_def_file ~options ~dir target =
+    let open File in
+    with_out_channel (dir / "dune")
+    @@ fun oc ->
+    if target.Clerk_config.tname = Scan.libcatala then
+      Printf.fprintf oc
+        "(library\n\
+        \ (name libcatala)%s\n\
+        \ (wrapped false)\n\
+        \ (libraries zarith catala.dates_calc))\n"
+        (match options.Clerk_config.global.project_name with
+        | None -> ""
+        | Some n -> Printf.sprintf "\n (public_name %s.%s)" n target.tname)
+    else
+      Printf.fprintf oc
+        "(library\n (name %s)%s\n (wrapped false)\n (libraries %s))\n"
+        (String.to_id target.tname)
+        (match options.Clerk_config.global.project_name with
+        | None -> ""
+        | Some n -> Printf.sprintf "\n (public_name %s.%s)" n target.tname)
+        (String.concat " "
+           (List.map String.to_id ("libcatala" :: target.dependencies)))
+
+  let install_runtime ~options =
+    let open File in
+    let extensions =
+      src_extensions
+      @
+      if options.Clerk_config.global.include_objects then ["cmi"; "cmx"] else []
+    in
+    let dir = options.global.target_dir / name / Scan.libcatala in
+    remove dir;
+    ensure_dir dir;
+    List.iter
+      (fun ext ->
+        let src_libcatala =
+          (options.global.build_dir / Scan.libcatala / name / "catala_runtime")
+          -.- ext
+        in
+        let src =
+          Lazy.force Poll.stdlib_dir / name / ("catala_runtime" -.- ext)
+        in
+        if File.exists src_libcatala then copy_in ~dir ~src:src_libcatala
+        else if File.exists src then copy_in ~dir ~src)
+      extensions;
+    File.with_out_channel (options.global.target_dir / name / "dune-project")
+    @@ fun oc ->
+    Printf.fprintf oc "(lang dune 3.13)\n";
+    match options.global.project_name with
+    | None -> ()
+    | Some p -> Printf.fprintf oc "(name %s)\n(package (name %s))\n" p p
 end
 
 include Common.Make_backend (Spec)

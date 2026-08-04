@@ -143,7 +143,14 @@ let backend_from_arg config ~enabled_backends t =
     with
     | [(_, bk)] -> bk
     | [] -> (
-      if ext = "" then Message.error "Target without extension: @{<red>%S@}" t
+      let errmsg () =
+        Message.error
+          "The specified target @{<red>%s@} does@ not@ match@ a@ target@ from@ \
+           @{<blue>%a@@} or@ an@ existing@ directory@ or@ file,@ nor@ does@ \
+           it@ have@ a@ recognised@ extension."
+          t (Message.link ()) "clerk.toml"
+      in
+      if ext = "" then errmsg ()
       else
         match
           List.find_opt
@@ -151,16 +158,21 @@ let backend_from_arg config ~enabled_backends t =
             config.Config.custom_rules
         with
         | Some rule -> rule.Config.backend
-        | None ->
-          if List.mem_assoc ext (extensions_backend ()) then
+        | None -> (
+          let backends =
+            List.filter_map
+              (fun (e, bk) ->
+                if e = ext then Some Clerk_backend.(name (get bk)) else None)
+              (extensions_backend ())
+          in
+          match backends with
+          | [] -> errmsg ()
+          | bks ->
             Message.error
-              "Extension @{<red;bold>%s@} of target@ @{<red>%S@} is not \
-               supported by the enabled backends"
-              ext t
-          else
-            Message.error
-              "Unhandled extension @{<red;bold>%s@} for target@ @{<red>%S@}" ext
-              t)
+              "Extension @{<red;bold>%s@} of target@ @{<red>%S@}@ is@ only@ \
+               supported@ by@ backend@ %s,@ which@ is@ not@ currently@ \
+               enabled."
+              ext t (String.concat " or " bks)))
     | conflict ->
       (* Both C and OCaml can generate .o files, for example *)
       disambiguate_using_subdir t (List.map snd conflict) ext
@@ -351,7 +363,8 @@ let sort_user_target_args
   let directories, others =
     List.partition_map
       (fun f ->
-        if Sys.is_directory f then Left (f, items_in_subdirs items [f])
+        if Sys.file_exists f && Sys.is_directory f then
+          Left (f, items_in_subdirs items [f])
         else Right f)
       others
   in
@@ -492,7 +505,9 @@ let ninja_build_targets
         "@"
         ^ Clerk_backend.(name (get (backend_to_config bk)))
         ^ "/runtime/"
-        ^ if exec_targets then "obj" else "src")
+        ^
+        if exec_targets || config.options.global.include_objects then "obj"
+        else "src")
       backends
   in
   let from_clerk_targets =
@@ -506,7 +521,7 @@ let ninja_build_targets
         if backends = [] then (
           Message.warning
             "Target @{<yellow>%s@}@ does@ not@ support@ any@ of@ the@ \
-             selected@ backends"
+             selected@ backends@ and@ will@ be@ ignored."
             t.tname;
           [])
         else ["#" ^ t.tname])
@@ -519,7 +534,7 @@ let ninja_build_targets
         if t = [] then
           Message.warning
             "Module @{<cyan>%s@}@ does@ not@ support@ any@ of@ the@ selected@ \
-             backends@ and@ was@ ignored."
+             backends@ and@ will@ be@ ignored."
             (Mark.remove m.name);
         t)
       modules
@@ -626,7 +641,9 @@ let test_exec_targets
   @ from_direct_targets
 
 let set_ninja_targets nin_ppf ninja_targets =
-  if ninja_targets = [] then raise Clerk_rules.Stop_ninja
+  if ninja_targets = [] then (
+    Message.warning "@[<v 4>Nothing was built@]";
+    raise Clerk_rules.Stop_ninja)
   else Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets))
 
 (* - Finalisers - *)
@@ -642,118 +659,63 @@ let install_backend_targets
   let module B = (val Clerk_backend.get bk) in
   let target_dir = config.Cli.options.global.target_dir in
   let build_dir = config.Cli.options.global.build_dir in
-  let local_runtime_dir bk = build_dir / Scan.libcatala / backend_subdir bk in
   if not (List.exists (fun t -> List.mem bk t.Clerk_config.backends) targets)
   then ()
   else
     let bk_dir = target_dir / backend_subdir bk in
     let extensions =
-      (* if target.include_objects then List.assoc bk backend_extensions
-       * else *)
       B.src_extensions
+      @
+      if config.options.global.include_objects then
+        List.sort_uniq compare (B.obj_extension :: B.module_extensions)
+      else []
     in
-    let install_runtime_and_stdlib () =
-      let dir = bk_dir / Clerk_rules.stdlib_target_name in
-      remove dir;
-      ensure_dir dir;
-      match bk with
-      | Clerk_backend.Java.T ->
-        List.iter
-          (fun subdir ->
-            copy_dir ()
-              ~filter:(fun f ->
-                Filename.check_suffix f ".java"
-                (* || (target.include_objects && Filename.check_suffix f ".class") *))
-              ~src:(local_runtime_dir bk / subdir)
-              ~dst:(dir / subdir))
-          ["catala"; "org"]
-      | _ ->
-        let () =
-          match bk with
-          (* install runtime *)
-          | Clerk_backend.Python.T ->
-            copy_dir ()
-              ~filter:(fun f ->
-                Filename.check_suffix f ".py" && f <> "__init__.py")
-              ~src:
-                (Lazy.force Poll.stdlib_dir
-                / backend_subdir bk
-                / "src"
-                / "catala")
-              ~dst:dir
-          | bk ->
-            List.iter
-              (fun ext ->
-                let src =
-                  Lazy.force Poll.stdlib_dir
-                  / backend_subdir bk
-                  / ("catala_runtime" -.- ext)
-                in
-                if File.exists src then copy_in ~dir ~src)
-              extensions
-        in
-        let target_info =
-          String.Map.find Clerk_rules.stdlib_target_name build_info.targets_map
-        in
-        List.iter
-          (fun m ->
-            let item = (String.Map.find m build_info.modules_map).item in
-            List.iter
-              (fun ext ->
-                let src_catala_install =
-                  item.file_name
-                  /../ backend_subdir bk
-                  / basename item.file_name
-                  -.- ext
-                in
-                let src_libcatala =
-                  build_dir
-                  / Scan.libcatala
-                  / backend_subdir bk
-                  / Scan.target_basename item
-                  -.- ext
-                in
-                if exists src_catala_install then
-                  copy_in ~src:src_catala_install ~dir
-                else copy_in ~dir ~src:src_libcatala)
-              extensions)
-          target_info.Config.tmodules
-    in
-    install_runtime_and_stdlib ();
+    B.install_runtime ~options:config.options;
     let install_target target =
-      if
-        target.Config.tname = Clerk_rules.stdlib_target_name
-        || not (List.mem bk target.backends)
-      then ()
+      if not (List.mem bk target.Config.backends) then ()
       else
         let dir = bk_dir / target.tname in
         Message.debug "Installing target: %s" (B.name / target.tname);
-        File.remove dir;
+        if target.Config.tname <> Clerk_rules.stdlib_target_name then
+          (* install_runtime already did the cleanup for the stdlib *)
+          File.remove dir;
         ensure_dir dir;
         String.Map.iter
           (fun _ mod_info ->
             if String.Set.mem target.tname mod_info.Clerk_rules.targets then
               let item = mod_info.item in
-              let base_src =
-                build_dir
-                / item.file_name
+              let file ext =
+                (if Filename.is_relative item.file_name then
+                   build_dir / item.file_name
+                 else item.file_name)
                 /../ backend_subdir bk
                 / Scan.target_basename item
+                -.- ext
               in
               List.iter
-                (fun ext -> copy_in ~dir ~src:(base_src -.- ext))
+                (fun ext ->
+                  let src = file ext in
+                  let src =
+                    if (not (exists src)) && item.is_stdlib then
+                      build_dir
+                      / Scan.libcatala
+                      / backend_subdir bk
+                      / B.stdlib_subdir
+                      / basename src
+                    else src
+                  in
+                  copy_in ~dir ~src)
                 extensions)
-          build_info.modules_map
+          build_info.modules_map;
+        B.write_target_def_file ~options:config.options ~dir target
     in
     let rec targets_and_deps acc targets =
       (* Always install its dependencies together with a target *)
       match targets with
       | [] -> acc
       | t :: targets ->
-        if
-          List.exists (fun t1 -> t1.Config.tname = t.Config.tname) acc
-          || t.tname = Scan.libcatala
-        then targets_and_deps acc targets
+        if List.exists (fun t1 -> t1.Config.tname = t.Config.tname) acc then
+          targets_and_deps acc targets
         else
           let acc = t :: acc in
           let deps =
@@ -764,7 +726,10 @@ let install_backend_targets
           let acc = targets_and_deps acc deps in
           targets_and_deps acc targets
     in
-    List.iter install_target (targets_and_deps [] targets)
+    let stdlib =
+      String.Map.find Clerk_rules.stdlib_target_name build_info.targets_map
+    in
+    List.iter install_target (targets_and_deps [stdlib] targets)
 (* if target.Config.include_sources then
  *   all_modules_deps
  *   |> List.map (fun it -> it.Scan.file_name)
@@ -961,7 +926,6 @@ let build_cmd : int Cmd.t =
       let ninja_targets =
         ninja_build_targets config ~autotest backends items info targets
       in
-      Message.debug "Ninja targets => %s" (String.concat " " ninja_targets);
       set_ninja_targets nin_ppf ninja_targets;
       targets, info
     in

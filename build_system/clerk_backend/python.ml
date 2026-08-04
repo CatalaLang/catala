@@ -122,6 +122,23 @@ module Spec : Sig.Spec = struct
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name / "src" / "catala")
+
+  let write_target_def_file ~options:_ ~dir target =
+    let open File in
+    File.with_out_channel (dir / "__init__.py") (fun oc ->
+        Printf.fprintf oc "__all__ = [%s]\n"
+          (String.concat ", " target.Clerk_config.tmodules));
+    File.with_out_channel (dir / "py.typed") ignore
+
+  let install_runtime ~options =
+    let open File in
+    let dir = options.Clerk_config.global.target_dir / name / Scan.libcatala in
+    remove dir;
+    ensure_dir dir;
+    copy_dir ()
+      ~filter:(fun f -> Filename.check_suffix f ".py" && f <> "__init__.py")
+      ~src:(Lazy.force Poll.stdlib_dir / name / "src" / "catala")
+      ~dst:dir
 end
 
 include Common.Make_backend (Spec)
