@@ -32,6 +32,12 @@ type global = {
   catala_opts : string list;
   default_targets : string list;
   include_sources : bool;
+  check_expected : bool option;
+      (** Compare the values of the [#[testcase.variable]] attributes against
+          the interpreter's trace. Project-wide, since it drives the trace
+          instrumentation of every compilation rule. [None] means the key is
+          absent from the configuration, which is reported when a file does
+          declare such attributes; an explicit [Some false] stays silent. *)
 }
 
 type target = {

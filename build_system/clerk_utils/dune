@@ -6,4 +6,5 @@
   catala.clerk_lib
   catala.catala_utils
   catala.surface
-  otoml))
+  otoml
+  yojson))
