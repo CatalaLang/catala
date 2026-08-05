@@ -270,7 +270,9 @@ let () =
              ~input_src:(Contents (main_contents, main_filename))
              ~language:(Some language) ~debug:false ~color:Never
              ~disable_warnings:false
-             ~trace:(if trace then Some (lazy Format.std_formatter) else None)
+             ~trace:
+               (if trace then Some (lazy Format.std_formatter, `Stdout)
+                else None)
              ~path_rewrite:(fun f -> (f :> File.t))
              ~whole_program:true ()
          in

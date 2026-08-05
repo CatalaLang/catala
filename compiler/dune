@@ -10,7 +10,8 @@
   dcalc
   lcalc
   scalc
-  catala.runtime_ocaml)
+  catala.runtime_ocaml
+  catala.clerk_driver)
  (modules plugin driver))
 
 (executable

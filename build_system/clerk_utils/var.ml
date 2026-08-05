@@ -31,6 +31,13 @@ let catala_exe = make_scalar "CATALA_EXE"
 let catala_flags = make_vector "CATALA_FLAGS"
 let runtime = make_scalar "CATALA_RUNTIME"
 
+(* Trace destination for the test rules. Kept in its own variable rather than
+   folded into CLERK_FLAGS so that individual edges can override it: ninja
+   expands the right-hand side of a variable declaration immediately, so a
+   reference nested in another global variable could not be overridden
+   per-edge. It must therefore be referenced directly in the rules' commands. *)
+let trace = make_vector "TRACE"
+
 (* Definition spreading different rules *)
 
 let tdir = make_scalar "tdir"

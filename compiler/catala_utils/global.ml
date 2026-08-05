@@ -33,7 +33,8 @@ type options = {
   mutable debug : bool;
   mutable color : when_enum;
   mutable message_format : message_format_enum;
-  mutable trace : Format.formatter Lazy.t option;
+  mutable trace :
+    (Format.formatter Lazy.t * [ `FileName of raw_file | `Stdout ]) option;
   mutable trace_format : format_enum;
   mutable output_format : format_enum;
   mutable plugins_dirs : file list;
