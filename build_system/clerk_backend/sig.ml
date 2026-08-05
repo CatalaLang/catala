@@ -121,8 +121,15 @@ module type S = sig
 
   val runtime_targets : only_source:bool -> string list
 
-  (* val module_target : string -> string
-   * (\** Returns the target to use to obtain the given module interface. *\) *)
+  val interface_dep : string -> string
+  (** Returns the pseudo-target for generated interface of the given module,
+      possibly compiled (ie. [.cmi] in the case of OCaml) *)
+
+  val src_dep : string -> string
+  (** Returns the pseudo-target for generated source of the given module *)
+
+  val obj_dep : Scan.item -> string
+  (** Returns the pseudo-target for the compiled object of the given item *)
 
   val external_copy : Scan.item -> Ninja_utils.def Seq.t
   (** [external_copy item] is the set of rules to handle a catala module marked

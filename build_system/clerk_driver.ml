@@ -224,7 +224,10 @@ let make_target ~build_dir ~backend item =
 
 let target_backends targets =
   let open Clerk_config in
-  List.concat_map (fun target -> target.backends) targets |> normalize_backends
+  if targets = [] then Clerk_backend.all ()
+  else
+    List.concat_map (fun target -> target.backends) targets
+    |> normalize_backends
 
 let setup_report_format ?fix_path verbosity diff_command coverage =
   (match verbosity with
@@ -295,8 +298,17 @@ let target_debug_message (t : user_target_args) =
   if t.direct_targets <> [] then
     Message.debug " - Artifacts: %a" (ppl (fun (f, _, _) -> f)) t.direct_targets
 
+let items_in_subdirs items dirs =
+  List.filter
+    (fun it ->
+      List.exists
+        (fun dir ->
+          String.starts_with it.Scan.file_name ~prefix:File.(dir / ""))
+        dirs)
+    items
+
 (* default for the build and run commands, `clerk test` has a different rule *)
-let default_targets config =
+let default_targets config items =
   match config.Cli.options.global.default_targets with
   | _ :: _ as tnames ->
     let clerk_targets =
@@ -315,16 +327,9 @@ let default_targets config =
   | [] -> (
     match config.Cli.options.targets with
     | _ :: _ as clerk_targets -> { empty_targets with clerk_targets }
-    | [] -> { empty_targets with directories = [] })
-
-let items_in_subdirs items dirs =
-  List.filter
-    (fun it ->
-      List.exists
-        (fun dir ->
-          String.starts_with it.Scan.file_name ~prefix:File.(dir / ""))
-        dirs)
-    items
+    | [] ->
+      let dir = config.fix_path Filename.current_dir_name in
+      { empty_targets with directories = [dir, items_in_subdirs items [dir]] })
 
 let sort_user_target_args
     config
@@ -641,9 +646,7 @@ let test_exec_targets
   @ from_direct_targets
 
 let set_ninja_targets nin_ppf ninja_targets =
-  if ninja_targets = [] then (
-    Message.warning "@[<v 4>Nothing was built@]";
-    raise Clerk_rules.Stop_ninja)
+  if ninja_targets = [] then raise Clerk_rules.Stop_ninja
   else Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets))
 
 (* - Finalisers - *)
@@ -904,11 +907,24 @@ let build_cmd : int Cmd.t =
       quiet
       (target_args : string list)
       backends
+      build_objects
       (ninja_flags : string list)
       trace
       trace_format =
     let backends =
       if backends = [] then [`OCaml; `C; `Python; `Java] else backends
+    in
+    let config =
+      if build_objects then
+        {
+          config with
+          Cli.options =
+            {
+              config.Cli.options with
+              global = { config.options.global with include_objects = true };
+            };
+        }
+      else config
     in
     let enabled_backends = backends_to_config backends in
     let targets, info =
@@ -917,7 +933,7 @@ let build_cmd : int Cmd.t =
         ~ninja_flags ~autotest:false ~clean_up_env:false ?trace ?trace_format
       @@ fun nin_ppf items info ->
       let targets =
-        if target_args = [] then default_targets config
+        if target_args = [] then default_targets config items
         else
           sort_user_target_args config ~autotest ~backends items info
             target_args
@@ -951,12 +967,15 @@ let build_cmd : int Cmd.t =
      *     direct_targets_result; *)
     raise (Catala_utils.Cli.Exit_with 0)
   in
-  let doc =
-    "Build command for either $(i,individual files) or $(i,clerk targets)."
-  in
+  let doc = "Builds the targets given as arguments." in
   let man =
     [
       `S Manpage.s_description;
+      `P
+        "Any $(i,clerk targets) specified on the command-line gets built and \
+         written into $(i,target-dir) (by default $(b,_target)), according to \
+         its specification in $(b,clerk.toml) ; any dependencies of these \
+         targets are also included.";
       `P
         "For $(i,individual files), and given the corresponding Catala module \
          is declared, this can be used to build .ml, .cmxs, .c, .py files, \
@@ -967,17 +986,12 @@ let build_cmd : int Cmd.t =
          to build a C object file from $(b,foo/bar.catala_en), one would run:";
       `Pre "clerk build foo/c/bar.o";
       `P
-        "and the resulting file would be in $(b,_build/foo/c/bar.o). When \
-         given $(i,clerk targets), that are defined in a $(b,clerk.toml) \
-         configuration file, it will build all their required dependencies for \
-         all their specified backends along with their source files and copy \
-         them over to the $(i,target-dir) (by default $(b,_target)).";
+        "and the resulting file would be in $(b,_build/foo/c/bar.o). \
+         Specifying a directory will build all files below it.";
       `P
-        "For instance, $(b,clerk build my-target) will generate a directory \
-         $(b,target-dir/my-target/c/) that contains all necessary files to \
-         export the target as a self contained library. When no arguments are \
-         given, $(b,clerk build) will build all the defined $(i,clerk targets) \
-         found in the $(b,clerk.toml) or the project's default targets if any.";
+        "With no arguments, the default targets specified in $(b,clerk.toml) \
+         are used if defined, or all specified targets if not. If no targets \
+         are defined, the current directory is assumed.";
     ]
   in
   Cmd.v
@@ -988,8 +1002,9 @@ let build_cmd : int Cmd.t =
       $ Cli.autotest
       $ Cli.code_coverage
       $ Cli.quiet
-      $ Cli.clerk_targets_or_files
+      $ Cli.clerk_targets_or_files_or_folders
       $ Cli.backends
+      $ Cli.objects
       $ Cli.ninja_flags
       $ Catala_utils.Cli.Flags.trace
       $ Catala_utils.Cli.Flags.trace_format)
@@ -1031,7 +1046,7 @@ let run_cmd =
         ~ninja_flags ~autotest:false ~clean_up_env:false ?trace ?trace_format
       @@ fun nin_ppf items info ->
       let targets =
-        if target_args = [] then default_targets config
+        if target_args = [] then default_targets config items
         else
           sort_user_target_args config ~autotest:false ~backends items info
             target_args
@@ -1044,7 +1059,6 @@ let run_cmd =
       set_ninja_targets nin_ppf ninja_targets;
       targets, items, info
     in
-    target_debug_message targets;
     if prepare_only then (
       Message.result "@[<v 4>Build successful@]";
       Cmd.Exit.ok)
@@ -1163,7 +1177,7 @@ let typecheck_cmd =
                     if
                       it.is_stdlib
                       || List.mem dir config.options.global.include_dirs
-                    then "@src/" ^ String.to_id (Mark.remove mdef)
+                    then "@catala/src/" ^ String.to_id (Mark.remove mdef)
                     else src
                   | None -> it.file_name)
                 target_items
@@ -1309,7 +1323,10 @@ let test_cmd =
     let open Clerk_report in
     let test_reports =
       if List.mem `Interpret backends then
-        List.concat_map read_many test_targets
+        try List.concat_map read_many test_targets
+        with Sys_error _ ->
+          Message.error
+            "Tests couldn't be run, check the above compilation errors."
       else []
     in
     let test_reports =
@@ -1440,10 +1457,13 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
     List.fold_left
       (fun default_rules (module B : Clerk_backend.S) ->
         ("@" ^ B.name ^ "/runtime/src")
-        :: Clerk_backend.module_dep ~name:B.name "Stdlib_fr"
-        :: Clerk_backend.module_dep ~name:B.name "Stdlib_en"
+        :: Clerk_backend.src_dep ~name:B.name "Stdlib_fr"
+        :: Clerk_backend.src_dep ~name:B.name "Stdlib_en"
         :: default_rules)
-      ["@src/Stdlib_fr"; "@src/Stdlib_en"]
+      [
+        Clerk_backend.catala_obj_target "Stdlib_fr";
+        Clerk_backend.catala_obj_target "Stdlib_en";
+      ]
       enabled_backends
   in
   Clerk_rules.run_ninja ~include_dir:false ~code_coverage:false ~quiet

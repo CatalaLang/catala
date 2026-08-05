@@ -170,7 +170,7 @@ module Spec : Sig.Spec = struct
   let build_object ~include_dirs ~same_dir_modules:_ item =
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
-    let implicit_modules = List.map (Common.module_dep ~name) modules in
+    let implicit_modules = List.map (Common.interface_dep ~name) modules in
     let obj =
       Nj.build "c-object"
         ~inputs:[Common.target ~name "c"]

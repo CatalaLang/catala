@@ -50,7 +50,10 @@ val catala_obj_target : string -> string
 
 val target : ?name:string -> string -> string
 
-val module_dep : name:string -> string -> string
+val interface_dep : name:string -> string -> string
+(** backend name, module name -> target name *)
+
+val src_dep : name:string -> string -> string
 (** backend name, module name -> target name *)
 
 val obj_dep : name:string -> Clerk_utils.Scan.item -> string

@@ -70,19 +70,22 @@ let target ?name:backend (* ?(is_stdlib=false)  *) ext =
   let dir = match backend with Some b -> dir / b | None -> dir in
   (dir / !Var.dst) ^ ext
 
-let catala_obj_target modname = "@catala" / "obj" / String.to_id modname
+let catala_obj_target modname = "@catala/obj/" ^ String.to_id modname
 
-let module_dep ~name:backend modname =
-  "@" ^ (backend / "interface" / String.to_id modname)
+let interface_dep ~name:backend modname =
+  "@" ^ backend ^ "/interface/" ^ String.to_id modname
+
+let src_dep ~name:backend modname =
+  "@" ^ backend ^ "/src/" ^ String.to_id modname
 
 let obj_dep ~name:backend item =
   match item.Scan.module_def with
-  | Some (m, _) -> "@" ^ (backend / "obj" / String.to_id m)
+  | Some (m, _) -> "@" ^ backend ^ "/obj/" ^ String.to_id m
   | None ->
-    ("@" ^ backend)
-    / "obj"
-    / dirname item.file_name
-    / String.to_id (basename item.file_name -.- "")
+    "@"
+    ^ backend
+    ^ "/obj/"
+    ^ (dirname item.file_name / String.to_id (basename item.file_name -.- ""))
 
 module Make_backend (A : Sig.Spec) : Sig.S = struct
   module Backend = struct
@@ -97,6 +100,10 @@ module Make_backend (A : Sig.Spec) : Sig.S = struct
       if item.Scan.is_stdlib then
         (!Var.tdir / name / stdlib_subdir / !Var.dst) -.- ext
       else target ~name ext
+
+    let interface_dep = interface_dep ~name
+    let src_dep = src_dep ~name
+    let obj_dep = obj_dep ~name
 
     let runtime_targets ~only_source =
       if only_source then ["@" ^ name ^ "/runtime/src"]

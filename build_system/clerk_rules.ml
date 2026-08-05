@@ -104,7 +104,7 @@ let gen_build_statements
         @ List.map
             (fun m ->
               try !Var.tdir / basename (List.assoc m same_dir_modules)
-              with Not_found -> "@src" / String.to_id m)
+              with Not_found -> "@catala/src/" ^ String.to_id m)
             modules)
       ~outputs:[catala_src]
   in
@@ -143,10 +143,27 @@ let gen_build_statements
   let phony_targets =
     (match item.module_def with
       | Some _ ->
-        [Nj.build "phony" ~outputs:["@src/" ^ !Var.dst] ~inputs:[catala_src]]
+        [
+          Nj.build "phony"
+            ~outputs:["@catala/src/" ^ !Var.dst]
+            ~inputs:[catala_src];
+        ]
       | None -> [])
     @ List.concat_map
         (fun (module Backend : Clerk_backend.S) ->
+          let src_alias =
+            match item.module_def with
+            | Some _ ->
+              [
+                Ninja_utils.build "phony"
+                  ~inputs:
+                    (List.map
+                       (Backend.current_target item)
+                       Backend.src_extensions)
+                  ~outputs:["@" ^ Backend.name ^ "/src/" ^ !Var.dst];
+              ]
+            | None -> []
+          in
           let interface_alias =
             match item.module_def with
             | Some _ ->
@@ -158,8 +175,7 @@ let gen_build_statements
                        Backend.module_extensions)
                   ~implicit_in:
                     (List.map
-                       (fun (m, _) ->
-                         "@" ^ Backend.name ^ "/interface/" ^ String.to_id m)
+                       (fun (m, _) -> Backend.interface_dep m)
                        item.used_modules)
                   ~outputs:["@" ^ Backend.name ^ "/interface/" ^ !Var.dst];
               ]
@@ -176,10 +192,14 @@ let gen_build_statements
                 [
                   (match item.module_def with
                   | Some _ -> "@" ^ Backend.name ^ "/obj/" ^ !Var.dst
-                  | None -> Clerk_backend.obj_dep ~name:Backend.name item);
+                  | None ->
+                    "@"
+                    ^ Backend.name
+                    ^ "/obj/"
+                    ^ (dirname item.file_name / !Var.dst));
                 ]
           in
-          interface_alias @ [obj_alias])
+          src_alias @ interface_alias @ [obj_alias])
         enabled_backends
   in
   let tests_rules =
@@ -1122,18 +1142,19 @@ let run_ninja
                   (fun acc m ->
                     if config.options.global.include_objects then
                       Printf.sprintf "@%s/obj/%s" bk_name m :: acc
-                    else Printf.sprintf "@%s/interface/%s" bk_name m :: acc)
+                    else Printf.sprintf "@%s/src/%s" bk_name m :: acc)
                   inputs modules
               in
               pp (Nj.build "phony" ~outputs:[mk_target bk_name t] ~inputs))
             backends;
-          pp
-            (Nj.build "phony"
-               ~outputs:["#" ^ t]
-               ~inputs:
-                 (List.map
-                    (fun bk -> mk_target bk t)
-                    (String.Set.elements backends))))
+          if not (String.Set.is_empty backends) then
+            pp
+              (Nj.build "phony"
+                 ~outputs:["#" ^ t]
+                 ~inputs:
+                   (List.map
+                      (fun bk -> mk_target bk t)
+                      (String.Set.elements backends))))
         targets_map;
       pp (Nj.Comment "\n- Global rules and defaults - #\n");
       if tests then

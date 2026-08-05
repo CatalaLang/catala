@@ -370,6 +370,18 @@ let whole_program =
         "Use Catala $(i,--whole-program) option when testing or executing \
          Catala scopes."
 
+let objects =
+  let open Arg in
+  value
+  & flag
+  & info ["obj"]
+      ~doc:
+        "Include compilation of backend-specific objects. If this is \
+         specified, in addition to generating sources in the target language \
+         (e.g. $(b,.c) and $(b,.h) files), Clerk will run the backend-specific \
+         compiler to compile those into objects (e.g. $(b,.o) files. Note that \
+         this is done anyway when necessary, like when running backend tests."
+
 let info =
   let doc =
     "Build system for Catala, a specification language for tax and social \

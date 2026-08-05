@@ -36,7 +36,6 @@ type global = {
   catala_exe : File.t option;
   catala_opts : string list;
   default_targets : string list;
-  include_sources : bool;
   include_objects : bool;
 }
 
@@ -81,7 +80,6 @@ let default_global =
     default_targets = [];
     build_dir = "_build";
     target_dir = "_targets";
-    include_sources = false;
     include_objects = false;
   }
 
@@ -105,7 +103,6 @@ let project_encoding () =
            default_targets;
            build_dir;
            target_dir;
-           include_sources;
            include_objects;
          } ->
       ( project_name,
@@ -116,7 +113,6 @@ let project_encoding () =
         proj_empty_list default_targets,
         build_dir,
         target_dir,
-        include_sources,
         include_objects ))
     (fun ( project_name,
            include_dirs,
@@ -125,7 +121,6 @@ let project_encoding () =
            default_targets,
            build_dir,
            target_dir,
-           include_sources,
            include_objects )
        ->
       {
@@ -139,10 +134,9 @@ let project_encoding () =
         default_targets = inj_empty_list default_targets;
         build_dir;
         target_dir;
-        include_sources;
         include_objects;
       })
-  @@ obj9
+  @@ obj8
        (opt_field ~name:"name" @@ string)
        (opt_field ~name:"include_dirs" @@ list string)
        (opt_field ~name:"catala_exe" @@ string)
@@ -150,8 +144,6 @@ let project_encoding () =
        (opt_field ~name:"default_targets" @@ list string)
        (dft_field ~name:"build_dir" ~default:default_global.build_dir string)
        (dft_field ~name:"target_dir" ~default:default_global.target_dir string)
-       (dft_field ~name:"include_sources"
-          ~default:default_global.include_sources bool)
        (dft_field ~name:"include_objects"
           ~default:default_global.include_objects bool)
 

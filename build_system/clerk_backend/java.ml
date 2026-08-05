@@ -224,7 +224,7 @@ module Spec : Sig.Spec = struct
            ]
          ~implicit_in:
            (("@" ^ name ^ "/runtime/obj")
-           :: List.map (Common.module_dep ~name) modules)
+           :: List.map (Common.interface_dep ~name) modules)
          ~outputs:
            [
              (if item.is_stdlib then
