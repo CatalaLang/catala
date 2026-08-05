@@ -1028,7 +1028,7 @@ let evaluate_expr_trace : type d r.
       match Global.options.trace with
       | None -> ()
       | Some _ when disable_trace -> ()
-      | Some (lazy ppf) ->
+      | Some ((lazy ppf), _) ->
         let trace = Runtime.retrieve_trace () in
         let output_trace ppf =
           match Global.options.trace_format with

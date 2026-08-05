@@ -90,8 +90,7 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config =
     (if inplace then "--stdlib=" ^ Lazy.force Poll.stdlib_dir
      else "--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
     :: ("--directory=" ^ Var.(!builddir))
-    :: (if trace then ["--trace"] else [])
-    @ options.global.catala_opts
+    :: options.global.catala_opts
   in
   let includes = includes options.global.include_dirs in
   let test_flags = config.Clerk_cli.test_flags in
@@ -109,7 +108,8 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config =
           | Some e -> File.check_exec e
           | None -> Lazy.force Poll.catala_exe);
         ]);
-    def Var.catala_flags (lazy (catala_flags @ includes));
+    def Var.catala_flags
+      (lazy (catala_flags @ (if trace then ["--trace"] else []) @ includes));
     def Var.clerk_flags
       (lazy
         ("-e"
