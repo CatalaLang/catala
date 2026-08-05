@@ -64,7 +64,11 @@ val expr : ?debug:bool -> unit -> Format.formatter -> ('a, 'm) gexpr -> unit
       variable indices and operator suffixes. See the interface below for more
       detailed control. *)
 
-val s_expr : Format.formatter -> (_, _) gexpr -> unit
+val s_expr :
+  ?pp_mark:(Format.formatter -> 'm mark -> unit) ->
+  Format.formatter ->
+  (_, 'm) gexpr ->
+  unit
 (** S-expression printer for all AST nodes. *)
 
 val negated_op : Format.formatter -> 'a operator -> unit

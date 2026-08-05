@@ -247,10 +247,10 @@ let run_artifact config ~backend ~var_bindings ?scope ?quiet ~test ~trace src =
   | `OCaml -> Clerk_backend.OCaml.run_artifact ~test ~trace ?scope ?quiet src
   | `C -> Clerk_backend.C.run_artifact ~test ?scope ?quiet src
   | `Python ->
-    Clerk_backend.Python.run_artifact config ~test ?scope ?quiet ~var_bindings
-      src
+    Clerk_backend.Python.run_artifact config ~test ~trace ?scope ?quiet
+      ~var_bindings src
   | `Java ->
-    Clerk_backend.Java.run_artifact ~var_bindings ~test ?scope ?quiet src
+    Clerk_backend.Java.run_artifact ~var_bindings ~test ~trace ?scope ?quiet src
 
 (* - Ninja target distribution - *)
 (* these functions take place in the clerk_run continuation, and explicit its targets. *)
@@ -744,6 +744,7 @@ let install_backend_targets
 let run_targets
     ?(whole_program = false)
     ?trace
+    ?trace_format
     ~test
     config
     cmd
@@ -811,7 +812,11 @@ let run_targets
              single target."
       in
       let catala_flags =
-        Var.get info.Clerk_rules.var_bindings Var.catala_flags
+        let bdgs = Var.get info.Clerk_rules.var_bindings Var.catala_flags in
+        if trace <> None then List.filter (( <> ) "--trace") bdgs else bdgs
+      in
+      let catala_flags =
+        catala_flags
         @ (match scope with
           | None -> []
           | Some scope -> [Printf.sprintf "--scope=%s" scope])
@@ -821,7 +826,17 @@ let run_targets
             [
               Printf.sprintf "--input=%s" (Yojson.Safe.to_string ~std:true input);
             ])
-        @ if whole_program then ["--whole-program"] else []
+        @ (if whole_program then ["--whole-program"] else [])
+        @ (match trace with
+          | None -> []
+          | Some `Stdout -> ["--trace"]
+          | Some (`FileName (f : Global.raw_file)) ->
+            [Printf.sprintf "--trace=%s" (f :> string)])
+        @
+        match trace, trace_format with
+        | None, _ | _, None -> []
+        | _, Some Catala_utils.Global.JSON -> ["--trace-format=json"]
+        | _, Some Human -> ["--trace-format=human"]
       in
       let exec = Var.get info.Clerk_rules.var_bindings Var.catala_exe in
       let cmd = exec @ [cmd; target] @ catala_flags in
@@ -839,7 +854,7 @@ let run_targets
       match Clerk_cli.run_command_line ~quiet cmd with
       | 0, _ ->
         let code, lines =
-          run_artifact ~test ~trace config ~backend
+          run_artifact ~test ~trace:(trace <> None) config ~backend
             ~var_bindings:info.Clerk_rules.var_bindings ?scope ~quiet target
         in
         if code <> 0 && quiet then List.iter print_endline lines;
@@ -875,11 +890,12 @@ let raw_cmd : int Cmd.t =
             else f)
           targets
       in
-      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~quiet ~default:0
-        ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~trace:false ~quiet
+        ~default:0 ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
     else (
       Format.eprintf "Available targets:@.";
-      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~quiet ~default:0
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~trace:false ~quiet
+        ~default:0
         ~ninja_flags:(ninja_flags @ ["-t"; "targets"])
         (fun _ _ _ -> 0))
   in
@@ -908,9 +924,7 @@ let build_cmd : int Cmd.t =
       (target_args : string list)
       backends
       build_objects
-      (ninja_flags : string list)
-      trace
-      trace_format =
+      (ninja_flags : string list) =
     let backends =
       if backends = [] then [`OCaml; `C; `Python; `Java] else backends
     in
@@ -929,8 +943,9 @@ let build_cmd : int Cmd.t =
     let enabled_backends = backends_to_config backends in
     let targets, info =
       Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
+        ~trace:false
         ~default:(empty_targets, Clerk_rules.empty_info)
-        ~ninja_flags ~autotest:false ~clean_up_env:false ?trace ?trace_format
+        ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
         if target_args = [] then default_targets config items
@@ -1043,7 +1058,7 @@ let run_cmd =
       Clerk_rules.run_ninja ~quiet ~code_coverage:false ~config
         ~enabled_backends
         ~default:(empty_targets, [], Clerk_rules.empty_info)
-        ~ninja_flags ~autotest:false ~clean_up_env:false ?trace ?trace_format
+        ~trace:(trace <> None) ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
         if target_args = [] then default_targets config items
@@ -1065,8 +1080,8 @@ let run_cmd =
     else
       let exec_targets = test_exec_targets config backends items info targets in
       let results =
-        run_targets ~test:false ~whole_program ?trace config cmd scope
-          scope_input (exec_targets, info)
+        run_targets ~test:false ~whole_program ?trace ?trace_format config cmd
+          scope scope_input (exec_targets, info)
       in
       if List.for_all (fun (_, (success, total)) -> success = total) results
       then Cmd.Exit.ok
@@ -1160,7 +1175,7 @@ let typecheck_cmd =
     let exception Nothing_to_do in
     match
       Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends:[]
-        ~autotest:false ~ninja_flags ~quiet ~default:([], [])
+        ~trace:false ~autotest:false ~ninja_flags ~quiet ~default:([], [])
         (fun nin_ppf items info ->
           let target_items = retrieve_typecheck_items items files_or_folders in
           if target_items = [] then
@@ -1283,7 +1298,7 @@ let test_cmd =
     let targets, items, info, test_targets =
       Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~keep_going:true
         ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest:true
-        ~tests:true
+        ~tests:true ~trace:false
         ~default:(empty_targets, [], Clerk_rules.empty_info, [])
       @@ fun nin_ppf items info ->
       (* TODO: keep_going:true, to be able to still show a test report.
@@ -1476,7 +1491,8 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
 let start_cmd =
   let run config quiet (ninja_flags : string list) =
     let enabled_backends = target_backends config.Cli.options.targets in
-    run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends (fun () -> 0)
+    run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends ~trace:false
+      (fun () -> 0)
   in
   let doc =
     "This command prepares the local build environment of the project with \
@@ -1609,7 +1625,7 @@ let report_cmd =
 let list_vars_cmd =
   let run config =
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~trace:None ~trace_format:None
+      Clerk_rules.base_bindings ~autotest:false ~trace:false
         ~code_coverage:false
         ~enabled_backends:(List.map snd (Clerk_config.registered_backends ()))
         ~config ~inplace:false
@@ -1633,8 +1649,8 @@ let list_vars_cmd =
 let json_schema_cmd =
   let run config file scope =
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false ~trace:None
-        ~trace_format:None ~enabled_backends:[] ~config ~inplace:true
+      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+        ~trace:false ~enabled_backends:[] ~config ~inplace:true
     in
     let catala_exe = Var.get var_bindings Var.catala_exe in
     let catala_flags = Var.get var_bindings Var.catala_flags in
@@ -1661,8 +1677,8 @@ let exceptions_cmd =
        artifacts required. Bypass ninja and call catala directly from the
        project root instead of the build dir (with [inplace:true]) *)
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false ~trace:None
-        ~trace_format:None ~enabled_backends:[] ~config ~inplace:true
+      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+        ~trace:false ~enabled_backends:[] ~config ~inplace:true
     in
     let catala_exe = Var.get var_bindings Var.catala_exe in
     let catala_flags = Var.get var_bindings Var.catala_flags in

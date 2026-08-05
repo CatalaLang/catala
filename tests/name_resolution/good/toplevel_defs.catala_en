@@ -132,9 +132,11 @@ let loc =
     <toplevel_defs:77.24-49>; <toplevel_defs:98.10-11>;
     <toplevel_defs:101.24-35>]
 
-let glob1 = 44.12
+let glob1 =
+  44.12
 
-let glob2 = A {"y": ≥ nth(2) loc glob1 30., "z": 123. * 17.}
+let glob2 =
+  A {"y": ≥ nth(2) loc glob1 30., "z": 123. * 17.}
 
 let s (s_in: #[test] S_in) =
   decl a : decimal;
@@ -154,7 +156,8 @@ let s (s_in: #[test] S_in) =
     b = arg."0";
   return S {"a": a, "b": b}
 
-let glob3 (x: money) = return to_rat x + 10.
+let glob3 (x: money) =
+  return to_rat x + 10.
 
 let s2 (s2_in: #[test] S2_in) =
   decl a : decimal;
@@ -167,7 +170,8 @@ let s2 (s2_in: #[test] S2_in) =
     a = arg."0";
   return S2 {"a": a}
 
-let glob4 (x: money) (y: decimal) = return to_rat x * y + 10.
+let glob4 (x: money) (y: decimal) =
+  return to_rat x * y + 10.
 
 let s3 (s3_in: #[test] S3_in) =
   decl a : decimal;
@@ -187,7 +191,8 @@ let glob5_init =
   y = 1000.;
   return x * y
 
-let glob5 = glob5_init ()
+let glob5 =
+  glob5_init ()
 
 let s4 (s4_in: #[test] S4_in) =
   decl a : decimal;
@@ -361,6 +366,7 @@ if __name__ == "__main__":
   parser.add_argument('scopes', nargs='*', help='scopes to test (omit for all)')
   parser.add_argument('--test', action='store_true', help='check without printing results')
   parser.add_argument('--json', action='store_true', help='output results in JSON')
+  parser.add_argument('--trace', action='store_true', help='output trace in JSON')
   args = parser.parse_args()
   
   if args.scopes == [] or 'S' in args.scopes:
@@ -369,21 +375,18 @@ if __name__ == "__main__":
     if not args.test:
       if args.json: print(s_test.to_json())
       else: print(s_test)
-  
   if args.scopes == [] or 'S2' in args.scopes:
     s2_test = (s2(S2In()))
     print("/x1b[32m[RESULT]/x1b[m Scope S2 executed successfully.", file=stderr)
     if not args.test:
       if args.json: print(s2_test.to_json())
       else: print(s2_test)
-  
   if args.scopes == [] or 'S3' in args.scopes:
     s3_test = (s3(S3In()))
     print("/x1b[32m[RESULT]/x1b[m Scope S3 executed successfully.", file=stderr)
     if not args.test:
       if args.json: print(s3_test.to_json())
       else: print(s3_test)
-  
   if args.scopes == [] or 'S4' in args.scopes:
     s4_test = (s4(S4In()))
     print("/x1b[32m[RESULT]/x1b[m Scope S4 executed successfully.", file=stderr)

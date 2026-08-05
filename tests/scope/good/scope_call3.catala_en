@@ -118,8 +118,8 @@ $ catala Interpret -t -s HousingComputation --debug
         12 │   output f content integer depends on x content integer
            │          ‾
       ← Exiting Scope RentComputation: RentComputation {
-                                           -- f: <function>
-                                         }
+                                         -- f: <function>
+                                       }
       ⊕ Definition fulfilled
       ─➤ tests/scope/good/scope_call3.catala_en:16.14-15:
          │

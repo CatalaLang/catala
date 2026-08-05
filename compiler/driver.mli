@@ -62,6 +62,7 @@ module Passes : sig
     closure_conversion:bool ->
     keep_special_ops:bool ->
     monomorphize_types:bool ->
+    split_threshold:int option ->
     renaming:Shared_ast.Renaming.t option ->
     lift_pos:
       (Shared_ast.lcalc Shared_ast.Op.t -> Shared_ast.naked_typ -> bool) option ->
@@ -82,6 +83,8 @@ module Passes : sig
     no_struct_literals:bool ->
     keep_module_names:bool ->
     monomorphize_types:bool ->
+    split_threshold:int option ->
+    split_scope_var_defs:bool ->
     renaming:Shared_ast.Renaming.t option ->
     lift_pos:
       (Shared_ast.lcalc Shared_ast.Op.t -> Shared_ast.naked_typ -> bool) option ->

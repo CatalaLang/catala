@@ -23,7 +23,7 @@ module L = Lcalc.Ast
 open Format
 
 let pp_comma ppf () = fprintf ppf ",@ "
-let pp_skip_line ppf () = fprintf ppf "\n@,"
+let pp_skip_line ppf () = fprintf ppf "@\n@,"
 
 let pp_print_list_padded ?pp_sep pp ppf l =
   if l = [] then ()
@@ -39,15 +39,11 @@ type context = {
   in_globals : bool;
   global_funcs : FuncName.Set.t;
   global_vars : VarName.Set.t;
+  var_def_funcs : FuncName.Set.t;
   external_global_funcs : String.Set.t;
   external_global_vars : String.Set.t;
   external_scopes : string String.Map.t;
 }
-
-let format_string_list (ppf : formatter) (uids : string list) : unit =
-  fprintf ppf "new String[]{%a}"
-    (pp_print_list ~pp_sep:pp_comma pp_print_string)
-    (List.map String.quote uids)
 
 let java_keywords =
   (* list taken from
@@ -256,6 +252,10 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
   | LBool true -> pp_print_string ppf "CatalaBool.TRUE"
   | LBool false -> pp_print_string ppf "CatalaBool.FALSE"
+  | LInt i when Z.fits_int64 i ->
+    fprintf ppf "new CatalaInteger(%s%s)"
+      (Runtime.integer_to_string i)
+      (if Z.fits_int32 i then "" else "l")
   | LInt i ->
     fprintf ppf "new CatalaInteger(\"%s\")" (Runtime.integer_to_string i)
   | LUnit -> pp_print_string ppf "null"
@@ -268,6 +268,16 @@ let rec format_lit (ppf : formatter) (l : lit Mark.pos) : unit =
         (Mark.copy l (LInt (Q.num i)))
         format_lit
         (Mark.copy l (LInt (Q.den i)))
+  | LMoney e when Z.fits_int64 e ->
+    let z_100 = Z.of_int 100 in
+    if Z.(rem e z_100 = zero) then
+      fprintf ppf "new CatalaMoney(%s%s)"
+        Runtime.(integer_to_string (Z.div e z_100))
+        (if Z.fits_int32 e then "" else "l")
+    else
+      fprintf ppf "CatalaMoney.ofCents(%s%s)"
+        Runtime.(integer_to_string (money_to_cents e))
+        (if Z.fits_int32 e then "" else "l")
   | LMoney e ->
     fprintf ppf "CatalaMoney.ofCents(\"%s\")"
       (Runtime.integer_to_string (Runtime.money_to_cents e))
@@ -399,11 +409,9 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EPosLit ->
     let pos = Mark.get e in
     fprintf ppf
-      "@[<hv 2>new CatalaPosition@;\
-       <0 -1>(@[<hov>\"%s\",@ %d, %d,@ %d, %d,@ %a@])@]"
+      "@[<hv 2>new CatalaPosition@;<0 -1>(@[<hov>\"%s\",@ %d, %d,@ %d, %d@])@]"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
+      (Pos.get_end_line pos) (Pos.get_end_column pos)
   | EAppOp { op = ValueFromJson (ty, str), p; args = [_e]; _ } ->
     let encoded_string =
       (* Java needs utf-16, we quote the string then escape the non-latin1
@@ -423,14 +431,9 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | EAppOp { op = DebugPrint str, _; args = [e]; _ } ->
     fprintf ppf "System.err.println(\"%s = \" + %a.toString())" str
       (format_expression ctx) e
-  | EAppOp
-      {
-        op = (HandleExceptions, _) as op;
-        args = [(EArray { elts = exprs; _ }, _)];
-        _;
-      } ->
-    fprintf ppf "@[<hv 2>%a@;<0 -1>(new CatalaArray<>(@ %a@ )@])" format_op op
-      (pp_print_list ~pp_sep:pp_comma (fun ppf e -> format_expression ctx ppf e))
+  | EAppOp { op = (HandleExceptions, _) as op; args = exprs; _ } ->
+    fprintf ppf "@[<hv 2>%a@;<0 -1>(%a@])" format_op op
+      (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
       exprs
   | EAppOp { op = Concat, _; args = [(EArray { elts = []; _ }, _); e2]; _ } ->
     (* Do not append to empty list *)
@@ -533,6 +536,10 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
       (pp_print_list ~pp_sep:pp_comma (fun ppf e ->
            fprintf ppf "%a" (format_expression ctx) e))
       es
+  | ETupleAccess { e1; index; typ = (TArrow _, _) as typ } ->
+    fprintf ppf "(%a)@;<0 -1>(%a.get(%d))" (format_typ ctx) typ
+      (format_expression_with_paren ctx)
+      e1 index
   | ETupleAccess { e1; index; typ } ->
     fprintf ppf "CatalaValue.<%a>cast@;<0 -1>(%a.get(%d))" (format_typ ctx) typ
       (format_expression_with_paren ctx)
@@ -618,7 +625,6 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
       | [(SIfThenElse { if_expr; then_block; else_block }, _)] ->
         Format.fprintf ppf " else if (%a.asBoolean()) {@ %a@;<1 -4>}"
           (format_expression ctx) if_expr (format_block ctx) then_block;
-
         pr_else else_block
       | [(SLocalDef { expr = ELit LUnit, _; _ }, _)]
       | [(SReturn (ELit LUnit, _), _)] ->
@@ -755,6 +761,20 @@ and format_block ?(toplevel = false) ctx ppf (block : Ast.block) =
       pp_print_space ppf ();
       format_stmts ~toplevel r
     | (SLocalDecl { name = n, _; typ }, _)
+      :: ( SLocalDef
+             { name = n2, _; expr = EApp { f = EFunc fname, _; args; _ }, _; _ },
+           _ )
+      :: r
+      when VarName.equal n n2 && FuncName.Set.mem fname ctx.var_def_funcs ->
+      (* Special case for scope variable definitions functions that
+         are not compiled as lambdas *)
+      fprintf ppf "@[<hov 4>final %a@ %a = %a(%a);@]" (format_typ ctx) typ
+        VarName.format n FuncName.format fname
+        (pp_print_list ~pp_sep:pp_comma (format_expression ctx))
+        args;
+      pp_print_space ppf ();
+      format_stmts ~toplevel r
+    | (SLocalDecl { name = n, _; typ }, _)
       :: (SLocalDef { name = n2, _; expr; _ }, _)
       :: r
       when VarName.equal n n2 ->
@@ -843,25 +863,36 @@ and format_pos_as_expr ctx ppf p =
 let format_constructor_body (ctx : context) sbody ppf =
   format_block ~toplevel:true ctx ppf sbody.scope_body_func.func_body
 
-let format_constructor (ctx : context) (sbody : scope_body) ppf =
-  let in_struct_name =
-    match sbody.scope_body_func.func_params with
-    | [(_vname, (TStruct sn, _))] -> sn
-    | _ -> assert false
+let format_scope_var_def
+    ctx
+    ppf
+    ((_scope_var, func_name, func) : VarName.t Mark.pos * FuncName.t * func) =
+  let format_params ppf =
+    pp_print_list ~pp_sep:pp_comma (fun ppf pp_v -> pp_v ppf) ppf
   in
-  StructName.Map.find_opt in_struct_name ctx.decl_ctx.ctx_structs
-  |> function
-  | None -> ()
-  | Some in_fields ->
-    if StructField.Map.cardinal in_fields >= 255 then
-      Message.error
-        "The scope %a has too many input variables: Java does not support more \
-         than 255 parameters in methods. "
-        ScopeName.format_original sbody.scope_body_name;
-    fprintf ppf "@[<v 4>@[<hov 4>%a%a@ (@[<hov>%a@])@;<1 -4>{@]@,%t@;<1 -4>}@]"
-      format_visibility sbody.scope_body_visibility format_scope
-      sbody.scope_body_name (format_struct_params ctx) in_fields
-      (format_constructor_body ctx sbody)
+  let params =
+    List.map
+      (fun (v, t) ->
+        fun ppf ->
+         fprintf ppf "final %a %a" (format_typ ctx) t VarName.format
+           (Mark.remove v))
+      func.func_params
+  in
+  fprintf ppf
+    "@[<v 4>@[<hov 4>private %a %a(@[<hov>%a@])@;<1 -4>{@]@,%a@;<1 -4>}@]"
+    (format_typ ctx) func.func_return_typ FuncName.format func_name
+    format_params params (format_block ctx) func.func_body
+
+let format_constructor (ctx : context) in_fields ppf (sbody : scope_body) =
+  if StructField.Map.cardinal in_fields >= 255 then
+    Message.error
+      "The scope %a has too many input variables: Java does not support more \
+       than 255 parameters in methods. "
+      ScopeName.format_original sbody.scope_body_name;
+  fprintf ppf "@[<v 4>@[<hov 4>%a%a@ (@[<hov>%a@])@;<1 -4>{@]@,%t@;<1 -4>}@]"
+    format_visibility sbody.scope_body_visibility format_scope
+    sbody.scope_body_name (format_struct_params ctx) in_fields
+    (format_constructor_body ctx sbody)
 
 let format_output_parameter ?(vis = Public) ctx ppf (field_name, typ) =
   fprintf ppf "@[<h>%afinal@ %a@ %a;@]" format_visibility vis (format_typ ctx)
@@ -1001,7 +1032,8 @@ let format_tests ctx ppf p =
        fprintf ppf "try {@\n";
        (if Global.options.trace <> None then
           let scope_pos = Mark.get (ScopeName.get_info scope_name) in
-          format_begin_trace ctx ppf (ScopeCall scope_name, scope_pos));
+          fprintf ppf "%a@\n" (format_begin_trace ctx)
+            (ScopeCall scope_name, scope_pos));
        fprintf ppf "%a@\n" (format_block ~toplevel:true ctx) block;
        if Global.options.trace <> None then
          fprintf ppf "CatalaTrace.end(%s);@\n" (VarName.to_string var);
@@ -1011,8 +1043,8 @@ let format_tests ctx ppf p =
        pp_close_box ppf ();
        fprintf ppf
          "@\n\
-          } catch (RuntimeException e) { CatalaGlobals.displayError(\"%a\", \
-          e); } }"
+          } catch (RuntimeException e) { CatalaGlobals.displayError(\"%a\", e);@\n\
+          throw e; } }"
          ScopeName.format_original scope_name;
        pp_close_box ppf ()
      in
@@ -1045,18 +1077,43 @@ let format_scope ctx ppf (sbody : Ast.scope_body) =
       "The scope %a has too many output variables: Java does not support more \
        than 255 parameters in methods, this would yield invalid Java code. "
       ScopeName.format_original sbody.scope_body_name;
+  let in_struct_name =
+    match sbody.scope_body_func.func_params with
+    | [(_vname, (TStruct sn, _))] -> sn
+    | _ -> assert false
+  in
+  let scope_body_var_defs =
+    match sbody.scope_body_var_defs with
+    | None ->
+      Message.error ~internal:true
+        "Found unexpected non-split scope variable definitions."
+    | Some x -> x
+  in
+  let ctx =
+    {
+      ctx with
+      var_def_funcs =
+        List.map (fun (_, fname, _) -> fname) scope_body_var_defs
+        |> FuncName.Set.of_list;
+    }
+  in
+  let in_fields = StructName.Map.find in_struct_name ctx.decl_ctx.ctx_structs in
   fprintf ppf
     "@[<v 4>@[<hov 4>public static class %a extends CatalaStruct {@]@\n\
      @,\
-     %a@ %t@\n\
+     %a@ %a@\n\
+     @,\
+     %a@\n\
      @,\
      %t@]@\n\
      }"
     format_scope sbody.scope_body_name
     (format_scope_output_parameters ctx sbody)
     out_fields
-    (format_constructor ctx sbody)
-    pp_out_struct
+    (pp_print_list ~pp_sep:pp_skip_line (format_scope_var_def ctx))
+    scope_body_var_defs
+    (format_constructor ctx in_fields)
+    sbody pp_out_struct
 
 let gather_externals ctx =
   let external_global_funcs, external_global_vars =
@@ -1109,6 +1166,7 @@ let populate_context (p : Ast.program) : context =
       in_globals = false;
       global_funcs = FuncName.Set.empty;
       global_vars = VarName.Set.empty;
+      var_def_funcs = FuncName.Set.empty;
       external_global_funcs = String.Set.empty;
       external_global_vars = String.Set.empty;
       external_scopes = String.Map.empty;

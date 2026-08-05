@@ -24,7 +24,6 @@ module Nj = Ninja_utils
 let base_bindings
     ~code_coverage
     ~trace
-    ~trace_format
     ~autotest
     ~enabled_backends
     ~inplace
@@ -33,8 +32,7 @@ let base_bindings
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
   let default_flags =
-    Clerk_backend.default_flags ~code_coverage ~trace ~trace_format ~inplace
-      ~config
+    Clerk_backend.default_flags ~code_coverage ~trace ~inplace ~config
   in
   let backend_flags =
     List.concat_map
@@ -1009,8 +1007,7 @@ let run_ninja
     ~default
     ?keep_going
     ~code_coverage
-    ?trace
-    ?trace_format
+    ~trace
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
@@ -1018,8 +1015,8 @@ let run_ninja
   if !run_once then Message.error ~internal:true "Ninja should run only once";
   run_once := true;
   let var_bindings =
-    base_bindings ~code_coverage ~trace ~trace_format ~config ~enabled_backends
-      ~autotest ~inplace:false
+    base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
+      ~inplace:false
   in
   let enabled_backends =
     List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)

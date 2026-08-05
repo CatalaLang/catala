@@ -27,6 +27,7 @@ val linking_command :
 val run_artifact :
   Clerk_cli.config ->
   test:bool ->
+  trace:bool ->
   ?scope:string ->
   var_bindings:(Var.t * string list) list ->
   ?quiet:bool ->

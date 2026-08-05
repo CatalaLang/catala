@@ -32,7 +32,7 @@ val linking_command :
 
 val run_artifact :
   test:bool ->
-  trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] option ->
+  trace:bool ->
   ?scope:string ->
   ?quiet:bool ->
   string ->

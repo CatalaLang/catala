@@ -2,7 +2,7 @@ publiccodeYmlVersion: "0"
 name: Catala
 url: https://github.com/CatalaLang/catala
 landingURL: https://catala-lang.org
-softwareVersion: "1.2.0"
+softwareVersion: "1.2.1"
 releaseDate: "2026-05-29"
 logo: https://github.com/CatalaLang.png
 platforms:

@@ -5,7 +5,7 @@ public class Prorata_external {
 
     public static class Globals {
 
-        private static final CatalaPosition dummy_position = new CatalaPosition("src/periodes.java", 0, 0, 0, 0, new String[]{});
+        private static final CatalaPosition dummy_position = new CatalaPosition("src/periodes.java", 0, 0, 0, 0);
 
         @SuppressWarnings("unchecked")
         public static final CatalaFunction<CatalaTuple, CatalaArray<CatalaMoney>> prorata

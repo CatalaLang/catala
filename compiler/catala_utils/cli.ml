@@ -648,6 +648,26 @@ module Flags = struct
            also $(b,json-schema) command to generate the accepted JSON's \
            schema for a given scope."
 
+  let split_threshold =
+    let converter =
+      conv
+        ( (fun s ->
+            Arg.conv_parser int s
+            |> function
+            | Ok i ->
+              if i < 100 then Error (`Msg "value must be at least 100")
+              else Ok i
+            | e -> e),
+          Format.pp_print_int )
+    in
+    value
+    & opt (some converter) None
+    & info ["split-threshold"] ~docv:"NUM"
+        ~doc:
+          "Maximum allowed size of a Catala expression before splitting into \
+           multiple chunks. Only relevant for non-OCaml backends. Java is set \
+           to 10,000 by default."
+
   let output_format = Global.output_format
   let trace = Global.trace
   let trace_format = Global.trace_format

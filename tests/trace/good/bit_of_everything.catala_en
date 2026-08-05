@@ -112,9 +112,9 @@ $ catala interpret -s T --trace
         18 │   definition a_A equals i
            │                         ‾
     ← Exiting Scope A: A {
-                           -- f_scope_a: <function>
-                           -- a_A: true
-                         }
+                         -- f_scope_a: <function>
+                         -- a_A: true
+                       }
   ≔ Scope variable definition a_T: false
   ─➤ tests/trace/good/bit_of_everything.catala_en:22.10-13:
      │
@@ -243,9 +243,9 @@ $ catala interpret -s T --trace
         18 │   definition a_A equals i
            │                         ‾
     ← Exiting Scope A: A {
-                           -- f_scope_a: <function>
-                           -- a_A: true
-                         }
+                         -- f_scope_a: <function>
+                         -- a_A: true
+                       }
   ⊹ Assertion
   ─➤ tests/trace/good/bit_of_everything.catala_en:53.3-20:
      │

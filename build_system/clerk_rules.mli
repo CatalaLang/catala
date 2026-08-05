@@ -20,8 +20,7 @@ open Clerk_utils
 
 val base_bindings :
   code_coverage:bool ->
-  trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] option ->
-  trace_format:Catala_utils.Global.format_enum option ->
+  trace:bool ->
   autotest:bool ->
   enabled_backends:Clerk_config.backend list ->
   inplace:bool ->
@@ -63,8 +62,7 @@ val run_ninja :
   default:'a ->
   ?keep_going:bool ->
   code_coverage:bool ->
-  ?trace:[ `FileName of Catala_utils.Global.raw_file | `Stdout ] ->
-  ?trace_format:Catala_utils.Global.format_enum ->
+  trace:bool ->
   autotest:bool ->
   ?clean_up_env:bool ->
   ?ninja_flags:string list ->
@@ -82,5 +80,3 @@ val run_ninja :
     variables.
 
     [default] is returned if the callback aborts with exception [Stop_ninja]. *)
-
-val module_supported_backends : callback_info -> string -> Clerk_backends.t

@@ -5,14 +5,10 @@ public class Text {
     public static class Globals {
 
         public static final CatalaArray<CatalaPosition> loc
-                = new CatalaArray<>(new CatalaPosition("tests/modules/good/text.catala_en", 8, 13, 8, 16,
-                        new String[]{"Text types in Catala"}),
-                        new CatalaPosition("tests/modules/good/text.catala_en", 9, 13, 9, 16,
-                                new String[]{"Text types in Catala"}),
-                        new CatalaPosition("tests/modules/good/text.catala_en", 10, 13, 10, 21,
-                                new String[]{"Text types in Catala"}),
-                        new CatalaPosition("tests/modules/good/text.catala_en", 11, 13, 11, 19,
-                                new String[]{"Text types in Catala"}));
+                = new CatalaArray<>(new CatalaPosition("tests/modules/good/text.catala_en", 8, 13, 8, 16),
+                        new CatalaPosition("tests/modules/good/text.catala_en", 9, 13, 9, 16),
+                        new CatalaPosition("tests/modules/good/text.catala_en", 10, 13, 10, 21),
+                        new CatalaPosition("tests/modules/good/text.catala_en", 11, 13, 11, 19));
 
         static final CatalaFunction<CatalaUnit, Text__1> fooInit = unit -> {
             return new Text__1("foo\\");

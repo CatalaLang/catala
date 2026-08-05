@@ -141,12 +141,12 @@ $ catala interpret -s T --trace
         17 │   definition sr equals i + ic + oc
            │                        ‾‾‾‾‾‾‾‾‾‾‾
     ← Exiting Scope S: S {
-                           -- oc: 100
-                           -- sr: 111
-                         }
+                         -- oc: 100
+                         -- sr: 111
+                       }
 ← Exiting Scope T: T {
-                       -- r: 111
-                     }
+                     -- r: 111
+                   }
 ┌─[RESULT]─ T ─
 │ r = 111
 └─
@@ -226,12 +226,12 @@ $ catala interpret -s T2 --trace
         17 │   definition sr equals i + ic + oc
            │                        ‾‾‾‾‾‾‾‾‾‾‾
     ← Exiting Scope S: S {
-                           -- oc: 200
-                           -- sr: 222
-                         }
+                         -- oc: 200
+                         -- sr: 222
+                       }
 ← Exiting Scope T2: T2 {
-                        -- r: 222
-                      }
+                      -- r: 222
+                    }
 ┌─[RESULT]─ T2 ─
 │ r = 222
 └─
@@ -348,12 +348,12 @@ $ catala interpret -s T --trace --lcalc
         17 │   definition sr equals i + ic + oc
            │                        ‾‾‾‾‾‾‾‾‾‾‾
     ← Exiting Scope S: S {
-                           -- oc: 100
-                           -- sr: 111
-                         }
+                         -- oc: 100
+                         -- sr: 111
+                       }
 ← Exiting Scope T: T {
-                       -- r: 111
-                     }
+                     -- r: 111
+                   }
 ┌─[RESULT]─ T ─
 │ r = 111
 └─
@@ -434,12 +434,12 @@ $ catala interpret -s T2 --trace --lcalc
         17 │   definition sr equals i + ic + oc
            │                        ‾‾‾‾‾‾‾‾‾‾‾
     ← Exiting Scope S: S {
-                           -- oc: 200
-                           -- sr: 222
-                         }
+                         -- oc: 200
+                         -- sr: 222
+                       }
 ← Exiting Scope T2: T2 {
-                        -- r: 222
-                      }
+                      -- r: 222
+                    }
 ┌─[RESULT]─ T2 ─
 │ r = 222
 └─

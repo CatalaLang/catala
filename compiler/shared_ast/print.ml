@@ -1216,11 +1216,16 @@ module UserFacing = struct
     aux_value
 end
 
-let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
- fun fmt e ->
+let rec s_expr : type a m.
+    ?pp_mark:(Format.formatter -> m mark -> unit) ->
+    Format.formatter ->
+    (a, m) gexpr ->
+    unit =
+ fun ?(pp_mark = fun _ _ -> ()) fmt e ->
   let open Format in
   let pf = fprintf in
   let pp_sep fmt () = pf fmt ",@ " in
+  let s_expr = s_expr ~pp_mark in
   let ppl fmt l = pf fmt "@[<hov 2>[ %a ]@]" (pp_print_list ~pp_sep s_expr) l in
   let pp_marked_id fmt (sf, e) =
     pf fmt "@[<hov 1>%a: %a@]" MarkedIdent.format sf s_expr e
@@ -1232,6 +1237,7 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
     | None -> pf fmt "NONE"
     | Some x -> pf fmt "SOME(%a)" pp x
   in
+  pp_mark fmt (Mark.get e);
   match Mark.remove e with
   | ELit (LBool b) -> pf fmt "LitBool<%b>" b
   | ELit (LInt i) -> pf fmt "LitInt<%s>" (Z.to_string i)
@@ -1253,7 +1259,7 @@ let rec s_expr : type a. Format.formatter -> (a, 't) gexpr -> unit =
   | EVar v -> pf fmt "Var(%s#%d)" (Bindlib.name_of v) (Bindlib.uid_of v)
   | EAbs { binder; _ } ->
     let vars, e = Bindlib.unmbind binder in
-    let vars : (a, 't) gexpr list =
+    let vars : (a, m) gexpr list =
       Array.to_list vars |> List.map (fun v -> Mark.add (Mark.get e) (EVar v))
     in
     pf fmt "@[<hov 1>Abs(%a,@ %a)@]" ppl vars s_expr e
@@ -1351,7 +1357,7 @@ and trace_element =
     let open Format in
     let pp_value ppf value =
       match value with
-      | None -> pp_print_string ppf "∅"
+      | None -> Format.pp_print_as ppf 1 "∅"
       | Some v -> fprintf ppf "@{<magenta>%a@}" Value.format v
     in
     let pp_sub_trace ppf =
@@ -1359,42 +1365,45 @@ and trace_element =
     in
     match kind with
     | ScopeCall { name = scope_name; decl_pos = _ } ->
-      fprintf ppf "→ Entering scope @{<cyan3>%s@}@ " scope_name;
+      fprintf ppf "@<1>%s Entering scope @{<cyan3>%s@}@ " "→" scope_name;
       fprintf ppf "@[<v 2>%a%t@]@ " pp_pos pos pp_sub_trace;
-      fprintf ppf "@[<hov 2>← Exiting Scope %s:@ @[%a@]@]" scope_name pp_value
-        value
+      fprintf ppf "@[<hov 2>@<1>%s Exiting Scope %s:@ %a@]" "←" scope_name
+        pp_value value
     | ScopeVarDef { var; io } ->
-      fprintf ppf "@[<hov 2>≔ Scope%s variable definition %a:@ @[%a@]@]@ "
+      fprintf ppf "@[<hov 2>@<1>%s Scope%s variable definition %a:@ @[%a@]@]@ "
+        "≔"
         (if io.io_input = Reentrant then " context"
          else if io.io_input = OnlyInput then " input"
          else "")
         lit_style var.name pp_value value;
       fprintf ppf "@[<v 2>%a%t@]" pp_pos var.decl_pos pp_sub_trace
     | LocalVarDef var_name ->
-      fprintf ppf "@[<hov 2>≔ Local variable %a definition:@ @[%a@]@]@ "
-        lit_style var_name pp_value value;
+      fprintf ppf "@[<hov 2>@<1>%s Local variable %a definition:@ @[%a@]@]@ "
+        "≔" lit_style var_name pp_value value;
       fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
     | LocalTupDef names ->
-      fprintf ppf "@[<hov 2>≔ Local variables (%a) definition:@ @[%a@]@]@ "
+      fprintf ppf "@[<hov 2>@<1>%s Local variables (%a) definition:@ @[%a@]@]@ "
+        "≔"
         (pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ",") lit_style)
         names pp_value value;
       fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
     | FunCall { name = func_name; decl_pos } ->
-      fprintf ppf "→ Applying function %a@ " lit_style func_name;
+      fprintf ppf "@<1>%s Applying function %a@ " "→" lit_style func_name;
       fprintf ppf "@[<v 2>%a%t@]@ " pp_pos decl_pos pp_sub_trace;
-      fprintf ppf "@[<hov 2>← Function %a applied:@ @[%a@]@]" lit_style
+      fprintf ppf "@[<hov 2>@<1>%s Function %a applied:@ @[%a@]@]" "←" lit_style
         func_name pp_value value
     | BranchingCondition ->
-      fprintf ppf "⊡ Condition evaluated to %a@," pp_value value;
+      fprintf ppf "@<1>%s Condition evaluated to %a@," "⊡" pp_value value;
       fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
     | IfBranching ->
-      fprintf ppf "⊸ Branch taken@ ";
+      fprintf ppf "@<1>%s Branch taken@ " "⊸";
       fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
     | MatchBranching { constructor_name } ->
-      fprintf ppf "⊸ Branch taken: case %a@," lit_style constructor_name;
+      fprintf ppf "@<1>%s Branch taken: case %a@," "⊸" lit_style
+        constructor_name;
       fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
     | Assertion ->
-      fprintf ppf "⊹ Assertion@,";
+      fprintf ppf "@<1>%s Assertion@," "⊹";
       fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
     | Exception { label; cons_pos } ->
       let is_fulfilled =
@@ -1411,11 +1420,11 @@ and trace_element =
       in
       fprintf ppf "⊕ Definition%t %t@ " format_label format_decision;
       if is_fulfilled then (
-        fprintf ppf "%a@ ⊸ Consequence:@ " pp_pos pos;
+        fprintf ppf "%a@ @<1>%s Consequence:@ " pp_pos pos "⊸";
         fprintf ppf "@[<v 2>%a%t@]" pp_pos cons_pos pp_sub_trace)
       else fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
     | Error { error; locs; message } ->
-      fprintf ppf "@{<red;bold>⨉ Error: %s%t@}"
+      fprintf ppf "@{<red;bold>@<1>%s Error: %s%t@}" "⨉"
         (Catala_runtime.error_message error) (fun ppf ->
           match message with
           | Some message -> Format.fprintf ppf " (%s)" message
