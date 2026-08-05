@@ -17,30 +17,29 @@
 
 open Catala_utils
 open Clerk_utils
-module Backend_common = Clerk_backends.Common
+module Backend_common = Clerk_backend.Common
 module Nj = Ninja_utils
 
 (**{1 Building rules}*)
 
-type backend = (module Clerk_backends.Backend.S)
+type backend = (module Clerk_backend.Backend.S)
 
 let all_backends : backend list =
   [
-    (module Clerk_backends.Ocaml.Backend);
-    (module Clerk_backends.C.Backend);
-    (module Clerk_backends.Java.Backend);
-    (module Clerk_backends.Python.Backend);
+    (module Clerk_backend.Ocaml.Backend);
+    (module Clerk_backend.C.Backend);
+    (module Clerk_backend.Java.Backend);
+    (module Clerk_backend.Python.Backend);
   ]
 
 let backend_from_config = function
   | Clerk_config.OCaml ->
-    (module Clerk_backends.Ocaml.Backend : Clerk_backends.Backend.S)
+    (module Clerk_backend.Ocaml.Backend : Clerk_backend.Backend.S)
   | Clerk_config.Python ->
-    (module Clerk_backends.Python.Backend : Clerk_backends.Backend.S)
-  | Clerk_config.C ->
-    (module Clerk_backends.C.Backend : Clerk_backends.Backend.S)
+    (module Clerk_backend.Python.Backend : Clerk_backend.Backend.S)
+  | Clerk_config.C -> (module Clerk_backend.C.Backend : Clerk_backend.Backend.S)
   | Clerk_config.Java ->
-    (module Clerk_backends.Java.Backend : Clerk_backends.Backend.S)
+    (module Clerk_backend.Java.Backend : Clerk_backend.Backend.S)
   | _ -> invalid_arg __FUNCTION__
 
 let base_bindings
@@ -58,7 +57,7 @@ let base_bindings
   in
   let backend_flags =
     List.concat_map
-      (fun (module Backend : Clerk_backends.Backend.S) ->
+      (fun (module Backend : Clerk_backend.Backend.S) ->
         Backend.Flags.default ~variables:options.variables ~autotest
           ~use_default_flags ~test_flags
           ~include_dirs:options.global.include_dirs)
@@ -101,7 +100,7 @@ let static_base_rules ~tests enabled_backends =
   in
   let backend_static_rules =
     List.concat_map
-      (fun (module Backend : Clerk_backends.Backend.S) ->
+      (fun (module Backend : Clerk_backend.Backend.S) ->
         Backend.static_base_rules)
       enabled_backends
   in
@@ -110,7 +109,7 @@ let static_base_rules ~tests enabled_backends =
 let gen_build_statements
     (include_dirs : string list)
     ~(tests : bool)
-    (enabled_backends : (module Clerk_backends.Backend.S) list)
+    (enabled_backends : (module Clerk_backend.Backend.S) list)
     (autotest : bool)
     (same_dir_modules : (string * File.t) list)
     ~is_stdlib
@@ -154,7 +153,7 @@ let gen_build_statements
     | None -> []
     | Some _ ->
       List.concat_map
-        (fun (module Backend : Clerk_backends.Backend.S) ->
+        (fun (module Backend : Clerk_backend.Backend.S) ->
           Backend.expose_module ~same_dir_modules ~used_modules:modules)
         enabled_backends
   in
@@ -162,7 +161,7 @@ let gen_build_statements
   let backend_sources =
     if item.extrnal then
       List.map
-        (fun (module Backend : Clerk_backends.Backend.S) ->
+        (fun (module Backend : Clerk_backend.Backend.S) ->
           Backend.external_copy item)
         enabled_backends
     else
@@ -186,13 +185,13 @@ let gen_build_statements
         else None
       in
       List.map
-        (fun (module Backend : Clerk_backends.Backend.S) ->
+        (fun (module Backend : Clerk_backend.Backend.S) ->
           Backend.catala ?vars ~is_stdlib ~inputs ~implicit_in has_scope_tests)
         enabled_backends
   in
   let backend_objects =
     List.map
-      (fun (module Backend : Clerk_backends.Backend.S) ->
+      (fun (module Backend : Clerk_backend.Backend.S) ->
         Backend.build_object ~include_dirs ~same_dir_modules ~item
           has_scope_tests)
       enabled_backends
@@ -212,7 +211,7 @@ let gen_build_statements
       let modname = Mark.remove m in
       let backends_module =
         List.map
-          (fun (module Backend : Clerk_backends.Backend.S) ->
+          (fun (module Backend : Clerk_backend.Backend.S) ->
             Nj.build "phony"
               ~outputs:
                 [Word (Format.sprintf "%s@%s-module" modname Backend.name)]
@@ -266,7 +265,7 @@ let gen_build_statements_dir
     (dir : string)
     (include_dirs : string list)
     ~(tests : bool)
-    (enabled_backends : (module Clerk_backends.Backend.S) list)
+    (enabled_backends : (module Clerk_backend.Backend.S) list)
     (autotest : bool)
     (items : Scan.item list) : Nj.ninja =
   let same_dir_modules =
@@ -349,7 +348,7 @@ let runtime_build_statements ~config enabled_backends =
   let stdbase = Var.(!builddir) / Scan.libcatala in
   let options = config.Clerk_lib.Clerk_cli.options in
   List.concat_map
-    (fun (module Backend : Clerk_backends.Backend.S) ->
+    (fun (module Backend : Clerk_backend.Backend.S) ->
       Backend.runtime_build_statements ~options ~stdbase)
     enabled_backends
 

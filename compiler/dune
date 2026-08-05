@@ -18,7 +18,7 @@
  (modules tests)
  (libraries
   catala.driver
-  catala.clerk_backends
+  catala.clerk_backend
   catala.scalc
   catala.lcalc
   catala.runtime_ocaml

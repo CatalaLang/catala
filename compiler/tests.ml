@@ -1,6 +1,6 @@
 module Path = Catala_utils.Path
-module Common = Clerk_backends.Common
-module Backend_paths = Clerk_backends.Backend_paths
+module Common = Clerk_backend.Common
+module Backend_paths = Clerk_backend.Backend_paths
 
 let check = Alcotest.(check string)
 let check_list = Alcotest.(check (list string))

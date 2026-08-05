@@ -17,7 +17,7 @@
 
 open Clerk_utils
 
-type backend = (module Clerk_backends.Backend.S)
+type backend = (module Clerk_backend.Backend.S)
 
 val all_backends : backend list
 val backend_from_config : Clerk_config.backend -> backend

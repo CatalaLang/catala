@@ -21,7 +21,7 @@ module Nj = Ninja_utils
 module Cli = Clerk_cli
 module Var = Clerk_utils.Var
 module Config = Clerk_config
-module OCaml = Clerk_backends.Ocaml
+module OCaml = Clerk_backend.Ocaml
 
 let lastdirname f = File.(basename (dirname f))
 
@@ -64,22 +64,22 @@ let linking_dependencies items =
     rem_dups (traverse [] item)
 
 let all_backends_with_config :
-    (Clerk_config.backend * (module Clerk_backends.Backend.S)) list =
+    (Clerk_config.backend * (module Clerk_backend.Backend.S)) list =
   [
-    Clerk_config.OCaml, (module Clerk_backends.Ocaml.Backend);
-    Clerk_config.C, (module Clerk_backends.C.Backend);
-    Clerk_config.Python, (module Clerk_backends.Python.Backend);
-    Clerk_config.Java, (module Clerk_backends.Java.Backend);
+    Clerk_config.OCaml, (module Clerk_backend.Ocaml.Backend);
+    Clerk_config.C, (module Clerk_backend.C.Backend);
+    Clerk_config.Python, (module Clerk_backend.Python.Backend);
+    Clerk_config.Java, (module Clerk_backend.Java.Backend);
   ]
 
 let backend_src_extensions =
   List.map
-    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.src_extensions)
+    (fun (bk, (module B : Clerk_backend.Backend.S)) -> bk, B.src_extensions)
     all_backends_with_config
 
 let backend_obj_extensions =
   List.map
-    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.obj_extensions)
+    (fun (bk, (module B : Clerk_backend.Backend.S)) -> bk, B.obj_extensions)
     all_backends_with_config
 
 let backend_extensions =
@@ -96,7 +96,7 @@ let extensions_backend =
 
 let backend_subdir_list =
   List.map
-    (fun (bk, (module B : Clerk_backends.Backend.S)) -> bk, B.name)
+    (fun (bk, (module B : Clerk_backend.Backend.S)) -> bk, B.name)
     all_backends_with_config
 
 let normalize_backends backends =
@@ -113,15 +113,15 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
   let open File in
   match backend with
   | `OCaml ->
-    Clerk_backends.Ocaml.linking_command ~build_dir ~var_bindings link_deps item
+    Clerk_backend.Ocaml.linking_command ~build_dir ~var_bindings link_deps item
       target
   | `C ->
-    Clerk_backends.C.linking_command ~build_dir ~var_bindings link_deps item
+    Clerk_backend.C.linking_command ~build_dir ~var_bindings link_deps item
       target
   | `Python ->
-    Clerk_backends.Python.linking_command ~build_dir link_deps item target
+    Clerk_backend.Python.linking_command ~build_dir link_deps item target
   | `Java ->
-    Clerk_backends.Java.linking_command ~build_dir ~var_bindings link_deps item
+    Clerk_backend.Java.linking_command ~build_dir ~var_bindings link_deps item
       target
   | `Custom rule ->
     let var_bindings =
@@ -225,7 +225,7 @@ let make_target ~build_dir ~backend item =
 let backend_runtime_targets ?(only_source = false) enabled_backends =
   List.concat_map
     (fun bk ->
-      let (module B : Clerk_backends.Backend.S) =
+      let (module B : Clerk_backend.Backend.S) =
         Clerk_rules.backend_from_config bk
       in
       B.runtime_targets ~only_source)
@@ -750,13 +750,13 @@ let setup_report_format ?fix_path verbosity diff_command coverage =
 let run_artifact config ~backend ~var_bindings ?scope ~test ~(trace : bool) src
     =
   match backend with
-  | `OCaml -> Clerk_backends.Ocaml.run_artifact ~test ~trace ?scope src
-  | `C -> Clerk_backends.C.run_artifact ~test ?scope src
+  | `OCaml -> Clerk_backend.Ocaml.run_artifact ~test ~trace ?scope src
+  | `C -> Clerk_backend.C.run_artifact ~test ?scope src
   | `Python ->
-    Clerk_backends.Python.run_artifact config ~trace ~test ?scope ~var_bindings
+    Clerk_backend.Python.run_artifact config ~trace ~test ?scope ~var_bindings
       src
   | `Java ->
-    Clerk_backends.Java.run_artifact ~var_bindings ~test ~trace ?scope src
+    Clerk_backend.Java.run_artifact ~var_bindings ~test ~trace ?scope src
 
 let backend_to_config = function
   | `Interpret | `OCaml -> Clerk_config.OCaml
@@ -1403,7 +1403,7 @@ let runtest_cmd =
 let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
   let default =
     List.fold_left
-      (fun default_rules (module B : Clerk_backends.Backend.S) ->
+      (fun default_rules (module B : Clerk_backend.Backend.S) ->
         let rule_stdlib_fr = Format.sprintf "Stdlib_fr@%s-module" B.name in
         let rule_stdlib_en = Format.sprintf "Stdlib_en@%s-module" B.name in
         let runtime_rule = Format.sprintf "@runtime-%s" B.name in
