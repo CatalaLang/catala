@@ -31,6 +31,12 @@ type inline_test = {
   i_result : pos;  (** Same for the actual result in the destination file *)
 }
 
+type expected = Clerk_utils.Expected.expected = {
+  name : string;
+  expected : string;
+  current_value : string option;
+}
+
 type scope_test = {
   s_success : bool;
   s_name : string;
@@ -38,6 +44,7 @@ type scope_test = {
   s_errors : (pos * string) list;
   s_time : float;  (** Time spent in test, in milliseconds *)
   s_coverage : Coverage.coverage_map option;
+  s_expected : expected list;
 }
 
 type file = {
@@ -66,6 +73,8 @@ val summary :
 val print_xml : build_dir:File.t -> file list -> bool
 (** Displays a summary in JUnit XML compatible format to stdout; returns true if
     all tests succeeded *)
+
+val display_expected : Format.formatter -> expected -> unit
 
 val print_json : build_dir:File.t -> file list -> bool
 (** Displays a summary in VSCode Json compatible format to stdout; returns true

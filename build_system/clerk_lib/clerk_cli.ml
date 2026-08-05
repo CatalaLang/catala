@@ -386,6 +386,15 @@ let objects =
          compiler to compile those into objects (e.g. $(b,.o) files. Note that \
          this is done anyway when necessary, like when running backend tests."
 
+let check_expected =
+  let open Arg in
+  value
+  & flag
+  & info ["check-expected"]
+      ~doc:
+        "Use Catala $(i,--check-expected) option when testing or executing \
+         Catala scopes."
+
 let info =
   let doc =
     "Build system for Catala, a specification language for tax and social \

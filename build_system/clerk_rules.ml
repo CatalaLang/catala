@@ -55,6 +55,11 @@ let static_base_rules ~tests enabled_backends =
             [
               !!clerk_exe;
               Word "runtest";
+              (* [!trace] must be referenced here rather than from within
+                 [!clerk_flags]: ninja expands the right-hand side of a variable
+                 declaration immediately, so a nested reference could not be
+                 overridden per-edge. *)
+              !!trace;
               !!clerk_flags;
               !!input;
               Word "--report";
@@ -85,9 +90,26 @@ let static_base_rules ~tests enabled_backends =
   in
   Clerk_backend.static_base_rules @ backend_static_rules @ test_rules
 
+(* Reported once per run: a file declaring expected variables while the project
+   never says whether they should be checked is most likely an oversight. An
+   explicit "check_expected = false" is a deliberate choice and stays silent. *)
+let warned_missing_check_expected = ref false
+
+let warn_missing_check_expected (item : Scan.item) =
+  if not !warned_missing_check_expected then (
+    warned_missing_check_expected := true;
+    Message.warning
+      "@[<hov>%a declares @{<bold>#[testcase.variable]@} attributes, but \
+       @{<bold>check_expected@} is not set in the @{<bold>[project]@} section \
+       of @{<bold>clerk.toml@}:@ the expected values are not verified.@ Set it \
+       to @{<bold>true@} to check them, or to @{<bold>false@} to silence this \
+       warning.@]"
+      File.format item.Scan.file_name)
+
 let gen_build_statements
     (include_dirs : string list)
     ~(tests : bool)
+    ~(check_expected : bool option)
     (enabled_backends : (module Clerk_backend.S) list)
     (autotest : bool)
     (same_dir_modules : (string * File.t) list)
@@ -95,6 +117,11 @@ let gen_build_statements
     (item : Scan.item) : Nj.ninja =
   let open File in
   let open Var.Op in
+  let has_expected = not (Scan.M.is_empty item.expected_variables) in
+  (* Checked here rather than from the test rules below, which are only generated
+     for files that also carry tests. *)
+  if has_expected && check_expected = None then warn_missing_check_expected item;
+
   let src = item.file_name in
   let dir = dirname src in
   let def_vars =
@@ -230,8 +257,23 @@ let gen_build_statements
     if not (item.has_inline_tests || Lazy.force item.has_scope_tests > 0) then
       []
     else
+      let vars =
+        if check_expected = Some true then
+          Some
+            [
+              Nj.Binding.make Var.trace
+                [
+                  Word
+                    (Format.sprintf "--catala-opts=--trace=%s/%s.trace.json"
+                       !Var.builddir item.file_name);
+                  Word "--catala-opts=--trace-format=json";
+                  Word "--check-expected";
+                ];
+            ]
+        else None
+      in
       [
-        Nj.build "tests" ~inputs:[catala_src]
+        Nj.build "tests" ~inputs:[catala_src] ?vars
           ~implicit_in:
             (!!Var.clerk_exe :: List.map Clerk_backend.catala_obj_target modules)
           ~outputs:
@@ -260,6 +302,7 @@ let gen_build_statements_dir
     (dir : string)
     (include_dirs : string list)
     ~(tests : bool)
+    ~(check_expected : bool option)
     (enabled_backends : (module Clerk_backend.S) list)
     (autotest : bool)
     (items : Scan.item list) : Nj.ninja =
@@ -295,8 +338,8 @@ let gen_build_statements_dir
   @@ Seq.cons (Nj.comment "")
   @@ Seq.cons (Nj.binding (Nj.Binding.make Var.tdir (!Var.builddir / dir)))
   @@ Seq.flat_map
-       (gen_build_statements ~tests ~is_stdlib include_dirs enabled_backends
-          autotest same_dir_modules)
+       (gen_build_statements ~tests ~check_expected ~is_stdlib include_dirs
+          enabled_backends autotest same_dir_modules)
        (List.to_seq items)
 
 let dir_test_rules dir subdirs items =
@@ -368,6 +411,7 @@ let output_ninja_file_item_statements
     | Seq.Cons ((dir, subdirs, items), seq) ->
       Nj.format nin_ppf
       @@ gen_build_statements_dir dir ~is_stdlib ~tests
+           ~check_expected:config.Clerk_cli.file.global.check_expected
            config.Clerk_cli.file.global.include_dirs enabled_backends autotest
            items;
       if (not is_stdlib) && tests then
@@ -1174,14 +1218,15 @@ let run_ninja
     ~default
     ?keep_going
     ~code_coverage
-    ~trace
+    ?trace
+    ?trace_format:_
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
   let var_bindings =
-    base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
-      ~inplace:false
+    base_bindings ~code_coverage ~trace:(trace <> None) ~config
+      ~enabled_backends ~autotest ~inplace:false
   in
   let known =
     let var_bindings = Var.env_of_bindings var_bindings in
@@ -1197,9 +1242,6 @@ let run_ninja
            this invocation"
           n)
     config.Clerk_cli.file.variables;
-  let enabled_backends =
-    List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
-  in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~default ?keep_going
     (fun nin_ppf ->
       (* Design note: the idea here is to write the ninja file as a stream while
@@ -1210,6 +1252,13 @@ let run_ninja
       let item_tree =
         if skip_project_scan then Seq.empty
         else scan_project_items ~cleanup:true ~config
+      in
+      let var_bindings =
+        base_bindings ~code_coverage ~trace:(trace <> None) ~config
+          ~enabled_backends ~autotest ~inplace:false
+      in
+      let enabled_backends =
+        List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
       in
       let items =
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest

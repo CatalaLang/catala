@@ -19,6 +19,14 @@
     ([Surface.Parser_driver.line]) *)
 
 open Catala_utils
+module M : Map.S with type key = string
+
+type expected_variable = string
+
+val add_expected_value :
+  string -> string -> expected_variable M.t -> expected_variable M.t
+(** Records the expected value of a variable, preserving any path already read
+*)
 
 type item = {
   file_name : File.t;
@@ -29,6 +37,7 @@ type item = {
   included_files : File.t Mark.pos list;
   has_inline_tests : bool;
   has_scope_tests : int Lazy.t;
+  expected_variables : expected_variable M.t;
 }
 (** Contains all the data extracted from a single Catala file. Lists are in
     reverse file order. *)

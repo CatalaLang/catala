@@ -51,6 +51,7 @@ val ninja_flags : string list Term.t
 val disable_warnings : bool Term.t
 val whole_program : bool Term.t
 val objects : bool Term.t
+val check_expected : bool Term.t
 val info : Cmd.info
 
 val color : Global.when_enum Term.t

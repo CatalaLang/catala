@@ -821,12 +821,12 @@ module Commands = struct
       typed
       code_coverage
       options
+      ex_scopes
       includes
       stdlib
       optimize
       check_invariants
       quiet
-      ex_scopes
       scope_input =
     let prg, _ =
       Passes.dcalc options ~includes ~stdlib ~optimize ~check_invariants
@@ -934,12 +934,12 @@ module Commands = struct
       keep_special_ops
       monomorphize_types
       options
+      ex_scopes
       includes
       stdlib
       optimize
       check_invariants
       quiet
-      ex_scopes
       scope_input =
     let options =
       if closure_conversion then disable_trace options else options
@@ -972,30 +972,115 @@ module Commands = struct
 
   let interpret_cmd =
     let f
+        options
+        ex_scopes
+        check_expected
         lcalc
         closure_conversion
         keep_special_ops
         monomorphize_types
         no_typing
-        code_coverage =
-      if not lcalc then
-        if closure_conversion || monomorphize_types then
+        code_coverage
+        includes
+        stdlib
+        optimize
+        check_invariants
+        quiet
+        scope_input =
+      (* The Catala source being interpreted; it is not a dedicated command-line
+         argument but the input of the global options. *)
+      let need_check_expected = check_expected && List.length ex_scopes == 1 in
+      let catala_file = Global.input_src_file options.Global.input_src in
+      let need_check_expected, trace_format =
+        match options.Global.trace with
+        | None | Some (_, `Stdout) ->
+          (* Guarded: [ex_scopes] is only known to hold a single scope when the
+             check was requested, and there is nothing to warn about otherwise *)
+          if need_check_expected then
+            Message.warning
+              "@[<hov>Check expected flag is activated for scope @{<bold>%s@} \
+               of %a, but no trace file was provided to verify the expected \
+               values.@ Please give a trace file to check expected values.@]"
+              (List.hd ex_scopes) File.format catala_file;
+          false, options.Global.trace_format
+        | Some (_, `FileName filename) ->
+          let trace_format =
+            if Filename.extension (filename :> string) = ".json" then
+              Global.JSON
+            else options.Global.trace_format
+          in
+          need_check_expected, trace_format
+      in
+      (* Enforce trace_format in case the file extension is json,
+         in this case the trace format is implicitly json *)
+      let options = Global.enforce_options ~trace_format () in
+      let need_check_expected =
+        match options.Global.trace_format with
+        | Global.Human ->
+          if need_check_expected then
+            Message.warning
+              "@[<hov>Check expected flag is activated for scope @{<bold>%s@} \
+               of %a, but the trace is not in JSON format.@ Please give a \
+               trace file in JSON format to check expected values.@]"
+              (List.hd ex_scopes) File.format catala_file;
+          false
+        | Global.JSON -> need_check_expected
+      in
+      let () =
+        if not lcalc then
+          if closure_conversion || monomorphize_types then
+            Message.error
+              "The flags @{<bold>--closure-conversion@} and \
+               @{<bold>--monomorphize-types@} only make sense with the \
+               @{<bold>--lcalc@} option"
+          else if no_typing then
+            interpret_dcalc Expr.untyped code_coverage options ex_scopes
+              includes stdlib optimize check_invariants quiet scope_input
+          else
+            interpret_dcalc Expr.typed code_coverage options ex_scopes includes
+              stdlib optimize check_invariants quiet scope_input
+        else if code_coverage then
           Message.error
-            "The flags @{<bold>--closure-conversion@} and \
-             @{<bold>--monomorphize-types@} only make sense with the \
+            "The flag @{<bold>--code-coverage@} is not compatible with the \
              @{<bold>--lcalc@} option"
-        else if no_typing then interpret_dcalc Expr.untyped code_coverage
-        else interpret_dcalc Expr.typed code_coverage
-      else if code_coverage then
-        Message.error
-          "The flag @{<bold>--code-coverage@} is not compatible with the \
-           @{<bold>--lcalc@} option"
-      else if no_typing then
-        interpret_lcalc Expr.untyped closure_conversion keep_special_ops
-          monomorphize_types
-      else
-        interpret_lcalc Expr.typed closure_conversion keep_special_ops
-          monomorphize_types
+        else if no_typing then
+          interpret_lcalc Expr.untyped closure_conversion keep_special_ops
+            monomorphize_types options ex_scopes includes stdlib optimize
+            check_invariants quiet scope_input
+        else
+          interpret_lcalc Expr.typed closure_conversion keep_special_ops
+            monomorphize_types options ex_scopes includes stdlib optimize
+            check_invariants quiet scope_input
+      in
+      if need_check_expected then
+        let catala_file = Global.input_src_file options.Global.input_src in
+        let trace_file =
+          match options.Global.trace with
+          | Some (_, `FileName f) -> (f :> string)
+          | _ -> (* Unreachable *) assert false
+        in
+        let item =
+          Clerk_utils.Scan.catala_file catala_file (Cli.file_lang catala_file)
+        in
+        let check_expected =
+          Clerk_utils.Expected.check_expected ~expected:item.expected_variables
+            ~tested_scope:(List.hd ex_scopes)
+            (Clerk_utils.Expected.read_trace trace_file)
+        in
+        match check_expected with
+        | [] -> Message.result "Expected variables are valid"
+        | failures ->
+          let pp ppf () =
+            Format.fprintf ppf
+              "@[<v 2>Expected Variables are not correct:@,%a@]"
+              (Format.pp_print_list ~pp_sep:Format.pp_print_cut
+                 Clerk_utils.Expected.display_expected)
+              failures
+          in
+          (* Same treatment as a failed assertion: with --no-fail-on-assert the
+             mismatch is reported but does not make the run fail *)
+          if Global.options.no_fail_on_assert then Message.warning "%a" pp ()
+          else Message.error "%a" pp ()
     in
     Cmd.v
       (Cmd.info "interpret" ~man:Cli.man_base
@@ -1005,19 +1090,21 @@ module Commands = struct
             $(i,#[test]) if absent.")
       Term.(
         const f
+        (* Carries the Catala file, through [options.input_src] *)
+        $ global_options
+        $ Cli.Flags.ex_scopes
+        $ Cli.Flags.check_expected
         $ Cli.Flags.lcalc
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.monomorphize_types
         $ Cli.Flags.keep_special_ops
         $ Cli.Flags.no_typing
         $ Cli.Flags.code_coverage
-        $ global_options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.stdlib_dir
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.quiet
-        $ Cli.Flags.ex_scopes
         $ Cli.Flags.scope_input)
 
   let ocaml
