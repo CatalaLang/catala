@@ -91,13 +91,13 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
   let argfile = jar_target ^ ".jarargs" in
   File.with_out_channel ~bin:false argfile (fun oc ->
       output_string oc (Backend_paths.jar_argfile_content entries));
-  get_var var_bindings jar @ ["--create"; "--file"; jar_target; "@" ^ argfile]
+  get var_bindings jar @ ["--create"; "--file"; jar_target; "@" ^ argfile]
 
 let run_artifact ~var_bindings ~test ~trace ?scope src =
   let open Clerk_lib in
   let target_main = File.remove_extension (Filename.basename src) in
   let cmd =
-    Var.get_var var_bindings java
+    Var.get var_bindings java
     @ ["-cp"; src -.- "jar"; target_main]
     @ Option.to_list scope
     @ (if test && not Global.options.debug then ["--test"] else [])

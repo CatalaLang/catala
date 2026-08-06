@@ -82,8 +82,8 @@ val ( !! ) : 'a t -> Expr.elt
     expression element that will be appropriately quoted. This handles specific
     quoting rules of the [input] and [output] variables by Ninja *)
 
-val get_var : bindings -> 'a t -> string list
+val get : bindings -> 'a t -> string list
 (** replaces [${xvar}] with its value, recursively *)
 
-val expand_vars : bindings -> string -> string
+val expand : bindings -> string -> string
 (** expands [${xvar}] references in the given string *)

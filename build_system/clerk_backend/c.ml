@@ -26,7 +26,7 @@ let c_include = Var.make_vector "C_INCLUDE_FLAGS"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
-  Var.get_var var_bindings cc_exe
+  Var.get var_bindings cc_exe
   @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
   @ [build_dir / Scan.libcatala / "c" / "catala_runtime.o"]
   @ List.map
@@ -36,8 +36,8 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
       (link_deps item)
   @ ["-lgmp"]
   @ [target -.- "o"; File.remove_extension target ^ "+main.o"]
-  @ Var.get_var var_bindings c_flags
-  @ Var.get_var var_bindings c_include
+  @ Var.get var_bindings c_flags
+  @ Var.get var_bindings c_include
   @ ["-o"; target -.- "exe"]
 
 let run_artifact ~test ?scope src =

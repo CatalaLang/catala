@@ -79,12 +79,12 @@ end
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
-  Var.get_var var_bindings ocamlopt_exe
-  @ List.map (Var.expand_vars var_bindings) (Lazy.force Flags.ocaml_link)
+  Var.get var_bindings ocamlopt_exe
+  @ List.map (Var.expand var_bindings) (Lazy.force Flags.ocaml_link)
   @ [build_dir / Scan.libcatala / backend_name / "dates_calc.cmx"]
   @ [build_dir / Scan.libcatala / backend_name / "catala_runtime.cmx"]
-  @ Var.get_var var_bindings ocaml_flags
-  @ Var.get_var var_bindings ocaml_includes
+  @ Var.get var_bindings ocaml_flags
+  @ Var.get var_bindings ocaml_includes
   @ List.map
       (fun it ->
         let f = Scan.target_file_name it in

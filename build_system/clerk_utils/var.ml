@@ -114,7 +114,7 @@ let rec take_binding : type a. bindings -> a t -> bindings * Nj.Expr.t option =
     let bindings, ret = take_binding r var in
     bnd :: bindings, ret
 
-let rec get_var : type a. bindings -> a t -> string list =
+let rec get : type a. bindings -> a t -> string list =
  fun var_bindings v ->
   let var_bindings, exp_opt = take_binding var_bindings v in
   let exp =
@@ -127,18 +127,18 @@ let rec get_var : type a. bindings -> a t -> string list =
   in
   List.concat_map
     (function
-      | Nj.Expr.Word s -> [expand_vars var_bindings s]
-      | Splice v -> get_var var_bindings v
+      | Nj.Expr.Word s -> [expand var_bindings s]
+      | Splice v -> get var_bindings v
       | Raw s -> [s])
     exp
 
-and expand_vars =
+and expand =
   let re_var = Re.(compile re_var) in
   fun var_bindings s ->
     Re.replace ~all:true re_var
       ~f:(fun g ->
         let var = Scalar (Re.Group.get g 1) in
-        String.concat " " (get_var var_bindings var))
+        String.concat " " (get var_bindings var))
       s
 
 let ( ! ) = ref
