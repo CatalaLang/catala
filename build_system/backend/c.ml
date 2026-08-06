@@ -53,7 +53,7 @@ let run_artifact ~test ?scope src =
 module Backend = struct
   open Var
   open File
-  module Nj = Var.Nj
+  module Nj = Ninja_utils
 
   let name = "c"
   let module_ext = "@" ^ name ^ "-module"
@@ -102,14 +102,14 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
   [
     Nj.rule "catala-c"
-      ~command:[Word !catala_exe; Word name; Splice catala_flags; Splice catala_flags_c;
-                Word "-o"; Raw !output; Word "--"; Raw !input]
-      ~description:[Word "<catala>"; Word name; Word "⇒"; Raw !output];
+      ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_c;
+                Word "-o"; !!output; Word "--"; !!input]
+      ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     Nj.rule "c-object"
       ~command:
-        [Splice cc_exe; Raw !input; Splice c_flags; Splice c_include; Splice includes;
-         Word "-c"; Word "-o"; Raw !output]
-      ~description:[Word "<cc>"; Word "⇒"; Raw !output];
+        [!!cc_exe; !!input; !!c_flags; !!c_include; !!includes;
+         Word "-c"; Word "-o"; !!output]
+      ~description:[Word "<cc>"; Word "⇒"; !!output];
   ]
 
   let external_copy item =
@@ -152,7 +152,7 @@ module Backend = struct
             Word (c_base -.- "h");
             Word ((c_base /../ "dates_calc") -.- "o");
             Word ((c_base /../ "dates_calc") -.- "h");
-            Word Var.(!catala_exe);
+            !!catala_exe;
           ]
         ~outputs:[Word ("@runtime-" ^ name)];
       Nj.build "copy"

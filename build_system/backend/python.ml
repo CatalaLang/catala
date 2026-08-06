@@ -70,7 +70,7 @@ let run_artifact config ~trace ~test ?scope ~var_bindings src =
 module Backend = struct
   open Var
   open File
-  module Nj = Var.Nj
+  module Nj = Ninja_utils
 
   let name = "python"
   let module_ext = ".py"
@@ -99,9 +99,9 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-python"
-        ~command:[Word !catala_exe; Word name; Splice catala_flags; Splice catala_flags_python;
-                  Word "-o"; Raw !output; Word "--"; Raw !input]
-        ~description:[Word "<catala>"; Word name; Word "⇒"; Raw !output];
+        ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_python;
+                  Word "-o"; !!output; Word "--"; !!input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     ]
 
   let external_copy item =
@@ -129,7 +129,7 @@ module Backend = struct
           [
             Word (python_base -.- "py");
             Word (python_base /../ "dates.py");
-            Word Var.(!catala_exe);
+            !!catala_exe;
           ]
         ~outputs:[Word ("@runtime-" ^ name)];
       Nj.build "copy"

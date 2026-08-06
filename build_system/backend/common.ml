@@ -129,7 +129,7 @@ module Flags = struct
 end
 
 module Ninja = struct
-  module Nj = Var.Nj
+  module Nj = Ninja_utils
 
   let static_base_rules =
     let open Var in
@@ -143,12 +143,12 @@ module Ninja = struct
                Raw "copy";
                Raw "/by";
                Raw ">nul";
-               Raw !input;
+               !!input;
                Raw "+nul";
-               Raw !output;
+               !!output;
              ]
              (* The "+nul" forces the timestamp of the new file to be updated *)
-           else [Word "cp"; Word "-f"; Raw !input; Raw !output])
-        ~description:[Word "<copy>"; Raw !input];
+           else [Word "cp"; Word "-f"; !!input; !!output])
+        ~description:[Word "<copy>"; !!input];
     ]
 end

@@ -123,8 +123,8 @@ and expand_vars =
       ~f:(fun g -> String.concat " " (get_var var_bindings (Re.Group.get g 1)))
       s
 
-module Nj = struct
-  include Ninja_utils
-end
-
 let ( ! ) = ref
+
+let ( !! ) : type a. a t -> Ninja_utils.Expr.elt = function
+  | Scalar _ as v -> if v = input || v = output then Raw !v else Word !v
+  | Vector _ as v -> Splice v

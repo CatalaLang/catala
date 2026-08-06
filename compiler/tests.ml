@@ -110,9 +110,9 @@ let test_override_accepts_single_scalar () =
 let expr_words e =
   List.map
     (function
-      | CVar.Nj.Expr.Word w -> w
-      | CVar.Nj.Expr.Splice v -> "${" ^ CVar.name v ^ "}"
-      | CVar.Nj.Expr.Raw s -> s)
+      | Ninja_utils.Expr.Word w -> w
+      | Ninja_utils.Expr.Splice v -> "${" ^ CVar.name v ^ "}"
+      | Ninja_utils.Expr.Raw s -> s)
     e
 
 let test_include_flags_single_words () =

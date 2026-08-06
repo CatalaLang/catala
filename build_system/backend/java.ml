@@ -111,7 +111,7 @@ let run_artifact ~var_bindings ~test ~trace ?scope src =
 
 module Backend = struct
   open Var
-  module Nj = Var.Nj
+  module Nj = Ninja_utils
 
   let name = "java"
   let module_ext = ".class"
@@ -160,16 +160,16 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-java"
-        ~command:[Word !catala_exe; Word name; Splice catala_flags; Splice catala_flags_java;
-                  Word "-o"; Raw !output; Word "--"; Raw !input]
-        ~description:[Word "<catala>"; Word name; Word "⇒"; Raw !output];
+        ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_java;
+                  Word "-o"; !!output; Word "--"; !!input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
       Nj.rule "java-class"
-        ~command:[Splice javac; Word "-cp";
+        ~command:[!!javac; Word "-cp";
                   Word (File.(Var.(!builddir) / Scan.libcatala / name)
                         ^ Path.list_sep ()
                         ^ !class_path);
-                  Splice javac_flags; Raw !input]
-        ~description:[Word "<catala>"; Word name; Word "⇒"; Raw !output];
+                  !!javac_flags; !!input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     ]
 
   let external_copy item =
@@ -249,7 +249,7 @@ module Backend = struct
          ~vars:
            [
              Nj.Binding.make javac_flags
-               [Splice javac_flags; Word ("@" ^ java_list_file)];
+               [!!javac_flags; Word ("@" ^ java_list_file)];
            ]
     :: List.map
          (fun f ->
