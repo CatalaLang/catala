@@ -20,7 +20,7 @@ open Clerk_lib
 
 module Flags : sig
   val def :
-    variables:Var.bindings ->
+    variables:(string * string list) list ->
     'a Var.t ->
     string list lazy_t ->
     Ninja_utils.Binding.any
@@ -40,7 +40,7 @@ module Flags : sig
     trace:bool ->
     inplace:bool ->
     config:Clerk_cli.config ->
-    Ninja_utils.Binding.any list
+    Var.bindings
 end
 
 module Ninja : sig

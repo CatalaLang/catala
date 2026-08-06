@@ -570,8 +570,8 @@ let run_ninja
     base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
       ~inplace:false
   in
-  let var_bindings = Var.env_of_bindings bindings in
   let known =
+    let var_bindings = Var.env_of_bindings bindings in
     List.fold_left
       (fun acc (n, _) -> String.Set.add n acc)
       String.Set.empty var_bindings
@@ -647,6 +647,6 @@ let run_ninja
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
           ~var_bindings:bindings stdlib_tree item_tree
       in
-      let ret = callback nin_ppf (List.of_seq items) var_bindings in
+      let ret = callback nin_ppf (List.of_seq items) bindings in
       Format.pp_print_newline nin_ppf ();
       ret)
