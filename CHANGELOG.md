@@ -3,7 +3,7 @@
 One line per change, be concise and explicit. Document only external changes
 in behavior visible for the end-users of the tooling.
 
-* [#591](https://github.com/CatalaLang/catala/issues/591) New lint warning
+* [#1082](https://github.com/CatalaLang/catala/pull/1082) New lint warning
   for local variables (`let ... in`) that are never used.
 
 * [#1058](https://github.com/CatalaLang/catala/pull/1058) Fixes a bug
