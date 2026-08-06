@@ -302,6 +302,18 @@ let rec law_structure_to_latex
     let filename = Pos.get_file (Mark.get c) in
     let block_content = Mark.remove c in
     check_exceeding_lines start_line filename block_content;
+    let c =
+      let block_content, pos = c in
+      (* Problem here, position may have been damaged due to the creation of new lines *)
+      let block_content = remove_exceeding_lines block_content in
+      block_content, pos
+    in
+    let c =
+      let block_content, pos = c in
+      (* Problem here, position may have been damaged due to the creation of new lines *)
+      let block_content = remove_exceeding_lines block_content in
+      block_content, pos
+    in
     update_lines_of_code c;
     code_block ~meta:false language fmt c
   | A.CodeBlock (_, c, true) when not print_only_law ->
@@ -315,6 +327,12 @@ let rec law_structure_to_latex
     let filename = Pos.get_file (Mark.get c) in
     let block_content = Mark.remove c in
     check_exceeding_lines start_line filename block_content;
+    let c =
+      let block_content, pos = c in
+      (* Problem here, position may have been damaged due to the creation of new lines *)
+      let block_content = remove_exceeding_lines block_content in
+      block_content, pos
+    in
     update_lines_of_code c;
     Format.fprintf fmt
       "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \

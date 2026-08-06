@@ -45,6 +45,15 @@ val run_pandoc : string -> [ `Html | `Latex ] -> string
 (** Runs the [pandoc] on a string to pretty-print markdown features into the
     desired format. *)
 
+val run_pandoc_on_file :
+  Global.file ->
+  Global.file ->
+  Global.backend_lang ->
+  [ `Html | `Latex | `Pdf | `Markdown ] ->
+  unit
+(** Runs the [pandoc] on a file to pretty-print markdown features into the
+    desired format. *)
+
 val check_exceeding_lines : ?max_len:int -> int -> string -> string -> unit
 (** [check_exceeding_lines ~max_len start_line filename content] prints a
     warning message for each lines of [content] exceeding [max_len] characters.
@@ -58,3 +67,13 @@ val call_pygmentize : ?lang:Global.backend_lang -> string list -> string
 val with_pygmentize_lexer : Global.backend_lang -> (string list -> 'a) -> 'a
 (** Creates the required lexer file and returns the corresponding [pygmentize]
     command-line arguments *)
+
+val split_a_line : int -> string -> string list
+(** [split_a_line max_len line] split the string [line] in a list where each
+    element should not exceed [max_len]. The only exception is that the function
+    doesn't cut a word so if the [max_len] authorized is 10 and that we have a
+    word greater than 10 it will take a single line without being splitted *)
+
+val remove_exceeding_lines : ?max_len:int -> string -> string
+(** [remove_exceeding_lines ~max_len content] return a string that represent the
+    content splitted into multiple lines if content exceed max_len *)

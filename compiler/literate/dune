@@ -18,6 +18,14 @@
     lexer_pl.py)
    (run ocaml-crunch -e py -m plain -o %{target} .))))
 
+(rule
+ (target pandoc_highlight.ml)
+ (action
+  (progn
+   (copy ../../syntax_highlighting/en/pandoc/catala_en.xml catala_en.xml)
+   (copy ../../syntax_highlighting/fr/pandoc/catala_fr.xml catala_fr.xml)
+   (run ocaml-crunch -e xml -m plain -o %{target} .))))
+
 (documentation
  (package catala)
  (mld_files literate))

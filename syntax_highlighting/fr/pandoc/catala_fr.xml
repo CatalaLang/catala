@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Kate / skylighting syntax highlighting for Catala FR (https://catala-lang.org/).
+     Derived from the Pygments lexer at
+       syntax_highlighting/fr/pygments/catala_fr_lexer/lexer.py -->
+
+<!DOCTYPE language
+[
+<!-- Latin-1 + œ/Œ accented letters used in Catala-FR identifiers
+     (a-z + é è à â ù î ô ê ç + œ ; uppercase counterparts). -->
+<!ENTITY LOWER  "a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\xe7œ">
+<!ENTITY UPPER  "A-Z\xc9\xc8\xc0\xc2\xd9\xce\xd4\xca\xc7Œ">
+<!ENTITY LETTER "&LOWER;&UPPER;">
+<!ENTITY LIDENT "[&LOWER;][&LETTER;0-9_']*">
+<!ENTITY UIDENT "[&UPPER;][&LETTER;0-9_']*">
+]>
+<language name="catala"
+          extensions="*.catala_fr"
+          mimetype="text/x-catala-fr"
+          section="Sources"
+          version="1"
+          priority="10"
+          kateversion="5.79">
+
+  <highlighting>
+
+    <!-- Catala-FR reserved keywords + declaration/control keywords.
+         Pygments separates them as Keyword.Reserved vs Keyword.Declaration,
+         but both render with the same dsKeyword style, so we collapse them.
+         `nombre` and `somme` are also listed as types in the lexer but are
+         matched first as Keyword.Declaration, so we keep them here. -->
+    <list name="Keywords">
+      <!-- Keyword.Reserved -->
+      <item>selon</item>
+      <item>fixé</item>
+      <item>par</item>
+      <item>inférieur</item>
+      <item>supérieur</item>
+      <item>varie</item>
+      <item>avec</item>
+      <item>soit</item>
+      <item>dans</item>
+      <item>déclaration</item>
+      <item>inclusion</item>
+      <item>contenu</item>
+      <item>type</item>
+      <item>règle</item>
+      <item>condition</item>
+      <item>donnée</item>
+      <item>conséquence</item>
+      <item>rempli</item>
+      <item>assertion</item>
+      <item>définition</item>
+      <item>état</item>
+      <item>étiquette</item>
+      <item>exception</item>
+      <!-- Keyword.Declaration / control -->
+      <item>contexte</item>
+      <item>entrée</item>
+      <item>résultat</item>
+      <item>interne</item>
+      <item>contient</item>
+      <item>nombre</item>
+      <item>somme</item>
+      <item>existe</item>
+      <item>pour</item>
+      <item>tout</item>
+      <item>de</item>
+      <item>si</item>
+      <item>alors</item>
+      <item>sinon</item>
+      <item>est</item>
+      <item>parmi</item>
+      <item>maximum</item>
+      <item>minimum</item>
+      <item>arrondi</item>
+      <item>combine</item>
+      <item>en</item>
+      <item>initialement</item>
+      <item>impossible</item>
+    </list>
+
+    <list name="Constants">
+      <item>vrai</item>
+      <item>faux</item>
+    </list>
+
+    <list name="Types">
+      <item>structure</item>
+      <item>énumération</item>
+      <item>entier</item>
+      <item>booléen</item>
+      <item>date</item>
+      <item>durée</item>
+      <item>argent</item>
+      <item>position_source</item>
+      <item>décimal</item>
+      <item>décret</item>
+      <item>loi</item>
+    </list>
+
+    <!-- Boolean / arithmetic word operators + duration units. -->
+    <list name="Word Operators">
+      <item>non</item>
+      <item>ou</item>
+      <item>et</item>
+      <item>an</item>
+      <item>mois</item>
+      <item>jour</item>
+    </list>
+
+    <contexts>
+
+      <context name="Code" lineEndContext="#stay" attribute="Lowercase Identifier">
+
+        <!-- Comments. Catala has `# ...` line comments and `#[ ... ]` block
+             attribute-comments. -->
+        <Detect2Chars char="#" char1="[" context="Attribute Comment" attribute="Comment" beginRegion="comment" />
+        <RegExpr String="#.*$" context="#stay" attribute="Comment" />
+
+        <!-- Date literals: |YYYY-MM-DD| -->
+        <RegExpr String="\|[0-9]+-[0-9]+-[0-9]+\|" context="#stay" attribute="Date" />
+
+        <!-- Multi-word keywords (tried before single-word `avec`, `condition`,
+             `liste`, `optionnel`, `ou`, `de`, ...). -->
+        <RegExpr String="sous\s+forme\b"          context="#stay" attribute="Keyword" />
+        <RegExpr String="mais\s+en\s+remplaçant\b" context="#stay" attribute="Keyword" />
+        <RegExpr String="on\s+a\b"                context="#stay" attribute="Keyword" />
+        <RegExpr String="champ\s+d'application\b" context="#stay" attribute="Keyword" />
+        <RegExpr String="dépend\s+de\b"           context="#stay" attribute="Keyword" />
+        <RegExpr String="sous\s+condition\b"      context="#stay" attribute="Keyword" />
+        <RegExpr String="égal\s+à"                context="#stay" attribute="Keyword" />
+        <RegExpr String="n'importe\s+quel\b"      context="#stay" attribute="Keyword" />
+        <RegExpr String="tel\s+que\b"             context="#stay" attribute="Keyword" />
+        <RegExpr String="liste\s+vide\b"          context="#stay" attribute="Keyword" />
+        <RegExpr String="transforme\s+chaque\b"   context="#stay" attribute="Keyword" />
+        <RegExpr String="liste\s+de\b"            context="#stay" attribute="Type" />
+        <RegExpr String="optionnel\s+de\b"        context="#stay" attribute="Type" />
+        <RegExpr String="ou\s+bien\b"             context="#stay" attribute="Operator" />
+
+        <!-- Single-word keywords / constants / types / word operators. -->
+        <keyword String="Keywords"       context="#stay" attribute="Keyword" />
+        <keyword String="Constants"      context="#stay" attribute="Constant" />
+        <keyword String="Types"          context="#stay" attribute="Type" />
+        <keyword String="Word Operators" context="#stay" attribute="Operator" />
+
+        <!-- Numeric literals: integer or decimal-with-comma. -->
+        <RegExpr String="[0-9]+(,[0-9]*)?" context="#stay" attribute="Decimal" />
+
+        <!-- Compound operators (typed arithmetic / comparison suffixes
+             `.` decimal, `@` date, `^` duration, `€` argent). -->
+        <RegExpr String="-&gt;|--|&gt;=\.|&lt;=\.|&gt;=@|&lt;=@|&gt;=€|&lt;=€|&gt;=\^|&lt;=\^|&gt;\.|&lt;\.|&gt;@|&lt;@|&gt;€|&lt;€|&gt;\^|&lt;\^|&gt;=|&lt;=|\+\.|\+@|\+\^|\+€|-\.|-@|-\^|-€|\*\.|\*@|\*\^|\*€|/\.|/@|/€" context="#stay" attribute="Operator" />
+
+        <!-- Single-char operators / punctuation. -->
+        <AnyChar String="+-*/!&gt;&lt;=€%;.,:()[]{}" context="#stay" attribute="Operator" />
+
+        <!-- Identifiers. Lowercase = variable / scope / field;
+                          Uppercase = type / constructor / module. -->
+        <RegExpr String="&UIDENT;" context="#stay" attribute="Uppercase Identifier" />
+        <RegExpr String="&LIDENT;" context="#stay" attribute="Lowercase Identifier" />
+
+      </context>
+
+      <context name="Attribute Comment" lineEndContext="#stay" attribute="Comment">
+        <RegExpr String="\\." context="#stay" attribute="Comment" />
+        <DetectChar char="]" context="#pop" attribute="Comment" endRegion="comment" />
+      </context>
+
+    </contexts>
+
+    <itemDatas>
+      <itemData name="Lowercase Identifier" defStyleNum="dsVariable" />
+      <itemData name="Uppercase Identifier" defStyleNum="dsFunction" />
+      <itemData name="Keyword"              defStyleNum="dsKeyword"  />
+      <itemData name="Type"                 defStyleNum="dsDataType" />
+      <itemData name="Constant"             defStyleNum="dsConstant" />
+      <itemData name="Operator"             defStyleNum="dsOperator" />
+      <itemData name="Decimal"              defStyleNum="dsDecVal"   />
+      <itemData name="Date"                 defStyleNum="dsDecVal"   />
+      <itemData name="Comment"              defStyleNum="dsComment"  />
+    </itemDatas>
+  </highlighting>
+
+  <general>
+    <keywords casesensitive="true" />
+    <comments>
+      <comment name="singleLine" start="#" />
+    </comments>
+  </general>
+</language>
+<!-- kate: space-indent on; indent-width 2; replace-tabs on; -->
