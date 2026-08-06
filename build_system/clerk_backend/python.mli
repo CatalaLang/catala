@@ -29,7 +29,7 @@ val run_artifact :
   test:bool ->
   trace:bool ->
   ?scope:string ->
-  var_bindings:(Var.t * string list) list ->
+  var_bindings:Var.bindings ->
   ?quiet:bool ->
   string ->
   int * string list

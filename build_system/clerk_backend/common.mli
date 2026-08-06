@@ -43,20 +43,20 @@ val extern_src :
       the compiled object for linking, including all its dependencies. This
       allows transitive compilation of required objects before linking *)
 
-val catala_obj_target : string -> string
+val catala_obj_target : string -> Ninja_utils.Expr.elt
 (** From a module name, gives the pseudo-target that builds the Catala object
     required for interpretation (i.e. actually the OCaml dynlink object, .cmxs
     or .cmo) *)
 
-val target : ?name:string -> string -> string
+val target : ?name:string -> string -> Ninja_utils.Expr.elt
 
-val interface_dep : name:string -> string -> string
+val interface_dep : name:string -> string -> Ninja_utils.Expr.elt
 (** backend name, module name -> target name *)
 
-val src_dep : name:string -> string -> string
+val src_dep : name:string -> string -> Ninja_utils.Expr.elt
 (** backend name, module name -> target name *)
 
-val obj_dep : name:string -> Clerk_utils.Scan.item -> string
+val obj_dep : name:string -> Clerk_utils.Scan.item -> Ninja_utils.Expr.elt
 (** backend name, source item -> target name *)
 
 module Make_backend : functor (A : Sig.Spec) -> Sig.S

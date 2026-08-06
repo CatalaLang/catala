@@ -18,8 +18,8 @@
 open Clerk_utils
 open Catala_utils
 
-let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
-let python = Var.make "PYTHON"
+let catala_flags_python = Var.make_vector "CATALA_FLAGS_PYTHON"
+let python = Var.make_vector "PYTHON"
 
 let linking_command ~build_dir link_deps item target =
   (* a "linked" python module is a "Module.py" folder containing the module .py
@@ -54,7 +54,7 @@ let run_artifact config ~test ~trace ?scope ~var_bindings ?quiet src =
     @ if trace then ["--trace"] else []
   in
   let pythonpath =
-    String.concat ":"
+    Backend_paths.pythonpath
       [
         build_dir / Scan.libcatala / "python";
         File.dirname src;
@@ -93,25 +93,33 @@ module Spec : Sig.Spec = struct
   let[@ocamlformat "disable"] rules =
     [
       Nj.rule "catala-python"
-        ~command:[!catala_exe; name; !catala_flags; !catala_flags_python;
-                  "-o"; !output; "--"; !input]
-        ~description:["<catala>"; name; "⇒"; !output];
+        ~command:[!!catala_exe; Nj.Expr.Word name; !!catala_flags; !!catala_flags_python;
+                  Nj.Expr.Word "-o"; !!output; Nj.Expr.Word "--"; !!input]
+        ~description:[Nj.Expr.Word "<catala>"; Nj.Expr.Word name; Nj.Expr.Word "⇒"; !!output];
     ]
 
   let build_runtime ~options:_ ~stdbase =
     let python_base = stdbase / name / "catala_runtime" in
-    let python_src = Var.(!runtime) / name / "src" / "catala" in
+    let python_src = !runtime / name / "src" / "catala" in
     [
       Nj.build "phony"
         ~inputs:
-          [python_base -.- "py"; python_base /../ "dates.py"; Var.(!catala_exe)]
-        ~outputs:["@python/runtime/src"; "@python/runtime/obj"];
+          [
+            Nj.Expr.Word (python_base -.- "py");
+            Nj.Expr.Word (python_base /../ "dates.py");
+            !!catala_exe;
+          ]
+        ~outputs:
+          [
+            Nj.Expr.Word "@python/runtime/src";
+            Nj.Expr.Word "@python/runtime/obj";
+          ];
       Nj.build "copy"
-        ~inputs:[python_src / "dates.py"]
-        ~outputs:[python_base /../ "dates.py"];
+        ~inputs:[Nj.Expr.Word (python_src / "dates.py")]
+        ~outputs:[Nj.Expr.Word (python_base /../ "dates.py")];
       Nj.build "copy"
-        ~inputs:[python_src / "catala_runtime.py"]
-        ~outputs:[python_base -.- "py"];
+        ~inputs:[Nj.Expr.Word (python_src / "catala_runtime.py")]
+        ~outputs:[Nj.Expr.Word (python_base -.- "py")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in ~has_scope_tests:_ =

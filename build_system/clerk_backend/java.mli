@@ -19,7 +19,7 @@ open Clerk_utils
 
 val linking_command :
   build_dir:string ->
-  var_bindings:(Var.t * string list) list ->
+  var_bindings:Var.bindings ->
   ('a -> Scan.item list) ->
   'a ->
   string ->
@@ -30,7 +30,7 @@ val linking_command :
     modules that's why it doesn't appear in the Backend common interface. *)
 
 val run_artifact :
-  var_bindings:(Var.t * string list) list ->
+  var_bindings:Var.bindings ->
   test:bool ->
   trace:bool ->
   ?scope:string ->

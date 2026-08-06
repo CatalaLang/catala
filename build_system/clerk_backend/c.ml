@@ -18,10 +18,10 @@
 open Clerk_utils
 open Catala_utils
 
-let catala_flags_c = Var.make "CATALA_FLAGS_C"
-let cc_exe = Var.make "CC"
-let c_flags = Var.make "CFLAGS"
-let c_include = Var.make "C_INCLUDE_FLAGS"
+let catala_flags_c = Var.make_vector "CATALA_FLAGS_C"
+let cc_exe = Var.make_vector "CC"
+let c_flags = Var.make_vector "CFLAGS"
+let c_include = Var.make_vector "C_INCLUDE_FLAGS"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
@@ -104,13 +104,14 @@ module Spec : Sig.Spec = struct
   let[@ocamlformat "disable"] rules =
   [
     Nj.rule "catala-c"
-      ~command:[!catala_exe; name; !catala_flags; !catala_flags_c;
-                "-o"; !output; "--"; !input]
-      ~description:["<catala>"; name; "⇒"; !output];
+      ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_c;
+                Word "-o"; !!output; Word "--"; !!input]
+      ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     Nj.rule "c-object"
       ~command:
-        [!cc_exe; !input; !c_flags; !c_include; !includes; "-c"; "-o"; !output]
-      ~description:["<cc>"; "⇒"; !output];
+        [!!cc_exe; !!input; !!c_flags; !!c_include; !!includes;
+         Word "-c"; Word "-o"; !!output]
+      ~description:[Word "<cc>"; Word "⇒"; !!output];
   ]
 
   let build_runtime ~options:_ ~stdbase =
@@ -120,42 +121,42 @@ module Spec : Sig.Spec = struct
       Nj.build "phony"
         ~inputs:
           [
-            c_base -.- "c";
-            c_base -.- "h";
-            (c_base /../ "dates_calc") -.- "c";
-            (c_base /../ "dates_calc") -.- "h";
+            Word (c_base -.- "c");
+            Word (c_base -.- "h");
+            Word ((c_base /../ "dates_calc") -.- "c");
+            Word ((c_base /../ "dates_calc") -.- "h");
           ]
-        ~outputs:["@c/runtime/src"];
+        ~outputs:[Word "@c/runtime/src"];
       Nj.build "phony"
         ~inputs:
           [
-            c_base -.- "o";
-            c_base -.- "h";
-            (c_base /../ "dates_calc") -.- "o";
-            (c_base /../ "dates_calc") -.- "h";
-            Var.(!catala_exe);
+            Word (c_base -.- "o");
+            Word (c_base -.- "h");
+            Word ((c_base /../ "dates_calc") -.- "o");
+            Word ((c_base /../ "dates_calc") -.- "h");
+            !!catala_exe;
           ]
-        ~outputs:["@c/runtime/obj"];
+        ~outputs:[Word "@c/runtime/obj"];
       Nj.build "copy"
-        ~inputs:[c_src / "catala_runtime.h"]
-        ~outputs:[c_base -.- "h"];
+        ~inputs:[Word (c_src / "catala_runtime.h")]
+        ~outputs:[Word (c_base -.- "h")];
       Nj.build "copy"
-        ~inputs:[c_src / "catala_runtime.c"]
-        ~outputs:[c_base -.- "c"];
+        ~inputs:[Word (c_src / "catala_runtime.c")]
+        ~outputs:[Word (c_base -.- "c")];
       Nj.build "copy"
-        ~inputs:[c_src / "dates_calc.h"]
-        ~outputs:[(c_base /../ "dates_calc") -.- "h"];
+        ~inputs:[Word (c_src / "dates_calc.h")]
+        ~outputs:[Word ((c_base /../ "dates_calc") -.- "h")];
       Nj.build "copy"
-        ~inputs:[c_src / "dates_calc.c"]
-        ~outputs:[(c_base /../ "dates_calc") -.- "c"];
+        ~inputs:[Word (c_src / "dates_calc.c")]
+        ~outputs:[Word ((c_base /../ "dates_calc") -.- "c")];
       Nj.build "c-object"
-        ~inputs:[c_base -.- "c"]
-        ~implicit_in:[c_base -.- "h"]
-        ~outputs:[c_base -.- "o"];
+        ~inputs:[Word (c_base -.- "c")]
+        ~implicit_in:[Word (c_base -.- "h")]
+        ~outputs:[Word (c_base -.- "o")];
       Nj.build "c-object"
-        ~inputs:[(c_base /../ "dates_calc") -.- "c"]
-        ~implicit_in:[(c_base /../ "dates_calc") -.- "h"]
-        ~outputs:[(c_base /../ "dates_calc") -.- "o"];
+        ~inputs:[Word ((c_base /../ "dates_calc") -.- "c")]
+        ~implicit_in:[Word ((c_base /../ "dates_calc") -.- "h")]
+        ~outputs:[Word ((c_base /../ "dates_calc") -.- "o")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in ~has_scope_tests =
@@ -175,18 +176,27 @@ module Spec : Sig.Spec = struct
       Nj.build "c-object"
         ~inputs:[Common.target ~name "c"]
         ~implicit_in:
-          (Common.target ~name "h" :: "@c/runtime/src" :: implicit_modules)
+          (Common.target ~name "h" :: Word "@c/runtime/src" :: implicit_modules)
         ~outputs:[Common.target ~name "o"]
-        ~vars:[Var.includes, Flags.include_flags ~name include_dirs]
+        ~vars:
+          [
+            Nj.Binding.make Var.includes (Flags.include_flags ~name include_dirs);
+          ]
       ::
       (if Lazy.force item.has_scope_tests > 0 then
          [
            Nj.build "c-object"
              ~inputs:[Common.target ~name "+main.c"]
              ~implicit_in:
-               (Common.target ~name "h" :: "@c/runtime/src" :: implicit_modules)
+               (Common.target ~name "h"
+               :: Word "@c/runtime/src"
+               :: implicit_modules)
              ~outputs:[Common.target ~name "+main.o"]
-             ~vars:[Var.includes, Flags.include_flags ~name include_dirs];
+             ~vars:
+               [
+                 Nj.Binding.make Var.includes
+                   (Flags.include_flags ~name include_dirs);
+               ];
          ]
        else [])
     in

@@ -19,11 +19,11 @@ open Clerk_utils
 open Catala_utils
 
 let name = "ocaml"
-let catala_flags_ocaml = Var.make "CATALA_FLAGS_OCAML"
-let ocamlc_exe = Var.make "OCAMLC_EXE"
-let ocamlopt_exe = Var.make "OCAMLOPT_EXE"
-let ocaml_flags = Var.make "OCAML_FLAGS"
-let ocaml_include = Var.make "OCAML_INCLUDE"
+let catala_flags_ocaml = Var.make_vector "CATALA_FLAGS_OCAML"
+let ocamlc_exe = Var.make_vector "OCAMLC_EXE"
+let ocamlopt_exe = Var.make_vector "OCAMLOPT_EXE"
+let ocaml_flags = Var.make_vector "OCAML_FLAGS"
+let ocaml_include = Var.make_vector "OCAML_INCLUDE"
 
 module OCaml_Flags = struct
   let ocaml_include_and_lib : (string list * string list) Lazy.t =
@@ -126,34 +126,34 @@ module Spec : Sig.Spec = struct
 
   let[@ocamlformat "disable"] rules =
     let runtime_include = File.(Var.(!builddir) / Scan.libcatala / name) in
-    let description = ["<" ^ name ^ ">"; "⇒"; !Var.output] in
+    let description = [Nj.Expr.Word ("<" ^ name ^ ">"); Nj.Expr.Word "⇒"; !!Var.output] in
     [
-      Nj.rule "catala-ocaml" ~description:["<catala>"; name; "⇒"; !Var.output]
-        ~command:[!Var.catala_exe; name; !Var.catala_flags; !catala_flags_ocaml;
-                  "-o"; !Var.output; "--"; !Var.input];
+      Nj.rule "catala-ocaml" ~description:[Nj.Expr.Word "<catala>"; Nj.Expr.Word name; Nj.Expr.Word "⇒"; !!Var.output]
+        ~command:[!!Var.catala_exe; Nj.Expr.Word name; !!Var.catala_flags; !!catala_flags_ocaml;
+                  Nj.Expr.Word "-o"; !!Var.output; Nj.Expr.Word "--"; !!Var.input];
 
       Nj.rule "ocaml-bytobject" ~description
         ~command:[
-          !ocamlc_exe; "-c"; !ocaml_flags; !ocaml_include;
-          "-I"; runtime_include;
-          !Var.includes;
-          !Var.input
+          !!ocamlc_exe; Nj.Expr.Word "-c"; !!ocaml_flags; !!ocaml_include;
+          Nj.Expr.Word "-I"; Nj.Expr.Word runtime_include;
+          !!Var.includes;
+          !!Var.input
         ];
 
       Nj.rule "ocaml-natobject" ~description
         ~command:[
-          !ocamlopt_exe; "-c"; !ocaml_flags; !ocaml_include;
-          "-I"; runtime_include;
-          !Var.includes;
-          !Var.input
+          !!ocamlopt_exe; Nj.Expr.Word "-c"; !!ocaml_flags; !!ocaml_include;
+          Nj.Expr.Word "-I"; Nj.Expr.Word runtime_include;
+          !!Var.includes;
+          !!Var.input
         ];
 
       Nj.rule "ocaml-module" ~description
         ~command:
-          [!ocamlopt_exe; "-shared"; !ocaml_flags; !ocaml_include;
-           "-I"; runtime_include;
-           !Var.input;
-           "-o"; !Var.output];
+          [!!ocamlopt_exe; Nj.Expr.Word "-shared"; !!ocaml_flags; !!ocaml_include;
+           Nj.Expr.Word "-I"; Nj.Expr.Word runtime_include;
+           !!Var.input;
+           Nj.Expr.Word "-o"; !!Var.output];
     ]
 
   let runtime_dir : File.t Lazy.t =
@@ -193,44 +193,46 @@ module Spec : Sig.Spec = struct
       Nj.build "phony"
         ~inputs:
           [
-            dates_base -.- "mli";
-            dates_base -.- "cmi";
-            ocaml_base -.- "mli";
-            ocaml_base -.- "cmi";
-            Var.(!catala_exe);
+            Word (dates_base -.- "mli");
+            Word (dates_base -.- "cmi");
+            Word (ocaml_base -.- "mli");
+            Word (ocaml_base -.- "cmi");
+            !!Var.catala_exe;
           ]
-        ~outputs:["@ocaml/runtime.cmi"];
+        ~outputs:[Word "@ocaml/runtime.cmi"];
       Nj.build "phony"
         ~inputs:
           [
-            dates_base -.- "ml";
-            dates_base -.- "mli";
-            ocaml_base -.- "ml";
-            ocaml_base -.- "mli";
+            Word (dates_base -.- "ml");
+            Word (dates_base -.- "mli");
+            Word (ocaml_base -.- "ml");
+            Word (ocaml_base -.- "mli");
           ]
-        ~outputs:["@ocaml/runtime/src"];
+        ~outputs:[Word "@ocaml/runtime/src"];
       Nj.build "phony"
-        ~inputs:[ocaml_base -.- "cmx"]
-        ~implicit_in:[dates_base -.- "cmi"]
-        ~outputs:["@ocaml/runtime/obj"];
+        ~inputs:[Word (ocaml_base -.- "cmx")]
+        ~implicit_in:[Word (dates_base -.- "cmi")]
+        ~outputs:[Word "@ocaml/runtime/obj"];
       Nj.build "copy"
-        ~inputs:[ocaml_src / "catala_runtime.mli"]
-        ~outputs:[ocaml_base -.- "mli"];
-      Nj.build "copy" ~inputs:[runtime_cmi] ~outputs:[ocaml_base -.- "cmi"];
-      Nj.build "copy" ~inputs:[dates_cmi] ~outputs:[dates_base -.- "cmi"];
+        ~inputs:[Word (ocaml_src / "catala_runtime.mli")]
+        ~outputs:[Word (ocaml_base -.- "mli")];
+      Nj.build "copy" ~inputs:[Word runtime_cmi]
+        ~outputs:[Word (ocaml_base -.- "cmi")];
+      Nj.build "copy" ~inputs:[Word dates_cmi]
+        ~outputs:[Word (dates_base -.- "cmi")];
       Nj.build "copy"
-        ~inputs:[ocaml_src / "catala_runtime.ml"]
-        ~outputs:[ocaml_base -.- "ml"];
+        ~inputs:[Word (ocaml_src / "catala_runtime.ml")]
+        ~outputs:[Word (ocaml_base -.- "ml")];
       Nj.build "copy"
-        ~inputs:[dates_cmi -.- "ml"]
-        ~outputs:[dates_base -.- "ml"];
+        ~inputs:[Word (dates_cmi -.- "ml")]
+        ~outputs:[Word (dates_base -.- "ml")];
       Nj.build "copy"
-        ~inputs:[dates_cmi -.- "mli"]
-        ~outputs:[dates_base -.- "mli"];
+        ~inputs:[Word (dates_cmi -.- "mli")]
+        ~outputs:[Word (dates_base -.- "mli")];
       Nj.build "ocaml-natobject"
-        ~inputs:[dates_base -.- "ml"; ocaml_base -.- "ml"]
-        ~implicit_in:[dates_base -.- "cmi"; ocaml_base -.- "cmi"]
-        ~outputs:[ocaml_base -.- "cmx"; ocaml_base -.- "o"];
+        ~inputs:[Word (dates_base -.- "ml"); Word (ocaml_base -.- "ml")]
+        ~implicit_in:[Word (dates_base -.- "cmi"); Word (ocaml_base -.- "cmi")]
+        ~outputs:[Word (ocaml_base -.- "cmx"); Word (ocaml_base -.- "o")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in ~has_scope_tests =
@@ -250,20 +252,30 @@ module Spec : Sig.Spec = struct
       [
         Nj.build "ocaml-bytobject"
           ~inputs:[Common.target ~name "mli"; Common.target ~name "ml"]
-          ~implicit_in:(implicit_modules @ ["@ocaml/runtime.cmi"])
+          ~implicit_in:(implicit_modules @ [Nj.Expr.Word "@ocaml/runtime.cmi"])
           ~outputs:(List.map (Common.target ~name) ["cmi"; "cmo"])
           ~vars:
             [
-              Var.includes, Flags.include_flags ~name include_dirs;
-              ocaml_flags, [Var.(!ocaml_flags); "-opaque"; "-no-alias-deps"];
+              Nj.Binding.make Var.includes
+                (Flags.include_flags ~name include_dirs);
+              Nj.Binding.make ocaml_flags
+                [
+                  !!ocaml_flags;
+                  Nj.Expr.Word "-opaque";
+                  Nj.Expr.Word "-no-alias-deps";
+                ];
             ];
         Nj.build "ocaml-natobject"
           ~inputs:[Common.target ~name "ml"]
           ~implicit_in:
             ((Common.target ~name "cmi" :: implicit_modules)
-            @ ["@ocaml/runtime.cmi"])
+            @ [Nj.Expr.Word "@ocaml/runtime.cmi"])
           ~outputs:(List.map (Common.target ~name) ["cmx"; "o"])
-          ~vars:[Var.includes, Flags.include_flags ~name include_dirs];
+          ~vars:
+            [
+              Nj.Binding.make Var.includes
+                (Flags.include_flags ~name include_dirs);
+            ];
       ]
     in
     let obj =
@@ -284,7 +296,7 @@ module Spec : Sig.Spec = struct
             Nj.build "phony"
               ~inputs:[Common.target ~name ext]
               ~implicit_in:(List.map Common.catala_obj_target modules)
-              ~outputs:["@catala/obj/" ^ !Var.dst];
+              ~outputs:[Nj.Expr.Word ("@catala/obj/" ^ !Var.dst)];
           ]
           (* else [] *)
         | None -> obj)
@@ -300,8 +312,9 @@ module Spec : Sig.Spec = struct
                  ["cmx"; "o"])
             ~vars:
               [
-                ( Var.includes,
-                  Flags.include_flags ~name include_dirs @ ["-w"; "-24"] );
+                Nj.Binding.make Var.includes
+                  (Flags.include_flags ~name include_dirs
+                  @ [Nj.Expr.Word "-w"; Nj.Expr.Word "-24"]);
               ];
         ]
       else []

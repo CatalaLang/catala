@@ -25,7 +25,7 @@ val base_bindings :
   enabled_backends:Clerk_config.backend list ->
   inplace:bool ->
   config:Clerk_cli.config ->
-  (Var.t * string list) list
+  Var.bindings
 
 exception Stop_ninja
 
@@ -37,7 +37,7 @@ type module_info = {
 }
 
 type callback_info = {
-  var_bindings : (Var.t * string list) list;
+  var_bindings : Var.bindings;
   modules_map : module_info String.Map.t;
   targets_map : Clerk_config.target String.Map.t;
   linking_deps : Scan.item -> string list;

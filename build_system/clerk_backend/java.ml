@@ -19,11 +19,11 @@ open Clerk_utils
 open Catala_utils
 open File
 
-let catala_flags_java = Var.make "CATALA_FLAGS_JAVA"
-let javac = Var.make "JAVAC"
-let javac_flags = Var.make "JAVAC_FLAGS"
-let jar = Var.make "jar"
-let java = Var.make "JAVA"
+let catala_flags_java = Var.make_vector "CATALA_FLAGS_JAVA"
+let javac = Var.make_vector "JAVAC"
+let javac_flags = Var.make_vector "JAVAC_FLAGS"
+let jar = Var.make_vector "jar"
+let java = Var.make_vector "JAVA"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let jar_target = target -.- "jar" in
@@ -80,15 +80,19 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
     |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
     |> List.of_seq
   in
-  Var.get var_bindings jar
-  @ ["--create"; "--file"; jar_target]
-  @ List.concat_map
-      (fun clazz -> ["-C"; Filename.dirname clazz; Filename.basename clazz])
+  let entries =
+    List.map
+      (fun clazz -> Filename.dirname clazz, Filename.basename clazz)
       classes
-  @ List.concat_map
-      (fun clazz ->
-        ["-C"; java_dir_prefix; File.remove_prefix java_dir_prefix clazz])
-      runtime_class_files
+    @ List.map
+        (fun clazz -> java_dir_prefix, File.remove_prefix java_dir_prefix clazz)
+        runtime_class_files
+  in
+  (* fixme: this function isn't advised as doing side-effects *)
+  let argfile = jar_target ^ ".jarargs" in
+  File.with_out_channel ~bin:false argfile (fun oc ->
+      output_string oc (Backend_paths.jar_argfile_content entries));
+  Var.get var_bindings jar @ ["--create"; "--file"; jar_target; "@" ^ argfile]
 
 let run_artifact ~var_bindings ~test ~trace ?scope ?quiet src =
   let target_main = File.remove_extension (Filename.basename src) in
@@ -139,12 +143,12 @@ module Spec : Sig.Spec = struct
   let[@ocamlformat "disable"] rules =
     [
       Nj.rule "catala-java"
-        ~command:[!catala_exe; name; !catala_flags; !catala_flags_java;
-                  "-o"; !output; "--"; !input]
-        ~description:["<catala>"; name; "⇒"; !output];
+        ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_java;
+                  Word "-o"; !!output; Word "--"; !!input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
       Nj.rule "java-class"
-        ~command:[!javac; "-cp"; File.(Var.(!builddir) / Scan.libcatala / name)^":" ^ !class_path; !javac_flags; !input]
-        ~description:["<catala>"; name; "⇒"; !output];
+        ~command:[!!javac; Word "-cp"; Word File.(!builddir / Scan.libcatala / name ^":" ^ !class_path); !!javac_flags; !!input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     ]
 
   let build_runtime ~options ~stdbase =
@@ -180,19 +184,28 @@ module Spec : Sig.Spec = struct
           List.iter (fun s -> output_string oc ((base / s) ^ "\n")) java_files);
       java_base / (name ^ ".files")
     in
+    let open Nj.Expr in
     Nj.build "phony"
-      ~inputs:(List.map (fun f -> (java_base / f) -.- "java") java_files)
-      ~outputs:["@java/runtime/src"]
+      ~inputs:(List.map (fun f -> Word ((java_base / f) -.- "java")) java_files)
+      ~outputs:[Word "@java/runtime/src"]
     :: Nj.build "phony"
-         ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~outputs:["@java/runtime/obj"]
+         ~inputs:
+           (List.map (fun f -> Word ((java_base / f) -.- "class")) java_files)
+         ~outputs:[Word "@java/runtime/obj"]
     :: Nj.build "java-class" ~inputs:[]
-         ~implicit_in:(List.map (fun f -> java_base / f) java_files)
-         ~outputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~vars:[javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
+         ~implicit_in:(List.map (fun f -> Word (java_base / f)) java_files)
+         ~outputs:
+           (List.map (fun f -> Word ((java_base / f) -.- "class")) java_files)
+         ~vars:
+           [
+             Nj.Binding.make javac_flags
+               [!!javac_flags; Word ("@" ^ java_list_file)];
+           ]
     :: List.map
          (fun f ->
-           Nj.build "copy" ~inputs:[java_src / f] ~outputs:[java_base / f])
+           Nj.build "copy"
+             ~inputs:[Word (java_src / f)]
+             ~outputs:[Word (java_base / f)])
          java_files
 
   let catala ?vars ~is_stdlib ~inputs ~implicit_in ~has_scope_tests:_ =
@@ -201,38 +214,31 @@ module Spec : Sig.Spec = struct
          ~outputs:
            [
              (if is_stdlib then
-                (!Var.tdir / name / stdlib_subdir / !Var.dst) -.- "java"
+                Word ((!Var.tdir / name / stdlib_subdir / !Var.dst) -.- "java")
               else Common.target ~name "java");
            ])
 
   let build_object ~include_dirs ~same_dir_modules:_ item =
     let modules = List.rev_map Mark.remove item.Scan.used_modules in
-    let java_class_path =
-      String.concat ":"
-        ((!Var.tdir / name)
-        :: List.map
-             (fun d ->
-               (if Filename.is_relative d then !Var.builddir / d else d) / name)
-             include_dirs)
-    in
+    let java_class_path = Backend_paths.classpath ~backend:name include_dirs in
     Seq.return
       (Nj.build "java-class"
          ~inputs:
            [
              (if item.is_stdlib then
-                (!Var.tdir / name / stdlib_subdir / !Var.dst) -.- "java"
+                Word ((!Var.tdir / name / stdlib_subdir / !Var.dst) -.- "java")
               else Common.target ~name "java");
            ]
          ~implicit_in:
-           (("@" ^ name ^ "/runtime/obj")
+           (Word ("@" ^ name ^ "/runtime/obj")
            :: List.map (Common.interface_dep ~name) modules)
          ~outputs:
            [
              (if item.is_stdlib then
-                (!Var.tdir / name / stdlib_subdir / !Var.dst) -.- "class"
+                Word ((!Var.tdir / name / stdlib_subdir / !Var.dst) -.- "class")
               else Common.target ~name "class");
            ]
-         ~vars:[Var.class_path, [java_class_path]])
+         ~vars:[Nj.Binding.make Var.class_path java_class_path])
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)

@@ -482,6 +482,15 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Add_dat_dur _ -> assert false (* needs specific printing *)
   | op -> Format.fprintf fmt "@{<blue;bold>%s@}" (Operator.name op)
 
+(* [String.quote] escapes the filename with the portable escape set so Windows
+   backslashes survive as a C string literal ([%S] would use OCaml's decimal byte
+   escapes, invalid in C). *)
+let format_pos (fmt : Format.formatter) (pos : Pos.t) : unit =
+  Format.fprintf fmt "@[<hv 2>{%s,@ %d, %d, %d, %d}@]"
+    (String.quote (Pos.get_file pos))
+    (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
+    (Pos.get_end_column pos)
+
 let rec format_expression
     (ctx : ctx)
     (env : env)
@@ -516,10 +525,7 @@ let rec format_expression
   | EPosLit ->
     (* Note: this is not an expression, but an initialisation string. It should
        only appear in the global [loc] table *)
-    let pos = Mark.get e in
-    Format.fprintf fmt "@[<hv 2>{%S,@ %d, %d, %d, %d}@]" (Pos.get_file pos)
-      (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
-      (Pos.get_end_column pos)
+    format_pos fmt (Mark.get e)
   | EAppOp { op = ToClosureEnv, _; args = [arg]; _ } ->
     Format.fprintf fmt "((catala_closure *)%a)" format_expression arg
   | EAppOp { op = FromClosureEnv, _; args = [arg]; _ } ->

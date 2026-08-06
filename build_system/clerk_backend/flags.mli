@@ -17,9 +17,14 @@
 
 open Clerk_utils
 
-val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
+val def :
+  variables:(string * string list) list ->
+  'a Var.t ->
+  string list Lazy.t ->
+  Ninja_utils.Binding.any
+
 val includes : ?name:string -> string list -> string list
-val include_flags : name:string -> string list -> string list
+val include_flags : name:string -> string list -> Ninja_utils.Expr.t
 
 val catala_backend_flags :
   autotest:bool ->
@@ -33,4 +38,4 @@ val default :
   trace:bool ->
   inplace:bool ->
   config:Clerk_cli.config ->
-  (Var.t * string list) list
+  Var.bindings

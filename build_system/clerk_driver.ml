@@ -101,18 +101,20 @@ let linking_command ~build_dir ~backend ~info item target =
       target
   | `Custom rule ->
     let var_bindings =
-      ( Var.make "src",
-        List.flatten
-          (List.map
-             (fun it ->
-               let f = Scan.target_file_name it in
-               let f = dirname f / rule_subdir rule / basename f in
-               List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.in_exts)
-             (link_deps item @ [item])) )
-      :: ( Var.make "dst",
-           let f = Scan.target_file_name item in
-           let f = dirname f / rule_subdir rule / basename f in
-           List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.out_exts )
+      Var.binding_of_words Var.src
+        (List.flatten
+           (List.map
+              (fun it ->
+                let f = Scan.target_file_name it in
+                let f = dirname f / rule_subdir rule / basename f in
+                List.map
+                  (fun ext -> (build_dir / f) -.- ext)
+                  rule.Config.in_exts)
+              (link_deps item @ [item])))
+      :: Var.binding_of_words Var.dst
+           (let f = Scan.target_file_name item in
+            let f = dirname f / rule_subdir rule / basename f in
+            List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.out_exts)
       :: var_bindings
     in
     List.flatten
@@ -120,7 +122,7 @@ let linking_command ~build_dir ~backend ~info item target =
          (fun s ->
            if String.length s > 1 && s.[0] = '$' && s.[1] <> '{' then
              Var.get var_bindings
-               (Var.make (String.sub s 1 (String.length s - 1)))
+               (Var.Vector (String.sub s 1 (String.length s - 1)))
            else [Var.expand var_bindings s])
          rule.Config.commandline
 
@@ -146,8 +148,8 @@ let backend_from_arg config ~enabled_backends t =
       let errmsg () =
         Message.error
           "The specified target @{<red>%s@} does@ not@ match@ a@ target@ from@ \
-           @{<blue>%a@@} or@ an@ existing@ directory@ or@ file,@ nor@ does@ \
-           it@ have@ a@ recognised@ extension."
+           @{<blue>%a@} or@ an@ existing@ directory@ or@ file,@ nor@ does@ it@ \
+           have@ a@ recognised@ extension."
           t (Message.link ()) "clerk.toml"
       in
       if ext = "" then errmsg ()
@@ -200,7 +202,7 @@ let obj_target ~build_dir:_ ~backend item =
   let name = Clerk_backend.(name (get (backend_to_config backend))) in
   Clerk_backend.obj_dep ~name item
 
-let make_target ~build_dir ~backend item =
+let make_target ~build_dir ~backend ?(main_exec = false) item =
   let open File in
   let f = Scan.target_file_name item -.- File.extension item.Scan.file_name in
   let dir = dirname f in
@@ -220,7 +222,10 @@ let make_target ~build_dir ~backend item =
     | `Custom rule ->
       (dir / rule_subdir rule / base) -.- List.hd rule.Config.in_exts
   in
-  build_dir / base
+  Nj.Expr.Word
+    (if main_exec then
+       (build_dir / remove_extension base) ^ ("+main" -.- extension base)
+     else build_dir / base)
 
 let target_backends targets =
   let open Clerk_config in
@@ -432,12 +437,18 @@ let ninja_interp_test_targets
       String.sub dir 0 (String.length dir - String.length suffix)
     else dir
   in
-  List.map File.(fun dir -> (build_dir / no_trailing_slash dir) ^ "@test") dirs
+  List.map
+    File.(
+      fun dir -> Nj.Expr.Word ((build_dir / no_trailing_slash dir) ^ "@test"))
+    dirs
   @ List.map
-      File.(fun m -> (build_dir / m.Clerk_rules.item.file_name) ^ "@test")
+      File.(
+        fun m ->
+          Nj.Expr.Word ((build_dir / m.Clerk_rules.item.file_name) ^ "@test"))
       modules
   @ List.map
-      File.(fun item -> (build_dir / item.Scan.file_name) ^ "@test")
+      File.(
+        fun item -> Nj.Expr.Word ((build_dir / item.Scan.file_name) ^ "@test"))
       source_files
 
 (* The backends for a given module are detected by analysing what clerk targets
@@ -496,8 +507,7 @@ let ninja_build_targets
             (* builds all the obj deps transitively *)
             match backend with
             | `OCaml | `C ->
-              let t1 = make_target ~build_dir ~backend it in
-              [t; File.(remove_extension t1 ^ ("+main" -.- extension t1))]
+              [t; make_target ~build_dir ~backend ~main_exec:true it]
             | _ -> [t]
           else [make_target ~build_dir ~backend it]
             (* builds only the individual object *)
@@ -507,12 +517,13 @@ let ninja_build_targets
   let runtimes =
     List.map
       (fun bk ->
-        "@"
-        ^ Clerk_backend.(name (get (backend_to_config bk)))
-        ^ "/runtime/"
-        ^
-        if exec_targets || config.options.global.include_objects then "obj"
-        else "src")
+        Nj.Expr.Word
+          ("@"
+          ^ Clerk_backend.(name (get (backend_to_config bk)))
+          ^ "/runtime/"
+          ^
+          if exec_targets || config.options.global.include_objects then "obj"
+          else "src"))
       backends
   in
   let from_clerk_targets =
@@ -529,7 +540,7 @@ let ninja_build_targets
              selected@ backends@ and@ will@ be@ ignored."
             t.tname;
           [])
-        else ["#" ^ t.tname])
+        else [Nj.Expr.Word ("#" ^ t.tname)])
       clerk_targets
   in
   let from_modules =
@@ -583,8 +594,8 @@ let test_exec_targets
     items
     info
     { clerk_targets; modules; directories; source_files; direct_targets } :
-    (Scan.item * [< `Interpret | `OCaml | `C | `Python | `Java ] * string) list
-    =
+    (Scan.item * [< `Interpret | `OCaml | `C | `Python | `Java ] * Nj.Expr.elt)
+    list =
   let build_dir = config.Cli.options.global.build_dir in
   let item_exec_target ?backends:explicit_backends it =
     let backends =
@@ -594,12 +605,9 @@ let test_exec_targets
     in
     List.map
       (fun backend ->
-        let t = make_target ~build_dir ~backend it in
-        ( it,
-          backend,
-          match backend with
-          | `OCaml | `C -> File.(remove_extension t ^ ("+main" -.- extension t))
-          | _ -> t ))
+        let main_exec = match backend with `OCaml | `C -> true | _ -> false in
+        let t = make_target ~build_dir ~backend ~main_exec it in
+        it, backend, t)
       backends
   in
   let from_clerk_targets =
@@ -647,7 +655,7 @@ let test_exec_targets
 
 let set_ninja_targets nin_ppf ninja_targets =
   if ninja_targets = [] then raise Clerk_rules.Stop_ninja
-  else Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets))
+  else Nj.format_def nin_ppf (Nj.default ninja_targets)
 
 (* - Finalisers - *)
 (* These functions run post-build steps, after ninja has completed *)
@@ -801,6 +809,9 @@ let run_targets
   let run_target ((item, backend, target) as test_target) =
     print_status "%s %3d%%" progress_pfx (100 * !progress / total);
     incr progress;
+    let target =
+      Var.expr_elt_to_string ~var_bindings:info.Clerk_rules.var_bindings target
+    in
     match backend with
     | `Interpret ->
       let () =
@@ -1192,12 +1203,14 @@ let typecheck_cmd =
                     if
                       it.is_stdlib
                       || List.mem dir config.options.global.include_dirs
-                    then "@catala/src/" ^ String.to_id (Mark.remove mdef)
-                    else src
-                  | None -> it.file_name)
+                    then
+                      Nj.Expr.Word
+                        ("@catala/src/" ^ String.to_id (Mark.remove mdef))
+                    else Nj.Expr.Word src
+                  | None -> Nj.Expr.Word it.file_name)
                 target_items
             in
-            Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
+            Nj.format_def nin_ppf (Nj.default ninja_targets);
             target_items, info.var_bindings)
     with
     | exception Nothing_to_do -> Message.error "Nothing to typecheck."
@@ -1296,7 +1309,7 @@ let test_cmd =
       (* Autotests always require the interpret (OCaml) objects *)
     in
     let targets, items, info, test_targets =
-      Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~keep_going:true
+      Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~keep_going:false
         ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest:true
         ~tests:true ~trace:false
         ~default:(empty_targets, [], Clerk_rules.empty_info, [])
@@ -1338,7 +1351,9 @@ let test_cmd =
     let open Clerk_report in
     let test_reports =
       if List.mem `Interpret backends then
-        try List.concat_map read_many test_targets
+        try
+          List.concat_map read_many
+            (List.map Var.expr_elt_to_string test_targets)
         with Sys_error _ ->
           Message.error
             "Tests couldn't be run, check the above compilation errors."
@@ -1471,7 +1486,7 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
   let default =
     List.fold_left
       (fun default_rules (module B : Clerk_backend.S) ->
-        ("@" ^ B.name ^ "/runtime/src")
+        Nj.Expr.Word ("@" ^ B.name ^ "/runtime/src")
         :: Clerk_backend.src_dep ~name:B.name "Stdlib_fr"
         :: Clerk_backend.src_dep ~name:B.name "Stdlib_en"
         :: default_rules)
@@ -1485,7 +1500,7 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
     ~default:0 ~config
     ~enabled_backends:(List.map Clerk_backend.id enabled_backends)
     ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
-      Nj.format_def nin_ppf (Nj.Default (Nj.Default.make default));
+      Nj.format_def nin_ppf (Nj.default default);
       cont ())
 
 let start_cmd =
@@ -1625,18 +1640,25 @@ let report_cmd =
 let list_vars_cmd =
   let run config =
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~trace:false
-        ~code_coverage:false
-        ~enabled_backends:(List.map snd (Clerk_config.registered_backends ()))
-        ~config ~inplace:false
+      Var.env_of_bindings
+        (Clerk_rules.base_bindings ~autotest:false ~trace:false
+           ~code_coverage:false
+           ~enabled_backends:
+             (List.map snd (Clerk_config.registered_backends ()))
+           ~config ~inplace:false)
     in
     Format.eprintf "Defined variables:@.";
     Format.open_vbox 0;
-    String.Map.iter
-      (fun s v ->
-        Format.printf "%s=%S@," s
-          (String.concat " " (List.assoc v var_bindings)))
-      Var.all_vars;
+    (* one quoted token per element: joining them would hide how an override was
+       split into words *)
+    List.iter
+      (fun (s, value) ->
+        Format.printf "%s=%a@," s
+          (Format.pp_print_list
+             ~pp_sep:(fun ppf () -> Format.pp_print_char ppf ' ')
+             (fun ppf w -> Format.fprintf ppf "%S" w))
+          value)
+      (List.sort compare var_bindings);
     Format.close_box ();
     0
   in

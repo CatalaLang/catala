@@ -34,16 +34,25 @@ let id (module B : S) = B.config_backend
 
 open File
 open Var
+module Nj = Ninja_utils
 
 let static_base_rules =
   [
     Ninja_utils.rule "copy"
       ~command:
         (if Sys.win32 then
-           ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
-           (* The "+nul" forces the timestamp of the new file to be updated *)
-         else ["cp"; "-f"; !input; !output])
-      ~description:["<copy>"; !input];
+           [
+             Raw "cmd";
+             Raw "/c";
+             Raw "copy";
+             Raw "/by";
+             Raw ">nul";
+             !!input;
+             Raw "+nul";
+             !!output;
+           ] (* The "+nul" forces the timestamp of the new file to be updated *)
+         else [Word "cp"; Word "-f"; !!input; !!output])
+      ~description:[Word "<copy>"; !!input];
   ]
 
 let extern_src ~filename ~name:backend ~ext ~missing =
@@ -68,24 +77,27 @@ let target ?name:backend (* ?(is_stdlib=false)  *) ext =
   let dir = !Var.tdir in
   (* let dir = if is_stdlib then dir / Scan.libcatala else dir in *)
   let dir = match backend with Some b -> dir / b | None -> dir in
-  (dir / !Var.dst) ^ ext
+  Nj.Expr.Word ((dir / !Var.dst) ^ ext)
 
-let catala_obj_target modname = "@catala/obj/" ^ String.to_id modname
+let catala_obj_target modname =
+  Nj.Expr.Word ("@catala/obj/" ^ String.to_id modname)
 
 let interface_dep ~name:backend modname =
-  "@" ^ backend ^ "/interface/" ^ String.to_id modname
+  Nj.Expr.Word ("@" ^ backend ^ "/interface/" ^ String.to_id modname)
 
 let src_dep ~name:backend modname =
-  "@" ^ backend ^ "/src/" ^ String.to_id modname
+  Nj.Expr.Word ("@" ^ backend ^ "/src/" ^ String.to_id modname)
 
 let obj_dep ~name:backend item =
   match item.Scan.module_def with
-  | Some (m, _) -> "@" ^ backend ^ "/obj/" ^ String.to_id m
+  | Some (m, _) -> Nj.Expr.Word ("@" ^ backend ^ "/obj/" ^ String.to_id m)
   | None ->
-    "@"
-    ^ backend
-    ^ "/obj/"
-    ^ (dirname item.file_name / String.to_id (basename item.file_name -.- ""))
+    Nj.Expr.Word
+      ("@"
+      ^ backend
+      ^ "/obj/"
+      ^ (dirname item.file_name / String.to_id (basename item.file_name -.- ""))
+      )
 
 module Make_backend (A : Sig.Spec) : Sig.S = struct
   module Backend = struct
@@ -98,7 +110,7 @@ module Make_backend (A : Sig.Spec) : Sig.S = struct
 
     let current_target item ext =
       if item.Scan.is_stdlib then
-        (!Var.tdir / name / stdlib_subdir / !Var.dst) -.- ext
+        Nj.Expr.Word ((!Var.tdir / name / stdlib_subdir / !Var.dst) -.- ext)
       else target ~name ext
 
     let interface_dep = interface_dep ~name
@@ -110,14 +122,14 @@ module Make_backend (A : Sig.Spec) : Sig.S = struct
       else ["@" ^ name ^ "/runtime/obj"]
 
     let external_copy item =
-      let catala_src = !Var.tdir / !Var.src in
+      let catala_src = Nj.Expr.Word (!Var.tdir / !Var.src) in
       let srcs, _missing =
         List.fold_right
           (fun ext (srcs, missing) ->
             let src, missing =
               extern_src ~filename:item.Scan.file_name ~name ~ext ~missing
             in
-            Seq.cons (src, ext) srcs, missing)
+            Seq.cons (Nj.Expr.Word src, ext) srcs, missing)
           src_extensions (Seq.empty, [])
       in
       (* FIXME: this message is needed, but has to be printed once we know
@@ -148,7 +160,7 @@ module Make_backend (A : Sig.Spec) : Sig.S = struct
             else (!Var.tdir / name / !Var.dst) -.- ext
           in
           Ninja_utils.build "copy" ~implicit_in:[catala_src] ~inputs:[src]
-            ~outputs:[output])
+            ~outputs:[Word output])
         srcs
   end
 

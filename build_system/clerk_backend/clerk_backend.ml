@@ -22,3 +22,8 @@ module OCaml = Ocaml
 module C = C
 module Java = Java
 module Python = Python
+
+module Backend_paths = Backend_paths (* for testing only *)
+(**/*)
+
+module Flags = Flags
