@@ -23,8 +23,8 @@ open Clerk_lib
 module Flags = struct
   let def ~variables var value =
     match List.assoc_opt (Var.name var) variables with
-    | Some vl -> Binding.make var (Var.of_override_words var vl)
-    | None -> Binding.make var (Var.of_words var (Lazy.force value))
+    | Some vl -> Var.binding_of_words_override var vl
+    | None -> Var.binding_of_words var (Lazy.force value)
 
   (* stored unquoted: quoting happens at emission *)
   let includes ?backend include_dirs =

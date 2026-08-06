@@ -16,8 +16,9 @@
    the License. *)
 
 open Catala_utils
+module Nj = Ninja_utils
+include Nj.Var
 
-include Ninja_utils.Var
 (** Ninja variable names *)
 
 (** Global vars: always defined, at toplevel *)
@@ -51,22 +52,24 @@ let re_var =
   let open Re in
   seq [str "${"; group (rep1 (diff any (char '}'))); char '}']
 
-type bindings = (string * string list) list
+type bindings = Nj.Binding.any list
 
 let has_ref = Re.execp (Re.compile re_var)
 
-let of_words (type a) (v : a t) (words : string list) : a =
+let binding_of_words (type a) (v : a t) (words : string list) : Nj.Binding.any =
   match v with
   (* the CLI splits values on spaces before kinds are known; a scalar is one
      value, so rejoin (lossless: the split was on a single space) *)
-  | Scalar _ -> String.concat " " words
-  | Vector _ -> List.map (fun w -> Ninja_utils.Expr.Word w) words
+  | Scalar _ -> Nj.Binding.make v (String.concat " " words)
+  | Vector _ ->
+    Nj.Binding.make v (List.map (fun w -> Ninja_utils.Expr.Word w) words)
 
 (* border guards: overrides only — authored defaults legitimately contain
    refs. Refs would expand in direct exec but quote-glue at emission; reject
    rather than diverge. Composition would need an append form (--vars X+=y),
    not implemented. *)
-let of_override_words (type a) (v : a t) (words : string list) : a =
+let binding_of_words_override (type a) (v : a t) (words : string list) :
+    Nj.Binding.any =
   List.iter
     (fun w ->
       if has_ref w then
@@ -81,9 +84,9 @@ let of_override_words (type a) (v : a t) (words : string list) : a =
            C string macros, prefer an included header)"
           w (name v))
     words;
-  of_words v words
+  binding_of_words v words
 
-let to_words (type a) (v : a t) (x : a) : string list =
+let binding_to_words (bnd : Nj.Binding.any) : string list =
   let expr_words e =
     List.concat_map
       (function
@@ -92,35 +95,50 @@ let to_words (type a) (v : a t) (x : a) : string list =
         | Raw s -> [s])
       e
   in
-  match v with Scalar _ -> [x] | Vector _ -> expr_words x
+  match bnd with Any (Scalar _, x) -> [x] | Any (Vector _, x) -> expr_words x
 
 let env_of_bindings bs =
-  List.map (fun (Ninja_utils.Binding.Any (v, x)) -> name v, to_words v x) bs
+  List.map
+    (fun (Ninja_utils.Binding.Any (v, _) as b) -> name v, binding_to_words b)
+    bs
 
-let rec get_var : bindings -> string -> string list =
-  (* replaces ${var} with its value, recursively *)
-  let re_single_var = Re.(compile (whole_string re_var)) in
-  fun var_bindings (v : string) ->
-    let s =
-      try List.assoc v var_bindings
-      with Not_found ->
-        Message.error
-          "Clerk configuration error: variable @{<blue;bold>$%s@} is undefined"
-          v
-    in
-    let get_var = get_var (List.remove_assoc v var_bindings) in
-    List.concat_map
-      (fun s ->
-        match Re.exec_opt re_single_var s with
-        | Some g -> get_var (Re.Group.get g 1)
-        | None -> [expand_vars var_bindings s])
-      s
+let rec take_binding : type a. bindings -> a t -> bindings * Nj.Expr.t option =
+ fun bindings var ->
+  match var, bindings with
+  | _, [] -> [], None
+  | Scalar n1, Nj.Binding.Any (Scalar n2, value) :: r when n1 = n2 ->
+    r, Some [Word value]
+  | Vector n1, Nj.Binding.Any (Vector n2, value) :: r when n1 = n2 ->
+    r, Some value
+  | _, bnd :: r ->
+    let bindings, ret = take_binding r var in
+    bnd :: bindings, ret
+
+let rec get_var : type a. bindings -> a t -> string list =
+ fun var_bindings v ->
+  let var_bindings, exp_opt = take_binding var_bindings v in
+  let exp =
+    match exp_opt with
+    | Some exp -> exp
+    | None ->
+      Message.error
+        "Clerk configuration error: variable @{<blue;bold>$%s@} is undefined"
+        (name v)
+  in
+  List.concat_map
+    (function
+      | Nj.Expr.Word s -> [expand_vars var_bindings s]
+      | Splice v -> get_var var_bindings v
+      | Raw s -> [s])
+    exp
 
 and expand_vars =
   let re_var = Re.(compile re_var) in
   fun var_bindings s ->
     Re.replace ~all:true re_var
-      ~f:(fun g -> String.concat " " (get_var var_bindings (Re.Group.get g 1)))
+      ~f:(fun g ->
+        let var = Scalar (Re.Group.get g 1) in
+        String.concat " " (get_var var_bindings var))
       s
 
 let ( ! ) = ref

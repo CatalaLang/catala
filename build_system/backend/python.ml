@@ -47,7 +47,7 @@ let run_artifact config ~trace ~test ?scope ~var_bindings src =
   let build_dir = config.Clerk_cli.options.global.build_dir in
   let cmd =
     let base = Filename.basename (File.remove_extension src) in
-    Var.get_var var_bindings (Var.name python)
+    Var.get_var var_bindings python
     @ ["-m"; base ^ "." ^ base]
     @ Option.to_list scope
     @ (if test && not Global.options.debug then ["--test"] else [])

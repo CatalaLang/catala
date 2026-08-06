@@ -58,20 +58,20 @@ val test_id : string t
 
 (** {1 Utility functions} *)
 
-type bindings = (string * string list) list
+type bindings = Ninja_utils.Binding.any list
 
-val of_words : 'a t -> string list -> 'a
+val binding_of_words : 'a t -> string list -> Ninja_utils.Binding.any
 (** Packs flat words into a typed payload; errors if a scalar var receives
     several words *)
 
-val of_override_words : 'a t -> string list -> 'a
-(** {!of_words} plus the border guards (no refs, no quote characters) — for
-    user-supplied override values only *)
+val binding_of_words_override : 'a t -> string list -> Ninja_utils.Binding.any
+(** {!binding_of_words} plus the border guards (no refs, no quote characters) —
+    for user-supplied override values only *)
 
-val to_words : 'a t -> 'a -> string list
+val binding_to_words : Ninja_utils.Binding.any -> string list
 (** Projection to the string-level env consumed by {!get_var}/direct exec *)
 
-val env_of_bindings : Ninja_utils.Binding.any list -> bindings
+val env_of_bindings : bindings -> (string * string list) list
 
 val ( ! ) : string t -> string
 (** Alias to [Var.ref]. Run-time reference to the given variable
@@ -82,7 +82,7 @@ val ( !! ) : 'a t -> Expr.elt
     expression element that will be appropriately quoted. This handles specific
     quoting rules of the [input] and [output] variables by Ninja *)
 
-val get_var : bindings -> string -> string list
+val get_var : bindings -> 'a t -> string list
 (** replaces [${xvar}] with its value, recursively *)
 
 val expand_vars : bindings -> string -> string

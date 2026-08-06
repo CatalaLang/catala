@@ -125,25 +125,28 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
       target
   | `Custom rule ->
     let var_bindings =
-      ( "src",
-        List.flatten
-          (List.map
-             (fun it ->
-               let f = Scan.target_file_name it in
-               let f = dirname f / rule_subdir rule / basename f in
-               List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.in_exts)
-             (link_deps item @ [item])) )
-      :: ( "dst",
-           let f = Scan.target_file_name item in
-           let f = dirname f / rule_subdir rule / basename f in
-           List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.out_exts )
+      Var.binding_of_words Var.src
+        (List.flatten
+           (List.map
+              (fun it ->
+                let f = Scan.target_file_name it in
+                let f = dirname f / rule_subdir rule / basename f in
+                List.map
+                  (fun ext -> (build_dir / f) -.- ext)
+                  rule.Config.in_exts)
+              (link_deps item @ [item])))
+      :: Var.binding_of_words Var.dst
+           (let f = Scan.target_file_name item in
+            let f = dirname f / rule_subdir rule / basename f in
+            List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.out_exts)
       :: var_bindings
     in
     List.flatten
     @@ List.map
          (fun s ->
            if String.length s > 1 && s.[0] = '$' && s.[1] <> '{' then
-             Var.get_var var_bindings (String.sub s 1 (String.length s - 1))
+             Var.get_var var_bindings
+               (Var.Vector (String.sub s 1 (String.length s - 1)))
            else [Var.expand_vars var_bindings s])
          rule.Config.commandline
 
@@ -886,7 +889,7 @@ let run_targets
     if test_targets = [] then 0
     else
       let catala_flags =
-        let bdgs = Var.get_var var_bindings (Var.name Var.catala_flags) in
+        let bdgs = Var.get_var var_bindings Var.catala_flags in
         if trace <> None then List.filter (( <> ) "--trace") bdgs else bdgs
       in
       let () =
@@ -917,7 +920,7 @@ let run_targets
         | _, Some Catala_utils.Global.JSON -> ["--trace-format=json"]
         | _, Some Human -> ["--trace-format=human"]
       in
-      let exec = Var.get_var var_bindings (Var.name Var.catala_exe) in
+      let exec = Var.get_var var_bindings Var.catala_exe in
       iter_commands ~build_dir test_targets
       @@ fun _item target ->
       let () = Message.debug "cmd: %s" cmd in
@@ -1095,8 +1098,8 @@ let typecheck_cmd =
     with
     | exception Nothing_to_do -> Message.error "Nothing to typecheck."
     | target_items, var_bindings ->
-      let catala_flags = Var.get_var var_bindings (Var.name Var.catala_flags) in
-      let exec = Var.get_var var_bindings (Var.name Var.catala_exe) in
+      let catala_flags = Var.get_var var_bindings Var.catala_flags in
+      let exec = Var.get_var var_bindings Var.catala_exe in
       let ret =
         List.filter_map
           (fun it ->
@@ -1576,12 +1579,11 @@ let list_vars_cmd =
 let json_schema_cmd =
   let run config file scope =
     let var_bindings =
-      Var.env_of_bindings
-        (Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
-           ~trace:false ~enabled_backends:[] ~config ~inplace:true)
+      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+        ~trace:false ~enabled_backends:[] ~config ~inplace:true
     in
-    let catala_exe = Var.get_var var_bindings (Var.name Var.catala_exe) in
-    let catala_flags = Var.get_var var_bindings (Var.name Var.catala_flags) in
+    let catala_exe = Var.get_var var_bindings Var.catala_exe in
+    let catala_flags = Var.get_var var_bindings Var.catala_flags in
     let cmd =
       catala_exe @ ["json-schema"; file; "--scope"; scope] @ catala_flags
     in
@@ -1605,12 +1607,11 @@ let exceptions_cmd =
        artifacts required. Bypass ninja and call catala directly from the
        project root instead of the build dir (with [inplace:true]) *)
     let var_bindings =
-      Var.env_of_bindings
-        (Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
-           ~trace:false ~enabled_backends:[] ~config ~inplace:true)
+      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+        ~trace:false ~enabled_backends:[] ~config ~inplace:true
     in
-    let catala_exe = Var.get_var var_bindings (Var.name Var.catala_exe) in
-    let catala_flags = Var.get_var var_bindings (Var.name Var.catala_flags) in
+    let catala_exe = Var.get_var var_bindings Var.catala_exe in
+    let catala_flags = Var.get_var var_bindings Var.catala_flags in
     let cmd =
       catala_exe
       @ ["exceptions"; file; "--scope"; scope; "--variable"; variable]
