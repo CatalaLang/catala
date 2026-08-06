@@ -35,6 +35,24 @@ scope Test:
 
 ```catala-test-cli
 $ catala typecheck --check-invariants
+┌─[WARNING]─
+│
+│  The local variable "w" is never used; maybe it's unnecessary?
+│
+├─➤ tests/tuples/good/tuples.catala_en:20.14-15:
+│    │
+│ 20 │      let (b, w) equals str1.x1 in
+│    │              ‾
+└─
+┌─[WARNING]─
+│
+│  The local variable "z2" is never used; maybe it's unnecessary?
+│
+├─➤ tests/tuples/good/tuples.catala_en:23.15-17:
+│    │
+│ 23 │      let (z1, z2) equals z in z1 / 2
+│    │               ‾‾
+└─
 ┌─[RESULT]─
 │ All invariant checks passed
 └─
@@ -45,6 +63,24 @@ $ catala typecheck --check-invariants
 
 ```catala-test-cli
 $ catala test-scope Test
+┌─[WARNING]─
+│
+│  The local variable "w" is never used; maybe it's unnecessary?
+│
+├─➤ tests/tuples/good/tuples.catala_en:20.14-15:
+│    │
+│ 20 │      let (b, w) equals str1.x1 in
+│    │              ‾
+└─
+┌─[WARNING]─
+│
+│  The local variable "z2" is never used; maybe it's unnecessary?
+│
+├─➤ tests/tuples/good/tuples.catala_en:23.15-17:
+│    │
+│ 23 │      let (z1, z2) equals z in z1 / 2
+│    │               ‾‾
+└─
 ┌─[RESULT]─ Test ─
 │ o = (|2001-01-03|, 6.0)
 └─
