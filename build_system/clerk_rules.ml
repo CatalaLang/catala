@@ -18,7 +18,7 @@
 open Catala_utils
 open Clerk_utils
 module Backend_common = Clerk_backends.Common
-module Nj = Clerk_utils.Var.Nj
+module Nj = Ninja_utils
 
 (**{1 Building rules}*)
 
@@ -74,14 +74,14 @@ let static_base_rules ~tests enabled_backends =
         Nj.rule "tests"
           ~command:
             [
-              Word !clerk_exe;
+              !!clerk_exe;
               Word "runtest";
-              Splice clerk_flags;
-              Raw !input;
+              !!clerk_flags;
+              !!input;
               Word "--report";
-              Raw !output;
+              !!output;
             ]
-          ~description:[Word "<catala>"; Word "tests"; Word "⇐"; Raw !input];
+          ~description:[Word "<catala>"; Word "tests"; Word "⇐"; !!input];
         Nj.rule "dir-tests"
           ~command:
             (if Sys.win32 then
@@ -92,10 +92,10 @@ let static_base_rules ~tests enabled_backends =
                  Raw "/by";
                  Raw ">nul";
                  Raw !cat_files;
-                 Raw !output;
+                 !!output;
                ]
-             else [Word "cat"; Raw !input; Raw ">"; Raw !output])
-          ~description:[Word "<test>"; Word !test_id];
+             else [Word "cat"; !!input; Raw ">"; !!output])
+          ~description:[Word "<test>"; !!test_id];
       ]
     else []
   in
@@ -170,7 +170,7 @@ let gen_build_statements
       let implicit_in =
         (* autotest requires interpretation at compile-time, which makes use of
            the dependent OCaml modules (cmxs) *)
-        Nj.Expr.Word !Var.catala_exe
+        Var.(!!catala_exe)
         ::
         (if autotest then
            List.map (fun m -> Nj.Expr.Word (module_target m)) modules
@@ -181,7 +181,7 @@ let gen_build_statements
           Some
             [
               Nj.Binding.make Var.catala_flags
-                [Nj.Expr.Splice Var.catala_flags; Word "--no-stdlib"];
+                [Var.(!!catala_flags); Word "--no-stdlib"];
             ]
         else None
       in
@@ -236,7 +236,7 @@ let gen_build_statements
       [
         Nj.build "tests" ~inputs:[Word catala_src]
           ~implicit_in:
-            (Nj.Expr.Word !Var.clerk_exe
+            (Var.(!!clerk_exe)
             :: List.map
                  (fun m ->
                    Nj.Expr.Word

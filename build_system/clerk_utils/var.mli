@@ -74,13 +74,13 @@ val to_words : 'a t -> 'a -> string list
 val env_of_bindings : Ninja_utils.Binding.any list -> bindings
 
 val ( ! ) : string t -> string
-(** Run-time reference to the given variable [!var = "${xvarname}"] *)
+(** Alias to [Var.ref]. Run-time reference to the given variable
+    [!var = "${xvarname}"], for inclusion in strings *)
 
-module Nj : sig
-  include module type of struct
-    include Ninja_utils
-  end
-end
+val ( !! ) : 'a t -> Expr.elt
+(** Run-time reference to the given variable [!var = "${xvarname}"] as an
+    expression element that will be appropriately quoted. This handles specific
+    quoting rules of the [input] and [output] variables by Ninja *)
 
 val get_var : bindings -> string -> string list
 (** replaces [${xvar}] with its value, recursively *)

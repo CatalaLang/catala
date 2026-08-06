@@ -17,7 +17,7 @@
 
 open Catala_utils
 open Clerk_utils
-module Nj = Clerk_utils.Var.Nj
+module Nj = Ninja_utils
 module Cli = Clerk_cli
 module Var = Clerk_utils.Var
 module Config = Clerk_config

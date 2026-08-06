@@ -110,7 +110,7 @@ let run_artifact ~test ~(trace : bool) ?scope src =
 
 module Backend = struct
   open Var
-  module Nj = Var.Nj
+  module Nj = Ninja_utils
   module Flags = Flags
 
   let name = backend_name
@@ -127,29 +127,29 @@ module Backend = struct
     in
          [
       Nj.rule "catala-ocaml"
-        ~command:[Word !catala_exe; Word name; Splice catala_flags; Splice catala_flags_ocaml;
-                  Word "-o"; Raw !output; Word "--"; Raw !input]
-        ~description:[Word "<catala>"; Word name; Word "⇒"; Raw !output];
+        ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_ocaml;
+                  Word "-o"; !!output; Word "--"; !!input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
       Nj.rule "ocaml-bytobject"
         ~command:[
-          Splice ocamlc_exe; Word "-c"; Splice ocaml_flags; Splice ocaml_includes;
-          Word "-I"; Word runtime_include; Splice includes; Raw !input
+          !!ocamlc_exe; Word "-c"; !!ocaml_flags; !!ocaml_includes;
+          Word "-I"; Word runtime_include; !!includes; !!input
         ]
-        ~description:[Word ("<" ^ name ^ ">"); Word "⇒"; Raw !output];
+        ~description:[Word ("<" ^ name ^ ">"); Word "⇒"; !!output];
 
       Nj.rule "ocaml-natobject"
         ~command:[
-          Splice ocamlopt_exe; Word "-c"; Splice ocaml_flags; Splice ocaml_includes;
-          Word "-I"; Word runtime_include; Splice includes; Raw !input
+          !!ocamlopt_exe; Word "-c"; !!ocaml_flags; !!ocaml_includes;
+          Word "-I"; Word runtime_include; !!includes; !!input
         ]
-        ~description:[Word ("<" ^ name ^ ">"); Word "⇒"; Raw !output];
+        ~description:[Word ("<" ^ name ^ ">"); Word "⇒"; !!output];
 
       Nj.rule "ocaml-module"
         ~command:
-          [Splice ocamlopt_exe; Word "-shared"; Splice ocaml_flags; Splice ocaml_includes;
-           Word "-I"; Word runtime_include; Raw !input;
-           Word "-o"; Raw !output]
-        ~description:[Word ("<" ^ name ^ ">"); Word "⇒"; Raw !output];
+          [!!ocamlopt_exe; Word "-shared"; !!ocaml_flags; !!ocaml_includes;
+           Word "-I"; Word runtime_include; !!input;
+           Word "-o"; !!output]
+        ~description:[Word ("<" ^ name ^ ">"); Word "⇒"; !!output];
     ]
 
   let runtime_dir : File.t Lazy.t =
@@ -216,7 +216,7 @@ module Backend = struct
             Word (dates_base -.- "cmi");
             Word (ocaml_base -.- "mli");
             Word (ocaml_base -.- "cmi");
-            Word Var.(!catala_exe);
+            !!catala_exe;
           ]
         ~outputs:[Word "@runtime-cmi"];
       Nj.build "phony"
@@ -296,7 +296,7 @@ module Backend = struct
             [
               Nj.Binding.make Var.includes (includes include_dirs);
               Nj.Binding.make ocaml_flags
-                [Splice ocaml_flags; Word "-opaque"; Word "-no-alias-deps"];
+                [!!ocaml_flags; Word "-opaque"; Word "-no-alias-deps"];
             ];
         Nj.build "ocaml-natobject"
           ~inputs:[Word (target ~backend:name "ml")]
