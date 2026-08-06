@@ -1,0 +1,67 @@
+## Unused local variables
+
+```catala
+#[test] declaration scope A:
+  output a content integer
+  output b content integer
+  output c content integer
+  output d content integer
+
+declaration top content integer equals
+  let dead_top equals 1 in
+  2
+
+scope A:
+  definition a equals
+    let dead equals 1 in
+    2
+
+  definition b equals
+    let alive equals 40 in
+    alive + top
+
+  definition c equals
+    let (kept, dropped) equals (1, 2) in
+    kept
+
+  definition d equals
+    assertion (1 + 1 = 2) in
+    if false then (let forced equals 1 in impossible) else 4
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[WARNING]─
+│
+│  The local variable "dead" is never used; maybe it's unnecessary?
+│
+├─➤ tests/name_resolution/good/unused_let_in.catala_en:16.9-13:
+│    │
+│ 16 │     let dead equals 1 in
+│    │         ‾‾‾‾
+└─ Unused local variables
+┌─[WARNING]─
+│
+│  The local variable "dropped" is never used; maybe it's unnecessary?
+│
+├─➤ tests/name_resolution/good/unused_let_in.catala_en:24.16-23:
+│    │
+│ 24 │     let (kept, dropped) equals (1, 2) in
+│    │                ‾‾‾‾‾‾‾
+└─ Unused local variables
+┌─[WARNING]─
+│
+│  The local variable "dead_top" is never used; maybe it's unnecessary?
+│
+├─➤ tests/name_resolution/good/unused_let_in.catala_en:11.7-15:
+│    │
+│ 11 │   let dead_top equals 1 in
+│    │       ‾‾‾‾‾‾‾‾
+└─ Unused local variables
+┌─[RESULT]─ A ─
+│ a = 2
+│ b = 42
+│ c = 1
+│ d = 4
+└─
+```

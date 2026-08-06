@@ -3,6 +3,9 @@
 One line per change, be concise and explicit. Document only external changes
 in behavior visible for the end-users of the tooling.
 
+* [#591](https://github.com/CatalaLang/catala/issues/591) New lint warning
+  for local variables (`let ... in`) that are never used.
+
 * [#1058](https://github.com/CatalaLang/catala/pull/1058) Fixes a bug
   in the JSON output format of enumerations yielding errors such as:
   `Invalid_argument("Json_encoding.construct: consequence of non
