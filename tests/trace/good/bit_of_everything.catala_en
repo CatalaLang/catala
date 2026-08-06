@@ -55,6 +55,15 @@ scope T:
 
 ```catala-test-cli
 $ catala interpret -s T --trace
+┌─[WARNING]─
+│
+│  The local variable "zzz" is never used; maybe it's unnecessary?
+│
+├─➤ tests/trace/good/bit_of_everything.catala_en:28.31-34:
+│    │
+│ 28 │   definition ssv.i equals let zzz equals 333 in true
+│    │                               ‾‾‾
+└─
 → Entering scope T
 ─➤ tests/trace/good/bit_of_everything.catala_en:21.19-20:
    │
