@@ -19,11 +19,12 @@ open Clerk_utils
 open Catala_utils
 open File
 
-let catala_flags_java = Var.make "CATALA_FLAGS_JAVA"
-let javac = Var.make "JAVAC"
-let javac_flags = Var.make "JAVAC_FLAGS"
-let jar = Var.make "jar"
-let java = Var.make "JAVA"
+let catala_flags_java = Var.make_vector "CATALA_FLAGS_JAVA"
+let javac = Var.make_vector "JAVAC"
+let javac_flags = Var.make_vector "JAVAC_FLAGS"
+let jar = Var.make_vector "jar"
+let java = Var.make_vector "JAVA"
+let backend_name = "java"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open Var in
@@ -79,15 +80,18 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
     |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
     |> List.of_seq
   in
-  get_var var_bindings jar
-  @ ["--create"; "--file"; jar_target]
-  @ List.concat_map
-      (fun clazz -> ["-C"; Filename.dirname clazz; Filename.basename clazz])
+  let entries =
+    List.map
+      (fun clazz -> Filename.dirname clazz, Filename.basename clazz)
       classes
-  @ List.concat_map
-      (fun clazz ->
-        ["-C"; java_dir_prefix; File.remove_prefix java_dir_prefix clazz])
-      runtime_class_files
+    @ List.map
+        (fun clazz -> java_dir_prefix, File.remove_prefix java_dir_prefix clazz)
+        runtime_class_files
+  in
+  let argfile = jar_target ^ ".jarargs" in
+  File.with_out_channel ~bin:false argfile (fun oc ->
+      output_string oc (Backend_paths.jar_argfile_content entries));
+  get_var var_bindings jar @ ["--create"; "--file"; jar_target; "@" ^ argfile]
 
 let run_artifact ~var_bindings ~test ~trace ?scope src =
   let open Clerk_lib in
@@ -142,7 +146,7 @@ module Backend = struct
         Common.Flags.catala_backend_flags ~autotest ~use_default_flags
           ~test_flags ~accepts_closure_conversion:true
       in
-      let def = Common.Flags.def ~variables in
+      let def v x = Common.Flags.def ~variables v x in
       [
         def catala_flags_java (lazy catala_flags);
         def java (lazy ["java"]);
@@ -155,12 +159,16 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-java"
-        ~command:[!catala_exe; name; !catala_flags; !catala_flags_java;
-                  "-o"; !output; "--"; !input]
-        ~description:["<catala>"; name; "⇒"; !output];
+        ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_java;
+                  Word "-o"; !!output; Word "--"; !!input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
       Nj.rule "java-class"
-        ~command:[!javac; "-cp"; File.(Var.(!builddir) / Scan.libcatala / name)^":" ^ !class_path; !javac_flags; !input]
-        ~description:["<catala>"; name; "⇒"; !output];
+        ~command:[!!javac; Word "-cp";
+                  Word (File.(Var.(!builddir) / Scan.libcatala / name)
+                        ^ Path.list_sep ()
+                        ^ !class_path);
+                  !!javac_flags; !!input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     ]
 
   let external_copy item =
@@ -173,11 +181,12 @@ module Backend = struct
       ~filename:item.Scan.file_name;
     List.to_seq
       [
-        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[java]
+        Nj.build "copy" ~implicit_in:[Word catala_src] ~inputs:[Word java]
           ~outputs:
             [
-              (if item.is_stdlib then stdlib_target "java"
-               else Ninja.target ~backend:name "java");
+              Word
+                (if item.is_stdlib then stdlib_target "java"
+                 else Ninja.target ~backend:name "java");
             ];
       ]
 
@@ -217,19 +226,35 @@ module Backend = struct
       java_base / (name ^ ".files")
     in
     Nj.build "phony"
-      ~inputs:(List.map (fun f -> (java_base / f) -.- "java") java_files)
-      ~outputs:["@runtime-" ^ name ^ "-src"]
+      ~inputs:
+        (List.map
+           (fun f -> Nj.Expr.Word ((java_base / f) -.- "java"))
+           java_files)
+      ~outputs:[Word ("@runtime-" ^ name ^ "-src")]
     :: Nj.build "phony"
-         ~inputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~outputs:["@runtime-" ^ name]
+         ~inputs:
+           (List.map
+              (fun f -> Nj.Expr.Word ((java_base / f) -.- "class"))
+              java_files)
+         ~outputs:[Word ("@runtime-" ^ name)]
     :: Nj.build "java-class" ~inputs:[]
          ~implicit_in:
-           (java_list_file :: List.map (fun f -> java_base / f) java_files)
-         ~outputs:(List.map (fun f -> (java_base / f) -.- "class") java_files)
-         ~vars:[javac_flags, [Var.(!javac_flags); "@" ^ java_list_file]]
+           (Nj.Expr.Word java_list_file
+           :: List.map (fun f -> Nj.Expr.Word (java_base / f)) java_files)
+         ~outputs:
+           (List.map
+              (fun f -> Nj.Expr.Word ((java_base / f) -.- "class"))
+              java_files)
+         ~vars:
+           [
+             Nj.Binding.make javac_flags
+               [!!javac_flags; Word ("@" ^ java_list_file)];
+           ]
     :: List.map
          (fun f ->
-           Nj.build "copy" ~inputs:[java_src / f] ~outputs:[java_base / f])
+           Nj.build "copy"
+             ~inputs:[Word (java_src / f)]
+             ~outputs:[Word (java_base / f)])
          java_files
 
   let catala ?vars ~is_stdlib ~inputs ~implicit_in _has_scope_tests =
@@ -237,19 +262,15 @@ module Backend = struct
       (Nj.build "catala-java" ?vars ~inputs ~implicit_in
          ~outputs:
            [
-             (if is_stdlib then stdlib_target "java"
-              else Ninja.target ~backend:name "java");
+             Word
+               (if is_stdlib then stdlib_target "java"
+                else Ninja.target ~backend:name "java");
            ])
 
   let build_object ~include_dirs ~same_dir_modules ~item _has_scope_tests =
     let modules = List.rev_map Mark.remove item.Scan.used_modules in
     let java_class_path =
-      String.concat ":"
-        ((!Var.tdir / name)
-        :: List.map
-             (fun d ->
-               (if Filename.is_relative d then !Var.builddir / d else d) / name)
-             include_dirs)
+      Backend_paths.classpath ~backend:backend_name include_dirs
     in
     let module_target =
       modfile ~is_stdlib:item.is_stdlib same_dir_modules ".class"
@@ -258,16 +279,20 @@ module Backend = struct
       (Nj.build "java-class"
          ~inputs:
            [
-             (if item.is_stdlib then stdlib_target "java"
-              else Ninja.target ~backend:name "java");
+             Word
+               (if item.is_stdlib then stdlib_target "java"
+                else Ninja.target ~backend:name "java");
            ]
-         ~implicit_in:(("@runtime-" ^ name) :: List.map module_target modules)
+         ~implicit_in:
+           (Nj.Expr.Word ("@runtime-" ^ name)
+           :: List.map (fun m -> Nj.Expr.Word (module_target m)) modules)
          ~outputs:
            [
-             (if item.is_stdlib then stdlib_target "class"
-              else Ninja.target ~backend:name "class");
+             Word
+               (if item.is_stdlib then stdlib_target "class"
+                else Ninja.target ~backend:name "class");
            ]
-         ~vars:[Var.class_path, [java_class_path]])
+         ~vars:[Nj.Binding.make Var.class_path java_class_path])
 
   let expose_module ~same_dir_modules:_ ~used_modules:_ = []
 

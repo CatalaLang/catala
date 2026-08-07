@@ -15,19 +15,18 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Ninja_utils
 open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
 module Flags = struct
   let def ~variables var value =
-    let value =
-      match List.assoc_opt (Var.name var) variables with
-      | Some vl -> vl
-      | None -> Lazy.force value
-    in
-    var, value
+    match List.assoc_opt (Var.name var) variables with
+    | Some vl -> Var.binding_of_words_override var vl
+    | None -> Var.binding_of_words var (Lazy.force value)
 
+  (* stored unquoted: quoting happens at emission *)
   let includes ?backend include_dirs =
     List.fold_right
       (fun dir flags ->
@@ -58,14 +57,15 @@ module Flags = struct
 
   let include_flags ~backend include_dirs =
     let open File in
-    "-I"
-    :: Var.(!tdir / backend)
+    Expr.Word "-I"
+    :: Word Var.(!tdir / backend)
     :: List.concat_map
          (fun d ->
            [
-             "-I";
-             (if Filename.is_relative d then Var.(!builddir) / d else d)
-             / backend;
+             Expr.Word "-I";
+             Word
+               ((if Filename.is_relative d then Var.(!builddir) / d else d)
+               / backend);
            ])
          include_dirs
 
@@ -95,7 +95,7 @@ module Flags = struct
     in
     let includes = includes options.global.include_dirs in
     let test_flags = config.Clerk_cli.test_flags in
-    let def = def ~variables:options.variables in
+    let def v x = def ~variables:options.variables v x in
     [
       def Var.ninja_required_version (lazy ["1.7"]);
       (* use of implicit outputs *)
@@ -137,9 +137,18 @@ module Ninja = struct
       Nj.rule "copy"
         ~command:
           (if Sys.win32 then
-             ["cmd"; "/c"; "copy /by >nul"; !input; "+nul"; !output]
+             [
+               Raw "cmd";
+               Raw "/c";
+               Raw "copy";
+               Raw "/by";
+               Raw ">nul";
+               !!input;
+               Raw "+nul";
+               !!output;
+             ]
              (* The "+nul" forces the timestamp of the new file to be updated *)
-           else ["cp"; "-f"; !input; !output])
-        ~description:["<copy>"; !input];
+           else [Word "cp"; Word "-f"; !!input; !!output])
+        ~description:[Word "<copy>"; !!input];
     ]
 end

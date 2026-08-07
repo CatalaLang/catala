@@ -125,18 +125,20 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
       target
   | `Custom rule ->
     let var_bindings =
-      ( Var.make "src",
-        List.flatten
-          (List.map
-             (fun it ->
-               let f = Scan.target_file_name it in
-               let f = dirname f / rule_subdir rule / basename f in
-               List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.in_exts)
-             (link_deps item @ [item])) )
-      :: ( Var.make "dst",
-           let f = Scan.target_file_name item in
-           let f = dirname f / rule_subdir rule / basename f in
-           List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.out_exts )
+      Var.binding_of_words Var.src
+        (List.flatten
+           (List.map
+              (fun it ->
+                let f = Scan.target_file_name it in
+                let f = dirname f / rule_subdir rule / basename f in
+                List.map
+                  (fun ext -> (build_dir / f) -.- ext)
+                  rule.Config.in_exts)
+              (link_deps item @ [item])))
+      :: Var.binding_of_words Var.dst
+           (let f = Scan.target_file_name item in
+            let f = dirname f / rule_subdir rule / basename f in
+            List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.out_exts)
       :: var_bindings
     in
     List.flatten
@@ -144,7 +146,7 @@ let linking_command ~build_dir ~backend ~var_bindings link_deps item target =
          (fun s ->
            if String.length s > 1 && s.[0] = '$' && s.[1] <> '{' then
              Var.get_var var_bindings
-               (Var.make (String.sub s 1 (String.length s - 1)))
+               (Var.Vector (String.sub s 1 (String.length s - 1)))
            else [Var.expand_vars var_bindings s])
          rule.Config.commandline
 
@@ -384,7 +386,8 @@ let build_clerk_target
           if _item.Scan.is_stdlib then None else Some (bk, file))
         all_target_files
     in
-    Nj.format_def nin_ppf (Nj.Default (Nj.Default.make all_targets));
+    Nj.format_def nin_ppf
+      (Nj.default (List.map (fun t -> Nj.Expr.Word t) all_targets));
     install_targets, all_modules_deps
   in
   let open File in
@@ -599,7 +602,8 @@ let build_direct_targets
       let final_ninja_targets =
         List.sort_uniq Stdlib.compare (object_exec_targets @ ninja_targets)
       in
-      Nj.format_def nin_ppf (Nj.Default (Nj.Default.make final_ninja_targets));
+      Nj.format_def nin_ppf
+        (Nj.default (List.map (fun t -> Nj.Expr.Word t) final_ninja_targets));
       ninja_targets, exec_targets, var_bindings, link_deps
     in
     let link_cmd = linking_command ~build_dir ~var_bindings link_deps in
@@ -856,7 +860,8 @@ let build_test_deps
     List.fold_left add_target (String.Set.of_list runtime_targets) base_targets
     |> String.Set.elements
   in
-  Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
+  Nj.format_def nin_ppf
+    (Nj.default (List.map (fun t -> Nj.Expr.Word t) ninja_targets));
   base_targets, link_deps, var_bindings
 
 let run_targets
@@ -1087,7 +1092,8 @@ let typecheck_cmd =
                   | None -> it.file_name)
                 target_items
             in
-            Nj.format_def nin_ppf (Nj.Default (Nj.Default.make ninja_targets));
+            Nj.format_def nin_ppf
+              (Nj.default (List.map (fun t -> Nj.Expr.Word t) ninja_targets));
             target_items, var_bindings)
     with
     | exception Nothing_to_do -> Message.error "Nothing to typecheck."
@@ -1268,7 +1274,8 @@ let run_clerk_test
             List.map File.(fun f -> (build_dir / f) ^ "@test") files_or_folders
           in
           if test_targets <> [] then
-            Nj.format_def nin_ppf (Nj.Default (Nj.Default.make test_targets));
+            Nj.format_def nin_ppf
+              (Nj.default (List.map (fun t -> Nj.Expr.Word t) test_targets));
           test_targets)
     in
     let open Clerk_report in
@@ -1407,7 +1414,8 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
   Clerk_rules.run_ninja ~include_dir:false ~code_coverage:false ~quiet
     ~default:0 ~config ~enabled_backends ~autotest:false ~ninja_flags
     (fun nin_ppf _ _ ->
-      Nj.format_def nin_ppf (Nj.Default (Nj.Default.make default));
+      Nj.format_def nin_ppf
+        (Nj.default (List.map (fun t -> Nj.Expr.Word t) default));
       cont ())
 
 let start_cmd =
@@ -1542,17 +1550,23 @@ let report_cmd =
 let list_vars_cmd =
   let run config =
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~trace:false
-        ~code_coverage:false ~enabled_backends:Clerk_rules.all_backends ~config
-        ~inplace:false
+      Var.env_of_bindings
+        (Clerk_rules.base_bindings ~autotest:false ~trace:false
+           ~code_coverage:false ~enabled_backends:Clerk_rules.all_backends
+           ~config ~inplace:false)
     in
     Format.eprintf "Defined variables:@.";
     Format.open_vbox 0;
-    String.Map.iter
-      (fun s v ->
-        Format.printf "%s=%S@," s
-          (String.concat " " (List.assoc v var_bindings)))
-      Var.all_vars;
+    (* one quoted token per element: joining them would hide how an override was
+       split into words *)
+    List.iter
+      (fun (s, value) ->
+        Format.printf "%s=%a@," s
+          (Format.pp_print_list
+             ~pp_sep:(fun ppf () -> Format.pp_print_char ppf ' ')
+             (fun ppf w -> Format.fprintf ppf "%S" w))
+          value)
+      (List.sort compare var_bindings);
     Format.close_box ();
     0
   in

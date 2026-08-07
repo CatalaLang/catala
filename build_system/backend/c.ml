@@ -19,10 +19,10 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
-let catala_flags_c = Var.make "CATALA_FLAGS_C"
-let cc_exe = Var.make "CC"
-let c_flags = Var.make "CFLAGS"
-let c_include = Var.make "C_INCLUDE_FLAGS"
+let catala_flags_c = Var.make_vector "CATALA_FLAGS_C"
+let cc_exe = Var.make_vector "CC"
+let c_flags = Var.make_vector "CFLAGS"
+let c_include = Var.make_vector "C_INCLUDE_FLAGS"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
   let open File in
@@ -75,7 +75,7 @@ module Backend = struct
         Common.Flags.catala_backend_flags ~autotest ~use_default_flags
           ~test_flags ~accepts_closure_conversion:false
       in
-      let def = def ~variables in
+      let def v x = def ~variables v x in
       [
         def catala_flags_c (lazy catala_flags);
         def cc_exe (lazy ["cc"]);
@@ -102,13 +102,14 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
   [
     Nj.rule "catala-c"
-      ~command:[!catala_exe; name; !catala_flags; !catala_flags_c;
-                "-o"; !output; "--"; !input]
-      ~description:["<catala>"; name; "⇒"; !output];
+      ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_c;
+                Word "-o"; !!output; Word "--"; !!input]
+      ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     Nj.rule "c-object"
       ~command:
-        [!cc_exe; !input; !c_flags; !c_include; !includes; "-c"; "-o"; !output]
-      ~description:["<cc>"; "⇒"; !output];
+        [!!cc_exe; !!input; !!c_flags; !!c_include; !!includes;
+         Word "-c"; Word "-o"; !!output]
+      ~description:[Word "<cc>"; Word "⇒"; !!output];
   ]
 
   let external_copy item =
@@ -125,10 +126,10 @@ module Backend = struct
       ~filename:item.Scan.file_name;
     List.to_seq
       [
-        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[c]
-          ~outputs:[Ninja.target ~backend:name "c"];
-        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[h]
-          ~outputs:[Ninja.target ~backend:name "h"];
+        Nj.build "copy" ~implicit_in:[Word catala_src] ~inputs:[Word c]
+          ~outputs:[Word (Ninja.target ~backend:name "c")];
+        Nj.build "copy" ~implicit_in:[Word catala_src] ~inputs:[Word h]
+          ~outputs:[Word (Ninja.target ~backend:name "h")];
       ]
 
   let runtime_build_statements ~options:_ ~stdbase =
@@ -138,52 +139,55 @@ module Backend = struct
       Nj.build "phony"
         ~inputs:
           [
-            c_base -.- "c";
-            c_base -.- "h";
-            (c_base /../ "dates_calc") -.- "c";
-            (c_base /../ "dates_calc") -.- "h";
+            Word (c_base -.- "c");
+            Word (c_base -.- "h");
+            Word ((c_base /../ "dates_calc") -.- "c");
+            Word ((c_base /../ "dates_calc") -.- "h");
           ]
-        ~outputs:["@runtime-" ^ name ^ "-src"];
+        ~outputs:[Word ("@runtime-" ^ name ^ "-src")];
       Nj.build "phony"
         ~inputs:
           [
-            c_base -.- "o";
-            c_base -.- "h";
-            (c_base /../ "dates_calc") -.- "o";
-            (c_base /../ "dates_calc") -.- "h";
-            Var.(!catala_exe);
+            Word (c_base -.- "o");
+            Word (c_base -.- "h");
+            Word ((c_base /../ "dates_calc") -.- "o");
+            Word ((c_base /../ "dates_calc") -.- "h");
+            !!catala_exe;
           ]
-        ~outputs:["@runtime-" ^ name];
+        ~outputs:[Word ("@runtime-" ^ name)];
       Nj.build "copy"
-        ~inputs:[c_src / "catala_runtime.h"]
-        ~outputs:[c_base -.- "h"];
+        ~inputs:[Word (c_src / "catala_runtime.h")]
+        ~outputs:[Word (c_base -.- "h")];
       Nj.build "copy"
-        ~inputs:[c_src / "catala_runtime.c"]
-        ~outputs:[c_base -.- "c"];
+        ~inputs:[Word (c_src / "catala_runtime.c")]
+        ~outputs:[Word (c_base -.- "c")];
       Nj.build "copy"
-        ~inputs:[c_src / "dates_calc.h"]
-        ~outputs:[(c_base /../ "dates_calc") -.- "h"];
+        ~inputs:[Word (c_src / "dates_calc.h")]
+        ~outputs:[Word ((c_base /../ "dates_calc") -.- "h")];
       Nj.build "copy"
-        ~inputs:[c_src / "dates_calc.c"]
-        ~outputs:[(c_base /../ "dates_calc") -.- "c"];
+        ~inputs:[Word (c_src / "dates_calc.c")]
+        ~outputs:[Word ((c_base /../ "dates_calc") -.- "c")];
       Nj.build "c-object"
-        ~inputs:[c_base -.- "c"]
-        ~implicit_in:[c_base -.- "h"]
-        ~outputs:[c_base -.- "o"];
+        ~inputs:[Word (c_base -.- "c")]
+        ~implicit_in:[Word (c_base -.- "h")]
+        ~outputs:[Word (c_base -.- "o")];
       Nj.build "c-object"
-        ~inputs:[(c_base /../ "dates_calc") -.- "c"]
-        ~implicit_in:[(c_base /../ "dates_calc") -.- "h"]
-        ~outputs:[(c_base /../ "dates_calc") -.- "o"];
+        ~inputs:[Word ((c_base /../ "dates_calc") -.- "c")]
+        ~implicit_in:[Word ((c_base /../ "dates_calc") -.- "h")]
+        ~outputs:[Word ((c_base /../ "dates_calc") -.- "o")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in has_scope_tests =
     let implicit_out =
-      if has_scope_tests then [Ninja.target ~backend:name "+main.c"] else []
+      if has_scope_tests then
+        [Nj.Expr.Word (Ninja.target ~backend:name "+main.c")]
+      else []
     in
     Seq.return
       (Nj.build "catala-c" ?vars ~inputs ~implicit_in
-         ~outputs:[Ninja.target ~backend:name "c"]
-         ~implicit_out:(Ninja.target ~backend:name "h" :: implicit_out))
+         ~outputs:[Word (Ninja.target ~backend:name "c")]
+         ~implicit_out:
+           (Nj.Expr.Word (Ninja.target ~backend:name "h") :: implicit_out))
 
   let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
 
@@ -195,27 +199,31 @@ module Backend = struct
   let build_object ~include_dirs ~same_dir_modules ~item has_scope_tests =
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
-    let implicit_modules = List.map (module_target same_dir_modules) modules in
+    let implicit_modules =
+      List.map
+        (fun m -> Nj.Expr.Word (module_target same_dir_modules m))
+        modules
+    in
     let obj =
       Nj.build "c-object"
-        ~inputs:[Ninja.target ~backend:name "c"]
+        ~inputs:[Word (Ninja.target ~backend:name "c")]
         ~implicit_in:
-          (Ninja.target ~backend:name "h"
-          :: ("@runtime-" ^ name)
+          (Nj.Expr.Word (Ninja.target ~backend:name "h")
+          :: Word ("@runtime-" ^ name)
           :: implicit_modules)
-        ~outputs:[Ninja.target ~backend:name "o"]
-        ~vars:[Var.includes, includes include_dirs]
+        ~outputs:[Word (Ninja.target ~backend:name "o")]
+        ~vars:[Nj.Binding.make Var.includes (includes include_dirs)]
       ::
       (if has_scope_tests then
          [
            Nj.build "c-object"
-             ~inputs:[Ninja.target ~backend:name "+main.c"]
+             ~inputs:[Word (Ninja.target ~backend:name "+main.c")]
              ~implicit_in:
-               (Ninja.target ~backend:name "h"
-               :: ("@runtime-" ^ name)
+               (Nj.Expr.Word (Ninja.target ~backend:name "h")
+               :: Word ("@runtime-" ^ name)
                :: implicit_modules)
-             ~outputs:[Ninja.target ~backend:name "+main.o"]
-             ~vars:[Var.includes, includes include_dirs];
+             ~outputs:[Word (Ninja.target ~backend:name "+main.o")]
+             ~vars:[Nj.Binding.make Var.includes (includes include_dirs)];
          ]
        else [])
     in
@@ -224,9 +232,12 @@ module Backend = struct
   let expose_module ~same_dir_modules ~used_modules =
     [
       Nj.build "phony"
-        ~inputs:[Ninja.target ~backend:name "h"]
-        ~implicit_in:(List.map (module_target same_dir_modules) used_modules)
-        ~outputs:[Ninja.target ~backend:name module_ext];
+        ~inputs:[Word (Ninja.target ~backend:name "h")]
+        ~implicit_in:
+          (List.map
+             (fun m -> Nj.Expr.Word (module_target same_dir_modules m))
+             used_modules)
+        ~outputs:[Word (Ninja.target ~backend:name module_ext)];
     ]
 
   let runtime_dir : File.t Lazy.t =

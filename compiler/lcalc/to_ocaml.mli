@@ -18,6 +18,9 @@ open Catala_utils
 open Shared_ast
 
 val op_needs_pos : 'a operator -> naked_typ -> bool
+
+(* Exposed for testing. Filename escaped so Windows backslashes survive the OCaml string literal. *)
+val format_pos : Format.formatter -> Pos.t -> unit
 val renaming : Renaming.t
 
 (** Formats a lambda calculus program into a valid OCaml program *)

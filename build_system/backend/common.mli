@@ -19,9 +19,14 @@ open Clerk_utils
 open Clerk_lib
 
 module Flags : sig
-  val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
+  val def :
+    variables:(string * string list) list ->
+    'a Var.t ->
+    string list lazy_t ->
+    Ninja_utils.Binding.any
+
   val includes : ?backend:string -> string list -> string list
-  val include_flags : backend:string -> string list -> string list
+  val include_flags : backend:string -> string list -> Ninja_utils.Expr.t
 
   val catala_backend_flags :
     autotest:bool ->
@@ -35,7 +40,7 @@ module Flags : sig
     trace:bool ->
     inplace:bool ->
     config:Clerk_cli.config ->
-    (Var.t * string list) list
+    Var.bindings
 end
 
 module Ninja : sig

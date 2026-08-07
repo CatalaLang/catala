@@ -170,6 +170,12 @@ let vars_override =
           "Override the given build variable with the given value. Use \
            $(i,clerk list-vars) to list the available variables.")
 
+(* Command-line overrides shadow the [variables] table, they don't replace it:
+   both are read with [List.assoc_opt], which takes the first match. *)
+let variable_overrides ~config_vars cli_vars =
+  List.map (fun (var, value) -> var, String.split_on_char ' ' value) cli_vars
+  @ config_vars
+
 let config_file =
   Arg.(
     value
@@ -490,9 +496,7 @@ let init
         bad_dir)
     bad_dirs;
   let variables =
-    List.map
-      (fun (var, value) -> var, String.split_on_char ' ' value)
-      vars_override
+    variable_overrides ~config_vars:config.Clerk_config.variables vars_override
   in
   let test_flags =
     if whole_program then "--whole-program" :: test_flags else test_flags

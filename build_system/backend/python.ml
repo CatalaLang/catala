@@ -19,8 +19,8 @@ open Clerk_utils
 open Catala_utils
 open Clerk_lib
 
-let catala_flags_python = Var.make "CATALA_FLAGS_PYTHON"
-let python = Var.make "PYTHON"
+let catala_flags_python = Var.make_vector "CATALA_FLAGS_PYTHON"
+let python = Var.make_vector "PYTHON"
 
 let linking_command ~build_dir link_deps item target =
   (* a "linked" python module is a "Module.py" folder containing the module .py
@@ -56,7 +56,7 @@ let run_artifact config ~trace ~test ?scope ~var_bindings src =
     else [] @ if trace then ["--trace"] else []
   in
   let pythonpath =
-    String.concat ":"
+    Backend_paths.pythonpath
       [
         build_dir / Scan.libcatala / "python";
         File.dirname src;
@@ -89,7 +89,7 @@ module Backend = struct
         Common.Flags.catala_backend_flags ~autotest ~use_default_flags
           ~test_flags ~accepts_closure_conversion:true
       in
-      let def = Common.Flags.def ~variables in
+      let def v x = Common.Flags.def ~variables v x in
       [
         def catala_flags_python (lazy catala_flags);
         def python (lazy ["python3"]);
@@ -99,9 +99,9 @@ module Backend = struct
   let[@ocamlformat "disable"] static_base_rules =
     [
       Nj.rule "catala-python"
-        ~command:[!catala_exe; name; !catala_flags; !catala_flags_python;
-                  "-o"; !output; "--"; !input]
-        ~description:["<catala>"; name; "⇒"; !output];
+        ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_python;
+                  Word "-o"; !!output; Word "--"; !!input]
+        ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     ]
 
   let external_copy item =
@@ -114,8 +114,8 @@ module Backend = struct
       ~filename:item.Scan.file_name;
     List.to_seq
       [
-        Nj.build "copy" ~implicit_in:[catala_src] ~inputs:[py]
-          ~outputs:[Ninja.target ~backend:name "py"];
+        Nj.build "copy" ~implicit_in:[Word catala_src] ~inputs:[Word py]
+          ~outputs:[Word (Ninja.target ~backend:name "py")];
       ]
 
   let modfile ~is_stdlib:_ = Ninja.modfile ~backend:name
@@ -126,20 +126,24 @@ module Backend = struct
     [
       Nj.build "phony"
         ~inputs:
-          [python_base -.- "py"; python_base /../ "dates.py"; Var.(!catala_exe)]
-        ~outputs:["@runtime-" ^ name];
+          [
+            Word (python_base -.- "py");
+            Word (python_base /../ "dates.py");
+            !!catala_exe;
+          ]
+        ~outputs:[Word ("@runtime-" ^ name)];
       Nj.build "copy"
-        ~inputs:[python_src / "dates.py"]
-        ~outputs:[python_base /../ "dates.py"];
+        ~inputs:[Word (python_src / "dates.py")]
+        ~outputs:[Word (python_base /../ "dates.py")];
       Nj.build "copy"
-        ~inputs:[python_src / "catala_runtime.py"]
-        ~outputs:[python_base -.- "py"];
+        ~inputs:[Word (python_src / "catala_runtime.py")]
+        ~outputs:[Word (python_base -.- "py")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in _has_scope_tests =
     Seq.return
       (Nj.build "catala-python" ?vars ~inputs ~implicit_in
-         ~outputs:[Ninja.target ~backend:name "py"])
+         ~outputs:[Word (Ninja.target ~backend:name "py")])
 
   let build_object ~include_dirs:_ ~same_dir_modules:_ ~item:_ _has_scope_tests
       =
