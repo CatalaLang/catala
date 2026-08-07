@@ -77,5 +77,3 @@ depexts: [
   ["python-pygments"] {?cataladevmode & cataladevmode & os-family = "arch"}
 ]
 dev-repo: "git+https://github.com/CatalaLang/catala"
-
-pin-depends: ["ninja_utils.2.0.0" "git+https://github.com/CatalaLang/ninja_utils#vartyp"]
