@@ -1651,14 +1651,19 @@ let list_vars_cmd =
     Format.open_vbox 0;
     (* one quoted token per element: joining them would hide how an override was
        split into words *)
-    List.iter
-      (fun (s, value) ->
-        Format.printf "%s=%a@," s
-          (Format.pp_print_list
-             ~pp_sep:(fun ppf () -> Format.pp_print_char ppf ' ')
-             (fun ppf w -> Format.fprintf ppf "%S" w))
-          value)
-      (List.sort compare var_bindings);
+    let _vars =
+      List.fold_left
+        (fun seen (s, value) ->
+          if not (String.Set.mem s seen) then
+            Format.printf "%s=%a@," s
+              (Format.pp_print_list
+                 ~pp_sep:(fun ppf () -> Format.pp_print_char ppf ' ')
+                 (fun ppf w -> Format.fprintf ppf "%S" w))
+              value;
+          String.Set.add s seen)
+        String.Set.empty
+        (List.stable_sort compare var_bindings)
+    in
     Format.close_box ();
     0
   in
