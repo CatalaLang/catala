@@ -28,7 +28,7 @@ type item = {
   used_modules : string Mark.pos list;
   included_files : File.t Mark.pos list;
   has_inline_tests : bool;
-  has_scope_tests : bool Lazy.t;
+  has_scope_tests : int Lazy.t;
 }
 (** Contains all the data extracted from a single Catala file. Lists are in
     reverse file order. *)
@@ -51,7 +51,7 @@ val test_command_args : string -> string option
 (** Parses a test command-line (in the form "$ catala <args>") and returns the
     arguments as a string, or [None] if there is no match *)
 
-val find_test_scope : lang:Global.backend_lang -> File.t -> bool
+val has_test_scope : lang:Global.backend_lang -> File.t -> bool
 (** Checks if the given file contains #[test] scope annotations, recursively
     through file includes. The file extension takes precendence over the [~lang]
     argument. *)

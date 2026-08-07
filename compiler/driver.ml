@@ -471,7 +471,13 @@ module Commands = struct
         $ Cli.Flags.print_only_law
         $ Cli.Flags.wrap_weaved_output)
 
-  let latex options output print_only_law wrap_weaved_output extra_files =
+  let latex
+      options
+      _includes
+      output
+      print_only_law
+      wrap_weaved_output
+      extra_files =
     let prg = Passes.surface options in
     let prg_annex =
       List.map
@@ -508,6 +514,7 @@ module Commands = struct
       Term.(
         const latex
         $ global_options
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.print_only_law
         $ Cli.Flags.wrap_weaved_output

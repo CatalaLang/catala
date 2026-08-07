@@ -105,7 +105,7 @@ let test_flags =
     value
     & opt ~vopt:[""] (list string) []
     & info ["test-flags"] ~docv:"FLAGS"
-        ~env:(Cmd.Env.info "CATALA_TEST_FLAGS")
+        ~env:(Cmd.Env.info "CLERK_TEST_FLAGS")
         ~doc:
           "Flags to pass to the catala interpreter on $(b,catala test-scope) \
            tests. Comma-separated list. A subset may also be applied to the \
@@ -132,23 +132,32 @@ let runtest_out =
     & info [] ~docv:"OUTFILE"
         ~doc:"Write the test outcome to file $(b,OUTFILE) instead of stdout.")
 
-let backend =
-  Arg.(
-    value
-    & opt
-        (enum
-           [
-             "interpret", `Interpret;
-             "ocaml", `OCaml;
-             "c", `C;
-             "python", `Python;
-             "java", `Java;
-           ])
-        `Interpret
-    & info ["backend"; "b"] ~docv:"BACKEND"
-        ~doc:
-          "Run the program using the given backend. $(docv) must be one of \
-           $(b,interpret), $(b,ocaml), $(b,c), $(b,python), $(b,java).")
+type backend = [ `C | `Interpret | `OCaml | `Python | `Java ]
+
+let backends =
+  let arg =
+    Arg.(
+      value
+      & opt_all
+          (list
+             (enum
+                [
+                  "interpret", [`Interpret];
+                  "ocaml", [`OCaml];
+                  "c", [`C];
+                  "python", [`Python];
+                  "java", [`Java];
+                  "all", [`Interpret; `OCaml; `C; `Python; `Java];
+                ]))
+          []
+      & info ["backend"; "b"] ~docv:"BACKEND"
+          ~doc:
+            "Run the program using the given backend. $(docv) must be one of \
+             $(b,interpret), $(b,ocaml), $(b,c), $(b,python), $(b,java) or \
+             $(b,all). When set to $(b,all), all supported backends will be \
+             tested.")
+  in
+  Term.(const (fun l -> List.flatten (List.flatten l)) $ arg)
 
 let run_command =
   Arg.(
@@ -169,6 +178,12 @@ let vars_override =
         ~doc:
           "Override the given build variable with the given value. Use \
            $(i,clerk list-vars) to list the available variables.")
+
+(* Command-line overrides shadow the [variables] table, they don't replace it:
+   both are read with [List.assoc_opt], which takes the first match. *)
+let variable_overrides ~config_vars cli_vars =
+  List.map (fun (var, value) -> var, String.split_on_char ' ' value) cli_vars
+  @ config_vars
 
 let config_file =
   Arg.(
@@ -305,7 +320,7 @@ let code_coverage =
     value
     & flag
     & info ["code-coverage"]
-        ~env:(Cmd.Env.info "CATALA_MEASURE_COVERAGE")
+        ~env:(Cmd.Env.info "CLERK_CODE_COVERAGE")
         ~doc:"Measure code coverage in the test report.")
 
 let diff_command =
@@ -313,7 +328,7 @@ let diff_command =
     value
     & opt ~vopt:(Some None) (some (some string)) None
     & info ["diff"]
-        ~env:(Cmd.Env.info "CATALA_DIFF_COMMAND")
+        ~env:(Cmd.Env.info "CLERK_DIFF")
         ~doc:
           "Use a standard $(i,diff) command instead of the default \
            side-by-side view. If no argument is supplied, the command will be \
@@ -360,6 +375,18 @@ let whole_program =
       ~doc:
         "Use Catala $(i,--whole-program) option when testing or executing \
          Catala scopes."
+
+let objects =
+  let open Arg in
+  value
+  & flag
+  & info ["obj"]
+      ~doc:
+        "Include compilation of backend-specific objects. If this is \
+         specified, in addition to generating sources in the target language \
+         (e.g. $(b,.c) and $(b,.h) files), Clerk will run the backend-specific \
+         compiler to compile those into objects (e.g. $(b,.o) files. Note that \
+         this is done anyway when necessary, like when running backend tests."
 
 let info =
   let doc =
@@ -490,9 +517,7 @@ let init
         bad_dir)
     bad_dirs;
   let variables =
-    List.map
-      (fun (var, value) -> var, String.split_on_char ' ' value)
-      vars_override
+    variable_overrides ~config_vars:config.Clerk_config.variables vars_override
   in
   let test_flags =
     if whole_program then "--whole-program" :: test_flags else test_flags
@@ -546,8 +571,8 @@ let init_term ?(allow_test_flags = false) () =
     $ whole_program
     $ Cli.Flags.output_format)
 
-let run_command_line ?(setenv = []) cmdline =
-  if cmdline = [] then 0
+let run_command_line ?(setenv = []) ?(quiet = false) cmdline =
+  if cmdline = [] then 0, []
   else
     let cmd = List.hd cmdline in
     let env =
@@ -564,17 +589,27 @@ let run_command_line ?(setenv = []) cmdline =
       |> Seq.map (fun (var, value) -> var ^ "=" ^ value)
       |> Array.of_seq
     in
+    let in_fd, out_fd = Unix.pipe () in
     let npid =
-      Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin
-        Unix.stdout Unix.stderr
+      Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin out_fd
+        out_fd
     in
-    let return_code =
-      let rec wait () =
-        match Unix.waitpid [] npid with
-        | _, Unix.WEXITED n -> n
-        | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
-        | exception Unix.Unix_error (Unix.EINTR, _, _) -> wait ()
-      in
-      wait ()
+    Unix.close out_fd;
+    let ic = Unix.in_channel_of_descr in_fd in
+    let rec read acc =
+      match input_line ic with
+      | line ->
+        if not quiet then print_endline line;
+        read (line :: acc)
+      | exception End_of_file -> List.rev acc
     in
-    return_code
+    let rec wait () =
+      match Unix.waitpid [] npid with
+      | _, Unix.WEXITED n -> n
+      | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
+      | exception Unix.Unix_error (Unix.EINTR, _, _) -> wait ()
+    in
+    let out = read [] in
+    close_in ic;
+    let code = wait () in
+    code, out

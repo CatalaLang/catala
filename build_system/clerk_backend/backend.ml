@@ -32,7 +32,7 @@ module type S = sig
       use_default_flags:bool ->
       test_flags:string list ->
       include_dirs:string list ->
-      (Var.t * string list) list
+      Var.bindings
     (** [defaut ~variables ~autotest ~use_default_flags ~test_flags
          ~include_dirs] returns a list of variables assigned for the Ninja file
         generated. Those variables can be the compiler exec of your backends,
@@ -71,7 +71,7 @@ module type S = sig
       backend *)
 
   val runtime_build_statements :
-    options:Clerk_lib.Clerk_config.t -> stdbase:string -> Ninja_utils.def list
+    options:Clerk_config.t -> stdbase:string -> Ninja_utils.def list
   (** [runtime_build_statements ~options ~stdbase]
       - [options] the options of the clerk project, the java backends needs it
       - [stdbase] path to the _opam directory where runtime files should be
@@ -89,7 +89,7 @@ module type S = sig
       copies it in the build directory along others modules *)
 
   val catala :
-    ?vars:(Var.t * Ninja_utils.Expr.t) list ->
+    ?vars:Var.bindings ->
     is_stdlib:bool ->
     inputs:Ninja_utils.Expr.t ->
     implicit_in:Ninja_utils.Expr.t ->

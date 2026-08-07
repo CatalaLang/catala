@@ -17,7 +17,6 @@
 open Catala_utils
 
 type backend = ..
-type backend += C | OCaml | Java | Python
 
 val register_backend : name:string -> backend -> unit
 val registered_backends : unit -> (string * backend) list
@@ -25,12 +24,14 @@ val registered_backends : unit -> (string * backend) list
 type doc_backend = Html | Latex
 
 type global = {
+  project_name : string option;
   include_dirs : File.t list;
   build_dir : File.t;
   target_dir : File.t;
   catala_exe : File.t option;
   catala_opts : string list;
   default_targets : string list;
+  include_objects : bool;
 }
 
 type target = {
@@ -38,8 +39,7 @@ type target = {
   tmodules : string list;
   ttests : File.t list;
   backends : backend list;
-  include_sources : bool;
-  include_objects : bool;
+  dependencies : string list;
 }
 
 type doc = {

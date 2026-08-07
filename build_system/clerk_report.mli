@@ -56,7 +56,11 @@ val read_many : File.t -> file list
 val display :
   build_dir:File.t -> File.t -> Format.formatter -> inline_test -> unit
 
-val summary : build_dir:File.t -> file list -> bool
+val summary :
+  build_dir:File.t ->
+  ?backend_tests:((_ * Clerk_cli.backend * _) * (int * int)) list ->
+  file list ->
+  bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)
 
 val print_xml : build_dir:File.t -> file list -> bool

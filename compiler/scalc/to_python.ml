@@ -218,7 +218,7 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          format_typ_with_parens)
       t1 format_typ_with_parens t2
-  | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
+  | TArray t1 -> Format.fprintf fmt "Array[%a]" format_typ_with_parens t1
   | TVar _ -> Format.fprintf fmt "Any"
   | TForAll tb ->
     let _v, typ = Bindlib.unmbind tb in
@@ -228,6 +228,19 @@ let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
 
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   FuncName.format fmt v
+
+(* Emit a source position as a [SourcePosition(...)] literal. The filename is
+   [String.quote]d so a Windows path's backslashes survive as a Python string
+   literal instead of being read as escape sequences. *)
+let format_pos (fmt : Format.formatter) (pos : Pos.t) : unit =
+  Format.fprintf fmt
+    "@[<hov 4>SourcePosition(@,\
+     filename=%s,@ start_line=%d, start_column=%d,@ end_line=%d, \
+     end_column=%d,@ law_headings=%a@;\
+     <0 -4>)@]"
+    (String.quote (Pos.get_file pos))
+    (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
+    (Pos.get_end_column pos) format_string_list (Pos.get_law_info pos)
 
 let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   match Mark.remove e with
@@ -262,16 +275,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       elts
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EPosLit ->
-    let pos = Mark.get e in
-    Format.fprintf fmt
-      "@[<hov 4>SourcePosition(@,\
-       filename=\"%s\",@ start_line=%d, start_column=%d,@ end_line=%d, \
-       end_column=%d,@ law_headings=%a@;\
-       <0 -4>)@]"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
+  | EPosLit -> format_pos fmt (Mark.get e)
   | EAppOp
       {
         op =
