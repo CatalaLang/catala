@@ -768,6 +768,14 @@ let run_targets
        the cursor *)
       else Printf.ifprintf stdout fmt
   in
+  let print_percent x y =
+    let color =
+      Printf.sprintf "\x1b[38;2;0;%d;%dm"
+        (179 + (50 * x / y))
+        (255 - (180 * x / y))
+    in
+    print_status "%s \x1b[1m%s%3d%%\x1b[m" progress_pfx color (100 * x / y)
+  in
   print_status "%s" progress_pfx;
   let msg target =
     if not show_progress then
@@ -803,7 +811,7 @@ let run_targets
   let progress = ref 0 in
   let total = List.length test_targets in
   let run_target ((item, backend, target) as test_target) =
-    print_status "%s %3d%%" progress_pfx (100 * !progress / total);
+    print_percent !progress total;
     incr progress;
     let target =
       Var.expr_elt_to_string ~var_bindings:info.Clerk_rules.var_bindings target
@@ -1274,11 +1282,13 @@ let test_cmd =
           "@{<cyan>--reset@} can only be supplied with the default \
            @{<yellow>interpret@} backend"
       else if report_format = `JUnitXML then
+        (* TODO *)
         Message.error
           "Option @{<cyan>--report-format=json@} was specified, but the output \
            of a test report is only@ supported@ with@ the@ default@ \
            @{<yellow>interpret@}@ backend@ at@ the@ moment"
       else if report_format = `VSCodeJSON then
+        (* TODO *)
         Message.error
           "Option @{<cyan>--report-format=vscode@} was specified, but the \
            output of a test report is@ only@ supported@ with@ the@ default@ \
@@ -1510,79 +1520,111 @@ let start_cmd =
       $ Cli.quiet
       $ Cli.ninja_flags)
 
-(* TODO: this should just be an alias to `clerk test -b all` + ensuring all targets installation
 let ci_cmd =
   let run
       config
       quiet
+      (target_args : string list)
+      backends
+      build_objects
       verbosity
-      code_coverage
       (report_format : [ `Terminal | `JUnitXML | `VSCodeJSON ])
-      (diff_command : string option option) =
+      code_coverage
+      (diff_command : string option option)
+      (ninja_flags : string list) =
+    let backends =
+      match backends with
+      | [] -> [`Interpret; `OCaml; `C; `Python; `Java]
+      | b when not (List.mem `Interpret b) -> `Interpret :: b
+      (* Autotests always require the interpret (OCaml) objects *)
+      | b -> b
+    in
+    let config =
+      if build_objects then { config with Cli.include_objects = true }
+      else config
+    in
+    let build_dir = config.Cli.file.global.build_dir in
     setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
       code_coverage;
-    let stop_on_failure f =
-      try
-        let ret = f () in
-        match ret with 0 -> () | n -> raise (Catala_utils.Cli.Exit_with n)
-      with
-      | Catala_utils.Cli.Exit_with 0 -> ()
-      | exn -> raise exn
+    let enabled_backends = backends_to_config backends in
+    let targets, items, info, test_targets =
+      Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
+        ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true ~trace:false
+        ~default:(empty_targets, [], Clerk_rules.empty_info, [])
+      @@ fun nin_ppf items info ->
+      let targets =
+        if target_args = [] then
+          {
+            empty_targets with
+            clerk_targets = config.file.targets;
+            directories =
+              (* This will include all tests in all directories ; the above line
+                 would be enough to include all tests specified in the clerk
+                 target test dirs *)
+              [
+                ( Filename.current_dir_name,
+                  items_in_subdirs items [Filename.current_dir_name] );
+              ];
+          }
+        else
+          sort_user_target_args config ~autotest:true ~backends items info
+            target_args
+      in
+      target_debug_message targets;
+      let test_targets = ninja_interp_test_targets config targets in
+      let build_targets =
+        ninja_build_targets config ~autotest:true ~exec_targets:true backends
+          items info targets
+      in
+      set_ninja_targets nin_ppf (build_targets @ test_targets);
+      targets, items, info, test_targets
     in
-    stop_on_failure (fun () ->
-        Message.debug "Running @{<bold>clerk test@} on whole project";
-        let root_dir =
-          Filename.current_dir_name
-          (* Post-[Cli.init], we are expected to be in the project's root dir *)
-        in
-        run_clerk_test config quiet [root_dir] [`Interpret] false verbosity
-          report_format code_coverage diff_command []);
-    let clerk_targets = config.Cli.file.targets in
-    let enabled_backends =
-      (* TODO *) List.map Clerk_backend.id (Clerk_backend.all ())
+    let open Clerk_report in
+    let test_reports =
+      if List.mem `Interpret backends then
+        try
+          List.concat_map read_many
+            (List.map Var.expr_elt_to_string test_targets)
+        with Sys_error _ ->
+          Message.error
+            "Tests couldn't be run, check the above compilation errors."
+      else []
     in
-    if clerk_targets = [] then raise (Catala_utils.Cli.Exit_with 0);
-    build_targets ~quiet ~config ~enabled_backends ~ninja_flags:[]
-      ~autotest:true ~code_coverage:false
-      { clerk_targets; direct_targets = [] };
-    (* TODO: what about tests belonging to no target ? *)
+    let backend_tests =
+      let exec_targets = test_exec_targets config backends items info targets in
+      run_targets ~test:true config "interpret" None None (exec_targets, info)
+    in
+    let test_results =
+      (match report_format with
+      | `JUnitXML -> print_xml
+      | `Terminal -> summary ~backend_tests
+      | `VSCodeJSON -> print_json)
+        ~build_dir test_reports
+    in
+    if not test_results then raise (Catala_utils.Cli.Exit_with 1);
     List.iter
-      (fun t ->
-        List.iter
-          (fun bk ->
-            stop_on_failure
-            @@ fun () ->
-            Message.debug
-              "Running @{<yellow>%s@} backend tests for @{<cyan>[%s]@} target"
-              t.Config.tname
-              (string_of_config_backend bk);
-            run_clerk_test config quiet [t.tname]
-              [config_backend bk]
-              false verbosity report_format code_coverage diff_command [])
-          t.backends)
-      clerk_targets;
-    raise (Catala_utils.Cli.Exit_with 0)
+      (install_backend_targets ~config info targets.clerk_targets)
+      enabled_backends;
+    0
   in
   let doc =
-    "Scan the project and run all possible actions. This includes the \
-     interpretation of all catala tests and CLI tests (equivalent to running \
-     the $(i,clerk test) command), and also, the build of all clerk targets \
-     (equivalent to running the $(i,clerk build) command) alongside the \
-     execution of their tests against all their defined backend. This command \
-     is useful for the execution of continuous integrations (CIs) where all \
-     build and test actions are often meant to be executed. Run with \
+    "Runs all available tests and builds all configured targets. This is the \
+     recommended command for continuous integration (CI) workflows. Run with \
      $(b,--debug) for the full log of events."
   in
   Cmd.v (Cmd.info ~doc "ci")
     Term.(
       const run
-      $ Cli.init_term ~allow_test_flags:true ()
+      $ Cli.init_term ~allow_test_flags:false ()
       $ Cli.quiet
+      $ Cli.clerk_targets_or_files_or_folders
+      $ Cli.backends
+      $ Cli.objects
       $ Cli.report_verbosity
-      $ Cli.code_coverage
       $ Cli.report_format
-      $ Cli.diff_command)
-*)
+      $ Cli.code_coverage
+      $ Cli.diff_command
+      $ Cli.ninja_flags)
 
 let report_cmd =
   let run
@@ -1725,7 +1767,7 @@ let main_cmd =
       typecheck_cmd;
       start_cmd;
       clean_cmd;
-      (* ci_cmd; *)
+      ci_cmd;
       runtest_cmd;
       report_cmd;
       raw_cmd;
