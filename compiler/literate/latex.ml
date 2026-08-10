@@ -296,9 +296,7 @@ let rec law_structure_to_latex
       | `Fr -> Format.fprintf fmt " sous le nom \\texttt{%s}}"
       | _ -> Format.fprintf fmt " under the name \\texttt{%s}}")
         (pre_latexify (Mark.remove al)))
-  | A.LawText t ->
-    Message.debug "Pandoc %s" t;
-    Format.fprintf fmt "%s" (pre_latexify t)
+  | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
     let start_line = Pos.get_start_line (Mark.get c) + 1 in
     let filename = Pos.get_file (Mark.get c) in
