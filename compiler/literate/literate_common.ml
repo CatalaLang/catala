@@ -138,3 +138,20 @@ let call_pygmentize ?lang args =
   | Some lang ->
     with_pygmentize_lexer lang
     @@ fun lex_args -> File.process_out ~check_exit cmd (lex_args @ args)
+
+let rec merge_adjacent_lawtext (i : Surface.Ast.law_structure) :
+    Surface.Ast.law_structure =
+  let open Surface.Ast in
+  match i with
+  | LawHeading (h, c) ->
+    LawHeading
+      ( h,
+        List.rev
+          (List.fold_left
+             (fun acc next_block ->
+               match acc, next_block with
+               | LawText t1 :: tl, LawText t2 -> LawText (t1 ^ "\n" ^ t2) :: tl
+               | _ -> next_block :: acc)
+             []
+             (List.map merge_adjacent_lawtext c)) )
+  | LawInclude _ | ModuleDef _ | ModuleUse _ | CodeBlock _ | LawText _ -> i

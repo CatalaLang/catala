@@ -135,7 +135,7 @@ let rec law_structure_to_html
     (parents_headings : string list)
     (fmt : Format.formatter)
     (i : A.law_structure) : unit =
-  match i with
+  match merge_adjacent_lawtext i with
   | A.LawText t ->
     let t = pre_html t in
     if t = "" then () else Format.fprintf fmt "<div class='law-text'>%s</div>" t
