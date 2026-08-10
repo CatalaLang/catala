@@ -51,7 +51,7 @@ type file = {
 
 val write_to : File.t -> file -> unit
 val read_from : File.t -> file
-val read_many : File.t -> file list
+val read_many : File.t -> file File.Map.t
 
 val display :
   build_dir:File.t -> File.t -> Format.formatter -> inline_test -> unit

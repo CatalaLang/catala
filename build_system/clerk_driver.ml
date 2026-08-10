@@ -1350,8 +1350,14 @@ let test_cmd =
     let test_reports =
       if List.mem `Interpret backends then
         try
-          List.concat_map read_many
-            (List.map Var.expr_elt_to_string test_targets)
+          List.fold_left
+            (fun acc f ->
+              File.Map.union
+                (fun _ _ x -> Some x)
+                acc
+                (read_many (Var.expr_elt_to_string f)))
+            File.Map.empty test_targets
+          |> File.Map.values
         with Sys_error _ ->
           Message.error
             "Tests couldn't be run, check the above compilation errors."
@@ -1583,8 +1589,14 @@ let ci_cmd =
     let test_reports =
       if List.mem `Interpret backends then
         try
-          List.concat_map read_many
-            (List.map Var.expr_elt_to_string test_targets)
+          List.fold_left
+            (fun acc f ->
+              File.Map.union
+                (fun _ _ x -> Some x)
+                acc
+                (read_many (Var.expr_elt_to_string f)))
+            File.Map.empty test_targets
+          |> File.Map.values
         with Sys_error _ ->
           Message.error
             "Tests couldn't be run, check the above compilation errors."
@@ -1640,7 +1652,12 @@ let report_cmd =
     let build_dir = Option.value ~default:"_build" build_dir in
     setup_report_format verbosity diff_command code_coverage;
     let open Clerk_report in
-    let tests = List.flatten (List.map read_many files) in
+    let tests =
+      List.fold_left
+        (fun acc f -> File.Map.union (fun _ _ x -> Some x) acc (read_many f))
+        File.Map.empty files
+      |> File.Map.values
+    in
     let success =
       (match report_format with
       | `JUnitXML -> print_xml

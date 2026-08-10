@@ -92,12 +92,12 @@ let read_many f =
   Message.debug "Reading test results from %a" File.format f;
   File.with_in_channel ~bin:true f
   @@ fun ic ->
-  let rec results () =
+  let rec results acc =
     match Marshal.from_channel ic with
-    | file -> file :: results ()
-    | exception End_of_file -> []
+    | file -> results (File.Map.add file.name file acc)
+    | exception End_of_file -> acc
   in
-  results ()
+  results File.Map.empty
 
 let has_command cmd =
   match File.get_command cmd with _ -> true | exception Not_found -> false
