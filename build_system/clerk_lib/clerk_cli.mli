@@ -62,10 +62,11 @@ val debug : bool Term.t
 (** {2 Initialisation of options} *)
 
 type config = {
-  options : Clerk_config.t;
+  file : Clerk_config.t;
   fix_path : File.t -> File.t;
   ninja_file : File.t option;
   test_flags : string list;
+  include_objects : bool;
 }
 
 val init_term : ?allow_test_flags:bool -> unit -> config Term.t

@@ -70,7 +70,7 @@ let include_flags ~name:backend include_dirs =
        include_dirs
 
 let default ~code_coverage ~(trace : bool) ~inplace ~config =
-  let options = config.Clerk_cli.options in
+  let options = config.Clerk_cli.file in
   let open Clerk_config in
   let options =
     if inplace then

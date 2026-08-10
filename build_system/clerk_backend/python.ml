@@ -43,7 +43,7 @@ let linking_command ~build_dir link_deps item target =
 
 let run_artifact config ~test ~trace ?scope ~var_bindings ?quiet src =
   let open File in
-  let build_dir = config.Clerk_cli.options.global.build_dir in
+  let build_dir = config.Clerk_cli.file.global.build_dir in
   let cmd =
     let base = Filename.basename (File.remove_extension src) in
     Var.get var_bindings python
@@ -98,7 +98,7 @@ module Spec : Sig.Spec = struct
         ~description:[Nj.Expr.Word "<catala>"; Nj.Expr.Word name; Nj.Expr.Word "⇒"; !!output];
     ]
 
-  let build_runtime ~options:_ ~stdbase =
+  let build_runtime ~config:_ ~stdbase =
     let python_base = stdbase / name / "catala_runtime" in
     let python_src = !runtime / name / "src" / "catala" in
     [
@@ -132,16 +132,16 @@ module Spec : Sig.Spec = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name / "src" / "catala")
 
-  let write_target_def_file ~options:_ ~dir target =
+  let write_target_def_file ~config:_ ~dir target =
     let open File in
     File.with_out_channel (dir / "__init__.py") (fun oc ->
         Printf.fprintf oc "__all__ = [%s]\n"
           (String.concat ", " target.Clerk_config.tmodules));
     File.with_out_channel (dir / "py.typed") ignore
 
-  let install_runtime ~options =
+  let install_runtime ~config =
     let open File in
-    let dir = options.Clerk_config.global.target_dir / name / Scan.libcatala in
+    let dir = config.Clerk_cli.file.global.target_dir / name / Scan.libcatala in
     remove dir;
     ensure_dir dir;
     copy_dir ()

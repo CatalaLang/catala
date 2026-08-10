@@ -314,23 +314,23 @@ let items_in_subdirs items dirs =
 
 (* default for the build and run commands, `clerk test` has a different rule *)
 let default_targets config items =
-  match config.Cli.options.global.default_targets with
+  match config.Cli.file.global.default_targets with
   | _ :: _ as tnames ->
     let clerk_targets =
       List.map
         (fun tname ->
-          try List.find (fun t -> t.Config.tname = tname) config.options.targets
+          try List.find (fun t -> t.Config.tname = tname) config.file.targets
           with Not_found ->
             Message.error "No definition found for default target %s" tname
               ~suggestions:
                 (Suggestions.best_candidates
-                   (List.map (fun t -> t.Config.tname) config.options.targets)
+                   (List.map (fun t -> t.Config.tname) config.file.targets)
                    tname))
         tnames
     in
     { empty_targets with clerk_targets }
   | [] -> (
-    match config.Cli.options.targets with
+    match config.file.targets with
     | _ :: _ as clerk_targets -> { empty_targets with clerk_targets }
     | [] ->
       let dir = config.fix_path Filename.current_dir_name in
@@ -343,14 +343,12 @@ let sort_user_target_args
     items
     (info : Clerk_rules.callback_info)
     (args : string list) : user_target_args =
-  let build_dir = config.Cli.options.global.build_dir in
+  let build_dir = config.Cli.file.global.build_dir in
   let backends = if autotest then `OCaml :: backends else backends in
   let clerk_targets, others =
     List.partition_map
       (fun arg ->
-        List.find_opt
-          (fun ct -> arg = ct.Config.tname)
-          config.Cli.options.targets
+        List.find_opt (fun ct -> arg = ct.Config.tname) config.file.targets
         |> function Some t -> Either.Left t | None -> Either.Right arg)
       args
   in
@@ -399,7 +397,7 @@ let sort_user_target_args
     List.map
       (fun arg ->
         let bk =
-          backend_from_arg config.options
+          backend_from_arg config.file
             ~enabled_backends:(backends_to_config backends)
             arg
         in
@@ -426,7 +424,7 @@ let sort_user_target_args
 let ninja_interp_test_targets
     config
     { clerk_targets; modules; directories; source_files; direct_targets = _ } =
-  let build_dir = config.Cli.options.global.build_dir in
+  let build_dir = config.Cli.file.global.build_dir in
   let dirs =
     List.concat_map (fun t -> t.Config.ttests) clerk_targets
     @ List.map fst directories
@@ -489,7 +487,7 @@ let ninja_build_targets
     { clerk_targets; modules; directories; source_files; direct_targets } =
   let backends = List.filter (( <> ) `Interpret) backends in
   (* This function is only concerned with the built artifacts *)
-  let build_dir = config.Cli.options.global.build_dir in
+  let build_dir = config.Cli.file.global.build_dir in
   let item_exec_target ?backends:explicit_backends it =
     let backends =
       match explicit_backends with
@@ -521,9 +519,7 @@ let ninja_build_targets
           ("@"
           ^ Clerk_backend.(name (get (backend_to_config bk)))
           ^ "/runtime/"
-          ^
-          if exec_targets || config.options.global.include_objects then "obj"
-          else "src"))
+          ^ if exec_targets || config.include_objects then "obj" else "src"))
       backends
   in
   let from_clerk_targets =
@@ -596,7 +592,7 @@ let test_exec_targets
     { clerk_targets; modules; directories; source_files; direct_targets } :
     (Scan.item * [< `Interpret | `OCaml | `C | `Python | `Java ] * Nj.Expr.elt)
     list =
-  let build_dir = config.Cli.options.global.build_dir in
+  let build_dir = config.Cli.file.global.build_dir in
   let item_exec_target ?backends:explicit_backends it =
     let backends =
       match explicit_backends with
@@ -668,8 +664,8 @@ let install_backend_targets
     (bk : Clerk_config.backend) =
   let open File in
   let module B = (val Clerk_backend.get bk) in
-  let target_dir = config.Cli.options.global.target_dir in
-  let build_dir = config.Cli.options.global.build_dir in
+  let target_dir = config.Cli.file.global.target_dir in
+  let build_dir = config.Cli.file.global.build_dir in
   if not (List.exists (fun t -> List.mem bk t.Clerk_config.backends) targets)
   then ()
   else
@@ -677,11 +673,11 @@ let install_backend_targets
     let extensions =
       B.src_extensions
       @
-      if config.options.global.include_objects then
+      if config.include_objects then
         List.sort_uniq compare (B.obj_extension :: B.module_extensions)
       else []
     in
-    B.install_runtime ~options:config.options;
+    B.install_runtime ~config;
     let install_target target =
       if not (List.mem bk target.Config.backends) then ()
       else
@@ -718,7 +714,7 @@ let install_backend_targets
                   copy_in ~dir ~src)
                 extensions)
           build_info.modules_map;
-        B.write_target_def_file ~options:config.options ~dir target
+        B.write_target_def_file ~config ~dir target
     in
     let rec targets_and_deps acc targets =
       (* Always install its dependencies together with a target *)
@@ -759,7 +755,7 @@ let run_targets
     scope
     scope_input
     (test_targets, info) =
-  let build_dir = config.Cli.options.global.build_dir in
+  let build_dir = config.Cli.file.global.build_dir in
   let show_progress = (not Global.options.debug) && Unix.isatty Unix.stdout in
   let progress_pfx =
     if test then "Running backend tests..." else "Running compiled targets..."
@@ -940,15 +936,7 @@ let build_cmd : int Cmd.t =
       if backends = [] then [`OCaml; `C; `Python; `Java] else backends
     in
     let config =
-      if build_objects then
-        {
-          config with
-          Cli.options =
-            {
-              config.Cli.options with
-              global = { config.options.global with include_objects = true };
-            };
-        }
+      if build_objects then { config with Cli.include_objects = true }
       else config
     in
     let enabled_backends = backends_to_config backends in
@@ -1202,7 +1190,7 @@ let typecheck_cmd =
                     let dir = File.dirname src in
                     if
                       it.is_stdlib
-                      || List.mem dir config.options.global.include_dirs
+                      || List.mem dir config.file.global.include_dirs
                     then
                       Nj.Expr.Word
                         ("@catala/src/" ^ String.to_id (Mark.remove mdef))
@@ -1250,8 +1238,8 @@ let typecheck_cmd =
 
 let clean_cmd =
   let run (config : Cli.config) =
-    File.remove config.Cli.options.Config.global.build_dir;
-    File.remove config.Cli.options.Config.global.target_dir;
+    File.remove config.Cli.file.Config.global.build_dir;
+    File.remove config.Cli.file.Config.global.target_dir;
     raise (Catala_utils.Cli.Exit_with 0)
   in
   let doc =
@@ -1273,7 +1261,7 @@ let test_cmd =
       (ninja_flags : string list) : int =
     let enable_backend_tests = List.exists (( <> ) `Interpret) backends in
     let backends = if backends = [] then [`Interpret] else backends in
-    let build_dir = config.Cli.options.global.build_dir in
+    let build_dir = config.Cli.file.global.build_dir in
     setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
       code_coverage;
     if not (List.mem `Interpret backends) then
@@ -1505,7 +1493,7 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
 
 let start_cmd =
   let run config quiet (ninja_flags : string list) =
-    let enabled_backends = target_backends config.Cli.options.targets in
+    let enabled_backends = target_backends config.Cli.file.targets in
     run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends ~trace:false
       (fun () -> 0)
   in
@@ -1549,7 +1537,7 @@ let ci_cmd =
         in
         run_clerk_test config quiet [root_dir] [`Interpret] false verbosity
           report_format code_coverage diff_command []);
-    let clerk_targets = config.Cli.options.targets in
+    let clerk_targets = config.Cli.file.targets in
     let enabled_backends =
       (* TODO *) List.map Clerk_backend.id (Clerk_backend.all ())
     in

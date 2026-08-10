@@ -28,7 +28,7 @@ let base_bindings
     ~enabled_backends
     ~inplace
     ~config =
-  let options = config.Clerk_cli.options in
+  let options = config.Clerk_cli.file in
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
   let default_flags =
@@ -341,10 +341,9 @@ let dir_test_rules dir subdirs items =
 let runtime_build_statements ~config enabled_backends =
   let open File in
   let stdbase = Var.(!builddir) / Scan.libcatala in
-  let options = config.Clerk_cli.options in
   List.concat_map
     (fun (module Backend : Clerk_backend.S) ->
-      Backend.build_runtime ~options ~stdbase)
+      Backend.build_runtime ~config ~stdbase)
     enabled_backends
 
 let output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings =
@@ -372,8 +371,8 @@ let output_ninja_file_item_statements
     | Seq.Cons ((dir, subdirs, items), seq) ->
       Nj.format nin_ppf
       @@ gen_build_statements_dir dir ~is_stdlib ~tests
-           config.Clerk_cli.options.global.include_dirs enabled_backends
-           autotest items;
+           config.Clerk_cli.file.global.include_dirs enabled_backends autotest
+           items;
       if (not is_stdlib) && tests then
         Nj.format nin_ppf @@ dir_test_rules dir subdirs items;
       Seq.append (List.to_seq items) (print_and_get_items seq) ()
@@ -459,7 +458,7 @@ let with_ninja_process
     | Some fname -> Some fname
     | None ->
       if Global.options.debug then
-        Some File.(config.options.global.build_dir / "clerk.ninja")
+        Some File.(config.file.global.build_dir / "clerk.ninja")
       else None
   in
   let ninja_process nin_file nin_fd =
@@ -1064,7 +1063,7 @@ let run_ninja
           "Variable @{<blue;bold>$%s@} from the configuration is not used by \
            this invocation"
           n)
-    config.Clerk_cli.options.variables;
+    config.Clerk_cli.file.variables;
   let enabled_backends =
     List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
   in
@@ -1083,9 +1082,7 @@ let run_ninja
            corresponding directory in the source tree *)
         Seq.map
           (fun ((f, _, items) as elt) ->
-            match
-              File.(check_directory (config.options.global.build_dir / f))
-            with
+            match File.(check_directory (config.file.global.build_dir / f)) with
             | None -> elt
             | Some dir ->
               let current =
@@ -1157,7 +1154,7 @@ let run_ninja
               (fun (_, _, it) -> List.to_seq it)
               (Seq.append stdlib_tree item_tree)
           in
-          organise_modules ~config:config.options item_seq
+          organise_modules ~config:config.file item_seq
       in
       let pp nj =
         Nj.format_def nin_ppf nj;
@@ -1186,7 +1183,7 @@ let run_ninja
               let inputs =
                 List.fold_left
                   (fun acc m ->
-                    if config.options.global.include_objects then
+                    if config.include_objects then
                       Nj.Expr.Word (Printf.sprintf "@%s/obj/%s" bk_name m)
                       :: acc
                     else

@@ -67,7 +67,7 @@ module type Spec = sig
   val rules : Nj.def list
   (** List of base Ninja rules needed by the backend *)
 
-  val build_runtime : options:Clerk_config.t -> stdbase:string -> Nj.def list
+  val build_runtime : config:Clerk_cli.config -> stdbase:string -> Nj.def list
   (** Returns a set of Ninja rules, in charge of building
       ["@<name>/runtime/src"] and ["@<name>/runtime/obj"] *)
 
@@ -100,11 +100,11 @@ module type Spec = sig
       standard library files. Usually just [.] *)
 
   val write_target_def_file :
-    options:Clerk_config.t -> dir:File.t -> Clerk_config.target -> unit
+    config:Clerk_cli.config -> dir:File.t -> Clerk_config.target -> unit
   (** Called on the target directory under [_targets/<backend>/] after the files
       have been copied in *)
 
-  val install_runtime : options:Clerk_config.t -> unit
+  val install_runtime : config:Clerk_cli.config -> unit
   (** Sets up the runtime and stdlib to the appropriate target dir *)
 end
 

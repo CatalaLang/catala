@@ -159,7 +159,7 @@ module Spec : Sig.Spec = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
 
-  let build_runtime ~options:_ ~stdbase =
+  let build_runtime ~config:_ ~stdbase =
     let open File in
     let ocaml_src = Var.(!runtime) / name in
     let dates_base = stdbase / name / "dates_calc" in
@@ -321,7 +321,7 @@ module Spec : Sig.Spec = struct
     in
     List.to_seq obj
 
-  let write_target_def_file ~options ~dir target =
+  let write_target_def_file ~config ~dir target =
     let open File in
     with_out_channel (dir / "dune")
     @@ fun oc ->
@@ -331,33 +331,35 @@ module Spec : Sig.Spec = struct
         \ (name libcatala)%s\n\
         \ (wrapped false)\n\
         \ (libraries zarith catala.dates_calc))\n"
-        (match options.Clerk_config.global.project_name with
+        (match config.Clerk_cli.file.global.project_name with
         | None -> ""
         | Some n -> Printf.sprintf "\n (public_name %s.%s)" n target.tname)
     else
       Printf.fprintf oc
         "(library\n (name %s)%s\n (wrapped false)\n (libraries %s))\n"
         (String.to_id target.tname)
-        (match options.Clerk_config.global.project_name with
+        (match config.Clerk_cli.file.global.project_name with
         | None -> ""
         | Some n -> Printf.sprintf "\n (public_name %s.%s)" n target.tname)
         (String.concat " "
            (List.map String.to_id ("libcatala" :: target.dependencies)))
 
-  let install_runtime ~options =
+  let install_runtime ~config =
     let open File in
     let extensions =
       src_extensions
-      @
-      if options.Clerk_config.global.include_objects then ["cmi"; "cmx"] else []
+      @ if config.Clerk_cli.include_objects then ["cmi"; "cmx"] else []
     in
-    let dir = options.global.target_dir / name / Scan.libcatala in
+    let dir = config.file.global.target_dir / name / Scan.libcatala in
     remove dir;
     ensure_dir dir;
     List.iter
       (fun ext ->
         let src_libcatala =
-          (options.global.build_dir / Scan.libcatala / name / "catala_runtime")
+          config.file.global.build_dir
+          / Scan.libcatala
+          / name
+          / "catala_runtime"
           -.- ext
         in
         let src =
@@ -366,10 +368,10 @@ module Spec : Sig.Spec = struct
         if File.exists src_libcatala then copy_in ~dir ~src:src_libcatala
         else if File.exists src then copy_in ~dir ~src)
       extensions;
-    File.with_out_channel (options.global.target_dir / name / "dune-project")
+    File.with_out_channel (config.file.global.target_dir / name / "dune-project")
     @@ fun oc ->
     Printf.fprintf oc "(lang dune 3.13)\n";
-    match options.global.project_name with
+    match config.file.global.project_name with
     | None -> ()
     | Some p -> Printf.fprintf oc "(name %s)\n(package (name %s))\n" p p
 end

@@ -114,7 +114,7 @@ module Spec : Sig.Spec = struct
       ~description:[Word "<cc>"; Word "⇒"; !!output];
   ]
 
-  let build_runtime ~options:_ ~stdbase =
+  let build_runtime ~config:_ ~stdbase =
     let c_base = stdbase / name / "catala_runtime" in
     let c_src = Var.(!runtime) / name in
     [
@@ -205,22 +205,24 @@ module Spec : Sig.Spec = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
 
-  let write_target_def_file ~options:_ ~dir:_ _target = ()
+  let write_target_def_file ~config:_ ~dir:_ _target = ()
   (* TODO: generate a Makefile ? Or at least a depfile ? *)
 
-  let install_runtime ~options =
+  let install_runtime ~config =
     let open File in
     let extensions =
-      src_extensions
-      @ if options.Clerk_config.global.include_objects then ["o"] else []
+      src_extensions @ if config.Clerk_cli.include_objects then ["o"] else []
     in
-    let dir = options.global.target_dir / name / Scan.libcatala in
+    let dir = config.file.global.target_dir / name / Scan.libcatala in
     remove dir;
     ensure_dir dir;
     List.iter
       (fun ext ->
         let src_libcatala =
-          (options.global.build_dir / Scan.libcatala / name / "catala_runtime")
+          config.file.global.build_dir
+          / Scan.libcatala
+          / name
+          / "catala_runtime"
           -.- ext
         in
         let src =

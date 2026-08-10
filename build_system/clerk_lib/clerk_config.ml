@@ -36,7 +36,7 @@ type global = {
   catala_exe : File.t option;
   catala_opts : string list;
   default_targets : string list;
-  include_objects : bool;
+  include_sources : bool;
 }
 
 type target = {
@@ -80,7 +80,7 @@ let default_global =
     default_targets = [];
     build_dir = "_build";
     target_dir = "_targets";
-    include_objects = false;
+    include_sources = true;
   }
 
 let default_config =
@@ -103,7 +103,7 @@ let project_encoding () =
            default_targets;
            build_dir;
            target_dir;
-           include_objects;
+           include_sources;
          } ->
       ( project_name,
         (if include_dirs = default_global.include_dirs then None
@@ -113,7 +113,7 @@ let project_encoding () =
         proj_empty_list default_targets,
         build_dir,
         target_dir,
-        include_objects ))
+        include_sources ))
     (fun ( project_name,
            include_dirs,
            catala_exe,
@@ -121,7 +121,7 @@ let project_encoding () =
            default_targets,
            build_dir,
            target_dir,
-           include_objects )
+           include_sources )
        ->
       {
         project_name;
@@ -134,7 +134,7 @@ let project_encoding () =
         default_targets = inj_empty_list default_targets;
         build_dir;
         target_dir;
-        include_objects;
+        include_sources;
       })
   @@ obj8
        (opt_field ~name:"name" @@ string)
@@ -144,8 +144,8 @@ let project_encoding () =
        (opt_field ~name:"default_targets" @@ list string)
        (dft_field ~name:"build_dir" ~default:default_global.build_dir string)
        (dft_field ~name:"target_dir" ~default:default_global.target_dir string)
-       (dft_field ~name:"include_objects"
-          ~default:default_global.include_objects bool)
+       (dft_field ~name:"include_sources"
+          ~default:default_global.include_sources bool)
 
 let target_encoding () =
   let open Clerk_toml_encoding in
@@ -224,6 +224,10 @@ let pp_target_names fmt ts =
     fmt ts
 
 let validate path (config : config_file) : unit =
+  let pp_clerk_toml ppf =
+    let path = File.clean_path path in
+    Message.pp_link ~target:(Message.file_url path) ppf "%a" File.format path
+  in
   let _, dups =
     List.fold_left
       (fun (s, dups) { tname; _ } ->
@@ -233,8 +237,31 @@ let validate path (config : config_file) : unit =
       config.targets
   in
   if not (String.Set.is_empty dups) then
-    Message.error "Multiple targets with a same name found in '%s':@ %a"
-      (File.clean_path path) pp_target_names (String.Set.elements dups)
+    Message.error "In %t: multiple targets with a same name:@ %a" pp_clerk_toml
+      pp_target_names (String.Set.elements dups);
+  let missing_targets =
+    List.filter (fun dft ->
+        not (List.exists (fun t -> t.tname = dft) config.targets))
+  in
+  let missing_defaults = missing_targets config.global.default_targets in
+  if missing_defaults <> [] then
+    Message.error
+      "In %t: unknown targets @{<yellow>%a@} in @{<cyan>default-targets@}"
+      pp_clerk_toml
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space Format.pp_print_string)
+      missing_defaults;
+  List.iter
+    (fun t ->
+      let missing_deps = missing_targets t.dependencies in
+      if missing_deps <> [] then
+        Message.error
+          "In %t: unknown targets @{<yellow>%a@} in dependencies of \
+           @{<yellow>%s@}"
+          pp_clerk_toml
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space
+             Format.pp_print_string)
+          missing_deps t.tname)
+    config.targets
 
 let read f =
   let toml =

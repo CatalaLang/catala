@@ -417,10 +417,11 @@ let info =
 (** {2 Initialisation of options} *)
 
 type config = {
-  options : Clerk_config.t;
+  file : Clerk_config.t;
   fix_path : File.t -> File.t;
   ninja_file : File.t option;
   test_flags : string list;
+  include_objects : bool;
 }
 
 let init
@@ -436,7 +437,8 @@ let init
     color
     debug
     whole_program
-    output_format =
+    output_format
+    include_objects =
   if debug then Printexc.record_backtrace true;
   let _options = Catala_utils.Global.enforce_options ~debug ~color () in
   let default_config_file = "clerk.toml" in
@@ -534,7 +536,7 @@ let init
     match catala_exe with None -> config.global.catala_exe | exe -> exe
   in
   {
-    options =
+    file =
       {
         config with
         variables;
@@ -551,6 +553,7 @@ let init
     fix_path;
     ninja_file;
     test_flags;
+    include_objects;
   }
 
 let init_term ?(allow_test_flags = false) () =
@@ -569,7 +572,8 @@ let init_term ?(allow_test_flags = false) () =
     $ color
     $ debug
     $ whole_program
-    $ Cli.Flags.output_format)
+    $ Cli.Flags.output_format
+    $ objects)
 
 let run_command_line ?(setenv = []) ?(quiet = false) cmdline =
   if cmdline = [] then 0, []

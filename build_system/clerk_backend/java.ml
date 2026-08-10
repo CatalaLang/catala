@@ -151,12 +151,12 @@ module Spec : Sig.Spec = struct
         ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     ]
 
-  let build_runtime ~options ~stdbase =
+  let build_runtime ~config ~stdbase =
     let java_base = stdbase / name in
     let java_src = Var.(!runtime) / name in
     let runtime_orig =
       match
-        List.assoc_opt Var.(name runtime) options.Clerk_config.variables
+        List.assoc_opt Var.(name runtime) config.Clerk_cli.file.variables
       with
       | Some r -> lazy (String.concat " " r)
       | None -> Poll.runtime_dir
@@ -177,7 +177,7 @@ module Spec : Sig.Spec = struct
       |> List.of_seq
     in
     let java_list_file =
-      let base = options.global.build_dir / Scan.libcatala / name in
+      let base = config.file.global.build_dir / Scan.libcatala / name in
       File.with_out_channel ~bin:false
         (base / (name ^ ".files"))
         (fun oc ->
@@ -243,23 +243,23 @@ module Spec : Sig.Spec = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
 
-  let write_target_def_file ~options:_ ~dir:_ _target = ()
+  let write_target_def_file ~config:_ ~dir:_ _target = ()
   (* TODO: generate some kind of Java project file ? *)
 
-  let install_runtime ~options =
+  let install_runtime ~config =
     let open File in
     let extensions =
       src_extensions
-      @ if options.Clerk_config.global.include_objects then ["class"] else []
+      @ if config.Clerk_cli.include_objects then ["class"] else []
     in
-    let dir = options.global.target_dir / name / Scan.libcatala in
+    let dir = config.file.global.target_dir / name / Scan.libcatala in
     remove dir;
     ensure_dir dir;
     List.iter
       (fun subdir ->
         copy_dir ()
           ~filter:(fun f -> List.exists (Filename.check_suffix f) extensions)
-          ~src:(options.global.build_dir / Scan.libcatala / name / subdir)
+          ~src:(config.file.global.build_dir / Scan.libcatala / name / subdir)
           ~dst:(dir / subdir))
       ["catala"; "org"]
 end
