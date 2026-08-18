@@ -565,7 +565,7 @@ module G = struct
   include Graph.Persistent.Digraph.ConcreteBidirectional (struct
     include String
 
-    let hash = Stdlib.String.hash
+    let hash = Hashtbl.hash
   end)
 
   (* Attributes for Graphviz.Dot *)
