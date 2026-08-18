@@ -354,10 +354,10 @@ module Commands = struct
       in
       if test_scopes = [] then
         Message.warning
-          "The program defines no test scopes.@ Please specify option \
-           @{<yellow>--scope@} to explicit what to execute@ or@ mark@ scopes@ \
-           in@ the@ program@ with@ the@ @{<cyan>#[test]@}@ attribute.@ The \
-           program defines the following scopes:@ @[<hv 4>%a@]"
+          "@[<hv 4>@[<hov>The program defines no test scopes.@ Please specify \
+           option @{<yellow>--scope@} to explicit what to execute@ or@ mark@ \
+           scopes@ in@ the@ program@ with@ the@ @{<cyan>#[test]@}@ attribute.@ \
+           The program defines the following scopes:@]@ %a@]"
           (Format.pp_print_list ~pp_sep:Format.pp_print_space ScopeName.format)
           (List.filter_map
              (function KScope n, _ -> Some n | _ -> None)

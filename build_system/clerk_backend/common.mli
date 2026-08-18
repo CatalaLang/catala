@@ -59,6 +59,10 @@ val src_dep : name:string -> string -> Ninja_utils.Expr.elt
 val obj_dep : name:string -> Clerk_utils.Scan.item -> Ninja_utils.Expr.elt
 (** backend name, source item -> target name *)
 
+val catala_obj_dep : Clerk_utils.Scan.item -> Ninja_utils.Expr.elt
+(** Pseudo-target that builds the item runtime dependencies for interpretation
+    (cmxs for modules, or cmxs of all their dependencies for other items) *)
+
 module Make_backend : functor (A : Sig.Spec) -> Sig.S
 
 val register : t -> unit

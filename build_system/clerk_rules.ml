@@ -584,7 +584,7 @@ end [@warning "-32"]
 let stdlib_target_name = "libcatala"
 
 let organise_modules ~config items =
-  let module_g, modmap, stdlib_modules =
+  let module_g, modmap, _stdlib_modules =
     let modmap, stdlib_modules =
       Seq.fold_left
         (fun (modmap, stdlib_modules) item ->
@@ -607,13 +607,12 @@ let organise_modules ~config items =
                   | None -> Some info
                   | Some conflict ->
                     (* Note: until now this was allowed. However, targets
-                              select their contents by module name only, so this
-                              could only be for local modules ? We could switch to
-                              UIDs to support this, or somehow namespace the
-                              modules by dir.
-
-                              We need to implement something else than picking
-                              randomly, in any case *)
+                       select their contents by module name only, so this
+                       could only be for local modules ? We could switch to
+                       UIDs to support this, or somehow namespace the
+                       modules by dir.
+                       We need to implement something else than picking
+                       randomly, in any case *)
                     Message.error ~pos
                       ~extra_pos:["", Mark.get conflict.name]
                       "Conflicting module name @{<blue>%s@}" modname)
@@ -643,7 +642,7 @@ let organise_modules ~config items =
   let stdlib_target =
     {
       Clerk_config.tname = stdlib_target_name;
-      tmodules = stdlib_modules;
+      tmodules = ["Stdlib_en"; "Stdlib_fr"];
       ttests = [];
       backends = List.map snd (Clerk_config.registered_backends ());
       dependencies = [];
@@ -751,7 +750,7 @@ let organise_modules ~config items =
         G.fold_vertex
           (fun v g ->
             (* Uncomment this instead to make the stdlib root modules appear *)
-            (*if List.exists (fun v -> (String.Map.find v modmap).item.is_stdlib) (G.pred module_g v) *)
+            (* if List.exists (fun v -> (String.Map.find v modmap).item.is_stdlib) (G.pred module_g v) *)
             if (String.Map.find v modmap).item.is_stdlib then
               G.remove_vertex g v
             else g)

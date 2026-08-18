@@ -122,7 +122,7 @@ module Spec : Sig.Spec = struct
   let obj_extension = "cmx"
   let all_obj_extensions = ["cmi"; "cmo"; "cmx"; "o"; "cmxs"]
   let var_defs = OCaml_Flags.default
-  let stdlib_subdir = "."
+  let stdlib_subdir = ""
 
   let[@ocamlformat "disable"] rules =
     let runtime_include = File.(Var.(!builddir) / Scan.libcatala / name) in
@@ -248,6 +248,12 @@ module Spec : Sig.Spec = struct
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
     let implicit_modules = List.map (Common.interface_dep ~name) modules in
+    let implicit_modules_nat =
+      (* Note: adding this dependency allows OCaml inlining; it's not required,
+         though, we could require only the cmis using `implicit_modules` here --
+         and use `-opaque -no-alias-deps` for faster compil but slower exec *)
+      List.map (fun m -> Nj.Expr.Word ("@catala/obj/" ^ String.to_id m)) modules
+    in
     let obj =
       [
         Nj.build "ocaml-bytobject"
@@ -258,17 +264,11 @@ module Spec : Sig.Spec = struct
             [
               Nj.Binding.make Var.includes
                 (Flags.include_flags ~name include_dirs);
-              Nj.Binding.make ocaml_flags
-                [
-                  !!ocaml_flags;
-                  Nj.Expr.Word "-opaque";
-                  Nj.Expr.Word "-no-alias-deps";
-                ];
             ];
         Nj.build "ocaml-natobject"
           ~inputs:[Common.target ~name "ml"]
           ~implicit_in:
-            ((Common.target ~name "cmi" :: implicit_modules)
+            ((Common.target ~name "cmi" :: implicit_modules_nat)
             @ [Nj.Expr.Word "@ocaml/runtime.cmi"])
           ~outputs:(List.map (Common.target ~name) ["cmx"; "o"])
           ~vars:
@@ -279,6 +279,7 @@ module Spec : Sig.Spec = struct
       ]
     in
     let obj =
+      let ext = match Sys.backend_type with Native -> "cmxs" | _ -> "cmo" in
       (match item.module_def with
         | Some _ ->
           obj
@@ -289,17 +290,21 @@ module Spec : Sig.Spec = struct
             ]
           @
           (* if item.is_stdlib || List.mem (File.dirname item.file_name) include_dirs then *)
-          let ext =
-            match Sys.backend_type with Native -> "cmxs" | _ -> "cmo"
-          in
           [
             Nj.build "phony"
               ~inputs:[Common.target ~name ext]
               ~implicit_in:(List.map Common.catala_obj_target modules)
-              ~outputs:[Nj.Expr.Word ("@catala/obj/" ^ !Var.dst)];
+              ~outputs:[Common.catala_obj_dep item];
           ]
           (* else [] *)
-        | None -> obj)
+        | None ->
+          obj
+          @ [
+              Nj.build "phony"
+                ~inputs:[Word File.(!Var.tdir / !Var.src)]
+                ~implicit_in:(List.map Common.catala_obj_target modules)
+                ~outputs:[Common.catala_obj_dep item];
+            ])
       @
       if Lazy.force item.has_scope_tests > 0 then
         [

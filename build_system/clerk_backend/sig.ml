@@ -97,7 +97,7 @@ module type Spec = sig
 
   val stdlib_subdir : File.t
   (** Subdirectory of the backend directory in "_build/libcatala" that holds the
-      standard library files. Usually just [.] *)
+      standard library files. Usually just the empty string. *)
 
   val write_target_def_file :
     config:Clerk_cli.config -> dir:File.t -> Clerk_config.target -> unit

@@ -222,8 +222,9 @@ let make_target ~build_dir ~backend ?(main_exec = false) item =
     | `Custom rule ->
       (dir / rule_subdir rule / base) -.- List.hd rule.Config.in_exts
   in
+  let needs_main = match backend with `OCaml | `C -> main_exec | _ -> false in
   Nj.Expr.Word
-    (if main_exec then
+    (if needs_main then
        (build_dir / remove_extension base) ^ ("+main" -.- extension base)
      else build_dir / base)
 
@@ -475,12 +476,20 @@ let item_backends info backends item =
       (fun backends (m, _) -> module_backends info backends m)
       backends item.Scan.used_modules
 
+let ninja_runtime_targets ~objs backends =
+  List.map
+    (fun bk ->
+      Nj.Expr.Word
+        ("@"
+        ^ Clerk_backend.(name (get (backend_to_config bk)))
+        ^ "/runtime/"
+        ^ if objs then "obj" else "src"))
+    backends
+
 (* Note: these are the prerequisites for running that are built by ninja: the
    linking and execution are done further below, directly by Clerk *)
 let ninja_build_targets
-    ?(exec_targets = false)
     config
-    ~autotest
     backends
     _items
     info
@@ -494,33 +503,7 @@ let ninja_build_targets
       | Some bks -> bks
       | None -> item_backends info backends it
     in
-    let backends_full =
-      if exec_targets && autotest then `OCaml :: backends else backends
-    in
-    List.concat_map
-      (fun backend ->
-        if List.mem backend backends then
-          if exec_targets then
-            let t = obj_target ~build_dir ~backend it in
-            (* builds all the obj deps transitively *)
-            match backend with
-            | `OCaml | `C ->
-              [t; make_target ~build_dir ~backend ~main_exec:true it]
-            | _ -> [t]
-          else [make_target ~build_dir ~backend it]
-            (* builds only the individual object *)
-        else [])
-      backends_full
-  in
-  let runtimes =
-    List.map
-      (fun bk ->
-        Nj.Expr.Word
-          ("@"
-          ^ Clerk_backend.(name (get (backend_to_config bk)))
-          ^ "/runtime/"
-          ^ if exec_targets || config.include_objects then "obj" else "src"))
-      backends
+    List.map (fun backend -> make_target ~build_dir ~backend it) backends
   in
   let from_clerk_targets =
     List.concat_map
@@ -576,21 +559,23 @@ let ninja_build_targets
         t)
       direct_targets
   in
-  runtimes
+  ninja_runtime_targets backends ~objs:config.include_objects
   @ from_clerk_targets
   @ from_modules
   @ from_directories
   @ from_sources
   @ from_direct_targets
 
-(* Returns the items that should be executed *)
-let test_exec_targets
+(* Returns the ninja dependencies along with the items that should be
+   executed *)
+let ninja_run_targets
     config
     backends
+    ~test_only
     items
     info
     { clerk_targets; modules; directories; source_files; direct_targets } :
-    (Scan.item * [< `Interpret | `OCaml | `C | `Python | `Java ] * Nj.Expr.elt)
+    (Scan.item * [< `Interpret | `OCaml | `C | `Python | `Java ] * Nj.Expr.t)
     list =
   let build_dir = config.Cli.file.global.build_dir in
   let item_exec_target ?backends:explicit_backends it =
@@ -601,9 +586,16 @@ let test_exec_targets
     in
     List.map
       (fun backend ->
-        let main_exec = match backend with `OCaml | `C -> true | _ -> false in
-        let t = make_target ~build_dir ~backend ~main_exec it in
-        it, backend, t)
+        ( it,
+          backend,
+          match backend with
+          | `Interpret -> [Clerk_backend.catala_obj_dep it]
+          | `OCaml | `C ->
+            [
+              obj_target ~build_dir ~backend it;
+              make_target ~build_dir ~backend ~main_exec:true it;
+            ]
+          | _ -> [obj_target ~build_dir ~backend it] ))
       backends
   in
   let from_clerk_targets =
@@ -618,7 +610,7 @@ let test_exec_targets
                   List.mem bk t.Config.backends)
                 backends
             in
-            if Lazy.force it.Scan.has_scope_tests = 0 then []
+            if test_only && Lazy.force it.Scan.has_scope_tests = 0 then []
             else item_exec_target ~backends it)
           (items_in_subdirs items t.Config.ttests))
       clerk_targets
@@ -631,7 +623,7 @@ let test_exec_targets
       (fun (_, items) ->
         List.concat_map
           (fun it ->
-            if Lazy.force it.Scan.has_scope_tests = 0 then []
+            if test_only && Lazy.force it.Scan.has_scope_tests = 0 then []
             else item_exec_target it)
           items)
       directories
@@ -810,11 +802,12 @@ let run_targets
   in
   let progress = ref 0 in
   let total = List.length test_targets in
-  let run_target ((item, backend, target) as test_target) =
+  let run_target ((item, backend, _targets) as test_target) =
     print_percent !progress total;
     incr progress;
     let target =
-      Var.expr_elt_to_string ~var_bindings:info.Clerk_rules.var_bindings target
+      Var.expr_elt_to_string ~var_bindings:info.Clerk_rules.var_bindings
+        (make_target ~build_dir ~backend ~main_exec:true item)
     in
     match backend with
     | `Interpret ->
@@ -859,7 +852,7 @@ let run_targets
       Message.debug "Running command: '%s'..." (String.concat " " cmd);
       let code, lines = Clerk_cli.run_command_line ~quiet cmd in
       if code <> 0 && quiet then List.iter print_endline lines;
-      test_target, count_success item lines
+      test_target, if test then count_success item lines else code, 0
     | (`C | `OCaml | `Python | `Java) as backend -> (
       let link_cmd = linking_command ~build_dir ~backend ~info in
       let cmd = link_cmd item target in
@@ -873,10 +866,10 @@ let run_targets
             ~var_bindings:info.Clerk_rules.var_bindings ?scope ~quiet target
         in
         if code <> 0 && quiet then List.iter print_endline lines;
-        test_target, count_success item lines
-      | _, out_lines ->
+        test_target, if test then count_success item lines else code, 0
+      | code, out_lines ->
         if quiet then List.iter print_endline out_lines;
-        test_target, (0, count_tests item))
+        test_target, if test then 0, count_tests item else code, 0)
   in
   List.map run_target test_targets
 
@@ -962,7 +955,7 @@ let build_cmd : int Cmd.t =
       in
       target_debug_message targets;
       let ninja_targets =
-        ninja_build_targets config ~autotest backends items info targets
+        ninja_build_targets config backends items info targets
       in
       set_ninja_targets nin_ppf ninja_targets;
       targets, info
@@ -1061,10 +1054,10 @@ let run_cmd =
         else `Scope (* backends only offers entrypoints for test scopes *)
     in
     let enabled_backends = backends_to_config backends in
-    let targets, items, info =
+    let exec_targets, _items, info =
       Clerk_rules.run_ninja ~quiet ~code_coverage:false ~config
         ~enabled_backends
-        ~default:(empty_targets, [], Clerk_rules.empty_info)
+        ~default:([], [], Clerk_rules.empty_info)
         ~trace:(trace <> None) ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
@@ -1074,18 +1067,21 @@ let run_cmd =
             target_args
       in
       target_debug_message targets;
+      let exec_targets =
+        ninja_run_targets config backends ~test_only:false items info targets
+      in
       let ninja_targets =
-        ninja_build_targets ~exec_targets:true config ~autotest:false backends
-          items info targets
+        ninja_runtime_targets backends
+          ~objs:(List.exists (( <> ) `Interpret) backends)
+        @ List.concat_map (fun (_, _, tg) -> tg) exec_targets
       in
       set_ninja_targets nin_ppf ninja_targets;
-      targets, items, info
+      exec_targets, items, info
     in
     if prepare_only then (
       Message.result "@[<v 4>Build successful@]";
       Cmd.Exit.ok)
     else
-      let exec_targets = test_exec_targets config backends items info targets in
       let results =
         run_targets ~test:false ~whole_program ?trace ?trace_format config cmd
           scope scope_input (exec_targets, info)
@@ -1306,11 +1302,11 @@ let test_cmd =
       backends_to_config (`Interpret :: backends)
       (* Autotests always require the interpret (OCaml) objects *)
     in
-    let targets, items, info, test_targets =
+    let exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~keep_going:false
         ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest:true
         ~tests:true ~trace:false
-        ~default:(empty_targets, [], Clerk_rules.empty_info, [])
+        ~default:([], [], Clerk_rules.empty_info, [])
       @@ fun nin_ppf items info ->
       (* TODO: keep_going:true, to be able to still show a test report.
          We must not try to run the tests, however, since the artifacts we
@@ -1336,15 +1332,21 @@ let test_cmd =
           ninja_interp_test_targets config targets
         else []
       in
-      let ninja_targets =
+      let exec_targets, ninja_targets =
         if enable_backend_tests then
-          ninja_build_targets ~exec_targets:true config ~autotest:true backends
-            items info targets
-          @ test_targets
-        else test_targets
+          let backends = List.filter (( <> ) `Interpret) backends in
+          let exec_targets =
+            ninja_run_targets config backends ~test_only:true items info targets
+          in
+          let ninja_exec = List.concat_map (fun (_, _, t) -> t) exec_targets in
+          ( exec_targets,
+            ninja_runtime_targets backends ~objs:true
+            @ ninja_exec
+            @ test_targets )
+        else [], test_targets
       in
       set_ninja_targets nin_ppf ninja_targets;
-      targets, items, info, test_targets
+      exec_targets, items, info, test_targets
     in
     let open Clerk_report in
     let test_reports =
@@ -1403,9 +1405,6 @@ let test_cmd =
     in
     let backend_tests =
       if enable_backend_tests then
-        let exec_targets =
-          test_exec_targets config backends items info targets
-        in
         run_targets ~test:true config "interpret" None None (exec_targets, info)
       else []
     in
@@ -1553,10 +1552,10 @@ let ci_cmd =
     setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
       code_coverage;
     let enabled_backends = backends_to_config backends in
-    let targets, items, info, test_targets =
+    let targets, exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
         ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true ~trace:false
-        ~default:(empty_targets, [], Clerk_rules.empty_info, [])
+        ~default:(empty_targets, [], [], Clerk_rules.empty_info, [])
       @@ fun nin_ppf items info ->
       let targets =
         if target_args = [] then
@@ -1579,11 +1578,21 @@ let ci_cmd =
       target_debug_message targets;
       let test_targets = ninja_interp_test_targets config targets in
       let build_targets =
-        ninja_build_targets config ~autotest:true ~exec_targets:true backends
-          items info targets
+        ninja_build_targets config backends items info targets
       in
-      set_ninja_targets nin_ppf (build_targets @ test_targets);
-      targets, items, info, test_targets
+      let exec_targets =
+        ninja_run_targets config
+          (List.filter (( <> ) `Interpret) backends)
+          ~test_only:true items info targets
+      in
+      let exec_targets_ninja =
+        ninja_runtime_targets backends
+          ~objs:(List.exists (( <> ) `Interpret) backends)
+        @ List.concat_map (fun (_, _, t) -> t) exec_targets
+      in
+      set_ninja_targets nin_ppf
+        (build_targets @ test_targets @ exec_targets_ninja);
+      targets, exec_targets, items, info, test_targets
     in
     let open Clerk_report in
     let test_reports =
@@ -1603,7 +1612,6 @@ let ci_cmd =
       else []
     in
     let backend_tests =
-      let exec_targets = test_exec_targets config backends items info targets in
       run_targets ~test:true config "interpret" None None (exec_targets, info)
     in
     let test_results =

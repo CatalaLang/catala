@@ -75,7 +75,7 @@ module Spec : Sig.Spec = struct
   let module_extensions = ["py"]
   let obj_extension = "py"
   let all_obj_extensions = ["py"]
-  let stdlib_subdir = "."
+  let stdlib_subdir = ""
 
   let var_defs
       ~variables

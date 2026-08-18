@@ -88,6 +88,15 @@ let interface_dep ~name:backend modname =
 let src_dep ~name:backend modname =
   Nj.Expr.Word ("@" ^ backend ^ "/src/" ^ String.to_id modname)
 
+let catala_obj_dep item =
+  match item.Scan.module_def with
+  | Some (m, _) -> Nj.Expr.Word ("@catala/obj/" ^ String.to_id m)
+  | None ->
+    Nj.Expr.Word
+      ("@catala/obj/"
+      ^ (dirname item.file_name / String.to_id (basename item.file_name -.- ""))
+      )
+
 let obj_dep ~name:backend item =
   match item.Scan.module_def with
   | Some (m, _) -> Nj.Expr.Word ("@" ^ backend ^ "/obj/" ^ String.to_id m)

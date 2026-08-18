@@ -69,7 +69,7 @@ module Spec : Sig.Spec = struct
   let module_extensions = ["h"]
   let obj_extension = "o"
   let all_obj_extensions = ["o"]
-  let stdlib_subdir = "."
+  let stdlib_subdir = ""
 
   let var_defs ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
       =

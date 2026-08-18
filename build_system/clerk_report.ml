@@ -487,7 +487,7 @@ let summary ~build_dir ?(backend_tests = []) tests =
     List.fold_left
       (fun (files, success_files, success, total) file ->
         ( files + 1,
-          (if file.successful < file.total then success_files
+          (if file.successful <> file.total then success_files
            else success_files + 1),
           success + file.successful,
           total + file.total ))
