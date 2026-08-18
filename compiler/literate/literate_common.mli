@@ -58,3 +58,11 @@ val call_pygmentize : ?lang:Global.backend_lang -> string list -> string
 val with_pygmentize_lexer : Global.backend_lang -> (string list -> 'a) -> 'a
 (** Creates the required lexer file and returns the corresponding [pygmentize]
     command-line arguments *)
+
+val merge_adjacent_lawtext :
+  Surface.Ast.law_structure -> Surface.Ast.law_structure
+(** Traverses the tree header structure of the legal text and merges adjacent
+    [LawText] nodes, separating them with "\n". This has the effect of putting
+    together lines of text that would have been separated in the tree otherwise.
+    Use this function before feeding the legal text to `pandoc`, as the Catala
+    lexer separates lines of legal text into adjacent [LawText]. *)

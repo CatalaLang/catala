@@ -241,7 +241,7 @@ let rec law_structure_to_latex
     (print_only_law : bool)
     (fmt : Format.formatter)
     (i : A.law_structure) : unit =
-  match i with
+  match merge_adjacent_lawtext i with
   | A.LawHeading (heading, children) ->
     Format.fprintf fmt "\\%s{%s}\n\n"
       (match heading.law_heading_precedence with
