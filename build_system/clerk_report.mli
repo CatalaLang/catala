@@ -58,7 +58,7 @@ val display :
 
 val summary :
   build_dir:File.t ->
-  ?backend_tests:((_ * Clerk_cli.backend * _) * (int * int)) list ->
+  ?backend_tests:((_ * Clerk_cli.backend) * (int * int)) list ->
   file list ->
   bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)

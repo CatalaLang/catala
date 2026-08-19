@@ -495,7 +495,7 @@ let summary ~build_dir ?(backend_tests = []) tests =
   in
   let backend_results =
     List.fold_left
-      (fun acc ((_, bk, _), (success, total)) ->
+      (fun acc ((_, bk), (success, total)) ->
         if bk = `Interpret then acc (* already reported as normal tests *)
         else
           let bk =

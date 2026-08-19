@@ -575,8 +575,8 @@ let ninja_run_targets
     items
     info
     { clerk_targets; modules; directories; source_files; direct_targets } :
-    (Scan.item * [< `Interpret | `OCaml | `C | `Python | `Java ] * Nj.Expr.t)
-    list =
+    (Scan.item * [< `Interpret | `OCaml | `C | `Python | `Java ]) list
+    * Nj.Expr.t =
   let build_dir = config.Cli.file.global.build_dir in
   let item_exec_target ?backends:explicit_backends it =
     let backends =
@@ -635,11 +635,23 @@ let ninja_run_targets
         item_exec_target ~backends:[config_backend backend] item)
       direct_targets
   in
-  from_clerk_targets
-  @ from_modules
-  @ from_directories
-  @ from_sources
-  @ from_direct_targets
+  let all =
+    from_clerk_targets
+    @ from_modules
+    @ from_directories
+    @ from_sources
+    @ from_direct_targets
+  in
+  let exec_targets, nj_targets =
+    List.split (List.map (fun (it, bk, tg) -> (it, bk), tg) all)
+  in
+  ( List.sort_uniq
+      (fun (it1, bk1) (it2, bk2) ->
+        match String.compare it1.Scan.file_name it2.Scan.file_name with
+        | 0 -> Stdlib.compare bk1 bk2
+        | n -> n)
+      exec_targets,
+    List.flatten nj_targets )
 
 let set_ninja_targets nin_ppf ninja_targets =
   if ninja_targets = [] then raise Clerk_rules.Stop_ninja
@@ -795,14 +807,14 @@ let run_targets
     if test then
       (* in test mode, interpreted tests have already be run through clerk *)
       List.filter
-        (fun (item, backend, _) ->
+        (fun (item, backend) ->
           backend <> `Interpret && Lazy.force item.Scan.has_scope_tests > 0)
         test_targets
     else test_targets
   in
   let progress = ref 0 in
   let total = List.length test_targets in
-  let run_target ((item, backend, _targets) as test_target) =
+  let run_target ((item, backend) as test_target) =
     print_percent !progress total;
     incr progress;
     let target =
@@ -1067,13 +1079,13 @@ let run_cmd =
             target_args
       in
       target_debug_message targets;
-      let exec_targets =
+      let exec_targets, nj_exec_targets =
         ninja_run_targets config backends ~test_only:false items info targets
       in
       let ninja_targets =
         ninja_runtime_targets backends
           ~objs:(List.exists (( <> ) `Interpret) backends)
-        @ List.concat_map (fun (_, _, tg) -> tg) exec_targets
+        @ nj_exec_targets
       in
       set_ninja_targets nin_ppf ninja_targets;
       exec_targets, items, info
@@ -1335,13 +1347,12 @@ let test_cmd =
       let exec_targets, ninja_targets =
         if enable_backend_tests then
           let backends = List.filter (( <> ) `Interpret) backends in
-          let exec_targets =
+          let exec_targets, nj_exec_targets =
             ninja_run_targets config backends ~test_only:true items info targets
           in
-          let ninja_exec = List.concat_map (fun (_, _, t) -> t) exec_targets in
           ( exec_targets,
             ninja_runtime_targets backends ~objs:true
-            @ ninja_exec
+            @ nj_exec_targets
             @ test_targets )
         else [], test_targets
       in
@@ -1580,7 +1591,7 @@ let ci_cmd =
       let build_targets =
         ninja_build_targets config backends items info targets
       in
-      let exec_targets =
+      let exec_targets, nj_exec_targets =
         ninja_run_targets config
           (List.filter (( <> ) `Interpret) backends)
           ~test_only:true items info targets
@@ -1588,7 +1599,7 @@ let ci_cmd =
       let exec_targets_ninja =
         ninja_runtime_targets backends
           ~objs:(List.exists (( <> ) `Interpret) backends)
-        @ List.concat_map (fun (_, _, t) -> t) exec_targets
+        @ nj_exec_targets
       in
       set_ninja_targets nin_ppf
         (build_targets @ test_targets @ exec_targets_ninja);
