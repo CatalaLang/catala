@@ -1027,7 +1027,19 @@ let empty_info =
     linking_deps = (fun m -> raise (String.Map.Not_found m.file_name));
   }
 
-let run_once = ref false
+(* The backends for a given module are detected by analysing what clerk targets
+   it belongs to *)
+let module_backends info modname =
+  let m = String.Map.find modname info.modules_map in
+  if String.Set.is_empty m.targets then
+    List.map snd (Clerk_config.registered_backends ())
+  else
+    String.Set.fold
+      (fun t acc ->
+        List.fold_left
+          (fun acc bk -> if List.mem bk acc then acc else bk :: acc)
+          acc (String.Map.find t info.targets_map).Clerk_config.backends)
+      m.targets []
 
 let run_ninja
     ?(include_dir = true)
@@ -1043,8 +1055,6 @@ let run_ninja
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
-  if !run_once then Message.error ~internal:true "Ninja should run only once";
-  run_once := true;
   let var_bindings =
     base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
       ~inplace:false
@@ -1206,9 +1216,46 @@ let run_ninja
         pp
           (Nj.build "phony" ~outputs:[Word "test"]
              ~inputs:[Nj.Expr.Word File.(Var.(!builddir / ".@test"))]);
-      let ret =
-        callback nin_ppf items_list
-          { var_bindings; modules_map; targets_map; linking_deps }
+      let callback_info =
+        { var_bindings; modules_map; targets_map; linking_deps }
       in
+      let () =
+        (* Check for missing externals *)
+        String.Map.iter
+          (fun mname m ->
+            if m.item.Scan.extrnal then
+              let supported = module_backends callback_info mname in
+              let missing =
+                List.fold_left
+                  (fun missing (module Bk : Clerk_backend.S) ->
+                    if List.mem Bk.T supported then
+                      List.fold_right
+                        (fun ext missing ->
+                          let _, missing =
+                            Clerk_backend.extern_src
+                              ~filename:m.item.Scan.file_name ~name:Bk.name ~ext
+                              ~missing
+                          in
+                          missing)
+                        Bk.src_extensions missing
+                    else missing)
+                  [] enabled_backends
+              in
+              if missing <> [] then
+                let modname, pos = Option.get m.item.Scan.module_def in
+                Message.error ~pos
+                  "@[<v>@[<hov>Module @{<blue>%s@} is marked as external,@ \
+                   but@ the@ following@ files@ are@ missing:@ %a@]@,\
+                   @,\
+                   @[<hov 2>@{<bold>Hint:@} to generate a template, you can \
+                   use:@ @{<magenta>catala %s --gen-external %s@}@]@]"
+                  modname
+                  (Format.pp_print_list
+                     ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
+                     File.format)
+                  missing mname m.item.Scan.file_name)
+          modules_map
+      in
+      let ret = callback nin_ppf items_list callback_info in
       Format.pp_print_newline nin_ppf ();
       ret)

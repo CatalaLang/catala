@@ -133,6 +133,9 @@ module Make_backend (A : Sig.Spec) : Sig.S = struct
     let external_copy item =
       let catala_src = Nj.Expr.Word (!Var.tdir / !Var.src) in
       let srcs, _missing =
+        (* Note: `missing` is ignored here, because we can't trigger an error on
+           a backend that may not be enabled for the given item. A second check
+           is done at the end of Clerk_rules.run_ninja once we have the info *)
         List.fold_right
           (fun ext (srcs, missing) ->
             let src, missing =
@@ -141,26 +144,6 @@ module Make_backend (A : Sig.Spec) : Sig.S = struct
             Seq.cons (Nj.Expr.Word src, ext) srcs, missing)
           src_extensions (Seq.empty, [])
       in
-      (* FIXME: this message is needed, but has to be printed once we know
-       * the backends that are active for it (depending on the targets defined
-       * in clerk.toml and the whole dependency graph)
-       *  if missing <> [] then
-       *   let modname, pos =
-       *     Option.get item.Scan.module_def
-       *   in
-       *   Message.error
-       *     ~pos
-       *     "@[<v>@[<hov>Module @{<blue>%s@} is marked as external,@ but@ the@ \
-       *      following@ files@ are@ missing:@ %a@]@,\
-       *      @,\
-       *      @[<hov 2>@{<bold>Hint:@} to generate a template, you can use:@ \
-       *      @{<magenta>catala %s --gen-external %s@}@]@]"
-       *     modname
-       *     (Format.pp_print_list
-       *        ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
-       *        File.format)
-       *     missing name item.Scan.file_name
-       * else *)
       Seq.map
         (fun (src, ext) ->
           let output =

@@ -450,23 +450,11 @@ let ninja_interp_test_targets
         fun item -> Nj.Expr.Word ((build_dir / item.Scan.file_name) ^ "@test"))
       source_files
 
-(* The backends for a given module are detected by analysing what clerk targets
-   it belongs to *)
 let module_backends info backends modname =
-  let m = String.Map.find modname info.Clerk_rules.modules_map in
-  if String.Set.is_empty m.Clerk_rules.targets then backends
-  else
-    let target_backends =
-      String.Set.fold
-        (fun t acc ->
-          List.fold_left
-            (fun acc bk -> if List.mem bk acc then acc else bk :: acc)
-            acc (String.Map.find t info.targets_map).Config.backends)
-        m.Clerk_rules.targets []
-    in
-    List.filter
-      (fun bk -> List.mem (backend_to_config bk) target_backends)
-      backends
+  let target_backends = Clerk_rules.module_backends info modname in
+  List.filter
+    (fun bk -> List.mem (backend_to_config bk) target_backends)
+    backends
 
 let item_backends info backends item =
   match item.Scan.module_def with

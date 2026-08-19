@@ -80,3 +80,7 @@ val run_ninja :
     variables.
 
     [default] is returned if the callback aborts with exception [Stop_ninja]. *)
+
+val module_backends : callback_info -> string -> Clerk_config.backend list
+(** Returns the list of backends supported by a given module by analysing the
+    clerk targets it belongs to *)
