@@ -129,20 +129,18 @@ let linking_command ~build_dir ~backend ~info item target =
 let backend_from_arg config ~enabled_backends t =
   let disambiguate_using_subdir t backends ext =
     let d = File.(basename (dirname t)) in
-    match List.assoc_opt d (subdir_backend_list ()) with
-    | Some bk when List.mem bk backends -> bk
-    | _ ->
-      Message.error
-        "Ambiguous target file extension @{<red;bold>%s@} for target@ \
-         @{<red>%S@},@ and the directory doesn't match a suitable backend."
-        ext t
+    try List.assoc d (subdir_backend_list ())
+    with Not_found -> (
+      match List.filter (fun bk -> List.mem bk enabled_backends) backends with
+      | [bk] -> bk
+      | _ ->
+        Message.error
+          "Ambiguous target file extension @{<red;bold>%s@} for target@ \
+           @{<red>%S@},@ and the directory doesn't match a suitable backend."
+          ext t)
   in
   let aux ext =
-    match
-      List.filter
-        (fun (e, bk) -> e = ext && List.mem bk enabled_backends)
-        (extensions_backend ())
-    with
+    match List.filter (fun (e, _) -> e = ext) (extensions_backend ()) with
     | [(_, bk)] -> bk
     | [] -> (
       let errmsg () =
@@ -179,17 +177,27 @@ let backend_from_arg config ~enabled_backends t =
       (* Both C and OCaml can generate .o files, for example *)
       disambiguate_using_subdir t (List.map snd conflict) ext
   in
-  match File.extension t with
-  | "exe" as ext -> (
-    try List.assoc File.(basename (dirname t)) (subdir_backend_list ())
-    with Not_found ->
-      disambiguate_using_subdir t
-        (List.filter
-           (function
-             | Clerk_backend.OCaml.T | Clerk_backend.C.T -> true | _ -> false)
-           enabled_backends)
-        ext)
-  | ext -> aux ext
+  let bk =
+    match File.extension t with
+    | "exe" as ext -> (
+      try List.assoc File.(basename (dirname t)) (subdir_backend_list ())
+      with Not_found ->
+        disambiguate_using_subdir t
+          (List.filter
+             (function
+               | Clerk_backend.OCaml.T | Clerk_backend.C.T -> true | _ -> false)
+             enabled_backends)
+          ext)
+    | ext -> aux ext
+  in
+  if List.mem bk enabled_backends then bk
+  else
+    Message.error
+      "Target @{<red>%S@}@ requires@ the@ backend@ @{<cyan>%s@},@ which@ is@ \
+       not@ enabled.@ Use option @{<yellow>--backend %s@}."
+      t
+      Clerk_backend.(name (get bk))
+      Clerk_backend.(name (get bk))
 
 let config_backend = function
   | Clerk_backend.OCaml.T -> `OCaml
