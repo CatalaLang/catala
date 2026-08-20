@@ -743,6 +743,105 @@ let install_backend_targets
  *   |> List.sort_uniq compare
  *   |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src) *)
 
+let advertise_installed ~config ~backends info targets =
+  let open Format in
+  let ppl f =
+    pp_print_list
+      ~pp_sep:(fun _ _ -> ())
+      (fun ppf x ->
+        pp_print_cut ppf ();
+        f ppf x)
+  in
+  let clerk_targets =
+    List.sort
+      (fun t1 t2 -> String.compare t1.Config.tname t2.Config.tname)
+      targets.clerk_targets
+    |> List.filter_map (fun t ->
+        let bks =
+          List.sort compare
+            (List.filter (fun bk -> List.mem bk backends) t.Config.backends)
+        in
+        if bks = [] then None else Some (t, bks))
+  in
+  let modules =
+    List.sort
+      (fun m1 m2 ->
+        Mark.compare String.compare m1.Clerk_rules.name m2.Clerk_rules.name)
+      targets.modules
+    |> List.filter_map (fun m ->
+        let bks =
+          List.sort compare
+            (module_backends info
+               (List.map config_backend backends)
+               (Mark.remove m.Clerk_rules.name))
+        in
+        if bks = [] then None else Some (m, bks))
+  in
+  let directories =
+    List.filter
+      (fun (dir, items) -> dir <> Filename.current_dir_name && items <> [])
+      targets.directories
+  in
+  if
+    clerk_targets <> []
+    || modules <> []
+    || directories <> []
+    || targets.source_files <> []
+    || targets.direct_targets <> []
+  then
+    Message.result
+      "@[<v>Build successful. The artefacts can be found at the following:@,\
+       %a%a%a%a%a@]"
+      (ppl
+      @@ fun ppf (t, bks) ->
+      fprintf ppf "@[<v 2>[@{<yellow>%s@}]%a@]" t.Config.tname
+        File.(
+          ppl
+          @@ fun ppf bk ->
+          format ppf
+            (make_relative_to ~dir:original_cwd
+               (config.Cli.file.global.target_dir / backend_subdir bk / t.tname)))
+        bks)
+      clerk_targets
+      (ppl
+      @@ fun ppf (m, bks) ->
+      fprintf ppf "@[<v 2>[@{<blue>%s@}]%a@]"
+        (Mark.remove m.Clerk_rules.name)
+        (ppl
+        @@ fun ppf bk ->
+        File.format ppf
+          File.(
+            make_relative_to ~dir:original_cwd
+              (Var.expr_elt_to_string
+                 (make_target ~build_dir:config.Cli.file.global.build_dir
+                    ~backend:bk m.item))))
+        bks)
+      modules
+      (ppl
+      @@ fun ppf (d, _) ->
+      fprintf ppf "@[<v 2>[%a]@,%a@]" File.format d File.format
+        File.(
+          make_relative_to ~dir:original_cwd
+            (config.Cli.file.global.build_dir / d)))
+      directories
+      (ppl
+      @@ fun ppf item ->
+      fprintf ppf "@[<v 2>[%s]@,%a@]" item.Scan.file_name File.format
+        File.(
+          make_relative_to ~dir:original_cwd
+            (config.Cli.file.global.build_dir / item.file_name)))
+      targets.source_files
+      (ppl
+      @@ fun ppf (name, it, bk) ->
+      fprintf ppf "@[<v 2>[%s]@,%a@]" name File.format
+        File.(
+          make_relative_to ~dir:original_cwd
+            (Var.expr_elt_to_string
+               (make_target ~build_dir:config.Cli.file.global.build_dir
+                  ~backend:(config_backend bk) it)
+            -.- File.extension name)))
+      targets.direct_targets
+
 (* Runs the artifacts generated from the given targets (after linking them using
    the appropriate backend compiler when needed) *)
 let run_targets
@@ -968,26 +1067,11 @@ let build_cmd : int Cmd.t =
       set_ninja_targets nin_ppf ninja_targets;
       targets, info
     in
-    Message.result "@[<v 4>Build successful@]";
     List.iter
       (install_backend_targets ~config info targets.clerk_targets)
       enabled_backends;
-    (* else TODO restore
-     *   Message.result
-     *     "@[<v 4>Build successful. The targets can be found in the following \
-     *      files:@,\
-     *      %a%t%a@]"
-     *     (Format.pp_print_list (fun ppf (t, f) ->
-     *          Format.fprintf ppf "@{<cyan>[%s]@} → @{<cyan>%s@}" t.Config.tname
-     *            (make_relative_to ~dir:original_cwd f)))
-     *     clerk_targets_result
-     *     (fun fmt ->
-     *       if clerk_targets_result <> [] && direct_targets <> [] then
-     *         Format.pp_print_cut fmt ())
-     *     (Format.pp_print_list (fun ppf f ->
-     *          Format.fprintf ppf "@{<cyan>%s@}"
-     *            (make_relative_to ~dir:original_cwd f)))
-     *     direct_targets_result; *)
+    if quiet then Message.result "@[<v 4>Build successful@]"
+    else advertise_installed ~config ~backends:enabled_backends info targets;
     raise (Catala_utils.Cli.Exit_with 0)
   in
   let doc = "Builds the targets given as arguments." in
@@ -1632,6 +1716,8 @@ let ci_cmd =
     List.iter
       (install_backend_targets ~config info targets.clerk_targets)
       enabled_backends;
+    if not quiet then
+      advertise_installed ~config ~backends:enabled_backends info targets;
     0
   in
   let doc =

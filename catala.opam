@@ -44,7 +44,7 @@ depends: [
   "crunch" {>= "3.0.0"}
   "hex" { >= "1.5.0"}
   "alcotest" {>= "1.5.0"}
-  "ninja_utils" {= "2.0.0"}
+  "ninja_utils" {>= "2.0.0" & < "2.1"}
   "otoml" {>= "1.0"}
   "json-data-encoding" { >= "1.0.1" }
   "odoc" {with-doc}
