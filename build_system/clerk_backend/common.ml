@@ -115,7 +115,6 @@ module Make_backend (A : Sig.Spec) : Sig.S = struct
     type Clerk_config.backend += T
 
     let config_backend = T
-    let () = Clerk_config.register_backend ~name config_backend
 
     let current_target item ext =
       if item.Scan.is_stdlib then

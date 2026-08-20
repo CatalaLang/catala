@@ -158,7 +158,8 @@ let target_encoding () =
        (req_field ~name:"name" @@ string)
        (req_field ~name:"modules" @@ list string)
        (dft_field ~name:"tests" ~default:[] @@ list string)
-       (dft_field ~name:"backends" ~default:[]
+       (dft_field ~name:"backends"
+          ~default:(registered_backends () |> List.map snd)
        @@ list (union (string_cases (registered_backends ()))))
        (dft_field ~name:"dependencies" ~default:[] @@ list string)
 
