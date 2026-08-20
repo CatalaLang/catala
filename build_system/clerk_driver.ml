@@ -886,8 +886,17 @@ let run_targets
           File.(make_relative_to ~dir:build_dir target -.- "")
   in
   let re_success =
+    (* '\r' tolerated: Windows text-mode output keeps it past [input_line] *)
     Re.(
-      compile (seq [str "RESULT"; rep1 any; str "executed successfully."; eos]))
+      compile
+        (seq
+           [
+             str "RESULT";
+             rep1 any;
+             str "executed successfully.";
+             rep (set "\r");
+             eos;
+           ]))
   in
   let count_tests item = Lazy.force item.Scan.has_scope_tests in
   let count_success item out_lines =
