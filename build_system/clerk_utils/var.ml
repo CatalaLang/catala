@@ -148,11 +148,19 @@ and expr_to_list ?(var_bindings = []) exp =
 let expr_elt_to_string ?var_bindings elt =
   String.concat " " (expr_elt_to_list ?var_bindings elt)
 
+(* cmd has no [cat]: [copy /b "a"+"b" out]. Quoted per element — the whole list
+   quoted is one file name, unquoted breaks on spaces. *)
+let cmd_concat_operand files =
+  String.concat "+" (List.map (fun f -> "\"" ^ f ^ "\"") ("nul" :: files))
+
 module Op = struct
   let ( ! ) = ref
 
+  (* Crutch: these expand to text that must not be quoted (ninja escapes
+     in/out, [cat_files] carries its own quotes). Belongs in the type. *)
   let ( !! ) : type a. a t -> Ninja_utils.Expr.elt = function
-    | Scalar _ as v -> if v = input || v = output then Raw !v else Word !v
+    | Scalar _ as v ->
+      if v = input || v = output || v = cat_files then Raw !v else Word !v
     | Vector _ as v -> Splice v
 end
 

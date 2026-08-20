@@ -331,10 +331,7 @@ let dir_test_rules dir subdirs items =
           (Nj.Binding.make Var.test_id dir
           ::
           (if Sys.win32 then
-             [
-               Nj.Binding.make Var.cat_files
-                 (String.concat "+" ("nul" :: inputs));
-             ]
+             [Nj.Binding.make Var.cat_files (Var.cmd_concat_operand inputs)]
            else []));
     ]
 

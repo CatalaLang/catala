@@ -197,6 +197,14 @@ let test_jar_argfile_escaping () =
     (Backend_paths.jar_argfile_content
        [{|C:\Program Files\build\app\java|}, {|Outer$Inner.class|}])
 
+(* Only emitted under [Sys.win32], out of reach of the Linux testsuite. *)
+
+let test_cmd_concat_operand () =
+  check "cmd copy operand quotes each file"
+    {|"nul"+"C:\build\a@test"+"C:\build\spaced dir\b@test"|}
+    (CVar.cmd_concat_operand
+       [{|C:\build\a@test|}; {|C:\build\spaced dir\b@test|}])
+
 let () =
   let open Alcotest in
   run "Unit tests"
@@ -258,5 +266,10 @@ let () =
         [
           test_case "argfile escapes a Windows path" `Quick
             test_jar_argfile_escaping;
+        ] );
+      ( "Windows test-report concatenation (cmd copy)",
+        [
+          test_case "copy operand quotes each file" `Quick
+            test_cmd_concat_operand;
         ] );
     ]

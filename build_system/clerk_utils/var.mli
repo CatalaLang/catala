@@ -72,6 +72,9 @@ val binding_to_words : Ninja_utils.Binding.any -> string list
 
 val env_of_bindings : bindings -> (string * string list) list
 
+val cmd_concat_operand : string list -> string
+(** Value for {!cat_files}: files joined for [cmd /c copy /b], each quoted. *)
+
 val get : bindings -> 'a t -> string list
 (** replaces [${xvar}] with its value, recursively *)
 
