@@ -53,6 +53,8 @@ steps:
       - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
       - dune exec -- clerk test tests doc
       - dune exec -- clerk test tests --backend ocaml -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc
+      - dune exec -- clerk test tests --backend java -c--disable-warnings
+      - dune exec -- clerk test tests --backend c -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc
 
   - name: examples
     image: powershell
