@@ -42,6 +42,9 @@ type callback_info = {
   targets_map : Clerk_config.target String.Map.t;
   linking_deps : Scan.item -> string list;
       (** item -> modules, topologically ordered *)
+  inclusion_map : Scan.item String.Map.t;
+      (** Map from source file names to a module that includes them, for all
+          source files that actually get included *)
 }
 (** Info passed to the callback that shall conclude the Ninja file, once the
     whole file tree has been crawled. The modules and targets map differ from
@@ -89,7 +92,3 @@ val run_ninja :
 val module_backends : callback_info -> string -> Clerk_config.backend list
 (** Returns the list of backends supported by a given module by analysing the
     clerk targets it belongs to *)
-
-val inclusion_map : Scan.item list -> Scan.item String.Map.t
-(** Computes a map that associates, for every catala file that is actually a
-    fragment, the actual non-fragment item that finally includes it. *)

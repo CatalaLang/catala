@@ -1014,6 +1014,7 @@ type callback_info = {
   modules_map : module_info String.Map.t;
   targets_map : Clerk_config.target String.Map.t;
   linking_deps : Scan.item -> string list;
+  inclusion_map : Scan.item String.Map.t;
 }
 
 let empty_info =
@@ -1022,6 +1023,7 @@ let empty_info =
     modules_map = String.Map.empty;
     targets_map = String.Map.empty;
     linking_deps = (fun m -> raise (String.Map.Not_found m.file_name));
+    inclusion_map = String.Map.empty;
   }
 
 (* The backends for a given module are detected by analysing what clerk targets
@@ -1110,6 +1112,24 @@ let scan_project_items ~cleanup ~config =
       item_tree
   in
   Seq.memoize item_tree
+
+let inclusion_map items =
+  let direct_map =
+    Seq.fold_left
+      (fun map it ->
+        List.fold_left
+          (fun map (f, _pos) -> String.Map.add f it map)
+          map it.Scan.included_files)
+      String.Map.empty items
+  in
+  let rec find it map =
+    match String.Map.find_opt it.Scan.file_name map with
+    | None -> it
+    | Some parent -> find parent map
+  in
+  String.Map.fold
+    (fun file it map -> String.Map.add file (find it map) map)
+    direct_map direct_map
 
 let run_ninja
     ?(skip_project_scan = false)
@@ -1220,8 +1240,9 @@ let run_ninja
         pp
           (Nj.build "phony" ~outputs:[Word "test"]
              ~inputs:[Nj.Expr.Word File.(Var.(!builddir / ".@test"))]);
+      let inclusion_map = inclusion_map items in
       let callback_info =
-        { var_bindings; modules_map; targets_map; linking_deps }
+        { var_bindings; modules_map; targets_map; linking_deps; inclusion_map }
       in
       let () =
         (* Check for missing externals *)
@@ -1277,22 +1298,6 @@ let scan_project ~config =
   let modules_map, targets_map, linking_deps =
     organise_modules ~config:config.Clerk_cli.file items
   in
-  List.of_seq items, { var_bindings; modules_map; targets_map; linking_deps }
-
-let inclusion_map items =
-  let direct_map =
-    List.fold_left
-      (fun map it ->
-        List.fold_left
-          (fun map (f, _pos) -> String.Map.add f it map)
-          map it.Scan.included_files)
-      String.Map.empty items
-  in
-  let rec find it map =
-    match String.Map.find_opt it.Scan.file_name map with
-    | None -> it
-    | Some parent -> find parent map
-  in
-  String.Map.fold
-    (fun file it map -> String.Map.add file (find it map) map)
-    direct_map direct_map
+  let inclusion_map = inclusion_map items in
+  ( List.of_seq items,
+    { var_bindings; modules_map; targets_map; linking_deps; inclusion_map } )

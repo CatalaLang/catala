@@ -312,21 +312,30 @@ let target_debug_message (t : user_target_args) =
   if t.direct_targets <> [] then
     Message.debug " - Artifacts: %a" (ppl (fun (f, _, _) -> f)) t.direct_targets
 
-let items_in_subdirs items dirs =
+let items_in_subdirs info items dirs =
   List.filter
     (fun it ->
-      List.exists
-        (fun dir ->
-          String.starts_with it.Scan.file_name ~prefix:File.(dir / ""))
-        dirs)
+      String.Map.find_opt it.Scan.file_name info.Clerk_rules.inclusion_map
+      = None
+      && List.exists
+           (fun dir ->
+             String.starts_with it.Scan.file_name ~prefix:File.(dir / ""))
+           dirs)
     items
 
-let project_dir_targets ~config items =
+let included_by info item =
+  match
+    String.Map.find_opt item.Scan.file_name info.Clerk_rules.inclusion_map
+  with
+  | Some parent -> parent
+  | None -> item
+
+let project_dir_targets ~config info items =
   let dir = config.Clerk_cli.fix_path Filename.current_dir_name in
-  { empty_targets with directories = [dir, items_in_subdirs items [dir]] }
+  { empty_targets with directories = [dir, items_in_subdirs info items [dir]] }
 
 (* default for the build and run commands, `clerk test` has a different rule *)
-let default_targets config items =
+let default_targets ~config info items =
   match config.Cli.file.global.default_targets with
   | _ :: _ as tnames ->
     let clerk_targets =
@@ -345,7 +354,7 @@ let default_targets config items =
   | [] -> (
     match config.file.targets with
     | _ :: _ as clerk_targets -> { empty_targets with clerk_targets }
-    | [] -> project_dir_targets ~config items)
+    | [] -> project_dir_targets ~config info items)
 
 let sort_user_target_args
     config
@@ -383,7 +392,7 @@ let sort_user_target_args
     List.partition_map
       (fun f ->
         if Sys.file_exists f && Sys.is_directory f then
-          Left (f, items_in_subdirs items [f])
+          Left (f, items_in_subdirs info items [f])
         else Right f)
       others
   in
@@ -394,6 +403,13 @@ let sort_user_target_args
         else
           try
             let item = List.find (fun it -> it.Scan.file_name = arg) items in
+            let item =
+              if
+                item.has_inline_tests
+                || Lazy.force item.Scan.has_scope_tests > 0
+              then item
+              else included_by info item
+            in
             match item.module_def with
             | Some m ->
               ( String.Map.find (Mark.remove m) info.modules_map :: modules,
@@ -495,7 +511,7 @@ let ninja_build_targets
   let backends = List.filter (( <> ) `Interpret) backends in
   (* This function is only concerned with the built artifacts *)
   let build_dir = config.Cli.file.global.build_dir in
-  let item_exec_target ?backends:explicit_backends it =
+  let item_build_target ?backends:explicit_backends it =
     let backends =
       match explicit_backends with
       | Some bks -> bks
@@ -523,7 +539,7 @@ let ninja_build_targets
   let from_modules =
     List.concat_map
       (fun m ->
-        let t = item_exec_target m.Clerk_rules.item in
+        let t = item_build_target m.Clerk_rules.item in
         if t = [] then
           Message.warning
             "Module @{<cyan>%s@}@ does@ not@ support@ any@ of@ the@ selected@ \
@@ -536,17 +552,15 @@ let ninja_build_targets
     List.concat_map
       (fun (_, items) ->
         List.concat_map
-          (fun it ->
-            if Lazy.force it.Scan.has_scope_tests = 0 then []
-            else item_exec_target it)
+          (fun it -> item_build_target (included_by info it))
           items)
       directories
   in
-  let from_sources = List.concat_map item_exec_target source_files in
+  let from_sources = List.concat_map item_build_target source_files in
   let from_direct_targets =
     List.concat_map
       (fun (str, item, backend) ->
-        let t = item_exec_target ~backends:[config_backend backend] item in
+        let t = item_build_target ~backends:[config_backend backend] item in
         if t = [] then
           Message.error
             "Could not find a way to build @{<blue>%s@}.@ Check in \
@@ -610,7 +624,7 @@ let ninja_run_targets
             in
             if test_only && Lazy.force it.Scan.has_scope_tests = 0 then []
             else item_exec_target ~backends it)
-          (items_in_subdirs items t.Config.ttests))
+          (items_in_subdirs info items t.Config.ttests))
       clerk_targets
   in
   let from_modules =
@@ -1066,7 +1080,7 @@ let build_cmd : int Cmd.t =
         ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
-        if target_args = [] then default_targets config items
+        if target_args = [] then default_targets ~config info items
         else
           sort_user_target_args config ~autotest ~backends items info
             target_args
@@ -1164,7 +1178,7 @@ let run_cmd =
         ~trace:(trace <> None) ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
-        if target_args = [] then default_targets config items
+        if target_args = [] then default_targets ~config info items
         else
           sort_user_target_args config ~autotest:false ~backends items info
             target_args
@@ -1217,9 +1231,8 @@ let run_cmd =
 let typecheck_cmd =
   let run config (target_args : File.t list) disable_warnings =
     let items, info = Clerk_rules.scan_project ~config in
-    let inclusion_map = Clerk_rules.inclusion_map items in
     let targets =
-      if target_args = [] then project_dir_targets ~config items
+      if target_args = [] then project_dir_targets ~config info items
       else
         sort_user_target_args config ~autotest:false ~backends:[`Interpret]
           items info target_args
@@ -1236,14 +1249,7 @@ let typecheck_cmd =
       @ targets.source_files
       @ List.map (fun (_, it, _) -> it) targets.direct_targets
     in
-    let check_items =
-      List.map
-        (fun it ->
-          match String.Map.find_opt it.Scan.file_name inclusion_map with
-          | Some parent -> parent
-          | None -> it)
-        check_items
-    in
+    let check_items = List.map (included_by info) check_items in
     let check_items =
       List.sort_uniq
         (fun it1 it2 -> File.compare it1.Scan.file_name it2.Scan.file_name)
@@ -1350,7 +1356,7 @@ let test_cmd =
          failed to build could remain from a previous run and that would be
          confusing. *)
       let targets =
-        if target_args = [] then project_dir_targets ~config items
+        if target_args = [] then project_dir_targets ~config info items
         else
           sort_user_target_args config ~autotest:true ~backends items info
             target_args
@@ -1588,7 +1594,7 @@ let ci_cmd =
       let targets =
         if target_args = [] then
           {
-            (project_dir_targets ~config items) with
+            (project_dir_targets ~config info items) with
             clerk_targets = config.file.targets;
           }
         else
