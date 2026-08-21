@@ -162,6 +162,22 @@ let backends_format_pos =
     "OCaml", Lcalc.To_ocaml.format_pos;
   ]
 
+(* javac decodes source with the platform encoding (cp1252 on Windows), so a
+   generated Java string literal must be pure ASCII. [\uXXXX] is translated back
+   before lexing, so the value is unchanged; above the BMP Java wants a UTF-16
+   surrogate pair. [format_pos] is the seam: it embeds the source path. *)
+
+let test_java_literal_ascii_only () =
+  let pos = Catala_utils.Pos.from_info {|C:\Impôts\🎯\x.catala_fr|} 1 2 3 4 in
+  let s = Format.asprintf "%a" Scalc.To_java.format_pos pos in
+  Alcotest.(check bool)
+    "literal is pure ASCII" true
+    (String.for_all (fun c -> Char.code c < 0x80) s);
+  Alcotest.(check bool) "BMP char escaped" true (contains ~sub:{|\u00f4|} s);
+  Alcotest.(check bool)
+    "astral char becomes a surrogate pair" true
+    (contains ~sub:{|\ud83c\udfaf|} s)
+
 (* Same hazard in the trace the runtime emits: an unescaped backslash makes the
    JSON unparseable, so the trace viewer rejects every Windows trace. *)
 
@@ -257,6 +273,11 @@ let () =
             test_case (name ^ " escapes backslashes") `Quick (fun () ->
                 Alcotest.(check bool) name true (pos_escaped fmt_pos)))
           backends_format_pos );
+      ( "Java source encoding (non-ASCII in generated literals)",
+        [
+          test_case "position literal is pure ASCII" `Quick
+            test_java_literal_ascii_only;
+        ] );
       ( "Runtime trace JSON escaping (Windows backslash)",
         [
           test_case "trace escapes a Windows path" `Quick

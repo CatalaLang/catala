@@ -334,12 +334,28 @@ let poly_cast ctx ppf e fmt =
       (format_typ ctx) typ
   | _ -> fprintf ppf fmt
 
-(* [String.quote] the filename so Windows backslashes survive as a Java string
+(* Quote as a Java string literal, escaping every non-ASCII character: javac
+   reads source in the platform encoding (cp1252 on Windows), which mangles or
+   rejects raw UTF-8. Java expands [\uXXXX] — a UTF-16 code unit — back before
+   lexing, so the string value is unchanged. *)
+let java_string s =
+  let utf16 = Buffer.create (2 * String.length s) in
+  Seq.iter (Buffer.add_utf_16be_uchar utf16) (String.utf8_seq (String.quote s));
+  let utf16 = Buffer.contents utf16 in
+  let buf = Buffer.create (String.length utf16) in
+  for i = 0 to (String.length utf16 / 2) - 1 do
+    let u = String.get_uint16_be utf16 (2 * i) in
+    if u < 0x80 then Buffer.add_char buf (Char.chr u)
+    else Format.ksprintf (Buffer.add_string buf) "\\u%04x" u
+  done;
+  Buffer.contents buf
+
+(* [java_string] the filename so Windows backslashes survive as a Java string
    literal (unescaped "C:\proj\mod" is an illegal escape). *)
 let format_pos (ppf : formatter) (pos : Pos.t) : unit =
   fprintf ppf
     "@[<hv 2>new CatalaPosition@;<0 -1>(@[<hov>%s,@ %d, %d,@ %d, %d@])@]"
-    (String.quote (Pos.get_file pos))
+    (java_string (Pos.get_file pos))
     (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
     (Pos.get_end_column pos)
 
@@ -417,23 +433,13 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
   | ELit l -> fprintf ppf "%a" format_lit (Mark.copy e l)
   | EPosLit -> format_pos ppf (Mark.get e)
   | EAppOp { op = ValueFromJson (ty, str), p; args = [_e]; _ } ->
-    let encoded_string =
-      (* Java needs utf-16, we quote the string then escape the non-latin1
-         characters *)
-      let buf = Buffer.create (String.length str) in
-      String.quote str
-      |> String.utf8_seq
-      |> Seq.iter (fun c ->
-          if Uchar.is_char c then Buffer.add_char buf (Uchar.to_char c)
-          else
-            Format.ksprintf (Buffer.add_string buf) "\\u%04x" (Uchar.to_int c));
-      Buffer.contents buf
-    in
+    let encoded_string = java_string str in
     fprintf ppf "%a.fromJSONString(%a ,%s)"
       (format_typ ~wildcard:false ~diamond:false ctx)
       ty (format_expression ctx) (EPosLit, p) encoded_string
   | EAppOp { op = DebugPrint str, _; args = [e]; _ } ->
-    fprintf ppf "System.err.println(\"%s = \" + %a.toString())" str
+    fprintf ppf "System.err.println(%s + %a.toString())"
+      (java_string (str ^ " = "))
       (format_expression ctx) e
   | EAppOp { op = (HandleExceptions, _) as op; args = exprs; _ } ->
     fprintf ppf "@[<hv 2>%a@;<0 -1>(%a@])" format_op op
@@ -610,7 +616,7 @@ let rec format_stmt ~toplevel (ctx : context) ppf (stmt : Ast.stmt Mark.pos) =
            | _ -> None)
        with
       | None -> ""
-      | Some m -> ", " ^ String.quote m)
+      | Some m -> ", " ^ java_string m)
   | SIfThenElse
       {
         if_expr;
@@ -820,13 +826,13 @@ and format_begin_trace ctx ppf (tag, pos) =
     | ScopeCall scopename ->
       let _, decl_pos = ScopeName.get_info scopename in
       fprintf ppf "new CatalaTrace.ScopeCall(%s,@ %a)"
-        (String.quote (ScopeName.original_base scopename))
+        (java_string (ScopeName.original_base scopename))
         format_pos decl_pos
     | ScopeVarDef { var = scope_var; io } ->
       let _, decl_pos = ScopeVar.get_info scope_var in
       fprintf ppf
         "new CatalaTrace.ScopeVarDef(%s,@ %a,@ CatalaTrace.Input.%s,@ %b)"
-        (String.quote (ScopeVar.original_string scope_var))
+        (java_string (ScopeVar.original_string scope_var))
         format_pos decl_pos
         (match io.io_input with
         | NoInput -> "NoInput"
@@ -834,27 +840,27 @@ and format_begin_trace ctx ppf (tag, pos) =
         | Reentrant -> "Reentrant")
         io.io_output
     | LocalVarDef { name } ->
-      fprintf ppf "new CatalaTrace.LocalVarDef(%s)" (String.quote name)
+      fprintf ppf "new CatalaTrace.LocalVarDef(%s)" (java_string name)
     | FunCall topdef ->
       let _, decl_pos = TopdefName.get_info topdef in
       fprintf ppf "new CatalaTrace.FunCall(%s,@ %a)"
-        (String.quote (TopdefName.original_base topdef))
+        (java_string (TopdefName.original_base topdef))
         format_pos decl_pos
     | LocalTupDef { names } ->
       fprintf ppf "new CatalaTrace.LocalTupDef(@[<hov 2>new String[]{%a}@])"
         (pp_print_list
            ~pp_sep:(fun ppf () -> fprintf ppf ",")
-           (fun fmt name -> pp_print_string fmt (String.quote name)))
+           (fun fmt name -> pp_print_string fmt (java_string name)))
         names
     | BranchingCondition -> fprintf ppf "new CatalaTrace.BranchingCondition()"
     | Assertion -> fprintf ppf "new CatalaTrace.Assertion()"
     | Branching None -> fprintf ppf "new CatalaTrace.IfBranching()"
     | Branching (Some cstr) ->
-      fprintf ppf "new CatalaTrace.MatchBranching(%s)" (String.quote cstr)
+      fprintf ppf "new CatalaTrace.MatchBranching(%s)" (java_string cstr)
     | Exception { label = None; cons_pos } ->
       fprintf ppf "new CatalaTrace.Exception(%a)" format_pos cons_pos
     | Exception { label = Some (lbl, pos); cons_pos } ->
-      fprintf ppf "new CatalaTrace.Exception(%s,@ %a,@ %a)" (String.quote lbl)
+      fprintf ppf "new CatalaTrace.Exception(%s,@ %a,@ %a)" (java_string lbl)
         format_pos pos format_pos cons_pos
   in
   fprintf ppf "@[<hov 2>CatalaTrace.begin(%t,@ %a);@]" format_kind format_pos
@@ -1002,7 +1008,7 @@ let format_tests ctx ppf p =
          (pp_print_list
             ~pp_sep:(fun ppf () -> fprintf ppf ",@ ")
             (fun ppf (name, _, _) ->
-              pp_print_string ppf (String.quote (ScopeName.original_base name))))
+              pp_print_string ppf (java_string (ScopeName.original_base name))))
          tests;
        fprintf ppf "@,CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
          (match p.lang with `En -> "EN" | `Fr -> "FR" | `Pl -> "EN");
@@ -1031,7 +1037,7 @@ let format_tests ctx ppf p =
        pp_open_vbox ppf 2;
        fprintf ppf
          "if (enabled_tests.isEmpty() || enabled_tests.contains(%s)) {@\n"
-         (String.quote (ScopeName.original_base scope_name));
+         (java_string (ScopeName.original_base scope_name));
        pp_open_vbox ppf 2;
        fprintf ppf "try {@\n";
        (if Global.options.trace <> None then
@@ -1041,15 +1047,15 @@ let format_tests ctx ppf p =
        fprintf ppf "%a@\n" (format_block ~toplevel:true ctx) block;
        if Global.options.trace <> None then
          fprintf ppf "CatalaTrace.end(%s);@\n" (VarName.to_string var);
-       fprintf ppf
-         "CatalaGlobals.displayResult(\"%a\", %s, test_mode, json_mode);"
-         ScopeName.format_original scope_name (VarName.to_string var);
+       fprintf ppf "CatalaGlobals.displayResult(%s, %s, test_mode, json_mode);"
+         (java_string (ScopeName.original_base scope_name))
+         (VarName.to_string var);
        pp_close_box ppf ();
        fprintf ppf
          "@\n\
-          } catch (RuntimeException e) { CatalaGlobals.displayError(\"%a\", e);@\n\
+          } catch (RuntimeException e) { CatalaGlobals.displayError(%s, e);@\n\
           throw e; } }"
-         ScopeName.format_original scope_name;
+         (java_string (ScopeName.original_base scope_name));
        pp_close_box ppf ()
      in
      pp_print_list ~pp_sep:pp_print_space format_test ppf tests);
