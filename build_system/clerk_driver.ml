@@ -875,23 +875,7 @@ let run_targets
   let progress_pfx =
     if test then "Running backend tests..." else "Running compiled targets..."
   in
-  let print_status fmt =
-    if show_progress then
-      Printf.fprintf stdout (fmt ^^ "\r\x1b[?25l%!\x1b[?25h\x1b[K")
-    (* Print message, return to beginning of line, flush, then clear line but
-       without flushing it yet; the ?25 codes are for hiding and showing back
-       the cursor *)
-      else Printf.ifprintf stdout fmt
-  in
-  let print_percent x y =
-    let color =
-      Printf.sprintf "\x1b[38;2;0;%d;%dm"
-        (179 + (50 * x / y))
-        (255 - (180 * x / y))
-    in
-    print_status "%s \x1b[1m%s%3d%%\x1b[m" progress_pfx color (100 * x / y)
-  in
-  print_status "%s" progress_pfx;
+  Message.print_status "%s" progress_pfx;
   let msg target =
     if not show_progress then
       let multi_targets =
@@ -935,7 +919,7 @@ let run_targets
   let progress = ref 0 in
   let total = List.length test_targets in
   let run_target ((item, backend) as test_target) =
-    print_percent !progress total;
+    Message.print_percent progress_pfx !progress total;
     incr progress;
     let target =
       Var.expr_elt_to_string ~var_bindings:info.Clerk_rules.var_bindings
@@ -1017,7 +1001,6 @@ let raw_cmd : int Cmd.t =
       config
       autotest
       code_coverage
-      quiet
       (targets : string list)
       (ninja_flags : string list) =
     if targets <> [] then
@@ -1030,11 +1013,11 @@ let raw_cmd : int Cmd.t =
             else f)
           targets
       in
-      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~trace:false ~quiet
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~trace:false
         ~default:0 ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
     else (
       Format.eprintf "Available targets:@.";
-      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~trace:false ~quiet
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~trace:false
         ~default:0
         ~ninja_flags:(ninja_flags @ ["-t"; "targets"])
         (fun _ _ _ -> 0))
@@ -1051,7 +1034,6 @@ let raw_cmd : int Cmd.t =
       $ Cli.init_term ~allow_test_flags:true ()
       $ Cli.autotest
       $ Cli.code_coverage
-      $ Cli.quiet
       $ Cli.targets
       $ Cli.ninja_flags)
 
@@ -1060,7 +1042,6 @@ let build_cmd : int Cmd.t =
       config
       autotest
       code_coverage
-      quiet
       (target_args : string list)
       backends
       build_objects
@@ -1074,7 +1055,7 @@ let build_cmd : int Cmd.t =
     in
     let enabled_backends = backends_to_config backends in
     let targets, info =
-      Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
+      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
         ~trace:false
         ~default:(empty_targets, Clerk_rules.empty_info)
         ~ninja_flags ~autotest:false ~clean_up_env:false
@@ -1095,8 +1076,7 @@ let build_cmd : int Cmd.t =
     List.iter
       (install_backend_targets ~config info targets.clerk_targets)
       enabled_backends;
-    if quiet then Message.result "@[<v 4>Build successful@]"
-    else advertise_installed ~config ~backends:enabled_backends info targets;
+    advertise_installed ~config ~backends:enabled_backends info targets;
     raise (Catala_utils.Cli.Exit_with 0)
   in
   let doc = "Builds the targets given as arguments." in
@@ -1133,7 +1113,6 @@ let build_cmd : int Cmd.t =
       $ Cli.init_term ()
       $ Cli.autotest
       $ Cli.code_coverage
-      $ Cli.quiet
       $ Cli.clerk_targets_or_files_or_folders
       $ Cli.backends
       $ Cli.objects
@@ -1147,7 +1126,6 @@ let run_cmd =
       (target_args : string list)
       backends
       cmd
-      quiet
       (scope : string option)
       scope_input
       (ninja_flags : string list)
@@ -1172,8 +1150,7 @@ let run_cmd =
     in
     let enabled_backends = backends_to_config backends in
     let exec_targets, _items, info =
-      Clerk_rules.run_ninja ~quiet ~code_coverage:false ~config
-        ~enabled_backends
+      Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
         ~default:([], [], Clerk_rules.empty_info)
         ~trace:(trace <> None) ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
@@ -1219,7 +1196,6 @@ let run_cmd =
       $ Cli.files_or_folders
       $ Cli.backends
       $ Cli.run_command
-      $ Cli.quiet
       $ Cli.scope_opt
       $ Cli.scope_input
       $ Cli.ninja_flags
@@ -1267,6 +1243,7 @@ let typecheck_cmd =
               @ ["typecheck"; "--quiet"]
               @ (if disable_warnings then ["--disable-warnings"] else [])
               @ catala_flags
+              @ (if Message.has_color stderr then ["--color=always"] else [])
               @ [it.Scan.file_name]
             in
             Message.debug "Running command: '%s'..." (String.concat " " cmd);
@@ -1297,7 +1274,6 @@ let clean_cmd =
 let test_cmd =
   let run
       config
-      quiet
       (target_args : string list)
       (backends : [ `Interpret | `OCaml | `C | `Python | `Java ] list)
       (reset_test_outputs : bool)
@@ -1346,7 +1322,7 @@ let test_cmd =
       (* Autotests always require the interpret (OCaml) objects *)
     in
     let exec_targets, _items, info, test_targets =
-      Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~keep_going:false
+      Clerk_rules.run_ninja ~code_coverage ~config ~keep_going:false
         ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest:true
         ~tests:true ~trace:false
         ~default:([], [], Clerk_rules.empty_info, [])
@@ -1468,7 +1444,6 @@ let test_cmd =
     Term.(
       const run
       $ Cli.init_term ~allow_test_flags:true ()
-      $ Cli.quiet
       $ Cli.clerk_targets_or_files_or_folders
       $ Cli.backends
       $ Cli.reset_test_outputs
@@ -1519,7 +1494,7 @@ let runtest_cmd =
       $ Cli.single_file
       $ Cli.whole_program)
 
-let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
+let run_ninja_start ~config ~ninja_flags ~enabled_backends cont =
   let default =
     List.fold_left
       (fun default_rules (module B : Clerk_backend.S) ->
@@ -1533,17 +1508,16 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
       ]
       enabled_backends
   in
-  Clerk_rules.run_ninja ~skip_project_scan:true ~code_coverage:false ~quiet
-    ~default:0 ~config
-    ~enabled_backends:(List.map Clerk_backend.id enabled_backends)
+  Clerk_rules.run_ninja ~skip_project_scan:true ~code_coverage:false ~default:0
+    ~config ~enabled_backends:(List.map Clerk_backend.id enabled_backends)
     ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
       Nj.format_def nin_ppf (Nj.default default);
       cont ())
 
 let start_cmd =
-  let run config quiet (ninja_flags : string list) =
+  let run config (ninja_flags : string list) =
     let enabled_backends = target_backends config.Cli.file.targets in
-    run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends ~trace:false
+    run_ninja_start ~config ~ninja_flags ~enabled_backends ~trace:false
       (fun () -> 0)
   in
   let doc =
@@ -1553,16 +1527,11 @@ let start_cmd =
      before direct calls to the $(i,catala) compiler."
   in
   Cmd.v (Cmd.info ~doc "start")
-    Term.(
-      const run
-      $ Cli.init_term ~allow_test_flags:true ()
-      $ Cli.quiet
-      $ Cli.ninja_flags)
+    Term.(const run $ Cli.init_term ~allow_test_flags:true () $ Cli.ninja_flags)
 
 let ci_cmd =
   let run
       config
-      quiet
       (target_args : string list)
       backends
       build_objects
@@ -1587,7 +1556,7 @@ let ci_cmd =
       code_coverage;
     let enabled_backends = backends_to_config backends in
     let targets, exec_targets, _items, info, test_targets =
-      Clerk_rules.run_ninja ~quiet ~code_coverage ~config ~enabled_backends
+      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
         ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true ~trace:false
         ~default:(empty_targets, [], [], Clerk_rules.empty_info, [])
       @@ fun nin_ppf items info ->
@@ -1651,8 +1620,7 @@ let ci_cmd =
     List.iter
       (install_backend_targets ~config info targets.clerk_targets)
       enabled_backends;
-    if not quiet then
-      advertise_installed ~config ~backends:enabled_backends info targets;
+    advertise_installed ~config ~backends:enabled_backends info targets;
     0
   in
   let doc =
@@ -1664,7 +1632,6 @@ let ci_cmd =
     Term.(
       const run
       $ Cli.init_term ~allow_test_flags:false ()
-      $ Cli.quiet
       $ Cli.clerk_targets_or_files_or_folders
       $ Cli.backends
       $ Cli.objects

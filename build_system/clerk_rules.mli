@@ -66,7 +66,6 @@ val run_ninja :
   config:Clerk_cli.config ->
   ?tests:bool ->
   ?enabled_backends:Clerk_config.backend list ->
-  quiet:bool ->
   default:'a ->
   ?keep_going:bool ->
   code_coverage:bool ->

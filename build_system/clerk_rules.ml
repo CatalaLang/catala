@@ -428,28 +428,24 @@ let cleaned_up_env () =
 
 let ninja_exec = try Sys.getenv "NINJA_BIN" with Not_found -> "ninja"
 
-let ninja_version =
-  lazy
-    (try
-       File.process_out
-         ~check_exit:(function 0 -> () | _ -> raise Exit)
-         ninja_exec ["--version"]
-       |> String.trim
-       |> String.split_on_char '.'
-       |> List.map int_of_string
-     with Exit | Failure _ -> [])
-
 exception Stop_ninja
 
 let with_ninja_process
     ~config
     ~clean_up_env
     ~ninja_flags
-    ~quiet
     ~default
     ?(keep_going = false)
     (callback : Format.formatter -> 'a) =
   let env = if clean_up_env then cleaned_up_env () else Unix.environment () in
+  let env =
+    Array.concat
+      [
+        env;
+        Message.env_forward_vars ();
+        [| "NINJA_STATUS=[%f/%t] "; "CLICOLOR_FORCE=1" |];
+      ]
+  in
   let fname =
     match config.Clerk_cli.ninja_file with
     | Some fname -> Some fname
@@ -460,37 +456,22 @@ let with_ninja_process
   in
   let ninja_process nin_file nin_fd =
     let args =
-      let ninja_flags =
-        (* Newer versions of ninja have a flag to not print "nothing to do", we
-           use that if available. *)
-        if (not Global.options.debug) && Lazy.force ninja_version >= [1; 12]
-        then "--quiet" :: ninja_flags
-        else ninja_flags
-      in
       ("-f" :: nin_file :: ninja_flags)
       @ if Catala_utils.Global.options.debug then ["-v"] else []
     in
     let cmdline = ninja_exec :: args in
     Message.debug "executing '%s'..." (String.concat " " cmdline);
+    let nin_out_ic, nin_out_oc = Unix.pipe ~cloexec:true () in
     let npid =
-      let out =
-        (* In --quiet, we redirect all ninja's output to /dev/null *)
-        if quiet then Unix.openfile Filename.null [O_WRONLY] 0o111
-        else Unix.stdout
-      in
       Fun.protect
         ~finally:(fun () ->
-          if quiet then try Unix.close out with Unix.Unix_error _ -> ())
+          try Unix.close nin_out_oc with Unix.Unix_error _ -> ())
         (fun () ->
           Unix.create_process_env ninja_exec (Array.of_list cmdline) env nin_fd
-            out Unix.stderr)
+            nin_out_oc Unix.stderr)
     in
+    let nin_out_ic = Unix.in_channel_of_descr nin_out_ic in
     let rec wait () =
-      if (not Global.options.debug) && Unix.isatty Unix.stdout then
-        Printf.fprintf stdout "Compiling...\r\x1b[?25l%!\x1b[?25h\x1b[K";
-      (* Print message, return to beginning of line, flush, then clear line but
-         without flushing it yet; the ?25 codes are for hiding and showing back
-         the cursor *)
       match Unix.waitpid [] npid with
       | _, Unix.WEXITED n ->
         flush stdout;
@@ -503,9 +484,38 @@ let with_ninja_process
         flush stdout;
         130
     in
+    let isatty = Unix.isatty Unix.stdout in
+    let ninja_count_re =
+      Re.(
+        compile
+          (seq
+             [
+               bos;
+               char '[';
+               group (rep1 digit);
+               char '/';
+               group (rep1 digit);
+               char ']';
+             ]))
+    in
+    let rec readwait () =
+      match input_line nin_out_ic with
+      | exception End_of_file -> wait ()
+      | "ninja: no work to do." -> readwait ()
+      | line ->
+        (if Global.options.debug then print_endline line
+         else if isatty then
+           match Re.exec_opt ninja_count_re line with
+           | None -> print_endline line
+           | Some gs ->
+             let count = int_of_string (Re.Group.get gs 1) in
+             let total = int_of_string (Re.Group.get gs 2) in
+             Message.print_percent "Compiling..." count total);
+        readwait ()
+    in
     ( npid,
       fun () ->
-        match wait () with
+        match readwait () with
         | 0 -> ()
         | n -> if not keep_going then raise (Catala_utils.Cli.Exit_with n) )
   in
@@ -1136,7 +1146,6 @@ let run_ninja
     ~config
     ?(tests = false)
     ?(enabled_backends = List.map snd (Clerk_config.registered_backends ()))
-    ~quiet
     ~default
     ?keep_going
     ~code_coverage
@@ -1166,8 +1175,8 @@ let run_ninja
   let enabled_backends =
     List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
   in
-  with_ninja_process ~config ~clean_up_env ~ninja_flags ~quiet ~default
-    ?keep_going (fun nin_ppf ->
+  with_ninja_process ~config ~clean_up_env ~ninja_flags ~default ?keep_going
+    (fun nin_ppf ->
       (* Design note: the idea here is to write the ninja file as a stream while
          the directories are being crawled, with the ninja exec already
          consuming the end of the pipe in parallel. Therefore, refrain from

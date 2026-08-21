@@ -96,13 +96,21 @@ let has_color oc =
 (* Here we create new formatters to stderr/stdout that remain separate from the
    ones used by [Format.printf] / [Format.eprintf] (which remain unchanged) *)
 
-let formatter_of_out_channel ?(nocolor = false) oc =
+let formatter_of_out_channel
+    ?(nocolor = false)
+    ?force_color
+    ?force_tty
+    ?force_columns
+    oc =
   let tty = lazy Unix.(isatty (descr_of_out_channel oc)) in
   let ppf =
     lazy
       (let ppf = Format.formatter_of_out_channel oc in
-       if (not nocolor) && has_color_raw ~tty then color_formatter ppf
-       else if Lazy.force tty then unstyle_formatter ppf
+       if
+         (not nocolor) && Option.value force_color ~default:(has_color_raw ~tty)
+       then color_formatter ppf
+       else if Option.value force_tty ~default:(Lazy.force tty) then
+         unstyle_formatter ppf
        else (
          Format.pp_set_mark_tags ppf false;
          ppf))
@@ -110,22 +118,61 @@ let formatter_of_out_channel ?(nocolor = false) oc =
   let ppf =
     lazy
       (if
-         (Global.options.color = Always || Lazy.force tty)
-         && Sys.getenv_opt "TERM" <> Some "dumb"
+         Option.value force_tty
+           ~default:(Lazy.force tty && Sys.getenv_opt "TERM" <> Some "dumb")
        then add_custom_tags (Lazy.force ppf)
        else Lazy.force ppf)
   in
   fun () ->
     let ppf = Lazy.force ppf in
-    if Lazy.force tty then Format.pp_set_margin ppf (terminal_columns ());
+    (match force_columns with
+    | Some n -> Format.pp_set_margin ppf n
+    | _ ->
+      if Option.value force_tty ~default:(Lazy.force tty) then
+        Format.pp_set_margin ppf (terminal_columns ()));
     ppf
 
+let force_stdout_env = "CATALA_STDOUT_FORWARD"
+let force_stderr_env = "CATALA_STDERR_FORWARD"
+
+let env_forward_vars () =
+  let format var oc =
+    Printf.sprintf "%s=(%b|%b|%d)" var (has_color oc)
+      Unix.(isatty (descr_of_out_channel oc))
+      (terminal_columns ())
+  in
+  [| format force_stdout_env stdout; format force_stderr_env stderr |]
+
 let std_ppf =
-  let ppf = lazy (formatter_of_out_channel stdout ()) in
+  let ppf =
+    lazy
+      (let force_color, force_tty, force_columns =
+         match Sys.getenv_opt force_stdout_env with
+         | None -> None, None, None
+         | Some spec -> (
+           try
+             Scanf.sscanf spec "(%b|%b|%d)" (fun c t col ->
+                 Some c, Some t, Some col)
+           with Scanf.Scan_failure _ -> None, None, None)
+       in
+       formatter_of_out_channel stdout ?force_color ?force_tty ?force_columns ())
+  in
   fun () -> Lazy.force ppf
 
 let err_ppf =
-  let ppf = lazy (formatter_of_out_channel stderr ()) in
+  let ppf =
+    lazy
+      (let force_color, force_tty, force_columns =
+         match Sys.getenv_opt force_stderr_env with
+         | None -> None, None, None
+         | Some spec -> (
+           try
+             Scanf.sscanf spec "(%b|%b|%d)" (fun c t col ->
+                 Some c, Some t, Some col)
+           with Scanf.Scan_failure _ -> None, None, None)
+       in
+       formatter_of_out_channel stderr ?force_color ?force_tty ?force_columns ())
+  in
   fun () -> Lazy.force ppf
 
 let ignore_ppf =
@@ -702,3 +749,26 @@ let report_delayed_errors_if_any () =
 
 let combine_with_pending_errors content bt =
   List.rev ((content, bt) :: global_errors.rev_delayed_errors)
+
+let show_progress () =
+  (not Global.options.debug)
+  && Unix.isatty Unix.stdout
+  && Sys.getenv_opt "TERM" <> Some "dumb"
+
+let ansi_transient_line_suffix = format_of_string "\r\x1b[?25l%!\x1b[?25h\x1b[K"
+(* Return to beginning of line, flush, then clear line but without flushing it
+   yet; the ?25 codes are for hiding and showing back the cursor resp. before
+   and after the flush *)
+
+let print_status fmt =
+  if show_progress () then
+    Printf.fprintf stdout (fmt ^^ ansi_transient_line_suffix)
+  else Printf.ifprintf stdout fmt
+
+let print_percent pfx x y =
+  let color =
+    Printf.sprintf "\x1b[38;2;0;%d;%dm"
+      (179 + (50 * x / y))
+      (255 - (180 * x / y))
+  in
+  print_status "%s \x1b[1m%s%3d%%\x1b[m" pfx color (100 * x / y)

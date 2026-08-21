@@ -50,15 +50,6 @@ let autotest =
            guarantee that the necessary artifacts for interpretation are \
            present.")
 
-let quiet =
-  Arg.(
-    value
-    & flag
-    & info ["quiet"]
-        ~doc:
-          "Silences the $(i,ninja) build tool that usually prints its output \
-           on the standard output.")
-
 let prepare_only =
   Arg.(
     value
