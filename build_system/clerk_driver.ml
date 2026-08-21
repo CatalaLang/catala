@@ -321,6 +321,10 @@ let items_in_subdirs items dirs =
         dirs)
     items
 
+let project_dir_targets ~config items =
+  let dir = config.Clerk_cli.fix_path Filename.current_dir_name in
+  { empty_targets with directories = [dir, items_in_subdirs items [dir]] }
+
 (* default for the build and run commands, `clerk test` has a different rule *)
 let default_targets config items =
   match config.Cli.file.global.default_targets with
@@ -341,9 +345,7 @@ let default_targets config items =
   | [] -> (
     match config.file.targets with
     | _ :: _ as clerk_targets -> { empty_targets with clerk_targets }
-    | [] ->
-      let dir = config.fix_path Filename.current_dir_name in
-      { empty_targets with directories = [dir, items_in_subdirs items [dir]] })
+    | [] -> project_dir_targets ~config items)
 
 let sort_user_target_args
     config
@@ -1213,119 +1215,57 @@ let run_cmd =
       $ Catala_utils.Cli.Flags.trace_format)
 
 let typecheck_cmd =
-  let retrieve_typecheck_items items files_or_folders =
-    (* todo: - allow to specify a clerk target - run in "inplace" mode like json or exceptions commands *)
-    let files_or_folders = List.sort_uniq String.compare files_or_folders in
-    let open File in
-    let invalid_files =
-      List.filter (fun f -> not (File.exists f)) files_or_folders
+  let run config (target_args : File.t list) disable_warnings =
+    let items, info = Clerk_rules.scan_project ~config in
+    let inclusion_map = Clerk_rules.inclusion_map items in
+    let targets =
+      if target_args = [] then project_dir_targets ~config items
+      else
+        sort_user_target_args config ~autotest:false ~backends:[`Interpret]
+          items info target_args
     in
-    if invalid_files <> [] then
-      Message.error "@[<hov>No source file or directory matching@ %a@ found.@]"
-        Format.(
-          pp_print_list
-            ~pp_sep:(fun fmt () -> fprintf fmt ",@ ")
-            (fun fmt f -> fprintf fmt "@{<yellow>%s@}" f))
-        invalid_files;
-    let included_files =
-      List.fold_left
-        (fun m { Scan.file_name; included_files; _ } ->
-          if included_files <> [] then
-            List.fold_left
-              (fun m inc_f -> String.Map.add (Mark.remove inc_f) file_name m)
-              m included_files
-          else m)
-        String.Map.empty items
+    let check_items =
+      List.concat_map
+        (fun t ->
+          List.map
+            (fun m -> (String.Map.find m info.modules_map).item)
+            t.Config.tmodules)
+        targets.clerk_targets
+      @ List.map (fun m -> m.Clerk_rules.item) targets.modules
+      @ List.concat_map snd targets.directories
+      @ targets.source_files
+      @ List.map (fun (_, it, _) -> it) targets.direct_targets
     in
-    List.concat_map
-      (fun file ->
-        let is_dir = try Sys.is_directory file with Sys_error _ -> false in
-        let filter item =
-          let is_included = String.Map.mem item.Scan.file_name included_files in
-          if is_dir then
-            let is_prefix =
-              String.starts_with ~prefix:(file / "") item.Scan.file_name
-            in
-            (* Silently skip included file *)
-            (not is_included) && is_prefix
-          else
-            let valid =
-              Option.map Mark.remove item.Scan.module_def
-              = Some (File.basename file)
-              || item.Scan.file_name = file
-              || File.remove_extension item.Scan.file_name = file
-            in
-            if valid && is_included then (
-              (* Warn valid included file *)
-              Message.warning
-                "Skipping file @{<yellow>%s@} included in @{<cyan>%s@}"
-                item.Scan.file_name
-                (String.Map.find item.Scan.file_name included_files);
-              false)
-            else valid
-        in
-        List.filter filter items)
-      files_or_folders
-  in
-  let run
-      config
-      (files_or_folders : File.t list)
-      quiet
-      (ninja_flags : string list) =
-    let files_or_folders =
-      List.map config.Cli.fix_path
-      @@ if files_or_folders = [] then [File.original_cwd] else files_or_folders
+    let check_items =
+      List.map
+        (fun it ->
+          match String.Map.find_opt it.Scan.file_name inclusion_map with
+          | Some parent -> parent
+          | None -> it)
+        check_items
     in
-    let exception Nothing_to_do in
-    match
-      Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends:[]
-        ~trace:false ~autotest:false ~ninja_flags ~quiet ~default:([], [])
-        (fun nin_ppf items info ->
-          let target_items = retrieve_typecheck_items items files_or_folders in
-          if target_items = [] then
-            (* Prevents [run_ninja] to fail miserably with an obscure error *)
-            raise Nothing_to_do
-          else
-            let ninja_targets =
-              List.map
-                (fun it ->
-                  match it.Scan.module_def with
-                  | Some mdef ->
-                    let src = it.file_name in
-                    let dir = File.dirname src in
-                    if
-                      it.is_stdlib
-                      || List.mem dir config.file.global.include_dirs
-                    then
-                      Nj.Expr.Word
-                        ("@catala/src/" ^ String.to_id (Mark.remove mdef))
-                    else Nj.Expr.Word src
-                  | None -> Nj.Expr.Word it.file_name)
-                target_items
-            in
-            Nj.format_def nin_ppf (Nj.default ninja_targets);
-            target_items, info.var_bindings)
-    with
-    | exception Nothing_to_do -> Message.error "Nothing to typecheck."
-    | target_items, var_bindings ->
-      let catala_flags = Var.get var_bindings Var.catala_flags in
-      let exec = Var.get var_bindings Var.catala_exe in
+    let check_items =
+      List.sort_uniq
+        (fun it1 it2 -> File.compare it1.Scan.file_name it2.Scan.file_name)
+        check_items
+    in
+    if check_items = [] then Message.error "Nothing to typecheck."
+    else
+      let catala_flags = Var.get info.var_bindings Var.catala_flags in
+      let exec = Var.get info.var_bindings Var.catala_exe in
       let ret =
-        List.filter_map
+        List.map
           (fun it ->
-            if it.Scan.is_stdlib then None
-            else
-              Option.some
-              @@
-              let cmd =
-                exec
-                @ ["typecheck"; "--quiet"]
-                @ catala_flags
-                @ [it.Scan.file_name]
-              in
-              Message.debug "Running command: '%s'..." (String.concat " " cmd);
-              fst (Clerk_cli.run_command_line cmd))
-          target_items
+            let cmd =
+              exec
+              @ ["typecheck"; "--quiet"]
+              @ (if disable_warnings then ["--disable-warnings"] else [])
+              @ catala_flags
+              @ [it.Scan.file_name]
+            in
+            Message.debug "Running command: '%s'..." (String.concat " " cmd);
+            fst (Clerk_cli.run_command_line cmd))
+          check_items
       in
       let ret = List.fold_left max 0 ret in
       if ret = 0 then Message.result "Typechecking successful!";
@@ -1335,11 +1275,7 @@ let typecheck_cmd =
   Cmd.v
     (Cmd.info ~doc "typecheck")
     Term.(
-      const run
-      $ Cli.init_term ()
-      $ Cli.files_or_folders
-      $ Cli.quiet
-      $ Cli.ninja_flags)
+      const run $ Cli.init_term () $ Cli.files_or_folders $ Cli.disable_warnings)
 
 let clean_cmd =
   let run (config : Cli.config) =
@@ -1414,15 +1350,7 @@ let test_cmd =
          failed to build could remain from a previous run and that would be
          confusing. *)
       let targets =
-        if target_args = [] then
-          {
-            empty_targets with
-            directories =
-              [
-                ( Filename.current_dir_name,
-                  items_in_subdirs items [Filename.current_dir_name] );
-              ];
-          }
+        if target_args = [] then project_dir_targets ~config items
         else
           sort_user_target_args config ~autotest:true ~backends items info
             target_args
@@ -1599,7 +1527,7 @@ let run_ninja_start ~config ~quiet ~ninja_flags ~enabled_backends cont =
       ]
       enabled_backends
   in
-  Clerk_rules.run_ninja ~include_dir:false ~code_coverage:false ~quiet
+  Clerk_rules.run_ninja ~skip_project_scan:true ~code_coverage:false ~quiet
     ~default:0 ~config
     ~enabled_backends:(List.map Clerk_backend.id enabled_backends)
     ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
@@ -1660,16 +1588,8 @@ let ci_cmd =
       let targets =
         if target_args = [] then
           {
-            empty_targets with
+            (project_dir_targets ~config items) with
             clerk_targets = config.file.targets;
-            directories =
-              (* This will include all tests in all directories ; the above line
-                 would be enough to include all tests specified in the clerk
-                 target test dirs *)
-              [
-                ( Filename.current_dir_name,
-                  items_in_subdirs items [Filename.current_dir_name] );
-              ];
           }
         else
           sort_user_target_args config ~autotest:true ~backends items info

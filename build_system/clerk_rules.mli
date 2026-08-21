@@ -53,8 +53,13 @@ type callback_info = {
 val empty_info : callback_info
 val stdlib_target_name : string
 
+val scan_project : config:Clerk_cli.config -> Scan.item list * callback_info
+(** Builds the targets and module infos for the whole project similarly to
+    [run_ninja], but without running Ninja. This should never be called this if
+    Ninja is actually going to be called afterwards. *)
+
 val run_ninja :
-  ?include_dir:bool ->
+  ?skip_project_scan:bool ->
   config:Clerk_cli.config ->
   ?tests:bool ->
   ?enabled_backends:Clerk_config.backend list ->
@@ -84,3 +89,7 @@ val run_ninja :
 val module_backends : callback_info -> string -> Clerk_config.backend list
 (** Returns the list of backends supported by a given module by analysing the
     clerk targets it belongs to *)
+
+val inclusion_map : Scan.item list -> Scan.item String.Map.t
+(** Computes a map that associates, for every catala file that is actually a
+    fragment, the actual non-fragment item that finally includes it. *)

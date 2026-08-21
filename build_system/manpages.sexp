@@ -1,5 +1,6 @@
 (rule (alias man) (action (with-stdout-to clerk.1 (run %{bin:clerk}  --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-build.1 (run %{bin:clerk} build --help=groff))))
+(rule (alias man) (action (with-stdout-to clerk-ci.1 (run %{bin:clerk} ci --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-clean.1 (run %{bin:clerk} clean --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-exceptions.1 (run %{bin:clerk} exceptions --help=groff))))
 (rule (alias man) (action (with-stdout-to clerk-json-schema.1 (run %{bin:clerk} json-schema --help=groff))))

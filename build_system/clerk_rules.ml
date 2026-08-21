@@ -1038,8 +1038,81 @@ let module_backends info modname =
           acc (String.Map.find t info.targets_map).Clerk_config.backends)
       m.targets []
 
+let scan_stdlib_items () =
+  let stdlib_dir = Lazy.force Poll.stdlib_dir in
+  Seq.memoize (Scan.tree stdlib_dir)
+
+let scan_project_items ~cleanup ~config =
+  let insource = Lazy.force Poll.catala_source_tree_root <> None in
+  let item_tree = Scan.tree Filename.current_dir_name in
+  let item_tree =
+    (* Cleanup leftover source files in _build when we scan the
+       corresponding directory in the source tree *)
+    if cleanup then
+      (* This is a map rather than an iter so that it is performed lazily *)
+      Seq.map
+        (fun ((f, _, items) as elt) ->
+          match
+            File.(check_directory (config.Clerk_cli.file.global.build_dir / f))
+          with
+          | None -> elt
+          | Some dir ->
+            let current =
+              List.fold_left
+                File.(fun set it -> Set.add (basename it.Scan.file_name) set)
+                File.Set.empty items
+            in
+            let in_build =
+              Sys.readdir dir
+              |> Array.to_seq
+              |> Seq.filter (fun f -> Scan.get_lang f <> None)
+              |> File.Set.of_seq
+            in
+            let leftover = File.Set.diff in_build current in
+            if not (File.Set.is_empty leftover) then (
+              Message.debug
+                "@[<hov 2>Cleaning up leftover source files in %a:@ %a@]"
+                File.format dir
+                (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
+                (File.Set.elements leftover);
+              File.Set.iter (fun f -> Sys.remove File.(dir / f)) leftover);
+            elt)
+        item_tree
+    else item_tree
+  in
+  let item_tree =
+    if insource then
+      (* Special case for building within the catala compiler source tree *)
+      Seq.filter
+        (fun (f, _, _) -> not (String.starts_with ~prefix:"stdlib" f))
+        item_tree
+    else item_tree
+  in
+  let item_tree =
+    (* Add dependencies towards the proper stdlib *)
+    Seq.map
+      (fun (f, fl, items) ->
+        let items =
+          List.map
+            (fun it ->
+              let used_modules =
+                match Scan.get_lang it.Scan.file_name with
+                | Some lg ->
+                  let lg = if Global.has_localised_stdlib lg then lg else `En in
+                  ("Stdlib_" ^ Cli.language_code lg, Pos.from_file f)
+                  :: it.Scan.used_modules
+                | None -> it.Scan.used_modules
+              in
+              { it with Scan.used_modules })
+            items
+        in
+        f, fl, items)
+      item_tree
+  in
+  Seq.memoize item_tree
+
 let run_ninja
-    ?(include_dir = true)
+    ?(skip_project_scan = false)
     ~config
     ?(tests = false)
     ?(enabled_backends = List.map snd (Clerk_config.registered_backends ()))
@@ -1079,88 +1152,22 @@ let run_ninja
          the directories are being crawled, with the ninja exec already
          consuming the end of the pipe in parallel. Therefore, refrain from
          forcing the item sequence prematurely. *)
-      let insource = Lazy.force Poll.catala_source_tree_root <> None in
-      let stdlib_dir = Lazy.force Poll.stdlib_dir in
-      let stdlib_tree = Scan.tree stdlib_dir in
-      let item_tree = if include_dir then Scan.tree "." else Seq.empty in
+      let stdlib_tree = scan_stdlib_items () in
       let item_tree =
-        (* Cleanup leftover source files in _build when we scan the
-           corresponding directory in the source tree *)
-        Seq.map
-          (fun ((f, _, items) as elt) ->
-            match File.(check_directory (config.file.global.build_dir / f)) with
-            | None -> elt
-            | Some dir ->
-              let current =
-                List.fold_left
-                  File.(fun set it -> Set.add (basename it.Scan.file_name) set)
-                  File.Set.empty items
-              in
-              let in_build =
-                Sys.readdir dir
-                |> Array.to_seq
-                |> Seq.filter (fun f -> Scan.get_lang f <> None)
-                |> File.Set.of_seq
-              in
-              let leftover = File.Set.diff in_build current in
-              if not (File.Set.is_empty leftover) then (
-                Message.debug
-                  "@[<hov 2>Cleaning up leftover source files in %a:@ %a@]"
-                  File.format dir
-                  (Format.pp_print_list ~pp_sep:Format.pp_print_space
-                     File.format)
-                  (File.Set.elements leftover);
-                File.Set.iter (fun f -> Sys.remove File.(dir / f)) leftover);
-              elt)
-          item_tree
+        if skip_project_scan then Seq.empty
+        else scan_project_items ~cleanup:true ~config
       in
-      let item_tree =
-        if insource then
-          (* Special case for building within the catala compiler source tree *)
-          Seq.filter
-            (fun (f, _, _) -> not (String.starts_with ~prefix:"stdlib" f))
-            item_tree
-        else item_tree
-      in
-      let item_tree =
-        (* Add dependencies towards the proper stdlib *)
-        Seq.map
-          (fun (f, fl, items) ->
-            let items =
-              List.map
-                (fun it ->
-                  let used_modules =
-                    match Scan.get_lang it.Scan.file_name with
-                    | Some lg ->
-                      let lg =
-                        if Global.has_localised_stdlib lg then lg else `En
-                      in
-                      ("Stdlib_" ^ Cli.language_code lg, Pos.from_file f)
-                      :: it.Scan.used_modules
-                    | None -> it.Scan.used_modules
-                  in
-                  { it with Scan.used_modules })
-                items
-            in
-            f, fl, items)
-          item_tree
-      in
-      let stdlib_tree = Seq.memoize stdlib_tree in
-      let item_tree = Seq.memoize item_tree in
       let items =
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
           ~var_bindings stdlib_tree item_tree
       in
       let modules_map, targets_map, linking_deps =
-        if include_dir = false then
-          String.Map.empty, String.Map.empty, fun _ -> []
-        else
-          let item_seq =
-            Seq.flat_map
-              (fun (_, _, it) -> List.to_seq it)
-              (Seq.append stdlib_tree item_tree)
-          in
-          organise_modules ~config:config.file item_seq
+        let item_seq =
+          Seq.flat_map
+            (fun (_, _, it) -> List.to_seq it)
+            (Seq.append stdlib_tree item_tree)
+        in
+        organise_modules ~config:config.file item_seq
       in
       let pp nj =
         Nj.format_def nin_ppf nj;
@@ -1256,3 +1263,36 @@ let run_ninja
       let ret = callback nin_ppf items_list callback_info in
       Format.pp_print_newline nin_ppf ();
       ret)
+
+let scan_project ~config =
+  let var_bindings =
+    base_bindings ~code_coverage:false ~trace:false ~autotest:false
+      ~enabled_backends:[] ~inplace:true ~config
+  in
+  let items =
+    scan_stdlib_items ()
+    |> Seq.append (scan_project_items ~cleanup:false ~config)
+    |> Seq.flat_map (fun (_, _, it) -> List.to_seq it)
+  in
+  let modules_map, targets_map, linking_deps =
+    organise_modules ~config:config.Clerk_cli.file items
+  in
+  List.of_seq items, { var_bindings; modules_map; targets_map; linking_deps }
+
+let inclusion_map items =
+  let direct_map =
+    List.fold_left
+      (fun map it ->
+        List.fold_left
+          (fun map (f, _pos) -> String.Map.add f it map)
+          map it.Scan.included_files)
+      String.Map.empty items
+  in
+  let rec find it map =
+    match String.Map.find_opt it.Scan.file_name map with
+    | None -> it
+    | Some parent -> find parent map
+  in
+  String.Map.fold
+    (fun file it map -> String.Map.add file (find it map) map)
+    direct_map direct_map

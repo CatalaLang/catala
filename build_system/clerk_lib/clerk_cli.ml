@@ -367,6 +367,13 @@ let ninja_flags =
   in
   Term.(const makeflags_to_ninja_flags $ makeflags)
 
+let disable_warnings =
+  let open Arg in
+  value
+  & flag
+  & info ["disable-warnings"]
+      ~doc:"Disable all warnings emitted by the Catala compiler."
+
 let whole_program =
   let open Arg in
   value

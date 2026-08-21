@@ -459,7 +459,7 @@ and expand_includes
                      ]
                    "A file that declares a module cannot be used through the \
                     raw '@{<yellow>> Include@}'@ directive.@ You should use it \
-                    as a module with@ '@{<yellow>> Use @{<blue>%s@}@}'@ \
+                    as a module with@ '@{<yellow>> Using @{<blue>%s@}@}'@ \
                     instead."
                    (Mark.remove id.Ast.module_name)
             in

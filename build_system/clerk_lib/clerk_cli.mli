@@ -49,6 +49,7 @@ val report_format : [> `Terminal | `JUnitXML | `VSCodeJSON ] Term.t
 val code_coverage : bool Term.t
 val diff_command : string option option Term.t
 val ninja_flags : string list Term.t
+val disable_warnings : bool Term.t
 val whole_program : bool Term.t
 val objects : bool Term.t
 val info : Cmd.info
