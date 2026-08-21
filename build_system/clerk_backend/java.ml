@@ -147,7 +147,7 @@ module Spec : Sig.Spec = struct
                   Word "-o"; !!output; Word "--"; !!input]
         ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
       Nj.rule "java-class"
-        ~command:[!!javac; Word "-cp"; Word File.(!builddir / Scan.libcatala / name ^ Path.list_sep () ^ !class_path); !!javac_flags; !!input]
+        ~command:[!!javac; Word "-encoding"; Word "UTF-8"; Word "-cp"; Word File.(!builddir / Scan.libcatala / name ^ Path.list_sep () ^ !class_path); !!javac_flags; !!input]
         ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     ]
 
