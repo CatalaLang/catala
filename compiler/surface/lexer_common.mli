@@ -49,6 +49,13 @@ exception Lexing_error of (Catala_utils.Pos.t * string)
 val raise_lexer_error : Catala_utils.Pos.t -> string -> 'a
 (** Error-generating helper *)
 
+val check_keyword_boundary :
+  Sedlexing.lexbuf -> Catala_utils.Pos.t -> string -> unit
+(** Checks that the character immediately following the last lexeme is not an
+    identifier character, and raises a lexing error if it is. Used after
+    multi-word keywords to prevent e.g. [under conditiontrue] from lexing as
+    the keyword followed by [true]. *)
+
 val token_list_language_agnostic : (string * Tokens.token) list
 (** Associative list matching each punctuation string part of the Catala syntax
     with its {!Surface.Parser} token. Same for all the input languages (English,

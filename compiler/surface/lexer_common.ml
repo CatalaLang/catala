@@ -103,6 +103,31 @@ exception Lexing_error of (Pos.t * string)
 let raise_lexer_error (loc : Pos.t) (token : string) =
   raise (Lexing_error (loc, token))
 
+(** Multi-word keywords (e.g. [under condition]) are matched by regexps that do
+    not enforce any separator afterwards, so input such as [under conditiontrue]
+    would otherwise be wrongly lexed as the keyword followed by [true]. This
+    checks that the character immediately following the last lexeme is not an
+    identifier character, and raises a lexing error if it is. It peeks at the
+    next character and restores the lexbuf position afterwards. *)
+let check_keyword_boundary lexbuf pos prev_lexeme =
+  let is_idchar c =
+    let n = Uchar.to_int c in
+    (n >= 0x61 && n <= 0x7a) (* lowercase *)
+    || (n >= 0x41 && n <= 0x5a) (* uppercase *)
+    || (n >= 0x30 && n <= 0x39) (* digit *)
+    || n = 0x5f (* '_' *) || n = 0x27 (* '\'' *)
+  in
+  Sedlexing.mark lexbuf 0;
+  let bad =
+    match Sedlexing.next lexbuf with
+    | Some c -> is_idchar c
+    | None -> false (* EOF *)
+  in
+  if bad then raise_lexer_error pos prev_lexeme
+  else ignore (Sedlexing.backtrack lexbuf)
+  (* Note: in the [bad] case the lexbuf state is abandoned since the
+     [Lexing_error] exception propagates. *)
+
 (** Associative list matching each punctuation string part of the Catala syntax
     with its {!module: Surface.Parser} token. Same for all the input languages
     (English, French, etc.) *)
