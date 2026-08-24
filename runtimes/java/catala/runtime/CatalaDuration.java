@@ -163,7 +163,7 @@ public final class CatalaDuration extends CatalaValue<CatalaDuration> {
             }
             b.append("\"days\":").append(this.period.days);
         }
-        b.append(" }");
+        b.append(" }");
         return b.toString();
     }
 }
