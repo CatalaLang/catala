@@ -202,7 +202,7 @@ public final class CatalaDecimal extends CatalaValue<CatalaDecimal> {
             }
         }
         if (!r.equals(BigInteger.ZERO)) {
-            s.append("…");
+            s.append("\u2026");
         }
         return s.toString();
     }

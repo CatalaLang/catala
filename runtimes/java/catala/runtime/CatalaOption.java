@@ -66,7 +66,7 @@ public final class CatalaOption<T extends CatalaValue<?>> extends CatalaValue<Ca
             return "Absent";
         } else {
             if (CatalaGlobals.lang == CatalaGlobals.Language.FR) {
-                return "Présent contenu " + get().toString(indent + 2);
+                return "Pr\u00e9sent contenu " + get().toString(indent + 2);
             } else {
                 return "Present content " + get().toString(indent + 2);
             }
