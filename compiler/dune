@@ -16,7 +16,13 @@
 (executable
  (name tests)
  (modules tests)
- (libraries catala.driver alcotest))
+ (libraries
+  catala.driver
+  catala.clerk_backend
+  catala.scalc
+  catala.lcalc
+  catala.runtime_ocaml
+  alcotest))
 
 (rule
  (target custom_linking.sexp)

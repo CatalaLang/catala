@@ -87,6 +87,39 @@ val obj6 :
   'f field ->
   ('a * 'b * 'c * 'd * 'e * 'f) descr
 
+val obj7 :
+  'a field ->
+  'b field ->
+  'c field ->
+  'd field ->
+  'e field ->
+  'f field ->
+  'g field ->
+  ('a * 'b * 'c * 'd * 'e * 'f * 'g) descr
+
+val obj8 :
+  'a field ->
+  'b field ->
+  'c field ->
+  'd field ->
+  'e field ->
+  'f field ->
+  'g field ->
+  'h field ->
+  ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h) descr
+
+val obj9 :
+  'a field ->
+  'b field ->
+  'c field ->
+  'd field ->
+  'e field ->
+  'f field ->
+  'g field ->
+  'h field ->
+  'i field ->
+  ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h * 'i) descr
+
 val merge_objs : 'a descr -> 'b descr -> ('a * 'b) descr
 
 (** Union *)

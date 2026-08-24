@@ -1,4 +1,5 @@
 (library
  (name clerk_lib)
  (public_name catala.clerk_lib)
+ (wrapped false)
  (libraries catala.catala_utils catala.surface otoml))

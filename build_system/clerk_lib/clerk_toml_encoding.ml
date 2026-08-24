@@ -111,6 +111,14 @@ let obj3 f3 f2 f1 = merge_objs (obj1 f3) (obj2 f2 f1)
 let obj4 f4 f3 f2 f1 = merge_objs (obj2 f4 f3) (obj2 f2 f1)
 let obj5 f5 f4 f3 f2 f1 = merge_objs (obj1 f5) (obj4 f4 f3 f2 f1)
 let obj6 f6 f5 f4 f3 f2 f1 = merge_objs (obj2 f6 f5) (obj4 f4 f3 f2 f1)
+let obj7 f7 f6 f5 f4 f3 f2 f1 = merge_objs (obj3 f7 f6 f5) (obj4 f4 f3 f2 f1)
+
+let obj8 f8 f7 f6 f5 f4 f3 f2 f1 =
+  merge_objs (obj4 f8 f7 f6 f5) (obj4 f4 f3 f2 f1)
+
+let obj9 f9 f8 f7 f6 f5 f4 f3 f2 f1 =
+  merge_objs (obj1 f9) (obj8 f8 f7 f6 f5 f4 f3 f2 f1)
+
 let binding_list f = List (Obj (Free f))
 
 let merge_tables l r =
@@ -174,10 +182,31 @@ let conv6 ty =
     (fun ((f, e), ((d, c), (b, a))) -> f, e, d, c, b, a)
     ty
 
+let conv7 ty =
+  conv
+    (fun (g, f, e, d, c, b, a) -> (g, (f, e)), ((d, c), (b, a)))
+    (fun ((g, (f, e)), ((d, c), (b, a))) -> g, f, e, d, c, b, a)
+    ty
+
+let conv8 ty =
+  conv
+    (fun (h, g, f, e, d, c, b, a) -> ((h, g), (f, e)), ((d, c), (b, a)))
+    (fun (((h, g), (f, e)), ((d, c), (b, a))) -> h, g, f, e, d, c, b, a)
+    ty
+
+let conv9 ty =
+  conv
+    (fun (i, h, g, f, e, d, c, b, a) -> i, (((h, g), (f, e)), ((d, c), (b, a))))
+    (fun (i, (((h, g), (f, e)), ((d, c), (b, a)))) -> i, h, g, f, e, d, c, b, a)
+    ty
+
 let obj3 f3 f2 f1 = conv3 (obj3 f3 f2 f1)
 let obj4 f4 f3 f2 f1 = conv4 (obj4 f4 f3 f2 f1)
 let obj5 f5 f4 f3 f2 f1 = conv5 (obj5 f5 f4 f3 f2 f1)
 let obj6 f6 f5 f4 f3 f2 f1 = conv6 (obj6 f6 f5 f4 f3 f2 f1)
+let obj7 f7 f6 f5 f4 f3 f2 f1 = conv7 (obj7 f7 f6 f5 f4 f3 f2 f1)
+let obj8 f8 f7 f6 f5 f4 f3 f2 f1 = conv8 (obj8 f8 f7 f6 f5 f4 f3 f2 f1)
+let obj9 f9 f8 f7 f6 f5 f4 f3 f2 f1 = conv9 (obj9 f9 f8 f7 f6 f5 f4 f3 f2 f1)
 let convt proj inj descr = ConvT { proj; inj; descr }
 
 let convt3 ty =

@@ -1,0 +1,10 @@
+# Module living in a directory whose name contains a space. Regression test:
+# include dirs and executable paths must be shell-quoted in ninja rule commands
+# (a bare `-I _build/.../spaced dir/ocaml` word-splits in the shell).
+
+> Module Spaced_mod
+
+```catala-metadata
+declaration answer content integer
+  equals 42
+```

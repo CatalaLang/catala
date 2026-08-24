@@ -133,7 +133,13 @@ val err_ppf : unit -> Format.formatter
 val ignore_ppf : unit -> Format.formatter
 
 val formatter_of_out_channel :
-  ?nocolor:bool -> out_channel -> unit -> Format.formatter
+  ?nocolor:bool ->
+  ?force_color:bool ->
+  ?force_tty:bool ->
+  ?force_columns:int ->
+  out_channel ->
+  unit ->
+  Format.formatter
 (** Creates a new formatter from the given out channel, with correct handling of
     the ocolor tags. Actual use of escape codes in the output depends on
     [Cli.style_flag] -- and wether the channel is a tty if that is set to auto.
@@ -186,3 +192,16 @@ val combine_with_pending_errors :
 (** [combine_with_pending_errors error bt] adds the given [error] and its
     backtrace [bt] to the current pending errors (if any) and returns the
     ordered list of errors to eventually emit with [Content.emit_n]. *)
+
+val print_status : ('a, out_channel, unit) format -> 'a
+(** Prints a transient status line to stdout, if it is a tty. Warning: Format
+    and custom tags not supported *)
+
+val print_percent : string -> int -> int -> unit
+(** Prints a transient status line to stdout if it is a tty, ending with a
+    percentage corresponding to the ratio of x and y. *)
+
+val env_forward_vars : unit -> string array
+(** Returns an environment fragment that enables forwarding of the current
+    termimal status to sub-processes, even if they have only indirect access to
+    the underlying terminal. Useful for calling Catala from clerk / ninja. *)

@@ -10,7 +10,7 @@ when:
     evaluate: 'not("REBUILD_IMAGE" in $env)'
 
 variables:
-  - &catala_image registry.gitlab.inria.fr/catala/registry:1782728988
+  - &catala_image registry.gitlab.inria.fr/catala/registry:1785246459
   - &build_env
     OCAMLRUNPARAM: b
     DUNE_PROFILE: check
@@ -44,8 +44,21 @@ steps:
     depends_on: build
     environment: *build_env
     commands:
+      # This reproduces 'make testsuite', but splitting in individual commands
+      # helps in browsing the logs
       - eval $(opam env)
-      - make testsuite
+      - alias clerk=_build/default/build_system/clerk.exe
+      - clerk test tests
+      - clerk test tests --test-flags=-O
+      - clerk test tests --test-flags=--lcalc
+      - clerk test tests --test-flags=--lcalc,--closure-conversion,-O
+      - clerk test tests --test-flags=--whole-program
+      - make unit-tests
+      - make backend-tests-ocaml
+      - make backend-tests-c
+      - make backend-tests-python
+      - make backend-tests-java
+      - clerk test tests-extra doc
 
   - name: extra-tests
     image: *catala_image
@@ -77,7 +90,15 @@ steps:
         git clone https://github.com/CatalaLang/catala-examples --depth 1
       - . _python_venv/bin/activate
       - cd catala-examples
-      - make all testsuite
+      - make targets
+      - clerk test --build-dir=_build/clerk_tests
+      - clerk test --build-dir=_build/clerk_tests --test-flags=--lcalc,-O
+      - clerk test --backend=ocaml
+      - clerk test --backend=c
+      - clerk test --backend=python
+      - clerk test --backend=java
+      - make ocaml-libs
+      - make python-libs
 
   - name: lsp
     image: *catala_image

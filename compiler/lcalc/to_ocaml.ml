@@ -699,7 +699,7 @@ let format_ctx
     Format.fprintf ppml "@,let from_json pos t = assert false";
     Format.fprintf ppml "@;<1 -2>end)@]@,@,";
     if TypeIdent.(Set.mem (Abstract name) ctx.ctx_public_types) then
-      Format.fprintf ppi "@[<hv 2>module %a :@ Value.CatalaType@]@,@,"
+      Format.fprintf ppi "@[<hv 2>module %a :@ CatalaType@]@,@,"
         format_to_module_name (`Aname name)
   in
   let is_in_type_ordering s =

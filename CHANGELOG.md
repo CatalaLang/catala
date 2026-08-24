@@ -20,3 +20,21 @@ in behavior visible for the end-users of the tooling.
   large and would yield "code too large" error. We now split large
   methods into smaller methods whenever necessary.
   Also, removed law headings from positions in Java (same as C).
+
+* [#1072](https://github.com/CatalaLang/catala/pull/1072) Handling of
+  dependencies between Clerk targets:
+  - Changes in `clerk.toml`:
+    * added a `target.dependencies` field
+    * removed the `target.include_sources` and `target.include_objects` fields.
+      The new `--obj` CLI flag can now be used to install compiled objects to
+      the targets directory
+    * added a global `include_sources` field (on by default)
+    * added a global project `name` field
+  - Multiple targets and/or backends can now be specified to `clerk` commands
+    `build`, `test` and `run`
+  - `clerk` now also allows `--backend all` to compile/test/run all compatible
+    backends
+  - When building targets defined in `clerk.toml`, `clerk build` now generates
+    library definition files in OCaml and Python (more to come)
+  - In general, better handling of caching and faster builds (made sure in
+    particular that the underlying `ninja` build process is run only once)

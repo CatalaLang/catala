@@ -504,7 +504,7 @@ let run_tests
     process ~has_test_scopes:false ~includes:[] lines
   in
   let has_test_scopes =
-    has_test_scopes || List.exists (Scan.find_test_scope ~lang) includes
+    has_test_scopes || List.exists (Scan.has_test_scope ~lang) includes
   in
   let scopes_results =
     if has_test_scopes then

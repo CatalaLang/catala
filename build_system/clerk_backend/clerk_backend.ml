@@ -15,29 +15,15 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Clerk_utils
-open Clerk_lib
+let default_flags = Flags.default
 
-module Flags : sig
-  val def : variables:(string * 'a) list -> Var.t -> 'a lazy_t -> Var.t * 'a
-  val includes : ?backend:string -> string list -> string list
-  val include_flags : backend:string -> string list -> string list
+include Common
+module OCaml = Ocaml
+module C = C
+module Java = Java
+module Python = Python
 
-  val catala_backend_flags :
-    autotest:bool ->
-    use_default_flags:bool ->
-    test_flags:string list ->
-    accepts_closure_conversion:bool ->
-    string list
+module Backend_paths = Backend_paths (* for testing only *)
+(**/*)
 
-  val default :
-    code_coverage:bool ->
-    trace:bool ->
-    inplace:bool ->
-    config:Clerk_cli.config ->
-    (Var.t * string list) list
-end
-
-module Ninja : sig
-  val static_base_rules : Ninja_utils.def list
-end
+module Flags = Flags

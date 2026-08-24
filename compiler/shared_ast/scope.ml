@@ -147,10 +147,11 @@ let empty_input_struct_dcalc ctx in_struct_name mark =
             ty_in pos
         | (TDefault _, _) as ty -> Expr.eempty (Expr.with_ty mark ty)
         | _, pos ->
-          Message.error ~pos "%a" Format.pp_print_text
+          Message.error ~pos
             "Invalid scope for execution or testing: it defines input \
-             variables. If necessary, a wrapper scope with explicit inputs to \
-             this one can be defined.")
+             variables.@ Use@ a@ test@ scope@ that@ calls@ this@ one@ with@ \
+             explicit@ inputs,@ or@ the@ @{<cyan>--input@}@ flag@ with@ JSON@ \
+             values.")
       field_tys
   in
   let ty = TStruct in_struct_name, Expr.mark_pos mark in
@@ -195,10 +196,11 @@ let empty_input_struct_lcalc ctx in_struct_name mark =
             ~e:(Expr.elit LUnit (Expr.with_ty mark (TLit TUnit, pos)))
             (Expr.with_ty mark ty)
         | _, pos ->
-          Message.error ~pos "%a" Format.pp_print_text
+          Message.error ~pos
             "Invalid scope for execution or testing: it defines input \
-             variables. If necessary, a wrapper scope with explicit inputs to \
-             this one can be defined.")
+             variables.@ Use@ a@ test@ scope@ that@ calls@ this@ one@ with@ \
+             explicit@ inputs,@ or@ the@ @{<cyan>--input@}@ flag@ with@ JSON@ \
+             values.")
       field_tys
   in
   let ty = TStruct in_struct_name, Expr.mark_pos mark in

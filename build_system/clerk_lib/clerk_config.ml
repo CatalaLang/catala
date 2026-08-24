@@ -18,30 +18,25 @@ open Catala_utils
 open Otoml
 
 type backend = ..
-type backend += C | OCaml | Java | Python
 
 let registered_backends = ref []
 
 let register_backend ~name backend =
   registered_backends := (name, backend) :: !registered_backends
 
-let () =
-  register_backend ~name:"c" C;
-  register_backend ~name:"ocaml" OCaml;
-  register_backend ~name:"java" Java;
-  register_backend ~name:"python" Python
-
 let registered_backends () = !registered_backends
 
 type doc_backend = Html | Latex
 
 type global = {
+  project_name : string option;
   include_dirs : File.t list;
   build_dir : File.t;
   target_dir : File.t;
   catala_exe : File.t option;
   catala_opts : string list;
   default_targets : string list;
+  include_sources : bool;
 }
 
 type target = {
@@ -49,8 +44,7 @@ type target = {
   tmodules : string list;
   ttests : File.t list;
   backends : backend list;
-  include_sources : bool;
-  include_objects : bool;
+  dependencies : string list;
 }
 
 type doc = {
@@ -79,12 +73,14 @@ type t = config_file
 
 let default_global =
   {
-    include_dirs = [];
+    project_name = None;
+    include_dirs = [Filename.current_dir_name];
     catala_exe = None;
     catala_opts = [];
     default_targets = [];
     build_dir = "_build";
     target_dir = "_targets";
+    include_sources = true;
   }
 
 let default_config =
@@ -96,64 +92,78 @@ let default_config =
     custom_rules = [];
   }
 
-let project_encoding =
+let project_encoding () =
   let open Clerk_toml_encoding in
   conv
     (fun {
+           project_name;
            include_dirs;
            catala_exe;
            catala_opts;
            default_targets;
            build_dir;
            target_dir;
+           include_sources;
          } ->
-      ( proj_empty_list include_dirs,
+      ( project_name,
+        (if include_dirs = default_global.include_dirs then None
+         else Some include_dirs),
         catala_exe,
         proj_empty_list catala_opts,
         proj_empty_list default_targets,
         build_dir,
-        target_dir ))
-    (fun ( include_dirs,
+        target_dir,
+        include_sources ))
+    (fun ( project_name,
+           include_dirs,
            catala_exe,
            catala_opts,
            default_targets,
            build_dir,
-           target_dir )
+           target_dir,
+           include_sources )
        ->
       {
-        include_dirs = inj_empty_list include_dirs;
+        project_name;
+        include_dirs =
+          (match include_dirs with
+          | None -> default_global.include_dirs
+          | Some l -> l);
         catala_exe;
         catala_opts = inj_empty_list catala_opts;
         default_targets = inj_empty_list default_targets;
         build_dir;
         target_dir;
+        include_sources;
       })
-  @@ obj6
+  @@ obj8
+       (opt_field ~name:"name" @@ string)
        (opt_field ~name:"include_dirs" @@ list string)
        (opt_field ~name:"catala_exe" @@ string)
        (opt_field ~name:"catala_opts" @@ list string)
        (opt_field ~name:"default_targets" @@ list string)
        (dft_field ~name:"build_dir" ~default:default_global.build_dir string)
        (dft_field ~name:"target_dir" ~default:default_global.target_dir string)
+       (dft_field ~name:"include_sources"
+          ~default:default_global.include_sources bool)
 
-let target_encoding =
+let target_encoding () =
   let open Clerk_toml_encoding in
   conv
-    (fun { tname; tmodules; ttests; backends; include_sources; include_objects }
-       -> tname, tmodules, ttests, backends, include_sources, include_objects)
-    (fun (tname, tmodules, ttests, backends, include_sources, include_objects)
-       ->
-      { tname; tmodules; ttests; backends; include_sources; include_objects })
-  @@ obj6
+    (fun { tname; tmodules; ttests; backends; dependencies } ->
+      tname, tmodules, ttests, backends, dependencies)
+    (fun (tname, tmodules, ttests, backends, dependencies) ->
+      { tname; tmodules; ttests; backends; dependencies })
+  @@ obj5
        (req_field ~name:"name" @@ string)
        (req_field ~name:"modules" @@ list string)
        (dft_field ~name:"tests" ~default:[] @@ list string)
-       (dft_field ~name:"backends" ~default:[OCaml]
+       (dft_field ~name:"backends"
+          ~default:(registered_backends () |> List.map snd)
        @@ list (union (string_cases (registered_backends ()))))
-       (dft_field ~name:"include_sources" ~default:false @@ bool)
-       (dft_field ~name:"include_objects" ~default:false @@ bool)
+       (dft_field ~name:"dependencies" ~default:[] @@ list string)
 
-let doc_encoding =
+let doc_encoding () =
   let open Clerk_toml_encoding in
   conv
     (fun { name; entrypoints; kind; doc_options } ->
@@ -167,7 +177,7 @@ let doc_encoding =
        @@ union (string_cases ["latex", Latex; "html", Html]))
        (opt_field ~name:"doc_options" @@ list string)
 
-let custom_rule_encoding =
+let custom_rule_encoding () =
   let open Clerk_toml_encoding in
   conv
     (fun { backend; in_exts; out_exts; commandline } ->
@@ -181,18 +191,18 @@ let custom_rule_encoding =
        (req_field ~name:"out_exts" @@ list string)
        (req_field ~name:"commandline" @@ list string)
 
-let variables_encoding = Clerk_toml_encoding.(binding_list (list string))
+let variables_encoding () = Clerk_toml_encoding.(binding_list (list string))
 
-let raw_config_encoding =
+let raw_config_encoding () =
   let open Clerk_toml_encoding in
   table5
-    (table_opt ~name:"project" project_encoding)
-    (table_opt ~name:"variables" variables_encoding)
-    (multi_table ~name:"target" target_encoding)
-    (multi_table ~name:"doc" doc_encoding)
-    (multi_table ~name:"rule" custom_rule_encoding)
+    (table_opt ~name:"project" (project_encoding ()))
+    (table_opt ~name:"variables" (variables_encoding ()))
+    (multi_table ~name:"target" (target_encoding ()))
+    (multi_table ~name:"doc" (doc_encoding ()))
+    (multi_table ~name:"rule" (custom_rule_encoding ()))
 
-let config_encoding : config_file Clerk_toml_encoding.t =
+let config_encoding () : config_file Clerk_toml_encoding.t =
   let open Clerk_toml_encoding in
   convt
     (fun { global; variables; targets; docs; custom_rules } ->
@@ -205,7 +215,7 @@ let config_encoding : config_file Clerk_toml_encoding.t =
         docs;
         custom_rules;
       })
-  @@ raw_config_encoding
+  @@ raw_config_encoding ()
 
 let pp_target_names fmt ts =
   Format.(
@@ -215,6 +225,10 @@ let pp_target_names fmt ts =
     fmt ts
 
 let validate path (config : config_file) : unit =
+  let pp_clerk_toml ppf =
+    let path = File.clean_path path in
+    Message.pp_link ~target:(Message.file_url path) ppf "%a" File.format path
+  in
   let _, dups =
     List.fold_left
       (fun (s, dups) { tname; _ } ->
@@ -224,8 +238,31 @@ let validate path (config : config_file) : unit =
       config.targets
   in
   if not (String.Set.is_empty dups) then
-    Message.error "Multiple targets with a same name found in '%s':@ %a"
-      (File.clean_path path) pp_target_names (String.Set.elements dups)
+    Message.error "In %t: multiple targets with a same name:@ %a" pp_clerk_toml
+      pp_target_names (String.Set.elements dups);
+  let missing_targets =
+    List.filter (fun dft ->
+        not (List.exists (fun t -> t.tname = dft) config.targets))
+  in
+  let missing_defaults = missing_targets config.global.default_targets in
+  if missing_defaults <> [] then
+    Message.error
+      "In %t: unknown targets @{<yellow>%a@} in @{<cyan>default-targets@}"
+      pp_clerk_toml
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space Format.pp_print_string)
+      missing_defaults;
+  List.iter
+    (fun t ->
+      let missing_deps = missing_targets t.dependencies in
+      if missing_deps <> [] then
+        Message.error
+          "In %t: unknown targets @{<yellow>%a@} in dependencies of \
+           @{<yellow>%s@}"
+          pp_clerk_toml
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space
+             Format.pp_print_string)
+          missing_deps t.tname)
+    config.targets
 
 let read f =
   let toml =
@@ -235,10 +272,10 @@ let read f =
         ~pos:(Pos.from_info f li col li (col + 1))
         "Error in Clerk configuration:@ %a" Format.pp_print_text msg
   in
-  let config = Clerk_toml_encoding.decode toml config_encoding in
+  let config = Clerk_toml_encoding.decode toml (config_encoding ()) in
   validate f config;
   config
 
 let write f config =
-  let toml = Clerk_toml_encoding.encode config config_encoding in
+  let toml = Clerk_toml_encoding.encode config (config_encoding ()) in
   File.with_out_channel ~bin:false f @@ fun oc -> Printer.to_channel oc toml

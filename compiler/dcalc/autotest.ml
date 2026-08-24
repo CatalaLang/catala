@@ -85,6 +85,7 @@ let test_scope_outs ctx lang acc env name scope =
     | exception e ->
       if e <> Exit then
         Message.warning
+          ~pos:(Mark.get (ScopeName.get_info name))
           "Failed to interpret scope %a: not adding autotests. The generated \
            test program should be expected to always fail."
           ScopeName.format name;

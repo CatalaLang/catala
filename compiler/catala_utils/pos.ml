@@ -251,7 +251,7 @@ let format_loc_text_parts
       (match ic with None -> () | Some ic -> close_in ic);
       let line_matched_substrings =
         try
-          List.map
+          List.filter_map
             (fun (line_no, line) ->
               let line_indent = indent_number line in
               let match_start_index =
@@ -259,16 +259,19 @@ let format_loc_text_parts
                   (if line_no = sline then get_start_column pos - 1
                    else line_indent)
               in
-              let match_end_index =
-                if line_no = eline then
-                  utf8_byte_index line (get_end_column pos - 1)
-                else String.length line
-              in
-              ( line_no,
-                line,
-                String.sub line 0 match_start_index,
-                String.sub line match_start_index
-                  (max 0 (match_end_index - match_start_index)) ))
+              if line_no = eline && get_end_column pos <= 1 then None
+              else
+                let match_end_index =
+                  if line_no = eline then
+                    utf8_byte_index line (get_end_column pos - 1)
+                  else String.length line
+                in
+                Some
+                  ( line_no,
+                    line,
+                    String.sub line 0 match_start_index,
+                    String.sub line match_start_index
+                      (max 0 (match_end_index - match_start_index)) ))
             pos_lines
         with Invalid_argument _ ->
           (* Index out of bounds, can happen if the file was changed since

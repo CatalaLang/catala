@@ -32,8 +32,6 @@ $ catala typecheck
 │   │
 │ 3 │  ```catala
 │   │ ‾‾‾‾‾‾‾‾‾‾
-│ 4 │ declaration structure Individual:
-│   │ 
 └─
 ┌─[WARNING]─
 │
@@ -43,8 +41,6 @@ $ catala typecheck
 │    │
 │ 12 │  ```
 │    │ ‾‾‾‾
-│ 13 │ 
-│    │ 
 └─
 ┌─[WARNING]─
 │

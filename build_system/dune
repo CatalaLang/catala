@@ -6,7 +6,7 @@
   catala.catala_utils
   catala.surface
   catala.clerk_lib
-  catala.clerk_backends
+  catala.clerk_backend
   clerk_utils
   ninja_utils
   cmdliner
@@ -14,9 +14,7 @@
   ocolor
   otoml
   yojson)
- (modules clerk_report clerk_runtest clerk_coverage clerk_rules clerk_driver)
- (flags
-  (:standard -open Clerk_lib)))
+ (modules clerk_report clerk_runtest clerk_coverage clerk_rules clerk_driver))
 
 (rule
  (target custom_linking.sexp)

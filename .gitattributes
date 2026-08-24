@@ -5,3 +5,5 @@
 
 **/package-lock.json linguist-generated -diff
 **/yarn.lock linguist-generated -diff
+
+CHANGELOG.md merge=union

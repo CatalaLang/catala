@@ -258,7 +258,8 @@ validate-py-runtime: dependencies-python
 	@$(PY_VENV_ACTIVATE) MYPYPATH=$(PWD)/runtimes/python/src/catala: mypy -p catala_runtime
 	@$(PY_VENV_ACTIVATE) PYTHONPATH=$(PWD)/runtimes/python/src/catala: mypy --follow-untyped-imports stdlib/python/*
 
-backend-tests: backend-tests-ocaml backend-tests-c backend-tests-python backend-tests-java
+backend-tests:
+	@$(PY_VENV_ACTIVATE) $(CLERK_BIN) test tests --exe $(CATALA_BIN) --backend ocaml,c,python,java -c--disable-warnings
 
 #> test					: Run interpreter tests
 test: .FORCE unit-tests
@@ -269,7 +270,7 @@ test-all: test
 
 tests: test
 
-TEST_FLAGS_LIST = ""\
+TEST_FLAGS_LIST = \
 -O \
 --lcalc \
 --lcalc,--closure-conversion,-O \
@@ -284,9 +285,13 @@ testsuite-base: .FORCE $(CLERK_BIN) # implies CATALA_BIN
 	done
 
 #> testsuite				: Run interpreter tests over a selection of configurations
-testsuite: unit-tests backend-tests
+testsuite: unit-tests plugins
+	@$(PY_VENV_ACTIVATE) $(CLERK_TEST) tests --backend all
 	$(CLERK_TEST) tests-extra doc
 	$(MAKE) testsuite-base
+
+# Warning: the CI replicates these actions to enable finer-grained logging.
+# Any tests added here should be considered for addition in .woodpecker/main.html
 
 #> reset-tests				: Update the expected test results from current run
 reset-tests: .FORCE $(CLERK_BIN)
