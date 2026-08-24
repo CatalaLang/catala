@@ -1563,7 +1563,7 @@ let ci_cmd =
       let targets =
         if target_args = [] then
           {
-            (project_dir_targets ~config info items) with
+            (default_targets ~config info items) with
             clerk_targets = config.file.targets;
           }
         else
