@@ -1243,7 +1243,6 @@ let typecheck_cmd =
               @ ["typecheck"; "--quiet"]
               @ (if disable_warnings then ["--disable-warnings"] else [])
               @ catala_flags
-              @ (if Message.has_color stderr then ["--color=always"] else [])
               @ [it.Scan.file_name]
             in
             Message.debug "Running command: '%s'..." (String.concat " " cmd);
