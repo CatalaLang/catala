@@ -695,22 +695,49 @@ module Commands = struct
     @@ fun _ fmt ->
     match ex_scopes with
     | [] ->
-      Print.program ~debug:options.Global.debug fmt prg;
-      Format.pp_print_newline fmt ()
+      if options.Global.output_format = Global.JSON then begin
+        let json = Dcalc.Json_export.program_to_json prg in
+        Format.fprintf fmt "%s" (Yojson.Safe.to_string json);
+        Format.pp_print_newline fmt ()
+      end
+      else begin
+        Print.program ~debug:options.Global.debug fmt prg;
+        Format.pp_print_newline fmt ()
+      end
     | scopes ->
-      List.iter
-        (fun scope ->
-          let scope_uid = get_scope_uid prg.decl_ctx scope in
-          Print.scope ~debug:options.Global.debug fmt
-            ( scope,
-              BoundList.find
-                ~f:(function
-                  | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
-                    Some body
-                  | _ -> None)
-                prg.code_items );
-          Format.pp_print_newline fmt ())
-        scopes
+      if options.Global.output_format = Global.JSON then begin
+        let scopes_json =
+          List.map
+            (fun scope ->
+              let scope_uid = get_scope_uid prg.decl_ctx scope in
+              match BoundList.find
+                      ~f:(function
+                        | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
+                          Some body
+                        | _ -> None)
+                      prg.code_items
+              with
+              | body -> `Assoc [("scope", Dcalc.Json_export.scope_body_to_json body)]
+              | exception Not_found -> `Assoc [("error", `String "scope not found")])
+            scopes
+        in
+        Format.fprintf fmt "%s" (Yojson.Safe.to_string (`List scopes_json));
+        Format.pp_print_newline fmt ()
+      end
+      else
+        List.iter
+          (fun scope ->
+            let scope_uid = get_scope_uid prg.decl_ctx scope in
+            Print.scope ~debug:options.Global.debug fmt
+              ( scope,
+                BoundList.find
+                  ~f:(function
+                    | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
+                      Some body
+                    | _ -> None)
+                  prg.code_items );
+            Format.pp_print_newline fmt ())
+          scopes
 
   let dcalc_cmd =
     let f no_typing =
