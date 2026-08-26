@@ -106,27 +106,26 @@ let raise_lexer_error (loc : Pos.t) (token : string) =
 (** Multi-word keywords (e.g. [under condition]) are matched by regexps that do
     not enforce any separator afterwards, so input such as [under conditiontrue]
     would otherwise be wrongly lexed as the keyword followed by [true]. This
-    checks that the character immediately following the last lexeme is not an
-    identifier-start character, and raises a lexing error if it is. It peeks at
-    the next character and restores the lexbuf position afterwards.
+    checks that the character immediately following the last lexeme is not
+    whitespace (or EOF), and raises a lexing error if it is. It peeks at the
+    next character and restores the lexbuf position afterwards.
 
-    The check covers all Unicode letters (via [Uucp.Case.is_upper] and
-    [Uucp.Case.is_lower]) and ASCII digits, so that e.g. 'sous conditioné'
-    (French) is also caught — an ASCII-only check would miss 'é'. Characters
-    like '$' are not identifier characters, so 'under condition$1' correctly
-    passes (the '$' starts a money literal). *)
+    The check rejects any non-whitespace character — including '$', so
+    'under condition$1' is also rejected (the '$' starts a money literal, but
+    there's no space between the multi-word keyword and it). Only whitespace
+    characters (spaces, tabs, newlines, etc.) and EOF are allowed. *)
 let check_keyword_boundary lexbuf pos prev_lexeme =
-  let is_idchar c =
-    Uucp.Case.is_upper c || Uucp.Case.is_lower c
-    || (let n = Uchar.to_int c in n >= 0x30 && n <= 0x39) (* digit *)
-    || Uchar.equal c (Uchar.of_char '_')
-    || Uchar.equal c (Uchar.of_char '\'')
+  let is_space c =
+    match Uchar.to_int c with
+    | 0x09 | 0x0A | 0x0B | 0x0C | 0x0D | 0x20 -> true (* tab, LF, VT, FF, CR, space *)
+    | n when n >= 0x0008 && n <= 0x000D -> true (* other control whitespace *)
+    | _ -> false
   in
   Sedlexing.mark lexbuf 0;
   let bad =
     match Sedlexing.next lexbuf with
-    | Some c -> is_idchar c
-    | None -> false (* EOF *)
+    | Some c -> not (is_space c)
+    | None -> false (* EOF is fine *)
   in
   if bad then raise_lexer_error pos prev_lexeme
   else ignore (Sedlexing.backtrack lexbuf)
