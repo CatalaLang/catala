@@ -52,9 +52,13 @@ val raise_lexer_error : Catala_utils.Pos.t -> string -> 'a
 val check_keyword_boundary :
   Sedlexing.lexbuf -> Catala_utils.Pos.t -> string -> unit
 (** Checks that the character immediately following the last lexeme is not an
-    identifier character, and raises a lexing error if it is. Used after
-    multi-word keywords to prevent e.g. [under conditiontrue] from lexing as
-    the keyword followed by [true]. *)
+    identifier-start character (Unicode letter, ASCII digit, '_' or '\''), and
+    raises a lexing error if it is. Uses [Uucp.Case.is_upper] and
+    [Uucp.Case.is_lower] for full Unicode letter coverage so that e.g.
+    'sous conditioné' (French) is also caught. Characters like '$' are allowed
+    through, so 'under condition$1' correctly lexes as the keyword followed by
+    a money literal. Used after multi-word keywords to prevent e.g.
+    [under conditiontrue] from lexing as the keyword followed by [true]. *)
 
 val token_list_language_agnostic : (string * Tokens.token) list
 (** Associative list matching each punctuation string part of the Catala syntax
