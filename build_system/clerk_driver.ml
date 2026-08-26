@@ -264,7 +264,7 @@ let run_artifact config ~backend ~var_bindings ?scope ?quiet ~test ~trace src =
     Clerk_backend.Python.run_artifact config ~test ~trace ?scope ?quiet
       ~var_bindings src
   | `Java ->
-    Clerk_backend.Java.run_artifact ~var_bindings ~test ~trace ?scope ?quiet src
+    Clerk_backend.Java.run_artifact ~var_bindings ~test ?scope ?quiet src
 
 (* - Ninja target distribution - *)
 (* these functions take place in the clerk_run continuation, and explicit its targets. *)
