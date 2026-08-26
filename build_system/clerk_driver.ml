@@ -1494,6 +1494,11 @@ let runtest_cmd =
       $ Cli.whole_program)
 
 let run_ninja_start ~config ~ninja_flags ~enabled_backends cont =
+  let enabled_backends =
+    (* Enforce OCaml backend: eventual targets may not have enabled it *)
+    (module Clerk_backend.OCaml : Clerk_backend.S) :: enabled_backends
+    |> List.sort_uniq compare
+  in
   let default =
     List.fold_left
       (fun default_rules (module B : Clerk_backend.S) ->

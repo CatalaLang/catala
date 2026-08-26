@@ -1191,12 +1191,15 @@ let run_ninja
           ~var_bindings stdlib_tree item_tree
       in
       let modules_map, targets_map, linking_deps =
-        let item_seq =
-          Seq.flat_map
-            (fun (_, _, it) -> List.to_seq it)
-            (Seq.append stdlib_tree item_tree)
-        in
-        organise_modules ~config:config.file item_seq
+        if skip_project_scan then
+          String.Map.empty, String.Map.empty, fun _ -> []
+        else
+          let item_seq =
+            Seq.flat_map
+              (fun (_, _, it) -> List.to_seq it)
+              (Seq.append stdlib_tree item_tree)
+          in
+          organise_modules ~config:config.file item_seq
       in
       let pp nj =
         Nj.format_def nin_ppf nj;
