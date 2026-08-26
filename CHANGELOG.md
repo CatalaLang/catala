@@ -38,3 +38,7 @@ in behavior visible for the end-users of the tooling.
     library definition files in OCaml and Python (more to come)
   - In general, better handling of caching and faster builds (made sure in
     particular that the underlying `ninja` build process is run only once)
+
+* [#1087](https://github.com/CatalaLang/catala/pull/1087/) Escape
+  non-ascii characters in Java backend strings as unicode. All Java
+  strings are now agnostic of encodings.
