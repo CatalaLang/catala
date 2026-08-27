@@ -28,6 +28,15 @@ scope Tsort1:
 
 ```catala-test-cli
 $ catala test-scope Tsort1
+┌─[WARNING]─
+│
+│  The local variable "bla" is never used; maybe it's unnecessary?
+│
+├─➤ tests/array/good/sort2.catala_en:22.9-12:
+│    │
+│ 22 │     let bla equals
+│    │         ‾‾‾
+└─
 ┌─[RESULT]─ Tsort1 ─
 │ o1 = [
 │        (Absent, 2);

@@ -28,6 +28,15 @@ scope Test:
 
 ```catala-test-cli
 $ catala test-scope Test
+┌─[WARNING]─
+│
+│  The local variable "remaining" is never used; maybe it's unnecessary?
+│
+├─➤ tests/func/good/closure_conversion2.catala_en:7.18-27:
+│   │
+│ 7 │     let (result, remaining) equals
+│   │                  ‾‾‾‾‾‾‾‾‾
+└─
 ┌─[RESULT]─ Test ─
 │ r =
 │   [
@@ -44,6 +53,15 @@ $ catala test-scope Test
 
 ```catala-test-cli
 $ catala interpret --lcalc --closure-conversion
+┌─[WARNING]─
+│
+│  The local variable "remaining" is never used; maybe it's unnecessary?
+│
+├─➤ tests/func/good/closure_conversion2.catala_en:7.18-27:
+│   │
+│ 7 │     let (result, remaining) equals
+│   │                  ‾‾‾‾‾‾‾‾‾
+└─
 ┌─[RESULT]─ Test ─
 │ r =
 │   [

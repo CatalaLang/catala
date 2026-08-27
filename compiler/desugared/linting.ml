@@ -284,9 +284,50 @@ let detect_dead_code (p : program) : unit =
         scope_dependencies)
     p.program_root.module_scopes
 
+(** Local variables bound by [let ... in] that are never used afterwards.
+    Desugaring turns let bindings into immediately-applied lambdas; bindings
+    synthesized by the compiler itself are recognized (and skipped) by their
+    ghost position or ["_"] name. *)
+let detect_unused_local_variables (p : program) : unit =
+  Ast.fold_exprs
+    ~f:(fun () e ->
+      let rec aux e =
+        (match Mark.remove e with
+        | EApp { f = EAbs { binder; pos; _ }, _; _ } ->
+          let effect_only =
+            (* [let x equals e1 in impossible] evaluates [e1] only for the
+               error it may raise, so the unused binding is intentional
+               there. *)
+            match Bindlib.unmbind binder with
+            | _, (EFatalError _, _) -> true
+            | _ -> false
+          in
+          if not effect_only then begin
+            let occurs = Bindlib.mbinder_occurs binder in
+            let names = Bindlib.mbinder_names binder in
+            List.iteri
+              (fun i vpos ->
+                if
+                  (not occurs.(i))
+                  && (not (Pos.equal vpos Pos.void))
+                  && names.(i).[0] <> '_'
+                then
+                  Message.warning ~pos:vpos
+                    "The local variable@ \"%s\"@ is@ never@ used;@ maybe it's \
+                     unnecessary?"
+                    names.(i))
+              pos
+          end
+        | _ -> ());
+        Expr.shallow_fold (fun e () -> aux e) e ()
+      in
+      aux e)
+    ~init:() p
+
 let lint_program (p : program) : unit =
   detect_empty_definitions p;
   detect_dead_code p;
   detect_unused_struct_fields p;
   detect_unused_enum_constructors p;
-  detect_identical_rules p
+  detect_identical_rules p;
+  detect_unused_local_variables p
