@@ -298,8 +298,8 @@ module Commands = struct
   let disable_trace options =
     if options.Global.trace <> None then (
       Message.warning "%a" Format.pp_print_text
-        "Trace printing is not compatible with closure conversion or the C or \
-         python backends at the moment and has been disabled.";
+        "Trace printing is not compatible with the C backend or closure \
+         conversion at the moment and has been disabled.";
       Global.enforce_options ~trace:None ())
     else options
 

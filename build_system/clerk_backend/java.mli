@@ -32,7 +32,6 @@ val linking_command :
 val run_artifact :
   var_bindings:Var.bindings ->
   test:bool ->
-  trace:bool ->
   ?scope:string ->
   ?quiet:bool ->
   string ->

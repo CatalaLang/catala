@@ -94,15 +94,14 @@ let linking_command ~build_dir ~var_bindings link_deps item target =
       output_string oc (Backend_paths.jar_argfile_content entries));
   Var.get var_bindings jar @ ["--create"; "--file"; jar_target; "@" ^ argfile]
 
-let run_artifact ~var_bindings ~test ~trace ?scope ?quiet src =
+let run_artifact ~var_bindings ~test ?scope ?quiet src =
   let target_main = File.remove_extension (Filename.basename src) in
   let cmd =
     Var.get var_bindings java
     @ ["-cp"; src -.- "jar"; target_main]
     @ Option.to_list scope
     @ (if test && not Global.options.debug then ["--test"] else [])
-    @ (if Global.options.output_format = JSON then ["--json"] else [])
-    @ if trace then ["--trace"] else []
+    @ if Global.options.output_format = JSON then ["--json"] else []
   in
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
   Clerk_cli.run_command_line ?quiet cmd
