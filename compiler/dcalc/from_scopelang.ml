@@ -719,7 +719,7 @@ let translate_program (prgm : 'm S.program) : 'm Ast.program =
             | OnlyInput | Reentrant ->
               let info = ScopeVar.get_info dvar in
               let s = Mark.remove info ^ "_in" in
-              let pos = Expr.no_attrs_pos (Mark.get info) in
+              let pos = Mark.get info in
               Some
                 {
                   scope_input_name = StructField.fresh (s, pos);
