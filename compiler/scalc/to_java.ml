@@ -31,6 +31,46 @@ let pp_print_list_padded ?pp_sep pp ppf l =
     pp_skip_line ppf ();
     (pp_print_list ?pp_sep pp) ppf l)
 
+let format_doc
+    ?(params : (string * Pos.t) list option)
+    (get_pos : 'a -> Pos.t)
+    ppf
+    (v : 'a) =
+  let param_to_text (n, d) =
+    let d = String.trim d in
+    let s = Format.asprintf "@[<hov>%a@]" pp_print_text d in
+    asprintf "@@param %s @[<hov>%a@]" n pp_print_text s
+  in
+  let pp_content ppf s =
+    let s = Format.asprintf "@[<hov>%a@]" pp_print_text s in
+    let l = String.split_on_char '\n' s |> List.map (fun l -> "* " ^ l) in
+    let pp_item ppf s = fprintf ppf "@[<h>%s@]" s in
+    (pp_print_list ~pp_sep:pp_print_cut pp_item) ppf l
+  in
+  let pos = get_pos v in
+  let doc_opt =
+    Pos.get_attr pos (function Doc (d, _p) -> Some d | _ -> None)
+  in
+  let params_with_doc =
+    Option.map
+      (List.filter_map (fun (n, p) ->
+           Pos.get_attr p (function Doc (d, _p) -> Some d | _ -> None)
+           |> Option.map (fun d -> param_to_text (n, d))))
+      params
+  in
+  match doc_opt, params_with_doc with
+  | None, None -> ()
+  | Some d, (None | Some []) ->
+    fprintf ppf "@[<v 1>/**@\n%a@]@\n */@\n" pp_content (String.trim d)
+  | None, Some params ->
+    fprintf ppf "@[<hov 1>/**@\n%a@]@\n */@\n"
+      (pp_print_list ~pp_sep:pp_print_cut pp_content)
+      params
+  | Some d, Some params ->
+    fprintf ppf "@[<v 1>/**@\n%a@\n@\n%a@]@\n */@\n" pp_content (String.trim d)
+      (pp_print_list ~pp_sep:pp_print_cut pp_content)
+      params
+
 type context = {
   decl_ctx : decl_ctx;
   in_scope_structs : StructName.Set.t;
@@ -899,12 +939,22 @@ let format_constructor (ctx : context) in_fields ppf (sbody : scope_body) =
       "The scope %a has too many input variables: Java does not support more \
        than 255 parameters in methods. "
       ScopeName.format_original sbody.scope_body_name;
+  let params =
+    StructField.Map.to_list in_fields
+    |> List.map (fun (sf, _) ->
+        let _, pos = StructField.get_info sf in
+        asprintf "%a" StructField.format sf, pos)
+  in
+  format_doc ~params
+    (fun x -> ScopeName.get_info x |> snd)
+    ppf sbody.scope_body_name;
   fprintf ppf "@[<v 4>@[<hov 4>%a%a@ (@[<hov>%a@])@;<1 -4>{@]@,%t@;<1 -4>}@]"
     format_visibility sbody.scope_body_visibility format_scope
     sbody.scope_body_name (format_struct_params ctx) in_fields
     (format_constructor_body ctx sbody)
 
 let format_output_parameter ?(vis = Public) ctx ppf (field_name, typ) =
+  format_doc (fun x -> StructField.get_info x |> snd) ppf field_name;
   fprintf ppf "@[<h>%afinal@ %a@ %a;@]" format_visibility vis (format_typ ctx)
     typ StructField.format field_name
 
@@ -942,6 +992,12 @@ let format_struct_constructor_body ppf fields =
 let format_struct_constructor ?(vis = Public) ctx ppf (sname, fields) =
   if StructField.Map.is_empty fields then ()
   else
+    let params =
+      StructField.Map.to_list fields
+      |> List.map (fun (sf, _) ->
+          StructField.to_string sf, snd (StructField.get_info sf))
+    in
+    format_doc ~params (fun s -> StructName.get_info s |> snd) ppf sname;
     fprintf ppf "@[<hov 4>%a%a (@[<hov>%a@]) {@\n%a@]@\n}" format_visibility vis
       format_struct sname (format_struct_params ctx) fields
       format_struct_constructor_body fields
@@ -1108,6 +1164,7 @@ let format_scope ctx ppf (sbody : Ast.scope_body) =
     }
   in
   let in_fields = StructName.Map.find in_struct_name ctx.decl_ctx.ctx_structs in
+  format_doc (fun x -> ScopeName.get_info x |> snd) ppf sbody.scope_body_name;
   fprintf ppf
     "@[<v 4>@[<hov 4>public static class %a extends CatalaStruct {@]@\n\
      @,\
@@ -1219,6 +1276,7 @@ let format_structs ctx ppf =
     let fields_l = StructField.Map.bindings fields in
     let format_params ppf =
       let format_output_parameter ppf (field_name, typ) =
+        format_doc (fun x -> StructField.get_info x |> snd) ppf field_name;
         fprintf ppf "@[<h>public final@ %a@ %a;@]" (format_typ ctx) typ
           StructField.format field_name
       in
@@ -1226,6 +1284,7 @@ let format_structs ctx ppf =
         (pp_print_list ~pp_sep:pp_print_space format_output_parameter)
         fields_l
     in
+    format_doc (fun x -> StructName.get_info x |> snd) ppf sname;
     fprintf ppf
       "@[<v 4>public static class %a extends CatalaStruct {@\n@,%t@\n@,%a@]@\n}"
       format_struct sname format_params
@@ -1247,8 +1306,13 @@ let format_structs ctx ppf =
 let format_enums ctx ppf =
   let format_enum ppf (ename, cstrs) =
     let format_enum_kind ppf =
-      fprintf ppf "@[<hov 4>public enum Kind {@ %a@] }"
-        (pp_print_list ~pp_sep:pp_comma EnumConstructor.format)
+      let format_case ppf c =
+        fprintf ppf "@\n%a%a"
+          (format_doc (fun x -> EnumConstructor.get_info x |> snd))
+          c EnumConstructor.format c
+      in
+      fprintf ppf "@[<hov 4>public enum Kind {@ %a@]@ }"
+        (pp_print_list ~pp_sep:pp_comma format_case)
         (EnumConstructor.Map.keys cstrs)
     in
     let format_enum_params ppf =
@@ -1260,6 +1324,7 @@ let format_enums ctx ppf =
         let is_unit =
           match Mark.remove typ with TLit TUnit -> true | _ -> false
         in
+        format_doc (fun x -> EnumConstructor.get_info x |> snd) ppf cstr;
         if is_unit then
           fprintf ppf
             "public final static %a %a = new %a(Kind.%a, CatalaUnit.INSTANCE);"
@@ -1308,6 +1373,7 @@ let format_enums ctx ppf =
              match Mark.remove typ with TLit TUnit -> false | _ -> true)
            (EnumConstructor.Map.bindings cstrs))
     in
+    format_doc (fun x -> EnumName.get_info x |> snd) ppf ename;
     fprintf ppf
       "@@SuppressWarnings(\"unchecked\")@,\
        @[<v 4>public static class %a extends CatalaEnum {@\n\
