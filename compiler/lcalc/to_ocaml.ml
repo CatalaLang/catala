@@ -691,12 +691,12 @@ let format_ctx
       format_to_module_name (`Aname name);
     Format.fprintf ppml "@,type t = ..";
     Format.fprintf ppml "@,let name = \"%a\"" AbstractType.format_original name;
-    Format.fprintf ppml "@,let equal t1 t2 = t1 = t2";
-    Format.fprintf ppml "@,let compare t1 t2 = Stdlib.compare t1 t2";
+    Format.fprintf ppml "@,let equal _pos t1 t2 = t1 = t2";
+    Format.fprintf ppml "@,let compare _pos t1 t2 = Stdlib.compare t1 t2";
     Format.fprintf ppml "@,let print t = \"<%a>\"" AbstractType.format_original
       name;
     Format.fprintf ppml "@,let to_json t = Printf.sprintf \"%%S\" (print t)";
-    Format.fprintf ppml "@,let from_json pos t = assert false";
+    Format.fprintf ppml "@,let from_json _pos _s = assert false";
     Format.fprintf ppml "@;<1 -2>end)@]@,@,";
     if TypeIdent.(Set.mem (Abstract name) ctx.ctx_public_types) then
       Format.fprintf ppi "@[<hv 2>module %a :@ CatalaType@]@,@,"
