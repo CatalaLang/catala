@@ -945,6 +945,24 @@ let format_module_registration ctx fmt exports modname hash is_external =
   Format.pp_close_box fmt ();
   Format.pp_print_char fmt ' ';
   Format.pp_print_string fmt "]";
+  if is_external then begin
+    Format.pp_print_space fmt ();
+    Format.pp_print_string fmt "~types:[";
+    Format.pp_print_list
+      ~pp_sep:(fun fmt () ->
+        Format.pp_print_char fmt ';';
+        Format.pp_print_cut fmt ())
+      (fun fmt tname ->
+        Format.fprintf fmt "@[<hov 2>%S,@ (module %a)@]"
+          (AbstractType.original_string tname)
+          format_to_module_name (`Aname tname))
+      fmt
+      (AbstractType.Set.filter
+         (fun t -> AbstractType.path t = [])
+         ctx.ctx_abstract_types
+      |> AbstractType.Set.elements);
+    Format.pp_print_string fmt "]"
+  end;
   Format.pp_print_space fmt ();
   Format.fprintf fmt "\"%a\""
     (fun ppf h ->
