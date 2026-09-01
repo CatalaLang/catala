@@ -685,6 +685,7 @@ let install_backend_targets
   if not (List.exists (fun t -> List.mem bk t.Clerk_config.backends) targets)
   then ()
   else
+    let is_java = config_backend bk = `Java in
     let bk_dir = target_dir / backend_subdir bk in
     let extensions =
       B.src_extensions
@@ -749,10 +750,12 @@ let install_backend_targets
           let acc = targets_and_deps acc deps in
           targets_and_deps acc targets
     in
-    let stdlib =
-      String.Map.find Clerk_rules.stdlib_target_name build_info.targets_map
+    let acc =
+      if is_java then (* Files are already copied over in java *) []
+      else
+        [String.Map.find Clerk_rules.stdlib_target_name build_info.targets_map]
     in
-    List.iter install_target (targets_and_deps [stdlib] targets)
+    List.iter install_target (targets_and_deps acc targets)
 (* if target.Config.include_sources then
  *   all_modules_deps
  *   |> List.map (fun it -> it.Scan.file_name)

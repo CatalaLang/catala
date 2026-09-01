@@ -251,7 +251,9 @@ module Spec : Sig.Spec = struct
       src_extensions
       @ if config.Clerk_cli.include_objects then ["class"] else []
     in
-    let dir = config.file.global.target_dir / name / Scan.libcatala in
+    (* Do not copy in an extra "libcatala" directory in order to have a valid
+       java class hierarchy. *)
+    let dir = config.file.global.target_dir / name in
     remove dir;
     ensure_dir dir;
     List.iter
