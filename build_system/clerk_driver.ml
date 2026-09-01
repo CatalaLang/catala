@@ -698,6 +698,10 @@ let install_backend_targets
     let install_target target =
       if not (List.mem bk target.Config.backends) then ()
       else
+        let target_name =
+          if is_java then String.to_camel_case ~capitalize:true target.tname
+          else target.tname
+        in
         let dir = bk_dir / target_name in
         Message.debug "Installing target: %s" (B.name / target_name);
         if target.Config.tname <> Clerk_rules.stdlib_target_name then
@@ -728,7 +732,11 @@ let install_backend_targets
                       / basename src
                     else src
                   in
-                  copy_in ~dir ~src)
+                  if is_java then
+                    copy_in_with_prefix
+                      ~prefix:(Printf.sprintf "package %s;\n\n" target_name)
+                      ~dir ~src
+                  else copy_in ~dir ~src)
                 extensions)
           build_info.modules_map;
         B.write_target_def_file ~config ~dir target
