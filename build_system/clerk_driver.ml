@@ -698,8 +698,8 @@ let install_backend_targets
     let install_target target =
       if not (List.mem bk target.Config.backends) then ()
       else
-        let dir = bk_dir / target.tname in
-        Message.debug "Installing target: %s" (B.name / target.tname);
+        let dir = bk_dir / target_name in
+        Message.debug "Installing target: %s" (B.name / target_name);
         if target.Config.tname <> Clerk_rules.stdlib_target_name then
           (* install_runtime already did the cleanup for the stdlib *)
           File.remove dir;
@@ -817,9 +817,16 @@ let advertise_installed ~config ~backends info targets =
         File.(
           ppl
           @@ fun ppf bk ->
+          let target_name =
+            if config_backend bk = `Java then
+              String.to_camel_case ~capitalize:true t.tname
+            else t.tname
+          in
           format ppf
             (make_relative_to ~dir:original_cwd
-               (config.Cli.file.global.target_dir / backend_subdir bk / t.tname)))
+               (config.Cli.file.global.target_dir
+               / backend_subdir bk
+               / target_name)))
         bks)
       clerk_targets
       (ppl
