@@ -691,12 +691,12 @@ let format_ctx
       format_to_module_name (`Aname name);
     Format.fprintf ppml "@,type t = ..";
     Format.fprintf ppml "@,let name = \"%a\"" AbstractType.format_original name;
-    Format.fprintf ppml "@,let equal t1 t2 = t1 = t2";
-    Format.fprintf ppml "@,let compare t1 t2 = Stdlib.compare t1 t2";
+    Format.fprintf ppml "@,let equal _pos t1 t2 = t1 = t2";
+    Format.fprintf ppml "@,let compare _pos t1 t2 = Stdlib.compare t1 t2";
     Format.fprintf ppml "@,let print t = \"<%a>\"" AbstractType.format_original
       name;
     Format.fprintf ppml "@,let to_json t = Printf.sprintf \"%%S\" (print t)";
-    Format.fprintf ppml "@,let from_json pos t = assert false";
+    Format.fprintf ppml "@,let from_json _pos _s = assert false";
     Format.fprintf ppml "@;<1 -2>end)@]@,@,";
     if TypeIdent.(Set.mem (Abstract name) ctx.ctx_public_types) then
       Format.fprintf ppi "@[<hv 2>module %a :@ CatalaType@]@,@,"
@@ -945,6 +945,24 @@ let format_module_registration ctx fmt exports modname hash is_external =
   Format.pp_close_box fmt ();
   Format.pp_print_char fmt ' ';
   Format.pp_print_string fmt "]";
+  if is_external then begin
+    Format.pp_print_space fmt ();
+    Format.pp_print_string fmt "~types:[";
+    Format.pp_print_list
+      ~pp_sep:(fun fmt () ->
+        Format.pp_print_char fmt ';';
+        Format.pp_print_cut fmt ())
+      (fun fmt tname ->
+        Format.fprintf fmt "@[<hov 2>%S,@ (module %a)@]"
+          (AbstractType.original_string tname)
+          format_to_module_name (`Aname tname))
+      fmt
+      (AbstractType.Set.filter
+         (fun t -> AbstractType.path t = [])
+         ctx.ctx_abstract_types
+      |> AbstractType.Set.elements);
+    Format.pp_print_string fmt "]"
+  end;
   Format.pp_print_space fmt ();
   Format.fprintf fmt "\"%a\""
     (fun ppf h ->
