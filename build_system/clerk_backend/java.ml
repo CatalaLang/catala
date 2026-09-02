@@ -22,7 +22,7 @@ open File
 let catala_flags_java = Var.make_vector "CATALA_FLAGS_JAVA"
 let javac = Var.make_vector "JAVAC"
 let javac_flags = Var.make_vector "JAVAC_FLAGS"
-let jar = Var.make_vector "jar"
+let jar = Var.make_vector "JAR"
 let java = Var.make_vector "JAVA"
 
 let linking_command ~build_dir ~var_bindings link_deps item target =
