@@ -695,6 +695,24 @@ let install_backend_targets
       else []
     in
     B.install_runtime ~config;
+    let target_transitive_deps (t : Clerk_config.target) =
+      let rec loop acc (curr : Clerk_config.target) =
+        if String.Set.mem curr.tname acc then acc
+        else
+          let acc = String.Set.add curr.tname acc in
+          let next_targets =
+            List.filter_map
+              (fun s -> String.Map.find_opt s build_info.targets_map)
+              curr.dependencies
+          in
+          List.fold_left (fun acc next -> loop acc next) acc next_targets
+      in
+      String.Set.(
+        loop empty t
+        |> remove t.tname
+        |> remove Clerk_rules.stdlib_target_name
+        |> elements)
+    in
     let install_target target =
       if not (List.mem bk target.Config.backends) then ()
       else
@@ -708,6 +726,7 @@ let install_backend_targets
           (* install_runtime already did the cleanup for the stdlib *)
           File.remove dir;
         ensure_dir dir;
+        let tdeps = target_transitive_deps target in
         String.Map.iter
           (fun _ mod_info ->
             if String.Set.mem target.tname mod_info.Clerk_rules.targets then
@@ -732,11 +751,20 @@ let install_backend_targets
                       / basename src
                     else src
                   in
-                  if is_java then
+                  if not is_java then copy_in ~dir ~src
+                  else
+                    let prefix_lines =
+                      ["package " ^ target_name ^ ";"]
+                      @ List.map
+                          (fun dep_name ->
+                            "import "
+                            ^ String.to_camel_case ~capitalize:true dep_name
+                            ^ ".*;")
+                          tdeps
+                    in
                     copy_in_with_prefix
-                      ~prefix:(Printf.sprintf "package %s;\n\n" target_name)
-                      ~dir ~src
-                  else copy_in ~dir ~src)
+                      ~prefix:(String.concat "\n" prefix_lines ^ "\n\n")
+                      ~dir ~src)
                 extensions)
           build_info.modules_map;
         B.write_target_def_file ~config ~dir target
@@ -761,7 +789,7 @@ let install_backend_targets
     let acc =
       if is_java then (* Files are already copied over in java *) []
       else
-        [String.Map.find Clerk_rules.stdlib_target_name build_info.targets_map]
+        [ (* String.Map.find Clerk_rules.stdlib_target_name build_info.targets_map *) ]
     in
     List.iter install_target (targets_and_deps acc targets)
 (* if target.Config.include_sources then
