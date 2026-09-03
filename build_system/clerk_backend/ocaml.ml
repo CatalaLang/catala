@@ -347,7 +347,9 @@ module Spec : Sig.Spec = struct
         | None -> ""
         | Some n -> Printf.sprintf "\n (public_name %s.%s)" n target.tname)
         (String.concat " "
-           (List.map String.to_id ("libcatala" :: target.dependencies)))
+           (List.map String.to_id
+              ("libcatala" :: target.dependencies
+              |> List.sort_uniq compare (* FIXME :x *))))
 
   let install_runtime ~config =
     let open File in
