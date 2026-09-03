@@ -106,6 +106,8 @@ let run_artifact ~var_bindings ~test ?scope ?quiet src =
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
   Clerk_cli.run_command_line ?quiet cmd
 
+include Java_project_file
+
 module Spec : Sig.Spec = struct
   open Var
   module Nj = Ninja_utils
@@ -243,7 +245,10 @@ module Spec : Sig.Spec = struct
     lazy File.(Lazy.force Poll.runtime_dir / name)
 
   let write_target_def_file ~config:_ ~dir:_ _target = ()
-  (* TODO: generate some kind of Java project file ? *)
+  (* The project file is generated in [install_backend_targets] in
+     Clerk_driver *)
+  (* TODO: investigate if maven is capable of handling sub-libraries
+     projects instead of a global one. *)
 
   let install_runtime ~config =
     let open File in

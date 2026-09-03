@@ -714,7 +714,12 @@ let install_backend_targets
         |> elements)
     in
     let install_target target =
-      if not (List.mem bk target.Config.backends) then ()
+      if
+        (not (List.mem bk target.Config.backends))
+        ||
+        (* install_runtime has already been called: skip stdlib *)
+        target.Config.tname = Clerk_rules.stdlib_target_name
+      then ()
       else
         let target_name =
           if is_java then String.to_camel_case ~capitalize:true target.tname
@@ -722,9 +727,7 @@ let install_backend_targets
         in
         let dir = bk_dir / target_name in
         Message.debug "Installing target: %s" (B.name / target_name);
-        if target.Config.tname <> Clerk_rules.stdlib_target_name then
-          (* install_runtime already did the cleanup for the stdlib *)
-          File.remove dir;
+        File.remove dir;
         ensure_dir dir;
         let tdeps = target_transitive_deps target in
         String.Map.iter
@@ -791,12 +794,29 @@ let install_backend_targets
       else
         [ (* String.Map.find Clerk_rules.stdlib_target_name build_info.targets_map *) ]
     in
-    List.iter install_target (targets_and_deps acc targets)
-(* if target.Config.include_sources then
- *   all_modules_deps
- *   |> List.map (fun it -> it.Scan.file_name)
- *   |> List.sort_uniq compare
- *   |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src) *)
+    let target_and_deps = targets_and_deps acc targets in
+    List.iter install_target target_and_deps;
+    if is_java then
+      (* Generate maven project file here: we need knowledge of all
+         generated targets *)
+      File.with_formatter_of_file (bk_dir / "pom.xml")
+      @@ fun ppf ->
+      Clerk_backend.Java.format_pom_xml ppf
+        (List.filter_map
+           (fun (t : Config.target) ->
+             if
+               (not (List.mem bk t.Config.backends))
+               || t.Config.tname = Clerk_rules.stdlib_target_name
+             then None
+             else
+               Some
+                 (t.Config.tname, String.to_camel_case ~capitalize:true t.tname))
+           target_and_deps)
+(*  ; if target.Config.include_sources then
+ *     all_modules_deps
+ *     |> List.map (fun it -> it.Scan.file_name)
+ *     |> List.sort_uniq compare
+ *     |> List.iter (fun src -> File.copy_in ~dir:prefix_dir ~src) *)
 
 let advertise_installed ~config ~backends info targets =
   let open Format in
