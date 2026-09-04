@@ -748,6 +748,7 @@ let install_backend_targets
                     else src
                   in
                   if not is_java then copy_in ~dir ~src
+                  else if item.is_stdlib then ()
                   else
                     let prefix_lines =
                       ["package " ^ target_name ^ ";"]
