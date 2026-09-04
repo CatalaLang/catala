@@ -193,11 +193,12 @@ let contents filename =
   with_in_channel filename (fun ic ->
       really_input_string ic (in_channel_length ic))
 
-let copy ~src ~dst =
+let copy ~prefix ~src ~dst =
   let chunk = 4096 in
   let buf = Bytes.create chunk in
   let ic = open_in_bin src in
   let oc = open_out_bin dst in
+  Option.iter (output_string oc) prefix;
   let rec loop () =
     match input ic buf 0 chunk with
     | 0 -> ()
@@ -211,6 +212,12 @@ let copy ~src ~dst =
       close_in ic)
     loop
 
+let copy_with_prefix ~prefix ~src ~dst = copy ~prefix:(Some prefix) ~src ~dst
+
+let copy_in_with_prefix ~prefix ~src ~dir =
+  copy ~prefix:(Some prefix) ~src ~dst:(dir / Filename.basename src)
+
+let copy ~src ~dst = copy ~prefix:None ~src ~dst
 let copy_in ~src ~dir = copy ~src ~dst:(dir / Filename.basename src)
 
 let newer f1 f2 =

@@ -51,3 +51,13 @@ in behavior visible for the end-users of the tooling.
   code did not match the `ExternalType` functor signature: `equal` and
   `compare` were missing the `_pos` parameter, and `from_json` had
   incorrect signature `_pos t` instead of `_pos _s`.
+
+* [#1093](https://github.com/CatalaLang/catala/pull/1093) Improvements
+  over java target generation:
+  - Added in the generated java target files the proper package and
+    import declaration relative to, resp., their own package and
+    (transitive) dependencies.
+  - Following [#1072](https://github.com/CatalaLang/catala/pull/1072),
+    building java targets now also generates a `maven` file
+    (`pom.xml`) which can be used to easily compile and generate `jar`
+    files.
