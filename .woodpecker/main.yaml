@@ -99,6 +99,7 @@ steps:
       - clerk test --backend=java
       - make ocaml-libs
       - make python-libs
+      - make java-libs
 
   - name: lsp
     image: *catala_image

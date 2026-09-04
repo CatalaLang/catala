@@ -40,4 +40,10 @@ val run_artifact :
     is needed by the Clerk_driver modules and not the clerk_rules modules that's
     why it doesn't appear in the Backend common interface. *)
 
+val format_project_pom_xml :
+  config:Clerk_cli.config ->
+  Format.formatter ->
+  Clerk_config.target list ->
+  unit
+
 include Sig.S

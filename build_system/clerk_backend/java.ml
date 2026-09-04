@@ -106,6 +106,8 @@ let run_artifact ~var_bindings ~test ?scope ?quiet src =
   Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
   Clerk_cli.run_command_line ?quiet cmd
 
+include Java_project_file
+
 module Spec : Sig.Spec = struct
   open Var
   module Nj = Ninja_utils
@@ -242,8 +244,18 @@ module Spec : Sig.Spec = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)
 
-  let write_target_def_file ~config:_ ~dir:_ _target = ()
-  (* TODO: generate some kind of Java project file ? *)
+  let write_target_def_file
+      ~(config : Clerk_cli.config)
+      ~(dir : File.t)
+      (target : Clerk_config.target) =
+    let open File in
+    with_formatter_of_file (dir / "pom.xml")
+    @@ fun ppf ->
+    let project_name =
+      config.Clerk_cli.file.global.project_name
+      |> Option.value ~default:"catala-project"
+    in
+    Java_project_file.format_target_pom_xml ~project_name ppf target
 
   let install_runtime ~config =
     let open File in
