@@ -290,8 +290,8 @@ let empty_targets =
     direct_targets = [];
   }
 
-let target_debug_message (t : user_target_args) =
-  Message.debug "Will build the following targets:";
+let target_debug_message ?(label = "build") (t : user_target_args) =
+  Message.debug "Will %s the following targets:" label;
   let ppl f =
     Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf item ->
         Format.fprintf ppf "@{<magenta>%s@}" (f item))
@@ -1573,25 +1573,30 @@ let ci_cmd =
         ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true ~trace:false
         ~default:(empty_targets, [], [], Clerk_rules.empty_info, [])
       @@ fun nin_ppf items info ->
-      let targets =
+      let targets_build, targets_test =
         if target_args = [] then
-          {
-            (default_targets ~config info items) with
-            clerk_targets = config.file.targets;
-          }
+          let dir_targets = project_dir_targets ~config info items in
+          ( (match config.file.targets with
+            | _ :: _ as clerk_targets -> { empty_targets with clerk_targets }
+            | [] -> dir_targets),
+            dir_targets )
         else
-          sort_user_target_args config ~autotest:true ~backends items info
-            target_args
+          let targets =
+            sort_user_target_args config ~autotest:true ~backends items info
+              target_args
+          in
+          targets, targets
       in
-      target_debug_message targets;
-      let test_targets = ninja_interp_test_targets config targets in
+      target_debug_message ~label:"build" targets_build;
+      target_debug_message ~label:"test" targets_test;
+      let test_targets = ninja_interp_test_targets config targets_test in
       let build_targets =
-        ninja_build_targets config backends items info targets
+        ninja_build_targets config backends items info targets_build
       in
       let exec_targets, nj_exec_targets =
         ninja_run_targets config
           (List.filter (( <> ) `Interpret) backends)
-          ~test_only:true items info targets
+          ~test_only:true items info targets_test
       in
       let exec_targets_ninja =
         ninja_runtime_targets backends
@@ -1600,7 +1605,7 @@ let ci_cmd =
       in
       set_ninja_targets nin_ppf
         (build_targets @ test_targets @ exec_targets_ninja);
-      targets, exec_targets, items, info, test_targets
+      targets_build, exec_targets, items, info, test_targets
     in
     let open Clerk_report in
     let test_reports =
