@@ -603,7 +603,7 @@ let ninja_run_targets
     let backends =
       match explicit_backends with
       | Some bks -> bks
-      | None -> item_backends info backends it
+      | None -> if test_only then item_backends info backends it else backends
     in
     List.map
       (fun backend ->
