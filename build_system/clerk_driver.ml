@@ -210,7 +210,7 @@ let obj_target ~build_dir:_ ~backend item =
   let name = Clerk_backend.(name (get (backend_to_config backend))) in
   Clerk_backend.obj_dep ~name item
 
-let make_target ~build_dir ~backend ?(main_exec = false) item =
+let make_target ~build_dir ~backend ?(main_exec = false) ?force_ext item =
   let open File in
   let f = Scan.target_file_name item -.- File.extension item.Scan.file_name in
   let dir = dirname f in
@@ -230,6 +230,7 @@ let make_target ~build_dir ~backend ?(main_exec = false) item =
     | `Custom rule ->
       (dir / rule_subdir rule / base) -.- List.hd rule.Config.in_exts
   in
+  let base = match force_ext with Some e -> base -.- e | None -> base in
   let needs_main = match backend with `OCaml | `C -> main_exec | _ -> false in
   Nj.Expr.Word
     (if needs_main then
@@ -511,13 +512,15 @@ let ninja_build_targets
   let backends = List.filter (( <> ) `Interpret) backends in
   (* This function is only concerned with the built artifacts *)
   let build_dir = config.Cli.file.global.build_dir in
-  let item_build_target ?backends:explicit_backends it =
+  let item_build_target ?backends:explicit_backends ?force_ext it =
     let backends =
       match explicit_backends with
       | Some bks -> bks
       | None -> item_backends info backends it
     in
-    List.map (fun backend -> make_target ~build_dir ~backend it) backends
+    List.map
+      (fun backend -> make_target ~build_dir ~backend ?force_ext it)
+      backends
   in
   let from_clerk_targets =
     List.concat_map
@@ -560,7 +563,13 @@ let ninja_build_targets
   let from_direct_targets =
     List.concat_map
       (fun (str, item, backend) ->
-        let t = item_build_target ~backends:[config_backend backend] item in
+        let force_ext =
+          if Filename.extension str <> "" then Some (File.extension str)
+          else None
+        in
+        let t =
+          item_build_target ~backends:[config_backend backend] ?force_ext item
+        in
         if t = [] then
           Message.error
             "Could not find a way to build @{<blue>%s@}.@ Check in \
