@@ -56,10 +56,10 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = ¤-10.00
+│ . x_in = ¤-5.00
 └─
 ┌─[RESULT]─
-│ . y_in = -1.
+│ . y_in = -0.500244140625
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
