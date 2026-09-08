@@ -1,5 +1,5 @@
 (library
  (name clerk_backend)
  (public_name catala.clerk_backend)
- (flags -linkall)
+ (flags (:standard -linkall))
  (libraries clerk_lib clerk_utils catala.catala_utils catala.surface otoml))
