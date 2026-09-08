@@ -929,8 +929,8 @@ let organise_modules ~config items =
           && not (List.exists has_tests (G.pred module_g m))
         then
           Message.warning
-            "The module @{<blue>%s@} belongs to no target and appears to be \
-             unused"
+            "The module@ @{<blue>%s@}@ belongs@ to@ no@ target@ and@ appears@ \
+             to@ be@ unused"
             m;
         let check_conflicts () =
           let _, conflict_targets =
