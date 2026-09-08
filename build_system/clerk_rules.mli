@@ -92,4 +92,5 @@ val run_ninja :
 
 val module_backends : callback_info -> string -> Clerk_config.backend list
 (** Returns the list of backends supported by a given module by analysing the
-    clerk targets it belongs to *)
+    clerk targets it belongs to, or, if none, the clerk targets of its
+    dependencies *)

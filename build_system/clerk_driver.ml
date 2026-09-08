@@ -210,7 +210,7 @@ let obj_target ~build_dir:_ ~backend item =
   let name = Clerk_backend.(name (get (backend_to_config backend))) in
   Clerk_backend.obj_dep ~name item
 
-let make_target ~build_dir ~backend ?(main_exec = false) item =
+let make_target ~build_dir ~backend ?(main_exec = false) ?force_ext item =
   let open File in
   let f = Scan.target_file_name item -.- File.extension item.Scan.file_name in
   let dir = dirname f in
@@ -230,6 +230,7 @@ let make_target ~build_dir ~backend ?(main_exec = false) item =
     | `Custom rule ->
       (dir / rule_subdir rule / base) -.- List.hd rule.Config.in_exts
   in
+  let base = match force_ext with Some e -> base -.- e | None -> base in
   let needs_main = match backend with `OCaml | `C -> main_exec | _ -> false in
   Nj.Expr.Word
     (if needs_main then
@@ -289,8 +290,8 @@ let empty_targets =
     direct_targets = [];
   }
 
-let target_debug_message (t : user_target_args) =
-  Message.debug "Will build the following targets:";
+let target_debug_message ?(label = "build") (t : user_target_args) =
+  Message.debug "Will %s the following targets:" label;
   let ppl f =
     Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf item ->
         Format.fprintf ppf "@{<magenta>%s@}" (f item))
@@ -466,14 +467,26 @@ let ninja_interp_test_targets
     File.(
       fun dir -> Nj.Expr.Word ((build_dir / no_trailing_slash dir) ^ "@test"))
     dirs
-  @ List.map
+  @ List.filter_map
       File.(
         fun m ->
-          Nj.Expr.Word ((build_dir / m.Clerk_rules.item.file_name) ^ "@test"))
+          if
+            m.Clerk_rules.item.Scan.has_inline_tests
+            || Lazy.force m.Clerk_rules.item.Scan.has_scope_tests > 0
+          then
+            Some
+              (Nj.Expr.Word
+                 ((build_dir / m.Clerk_rules.item.file_name) ^ "@test"))
+          else None)
       modules
-  @ List.map
+  @ List.filter_map
       File.(
-        fun item -> Nj.Expr.Word ((build_dir / item.Scan.file_name) ^ "@test"))
+        fun item ->
+          if
+            item.Scan.has_inline_tests
+            || Lazy.force item.Scan.has_scope_tests > 0
+          then Some (Nj.Expr.Word ((build_dir / item.Scan.file_name) ^ "@test"))
+          else None)
       source_files
 
 let module_backends info backends modname =
@@ -511,13 +524,15 @@ let ninja_build_targets
   let backends = List.filter (( <> ) `Interpret) backends in
   (* This function is only concerned with the built artifacts *)
   let build_dir = config.Cli.file.global.build_dir in
-  let item_build_target ?backends:explicit_backends it =
+  let item_build_target ?backends:explicit_backends ?force_ext it =
     let backends =
       match explicit_backends with
       | Some bks -> bks
       | None -> item_backends info backends it
     in
-    List.map (fun backend -> make_target ~build_dir ~backend it) backends
+    List.map
+      (fun backend -> make_target ~build_dir ~backend ?force_ext it)
+      backends
   in
   let from_clerk_targets =
     List.concat_map
@@ -560,7 +575,13 @@ let ninja_build_targets
   let from_direct_targets =
     List.concat_map
       (fun (str, item, backend) ->
-        let t = item_build_target ~backends:[config_backend backend] item in
+        let force_ext =
+          if Filename.extension str <> "" then Some (File.extension str)
+          else None
+        in
+        let t =
+          item_build_target ~backends:[config_backend backend] ?force_ext item
+        in
         if t = [] then
           Message.error
             "Could not find a way to build @{<blue>%s@}.@ Check in \
@@ -594,7 +615,13 @@ let ninja_run_targets
     let backends =
       match explicit_backends with
       | Some bks -> bks
-      | None -> item_backends info backends it
+      | None -> if test_only then item_backends info backends it else backends
+    in
+    let backends =
+      if test_only && Lazy.force it.Scan.has_scope_tests = 0 then
+        if it.has_inline_tests then List.filter (( = ) `Interpret) backends
+        else []
+      else backends
     in
     List.map
       (fun backend ->
@@ -622,8 +649,7 @@ let ninja_run_targets
                   List.mem bk t.Config.backends)
                 backends
             in
-            if test_only && Lazy.force it.Scan.has_scope_tests = 0 then []
-            else item_exec_target ~backends it)
+            item_exec_target ~backends it)
           (items_in_subdirs info items t.Config.ttests))
       clerk_targets
   in
@@ -632,12 +658,7 @@ let ninja_run_targets
   in
   let from_directories =
     List.concat_map
-      (fun (_, items) ->
-        List.concat_map
-          (fun it ->
-            if test_only && Lazy.force it.Scan.has_scope_tests = 0 then []
-            else item_exec_target it)
-          items)
+      (fun (_, items) -> List.concat_map (fun it -> item_exec_target it) items)
       directories
   in
   let from_sources = List.concat_map item_exec_target source_files in
@@ -1601,25 +1622,30 @@ let ci_cmd =
         ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true ~trace:false
         ~default:(empty_targets, [], [], Clerk_rules.empty_info, [])
       @@ fun nin_ppf items info ->
-      let targets =
+      let targets_build, targets_test =
         if target_args = [] then
-          {
-            (default_targets ~config info items) with
-            clerk_targets = config.file.targets;
-          }
+          let dir_targets = project_dir_targets ~config info items in
+          ( (match config.file.targets with
+            | _ :: _ as clerk_targets -> { empty_targets with clerk_targets }
+            | [] -> dir_targets),
+            dir_targets )
         else
-          sort_user_target_args config ~autotest:true ~backends items info
-            target_args
+          let targets =
+            sort_user_target_args config ~autotest:true ~backends items info
+              target_args
+          in
+          targets, targets
       in
-      target_debug_message targets;
-      let test_targets = ninja_interp_test_targets config targets in
+      target_debug_message ~label:"build" targets_build;
+      target_debug_message ~label:"test" targets_test;
+      let test_targets = ninja_interp_test_targets config targets_test in
       let build_targets =
-        ninja_build_targets config backends items info targets
+        ninja_build_targets config backends items info targets_build
       in
       let exec_targets, nj_exec_targets =
         ninja_run_targets config
           (List.filter (( <> ) `Interpret) backends)
-          ~test_only:true items info targets
+          ~test_only:true items info targets_test
       in
       let exec_targets_ninja =
         ninja_runtime_targets backends
@@ -1628,7 +1654,7 @@ let ci_cmd =
       in
       set_ninja_targets nin_ppf
         (build_targets @ test_targets @ exec_targets_ninja);
-      targets, exec_targets, items, info, test_targets
+      targets_build, exec_targets, items, info, test_targets
     in
     let open Clerk_report in
     let test_reports =

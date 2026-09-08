@@ -1041,13 +1041,33 @@ let empty_info =
     inclusion_map = String.Map.empty;
   }
 
+(* Returns the targets a module belongs to, or, failing that, the targets of its
+   dependencies *)
+let rec module_target_dependencies info m =
+  if not (String.Set.is_empty m.targets) then m.targets
+  else
+    List.fold_left
+      (fun targets (depname, _) ->
+        let m1 = String.Map.find depname info.modules_map in
+        String.Set.union targets (module_target_dependencies info m1))
+      String.Set.empty m.item.used_modules
+
 (* The backends for a given module are detected by analysing what clerk targets
    it belongs to *)
 let module_backends info modname =
   let m = String.Map.find modname info.modules_map in
   if String.Set.is_empty m.targets then
-    List.map snd (Clerk_config.registered_backends ())
+    let all_backends = List.map snd (Clerk_config.registered_backends ()) in
+    let dep_targets = module_target_dependencies info m in
+    (* Intersection of the backends supported by the module deps *)
+    String.Set.fold
+      (fun t acc ->
+        List.filter
+          (fun bk1 -> List.mem bk1 acc)
+          (String.Map.find t info.targets_map).Clerk_config.backends)
+      dep_targets all_backends
   else
+    (* Union of the backends supported by the module targets *)
     String.Set.fold
       (fun t acc ->
         List.fold_left
