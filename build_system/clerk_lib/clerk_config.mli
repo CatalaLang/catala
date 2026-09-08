@@ -20,6 +20,7 @@ type backend = ..
 
 val register_backend : name:string -> backend -> unit
 val registered_backends : unit -> (string * backend) list
+val backend_name : backend -> string
 
 type doc_backend = Html | Latex
 
