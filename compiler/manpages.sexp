@@ -1,5 +1,6 @@
 (rule (alias man) (action (with-stdout-to catala.1 (run %{bin:catala}  --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-c.1 (run %{bin:catala} c --help=groff))))
+(rule (alias man) (action (with-stdout-to catala-concolic.1 (run %{bin:catala} concolic --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-dcalc.1 (run %{bin:catala} dcalc --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-dependency-graph.1 (run %{bin:catala} dependency-graph --help=groff))))
 (rule (alias man) (action (with-stdout-to catala-depends.1 (run %{bin:catala} depends --help=groff))))

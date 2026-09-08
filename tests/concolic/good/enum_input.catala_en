@@ -71,10 +71,10 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . a_in = A2 false
+│ . a_in = A1 2
 └─
 ┌─[RESULT]─
-│ . b_in = B1 (A1 2)
+│ . b_in = B1 (A1 3)
 └─
 ┌─[RESULT]─
 │ . x_in = 0
@@ -92,7 +92,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . a_in = A2 false
+│ . a_in = A1 3
 └─
 ┌─[RESULT]─
 │ . b_in = B2
@@ -113,7 +113,7 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . a_in = A2 true
+│ . a_in = A1 2
 └─
 ┌─[RESULT]─
 │ . b_in = B1 (A2 false)

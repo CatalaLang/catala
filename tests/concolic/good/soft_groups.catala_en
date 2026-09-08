@@ -66,7 +66,7 @@ $ catala Concolic -s A
 │ Evaluating with inputs:
 └─
 ┌─[RESULT]─
-│ . x_in = ¤2.93
+│ . x_in = ¤1.01
 └─
 ┌─[RESULT]─
 │ Output of scope after evaluation:
