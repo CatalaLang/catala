@@ -246,6 +246,7 @@ module Spec : Sig.Spec = struct
 
   let write_target_def_file
       ~(config : Clerk_cli.config)
+      ~info:_
       ~(dir : File.t)
       (target : Clerk_config.target) =
     let open File in

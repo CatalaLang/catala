@@ -132,7 +132,7 @@ module Spec : Sig.Spec = struct
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name / "src" / "catala")
 
-  let write_target_def_file ~config:_ ~dir target =
+  let write_target_def_file ~config:_ ~info:_ ~dir target =
     let open File in
     File.with_out_channel (dir / "__init__.py") (fun oc ->
         Printf.fprintf oc "__all__ = [%s]\n"

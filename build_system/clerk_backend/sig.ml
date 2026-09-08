@@ -100,7 +100,11 @@ module type Spec = sig
       standard library files. Usually just the empty string. *)
 
   val write_target_def_file :
-    config:Clerk_cli.config -> dir:File.t -> Clerk_config.target -> unit
+    config:Clerk_cli.config ->
+    info:Module_graph.info ->
+    dir:File.t ->
+    Clerk_config.target ->
+    unit
   (** Called on the target directory under [_targets/<backend>/] after the files
       have been copied in *)
 
