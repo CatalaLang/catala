@@ -777,7 +777,7 @@ let install_backend_targets
             { target with dependencies = String.Set.elements tdeps }
           else target
         in
-        B.write_target_def_file ~config ~dir target
+        B.write_target_def_file ~config ~info:build_info ~dir target
     in
     let rec targets_and_deps acc targets =
       (* Always install its dependencies together with a target *)

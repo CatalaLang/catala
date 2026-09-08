@@ -326,7 +326,7 @@ module Spec : Sig.Spec = struct
     in
     List.to_seq obj
 
-  let write_target_def_file ~config ~dir target =
+  let write_target_def_file ~config ~info:_ ~dir target =
     let open File in
     with_out_channel (dir / "dune")
     @@ fun oc ->
