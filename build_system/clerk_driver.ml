@@ -467,14 +467,26 @@ let ninja_interp_test_targets
     File.(
       fun dir -> Nj.Expr.Word ((build_dir / no_trailing_slash dir) ^ "@test"))
     dirs
-  @ List.map
+  @ List.filter_map
       File.(
         fun m ->
-          Nj.Expr.Word ((build_dir / m.Clerk_rules.item.file_name) ^ "@test"))
+          if
+            m.Clerk_rules.item.Scan.has_inline_tests
+            || Lazy.force m.Clerk_rules.item.Scan.has_scope_tests > 0
+          then
+            Some
+              (Nj.Expr.Word
+                 ((build_dir / m.Clerk_rules.item.file_name) ^ "@test"))
+          else None)
       modules
-  @ List.map
+  @ List.filter_map
       File.(
-        fun item -> Nj.Expr.Word ((build_dir / item.Scan.file_name) ^ "@test"))
+        fun item ->
+          if
+            item.Scan.has_inline_tests
+            || Lazy.force item.Scan.has_scope_tests > 0
+          then Some (Nj.Expr.Word ((build_dir / item.Scan.file_name) ^ "@test"))
+          else None)
       source_files
 
 let module_backends info backends modname =
@@ -605,6 +617,12 @@ let ninja_run_targets
       | Some bks -> bks
       | None -> if test_only then item_backends info backends it else backends
     in
+    let backends =
+      if test_only && Lazy.force it.Scan.has_scope_tests = 0 then
+        if it.has_inline_tests then List.filter (( = ) `Interpret) backends
+        else []
+      else backends
+    in
     List.map
       (fun backend ->
         ( it,
@@ -631,8 +649,7 @@ let ninja_run_targets
                   List.mem bk t.Config.backends)
                 backends
             in
-            if test_only && Lazy.force it.Scan.has_scope_tests = 0 then []
-            else item_exec_target ~backends it)
+            item_exec_target ~backends it)
           (items_in_subdirs info items t.Config.ttests))
       clerk_targets
   in
@@ -641,12 +658,7 @@ let ninja_run_targets
   in
   let from_directories =
     List.concat_map
-      (fun (_, items) ->
-        List.concat_map
-          (fun it ->
-            if test_only && Lazy.force it.Scan.has_scope_tests = 0 then []
-            else item_exec_target it)
-          items)
+      (fun (_, items) -> List.concat_map (fun it -> item_exec_target it) items)
       directories
   in
   let from_sources = List.concat_map item_exec_target source_files in
