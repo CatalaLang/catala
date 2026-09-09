@@ -589,6 +589,7 @@ let run_command_line ?(setenv = []) ?(quiet = false) cmdline =
       |> String.Map.add_seq (List.to_seq setenv)
       |> String.Map.to_seq
       |> Seq.map (fun (var, value) -> var ^ "=" ^ value)
+      |> Seq.append (Array.to_seq (Message.env_forward_vars ()))
       |> Array.of_seq
     in
     let in_fd, out_fd = Unix.pipe () in

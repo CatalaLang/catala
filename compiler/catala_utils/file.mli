@@ -106,6 +106,12 @@ val copy : src:t -> dst:t -> unit
 val copy_in : src:t -> dir:t -> unit
 (** Same as [copy], but copies the file into the given, existing dir. *)
 
+val copy_with_prefix : prefix:string -> src:t -> dst:t -> unit
+(** Same as [copy] but also prepend a [prefix] to the file. *)
+
+val copy_in_with_prefix : prefix:string -> src:t -> dir:t -> unit
+(** Same as [copy_in] but also prepend a [prefix] to the file. *)
+
 val copy_dir :
   ?filter:(t -> bool) -> ?newer_only:bool -> src:t -> dst:t -> unit -> unit
 (** Recursively copy a directory with its contents using [copy]. [filter] is

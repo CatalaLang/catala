@@ -1017,12 +1017,16 @@ let organise_modules ~config items =
     Message.debug "Module graph available at @{<blue;bold>%a@}"
       (Message.link ~target:(Message.file_url f) ())
       f);
-  modmap, tmap, linking_deps
+  let target_deps (t : Clerk_config.target) =
+    G.succ target_g t.tname |> String.Set.of_list
+  in
+  modmap, tmap, linking_deps, target_deps
 
 type callback_info = {
   var_bindings : Var.bindings;
   modules_map : module_info String.Map.t;
   targets_map : Clerk_config.target String.Map.t;
+  target_deps : Clerk_config.target -> String.Set.t;
   linking_deps : Scan.item -> string list;
   inclusion_map : Scan.item String.Map.t;
 }
@@ -1032,17 +1036,38 @@ let empty_info =
     var_bindings = [];
     modules_map = String.Map.empty;
     targets_map = String.Map.empty;
+    target_deps = (fun t -> raise (String.Map.Not_found t.tname));
     linking_deps = (fun m -> raise (String.Map.Not_found m.file_name));
     inclusion_map = String.Map.empty;
   }
+
+(* Returns the targets a module belongs to, or, failing that, the targets of its
+   dependencies *)
+let rec module_target_dependencies info m =
+  if not (String.Set.is_empty m.targets) then m.targets
+  else
+    List.fold_left
+      (fun targets (depname, _) ->
+        let m1 = String.Map.find depname info.modules_map in
+        String.Set.union targets (module_target_dependencies info m1))
+      String.Set.empty m.item.used_modules
 
 (* The backends for a given module are detected by analysing what clerk targets
    it belongs to *)
 let module_backends info modname =
   let m = String.Map.find modname info.modules_map in
   if String.Set.is_empty m.targets then
-    List.map snd (Clerk_config.registered_backends ())
+    let all_backends = List.map snd (Clerk_config.registered_backends ()) in
+    let dep_targets = module_target_dependencies info m in
+    (* Intersection of the backends supported by the module deps *)
+    String.Set.fold
+      (fun t acc ->
+        List.filter
+          (fun bk1 -> List.mem bk1 acc)
+          (String.Map.find t info.targets_map).Clerk_config.backends)
+      dep_targets all_backends
   else
+    (* Union of the backends supported by the module targets *)
     String.Set.fold
       (fun t acc ->
         List.fold_left
@@ -1190,9 +1215,12 @@ let run_ninja
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
           ~var_bindings stdlib_tree item_tree
       in
-      let modules_map, targets_map, linking_deps =
+      let modules_map, targets_map, linking_deps, target_deps =
         if skip_project_scan then
-          String.Map.empty, String.Map.empty, fun _ -> []
+          ( String.Map.empty,
+            String.Map.empty,
+            (fun _ -> []),
+            fun _ -> String.Set.empty )
         else
           let item_seq =
             Seq.flat_map
@@ -1254,7 +1282,14 @@ let run_ninja
              ~inputs:[Nj.Expr.Word File.(Var.(!builddir / ".@test"))]);
       let inclusion_map = inclusion_map items in
       let callback_info =
-        { var_bindings; modules_map; targets_map; linking_deps; inclusion_map }
+        {
+          var_bindings;
+          modules_map;
+          targets_map;
+          target_deps;
+          linking_deps;
+          inclusion_map;
+        }
       in
       let () =
         (* Check for missing externals *)
@@ -1307,9 +1342,16 @@ let scan_project ~config =
     |> Seq.append (scan_project_items ~cleanup:false ~config)
     |> Seq.flat_map (fun (_, _, it) -> List.to_seq it)
   in
-  let modules_map, targets_map, linking_deps =
+  let modules_map, targets_map, linking_deps, target_deps =
     organise_modules ~config:config.Clerk_cli.file items
   in
   let inclusion_map = inclusion_map items in
   ( List.of_seq items,
-    { var_bindings; modules_map; targets_map; linking_deps; inclusion_map } )
+    {
+      var_bindings;
+      modules_map;
+      targets_map;
+      linking_deps;
+      inclusion_map;
+      target_deps;
+    } )

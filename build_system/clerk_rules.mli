@@ -40,6 +40,8 @@ type callback_info = {
   var_bindings : Var.bindings;
   modules_map : module_info String.Map.t;
   targets_map : Clerk_config.target String.Map.t;
+  target_deps : Clerk_config.target -> String.Set.t;
+      (** returns the names of the given target's dependencies *)
   linking_deps : Scan.item -> string list;
       (** item -> modules, topologically ordered *)
   inclusion_map : Scan.item String.Map.t;
@@ -90,4 +92,5 @@ val run_ninja :
 
 val module_backends : callback_info -> string -> Clerk_config.backend list
 (** Returns the list of backends supported by a given module by analysing the
-    clerk targets it belongs to *)
+    clerk targets it belongs to, or, if none, the clerk targets of its
+    dependencies *)
