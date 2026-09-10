@@ -940,7 +940,7 @@ let format_constructor (ctx : context) in_fields ppf (sbody : scope_body) =
        than 255 parameters in methods. "
       ScopeName.format_original sbody.scope_body_name;
   let params =
-    StructField.Map.to_list in_fields
+    StructField.Map.bindings in_fields
     |> List.map (fun (sf, _) ->
         let _, pos = StructField.get_info sf in
         asprintf "%a" StructField.format sf, pos)
@@ -993,7 +993,7 @@ let format_struct_constructor ?(vis = Public) ctx ppf (sname, fields) =
   if StructField.Map.is_empty fields then ()
   else
     let params =
-      StructField.Map.to_list fields
+      StructField.Map.bindings fields
       |> List.map (fun (sf, _) ->
           StructField.to_string sf, snd (StructField.get_info sf))
     in
