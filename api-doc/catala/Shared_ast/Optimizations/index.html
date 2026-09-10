@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Optimizations (catala.Shared_ast.Optimizations)</title><meta charset="utf-8"/><link rel="stylesheet" href="../../../odoc.support/odoc.css"/><meta name="generator" content="odoc 3.1.0"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../../index.html">Index</a> &#x00BB; <a href="../../index.html">catala</a> &#x00BB; <a href="../index.html">Shared_ast</a> &#x00BB; Optimizations</nav><header class="odoc-preamble"><h1>Module <code><span>Shared_ast.Optimizations</span></code></h1><p>Optimization passes for default calculus and lambda calculus programs and expressions</p></header><div class="odoc-tocs"><nav class="odoc-toc odoc-local-toc"><ul><li><a href="#tests">Tests</a></li></ul></nav></div><div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-optimize_expr"><a href="#val-optimize_expr" class="anchor"></a><code><span><span class="keyword">val</span> optimize_expr : 
+  <span><span class="xref-unresolved">Shared_ast__.Definitions.decl_ctx</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span><span>(<span>&lt; <span>&lt; monomorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; polymorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; overloaded : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; resolved : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; syntacticNames : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; scopeVarStates : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; scopeVarSimpl : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; explicitScopes : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>
+     ; defaultTerms : <span class="type-var">'a</span>
+     ; reifiedPos : <span class="type-var">'b</span>
+     ; custom : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>,
+     <span>&lt; <span>&lt; monomorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; polymorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; overloaded : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; resolved : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; syntacticNames : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; scopeVarStates : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; scopeVarSimpl : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; explicitScopes : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>
+     ; defaultTerms : <span class="type-var">'a</span>
+     ; reifiedPos : <span class="type-var">'b</span>
+     ; custom : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>,
+     <span class="type-var">'m</span>)</span>
+     <span class="xref-unresolved">Shared_ast__.Definitions.base_gexpr</span></span>,
+    <span><span class="type-var">'m</span> <span class="xref-unresolved">Shared_ast__.Definitions.mark</span></span>)</span>
+    <a href="../../Catala_utils/Mark/index.html#type-ed">Catala_utils.Mark.ed</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span><span>(<span>&lt; <span>&lt; monomorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; polymorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; overloaded : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; resolved : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; syntacticNames : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; scopeVarStates : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; scopeVarSimpl : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; explicitScopes : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>
+     ; defaultTerms : <span class="type-var">'a</span>
+     ; reifiedPos : <span class="type-var">'b</span>
+     ; custom : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>,
+     <span>&lt; <span>&lt; monomorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; polymorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; overloaded : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; resolved : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; syntacticNames : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; scopeVarStates : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; scopeVarSimpl : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; explicitScopes : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>
+     ; defaultTerms : <span class="type-var">'a</span>
+     ; reifiedPos : <span class="type-var">'b</span>
+     ; custom : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>,
+     <span class="type-var">'m</span>)</span>
+     <span class="xref-unresolved">Shared_ast__.Definitions.base_gexpr</span></span>
+     <span class="xref-unresolved">Bindlib</span>.box</span>,
+    <span><span class="type-var">'m</span> <span class="xref-unresolved">Shared_ast__.Definitions.mark</span></span>)</span>
+    <a href="../../Catala_utils/Mark/index.html#type-ed">Catala_utils.Mark.ed</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-optimize_program"><a href="#val-optimize_program" class="anchor"></a><code><span><span class="keyword">val</span> optimize_program : 
+  <span><span><span><span>(<span><span>(<span>&lt; <span>&lt; monomorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; polymorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; overloaded : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; resolved : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; syntacticNames : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; scopeVarStates : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; scopeVarSimpl : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; explicitScopes : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>
+     ; defaultTerms : <span class="type-var">'a</span>
+     ; reifiedPos : <span class="type-var">'b</span>
+     ; custom : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>,
+     <span>&lt; <span>&lt; monomorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; polymorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; overloaded : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; resolved : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; syntacticNames : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; scopeVarStates : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; scopeVarSimpl : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; explicitScopes : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>
+     ; defaultTerms : <span class="type-var">'a</span>
+     ; reifiedPos : <span class="type-var">'b</span>
+     ; custom : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>,
+     <span class="type-var">'m</span>)</span>
+     <span class="xref-unresolved">Shared_ast__.Definitions.base_gexpr</span></span>,
+    <span><span class="type-var">'m</span> <span class="xref-unresolved">Shared_ast__.Definitions.mark</span></span>)</span>
+    <a href="../../Catala_utils/Mark/index.html#type-ed">Catala_utils.Mark.ed</a></span>
+    <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span><span>(<span>&lt; <span>&lt; monomorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; polymorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; overloaded : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; resolved : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+      ; syntacticNames : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; scopeVarStates : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; scopeVarSimpl : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+      ; explicitScopes : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>
+     ; defaultTerms : <span class="type-var">'a</span>
+     ; reifiedPos : <span class="type-var">'b</span>
+     ; custom : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>,
+     <span>&lt; <span>&lt; monomorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; polymorphic : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; overloaded : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; resolved : <span class="xref-unresolved">Shared_ast__.Definitions.yes</span>
+       ; syntacticNames : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; scopeVarStates : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; scopeVarSimpl : <span class="xref-unresolved">Shared_ast__.Definitions.no</span>
+       ; explicitScopes : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>
+     ; defaultTerms : <span class="type-var">'a</span>
+     ; reifiedPos : <span class="type-var">'b</span>
+     ; custom : <span class="xref-unresolved">Shared_ast__.Definitions.no</span> &gt;</span>,
+     <span class="type-var">'m</span>)</span>
+     <span class="xref-unresolved">Shared_ast__.Definitions.base_gexpr</span></span>,
+    <span><span class="type-var">'m</span> <span class="xref-unresolved">Shared_ast__.Definitions.mark</span></span>)</span>
+    <a href="../../Catala_utils/Mark/index.html#type-ed">Catala_utils.Mark.ed</a></span>
+    <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span></span></code></div></div><h2 id="tests"><a href="#tests" class="anchor"></a>Tests</h2><div class="odoc-spec"><div class="spec value anchored" id="val-test_iota_reduction_1"><a href="#val-test_iota_reduction_1" class="anchor"></a><code><span><span class="keyword">val</span> test_iota_reduction_1 : <span>unit <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-test_iota_reduction_2"><a href="#val-test_iota_reduction_2" class="anchor"></a><code><span><span class="keyword">val</span> test_iota_reduction_2 : <span>unit <span class="arrow">&#45;&gt;</span></span> unit</span></code></div></div></div></body></html>

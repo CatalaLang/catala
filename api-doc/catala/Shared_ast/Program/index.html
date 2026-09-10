@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Program (catala.Shared_ast.Program)</title><meta charset="utf-8"/><link rel="stylesheet" href="../../../odoc.support/odoc.css"/><meta name="generator" content="odoc 3.1.0"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../../index.html">Index</a> &#x00BB; <a href="../../index.html">catala</a> &#x00BB; <a href="../index.html">Shared_ast</a> &#x00BB; Program</nav><header class="odoc-preamble"><h1>Module <code><span>Shared_ast.Program</span></code></h1></header><div class="odoc-tocs"><nav class="odoc-toc odoc-local-toc"><ul><li><a href="#program-declaration-context-helpers">Program declaration context helpers</a></li><li><a href="#transformations">Transformations</a></li></ul></nav></div><div class="odoc-content"><h3 id="program-declaration-context-helpers"><a href="#program-declaration-context-helpers" class="anchor"></a>Program declaration context helpers</h3><div class="odoc-spec"><div class="spec value anchored" id="val-empty_ctx"><a href="#val-empty_ctx" class="anchor"></a><code><span><span class="keyword">val</span> empty_ctx : <span class="xref-unresolved">Shared_ast__.Definitions.decl_ctx</span></span></code></div></div><h3 id="transformations"><a href="#transformations" class="anchor"></a>Transformations</h3><div class="odoc-spec"><div class="spec value anchored" id="val-map_decl_ctx"><a href="#val-map_decl_ctx" class="anchor"></a><code><span><span class="keyword">val</span> map_decl_ctx : 
+  <span><span class="label">f</span>:
+    <span>(<span><span><span class="xref-unresolved">Shared_ast__.Definitions.naked_typ</span> <a href="../../Catala_utils/Mark/index.html#type-pos">Catala_utils.Mark.pos</a></span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span class="xref-unresolved">Shared_ast__.Definitions.naked_typ</span> <a href="../../Catala_utils/Mark/index.html#type-pos">Catala_utils.Mark.pos</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="xref-unresolved">Shared_ast__.Definitions.decl_ctx</span> <span class="arrow">&#45;&gt;</span></span>
+  <span class="xref-unresolved">Shared_ast__.Definitions.decl_ctx</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-map_scopes"><a href="#val-map_scopes" class="anchor"></a><code><span><span class="keyword">val</span> map_scopes : 
+  <span><span class="label">f</span>:
+    <span>(<span><span class="xref-unresolved">Shared_ast__.Definitions.ScopeName.t</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.scope_body</span></span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.scope_body</span></span> <span class="xref-unresolved">Bindlib</span>.box</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-map_scopes_env"><a href="#val-map_scopes_env" class="anchor"></a><code><span><span class="keyword">val</span> map_scopes_env : 
+  <span><span class="label">f</span>:
+    <span>(<span><span class="type-var">'acc</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span>(<span><span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.boxed</span></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.boxed</span></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span class="xref-unresolved">Shared_ast__.Definitions.ScopeName.t</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.scope_body</span></span> <span class="arrow">&#45;&gt;</span></span>
+      <span class="type-var">'acc</span> * <span><span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.scope_body</span></span> <span class="xref-unresolved">Bindlib</span>.box</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?last</span>:
+    <span>(<span><span class="type-var">'acc</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span>(<span><span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.boxed</span></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.boxed</span></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span><span>(<span class="xref-unresolved">Shared_ast__.Definitions.code_export_kind</span> * <span class="type-var">'e</span>)</span> list</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span><span>(<span class="xref-unresolved">Shared_ast__.Definitions.code_export_kind</span> * <span class="type-var">'e</span>)</span> list</span> <span class="xref-unresolved">Bindlib</span>.box</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">init</span>:<span class="type-var">'acc</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span></span></code></div><div class="spec-doc"><p>Maps on the scopes in the program, passing along an &quot;environment&quot; in the form of a function binding all toplevel and scope definitions to their variables in the argument expression</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-map_exprs"><a href="#val-map_exprs" class="anchor"></a><code><span><span class="keyword">val</span> map_exprs : 
+  <span><span class="optlabel">?typ</span>:
+    <span>(<span><span><span class="xref-unresolved">Shared_ast__.Definitions.naked_typ</span> <a href="../../Catala_utils/Mark/index.html#type-pos">Catala_utils.Mark.pos</a></span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span class="xref-unresolved">Shared_ast__.Definitions.naked_typ</span> <a href="../../Catala_utils/Mark/index.html#type-pos">Catala_utils.Mark.pos</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">f</span>:<span>(<span><span class="type-var">'expr1</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'expr2</span> <span class="xref-unresolved">Shared_ast__.Definitions.boxed</span></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">varf</span>:<span>(<span><span><span class="type-var">'expr1</span> <a href="../Var/index.html#type-t">Var.t</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'expr2</span> <a href="../Var/index.html#type-t">Var.t</a></span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'expr1</span> <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'expr2</span> <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span></span></code></div><div class="spec-doc"><p>If <code>typ</code> is specified, definitions in <code>decl_ctx</code> are also processed</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-fold_left"><a href="#val-fold_left" class="anchor"></a><code><span><span class="keyword">val</span> fold_left : 
+  <span><span class="label">f</span>:<span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'expr</span> <span class="xref-unresolved">Shared_ast__.Definitions.code_item</span></span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">init</span>:<span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'expr</span> <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-fold_exprs"><a href="#val-fold_exprs" class="anchor"></a><code><span><span class="keyword">val</span> fold_exprs : 
+  <span><span class="label">f</span>:
+    <span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span class="type-var">'expr</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span><span class="xref-unresolved">Shared_ast__.Definitions.naked_typ</span> <a href="../../Catala_utils/Mark/index.html#type-pos">Catala_utils.Mark.pos</a></span> <span class="arrow">&#45;&gt;</span></span>
+      <span class="type-var">'a</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">init</span>:<span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'expr</span> <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-fold_exprs_full"><a href="#val-fold_exprs_full" class="anchor"></a><code><span><span class="keyword">val</span> fold_exprs_full : 
+  <span><span class="label">f</span>:
+    <span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span class="type-var">'expr</span> <span class="arrow">&#45;&gt;</span></span>
+      <span><span><span class="xref-unresolved">Shared_ast__.Definitions.naked_typ</span> <a href="../../Catala_utils/Mark/index.html#type-pos">Catala_utils.Mark.pos</a></span> <span class="arrow">&#45;&gt;</span></span>
+      <span class="type-var">'a</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">init</span>:<span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'expr</span> <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span class="type-var">'a</span> * <span><span>(<span class="xref-unresolved">Shared_ast__.Definitions.code_export_kind</span> * <span class="type-var">'expr</span>)</span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-fold_right"><a href="#val-fold_right" class="anchor"></a><code><span><span class="keyword">val</span> fold_right : 
+  <span><span class="label">f</span>:<span>(<span><span><span class="type-var">'expr</span> <span class="xref-unresolved">Shared_ast__.Definitions.code_item</span></span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span class="type-var">'a</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">init</span>:<span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="type-var">'expr</span> <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span class="type-var">'a</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_scope_body"><a href="#val-get_scope_body" class="anchor"></a><code><span><span class="keyword">val</span> get_scope_body : 
+  <span><span><span>(<span><span>(<span><span>(<span><span class="type-var">_</span> <span class="xref-unresolved">Shared_ast__.Definitions.any</span></span>, <span><span class="type-var">_</span> <span class="xref-unresolved">Shared_ast__.Definitions.any</span></span>, <span class="type-var">'t</span>)</span>
+      <span class="xref-unresolved">Shared_ast__.Definitions.base_gexpr</span></span>,
+     <span><span class="type-var">'t</span> <span class="xref-unresolved">Shared_ast__.Definitions.mark</span></span>)</span>
+     <a href="../../Catala_utils/Mark/index.html#type-ed">Catala_utils.Mark.ed</a></span> <span class="keyword">as</span> 'e)</span>
+    <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="xref-unresolved">Shared_ast__.Definitions.ScopeName.t</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.scope_body</span></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-get_mark_witness"><a href="#val-get_mark_witness" class="anchor"></a><code><span><span class="keyword">val</span> get_mark_witness : 
+  <span><span><span><span>(<span><span>(<span><span class="type-var">_</span> <span class="xref-unresolved">Shared_ast__.Definitions.any</span></span>, <span><span class="type-var">_</span> <span class="xref-unresolved">Shared_ast__.Definitions.any</span></span>, <span class="type-var">'m</span>)</span>
+     <span class="xref-unresolved">Shared_ast__.Definitions.base_gexpr</span></span>,
+    <span><span class="type-var">'m</span> <span class="xref-unresolved">Shared_ast__.Definitions.mark</span></span>)</span>
+    <a href="../../Catala_utils/Mark/index.html#type-ed">Catala_utils.Mark.ed</a></span>
+    <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'m</span> <span class="xref-unresolved">Shared_ast__.Definitions.mark</span></span></span></code></div><div class="spec-doc"><p>Raises Not_found on an empty program</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-untype"><a href="#val-untype" class="anchor"></a><code><span><span class="keyword">val</span> untype : 
+  <span><span><span><span>(<span><span>(<span><span class="type-var">'a</span> <span class="xref-unresolved">Shared_ast__.Definitions.any</span></span>, <span><span class="type-var">'a</span> <span class="xref-unresolved">Shared_ast__.Definitions.any</span></span>, <span class="type-var">_</span>)</span>
+     <span class="xref-unresolved">Shared_ast__.Definitions.base_gexpr</span></span>,
+    <span><span class="type-var">_</span> <span class="xref-unresolved">Shared_ast__.Definitions.mark</span></span>)</span>
+    <a href="../../Catala_utils/Mark/index.html#type-ed">Catala_utils.Mark.ed</a></span>
+    <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span><span>(<span class="type-var">'a</span>, <span class="type-var">'a</span>, <span class="xref-unresolved">Shared_ast__.Definitions.untyped</span>)</span>
+     <span class="xref-unresolved">Shared_ast__.Definitions.base_gexpr</span></span>,
+    <span><span class="xref-unresolved">Shared_ast__.Definitions.untyped</span> <span class="xref-unresolved">Shared_ast__.Definitions.mark</span></span>)</span>
+    <a href="../../Catala_utils/Mark/index.html#type-ed">Catala_utils.Mark.ed</a></span>
+    <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-to_expr"><a href="#val-to_expr" class="anchor"></a><code><span><span class="keyword">val</span> to_expr : 
+  <span><span><span>(<span><span>(<span><span>(<span><span class="type-var">_</span> <span class="xref-unresolved">Shared_ast__.Definitions.any</span></span>, <span><span class="type-var">_</span> <span class="xref-unresolved">Shared_ast__.Definitions.any</span></span>, <span class="type-var">_</span>)</span>
+      <span class="xref-unresolved">Shared_ast__.Definitions.base_gexpr</span></span>,
+     <span><span class="type-var">_</span> <span class="xref-unresolved">Shared_ast__.Definitions.mark</span></span>)</span>
+     <a href="../../Catala_utils/Mark/index.html#type-ed">Catala_utils.Mark.ed</a></span> <span class="keyword">as</span> 'e)</span>
+    <span class="xref-unresolved">Shared_ast__.Definitions.program</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="xref-unresolved">Shared_ast__.Definitions.ScopeName.t</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.boxed</span></span></span></code></div><div class="spec-doc"><p>Usage: <code>build_whole_program_expr program main_scope</code> builds an expression corresponding to the main program and returning the main scope as a function.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-find_scope"><a href="#val-find_scope" class="anchor"></a><code><span><span class="keyword">val</span> find_scope : 
+  <span><span class="xref-unresolved">Shared_ast__.Definitions.ScopeName.t</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span class="type-var">'e</span>,
+    <span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.code_item</span></span>,
+    <span><span>(<span class="xref-unresolved">Shared_ast__.Definitions.code_export_kind</span> * <span class="type-var">'e</span>)</span> list</span>)</span>
+    <span class="xref-unresolved">Shared_ast__.Definitions.bound_list</span></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="type-var">'e</span> <span class="xref-unresolved">Shared_ast__.Definitions.scope_body</span></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-modules_to_list"><a href="#val-modules_to_list" class="anchor"></a><code><span><span class="keyword">val</span> modules_to_list : 
+  <span><span class="optlabel">?trim_stdlib</span>:bool <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span class="xref-unresolved">Shared_ast__.Definitions.module_tree_node</span> <a href="../../Catala_utils/Uid/Module/Map/index.html#type-t">Catala_utils.Uid.Module.Map.t</a></span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<a href="../../Catala_utils/Uid/Module/index.html#type-t">Catala_utils.Uid.Module.t</a> * <span class="xref-unresolved">Shared_ast__.Definitions.module_intf_id</span>)</span> list</span></span></code></div><div class="spec-doc"><p>Returns a list of used modules, in topological order. With <code>trim_stdlib</code>, inner stdlib modules are skipped; the top-level stdlib module is still included.</p></div></div></div></body></html>
