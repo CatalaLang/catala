@@ -81,11 +81,11 @@ let backends_to_config bks =
 
 let linking_command ~build_dir ~backend ~info item target =
   let open File in
-  let var_bindings = info.Clerk_rules.var_bindings in
+  let var_bindings = info.Module_graph.var_bindings in
   let link_deps it =
     List.map
       (fun m -> (String.Map.find m info.modules_map).item)
-      (info.Clerk_rules.linking_deps it)
+      (info.Module_graph.linking_deps it)
   in
   match backend with
   | `OCaml ->
@@ -273,7 +273,7 @@ let run_artifact config ~backend ~var_bindings ?scope ?quiet ~test ~trace src =
 (* The type of targets coming from the user command-line *)
 type user_target_args = {
   clerk_targets : Config.target list; (* targets defined in clerk.toml *)
-  modules : Clerk_rules.module_info list; (* Catala modules *)
+  modules : Module_graph.module_info list; (* Catala modules *)
   directories : (File.t * Scan.item list) list; (* whole directories *)
   source_files : Scan.item list;
       (* catala source files that don't define modules *)
@@ -302,7 +302,7 @@ let target_debug_message ?(label = "build") (t : user_target_args) =
       t.clerk_targets;
   if t.modules <> [] then
     Message.debug " - Modules: %a"
-      (ppl (fun t -> Mark.remove t.Clerk_rules.name))
+      (ppl (fun t -> Mark.remove t.Module_graph.name))
       t.modules;
   if t.directories <> [] then
     Message.debug " - Directories: %a" (ppl fst) t.directories;
@@ -316,7 +316,7 @@ let target_debug_message ?(label = "build") (t : user_target_args) =
 let items_in_subdirs info items dirs =
   List.filter
     (fun it ->
-      String.Map.find_opt it.Scan.file_name info.Clerk_rules.inclusion_map
+      String.Map.find_opt it.Scan.file_name info.Module_graph.inclusion_map
       = None
       && List.exists
            (fun dir ->
@@ -326,7 +326,7 @@ let items_in_subdirs info items dirs =
 
 let included_by info item =
   match
-    String.Map.find_opt item.Scan.file_name info.Clerk_rules.inclusion_map
+    String.Map.find_opt item.Scan.file_name info.Module_graph.inclusion_map
   with
   | Some parent -> parent
   | None -> item
@@ -362,7 +362,7 @@ let sort_user_target_args
     ~autotest
     ~backends
     items
-    (info : Clerk_rules.callback_info)
+    (info : Module_graph.info)
     (args : string list) : user_target_args =
   let build_dir = config.Cli.file.global.build_dir in
   let backends = if autotest then `OCaml :: backends else backends in
@@ -471,12 +471,12 @@ let ninja_interp_test_targets
       File.(
         fun m ->
           if
-            m.Clerk_rules.item.Scan.has_inline_tests
-            || Lazy.force m.Clerk_rules.item.Scan.has_scope_tests > 0
+            m.Module_graph.item.Scan.has_inline_tests
+            || Lazy.force m.Module_graph.item.Scan.has_scope_tests > 0
           then
             Some
               (Nj.Expr.Word
-                 ((build_dir / m.Clerk_rules.item.file_name) ^ "@test"))
+                 ((build_dir / m.Module_graph.item.file_name) ^ "@test"))
           else None)
       modules
   @ List.filter_map
@@ -490,7 +490,7 @@ let ninja_interp_test_targets
       source_files
 
 let module_backends info backends modname =
-  let target_backends = Clerk_rules.module_backends info modname in
+  let target_backends = Module_graph.module_backends info modname in
   List.filter
     (fun bk -> List.mem (backend_to_config bk) target_backends)
     backends
@@ -554,7 +554,7 @@ let ninja_build_targets
   let from_modules =
     List.concat_map
       (fun m ->
-        let t = item_build_target m.Clerk_rules.item in
+        let t = item_build_target m.Module_graph.item in
         if t = [] then
           Message.warning
             "Module @{<cyan>%s@}@ does@ not@ support@ any@ of@ the@ selected@ \
@@ -654,7 +654,7 @@ let ninja_run_targets
       clerk_targets
   in
   let from_modules =
-    List.concat_map (fun m -> item_exec_target m.Clerk_rules.item) modules
+    List.concat_map (fun m -> item_exec_target m.Module_graph.item) modules
   in
   let from_directories =
     List.concat_map
@@ -696,7 +696,7 @@ let set_ninja_targets nin_ppf ninja_targets =
 (* Installs expected files to _targets/ *)
 let install_backend_targets
     ~config
-    (build_info : Clerk_rules.callback_info)
+    (build_info : Module_graph.info)
     (targets : Clerk_config.target list)
     (bk : Clerk_config.backend) =
   let open File in
@@ -724,14 +724,14 @@ let install_backend_targets
         in
         let dir = bk_dir / target_name in
         Message.debug "Installing target: %s" (B.name / target_name);
-        if target.Config.tname <> Clerk_rules.stdlib_target_name then
+        if target.Config.tname <> Module_graph.stdlib_target_name then
           (* install_runtime already did the cleanup for the stdlib *)
           File.remove dir;
         ensure_dir dir;
         let tdeps = build_info.target_deps target in
         String.Map.iter
           (fun _ mod_info ->
-            if String.Set.mem target.tname mod_info.Clerk_rules.targets then
+            if String.Set.mem target.tname mod_info.Module_graph.targets then
               let item = mod_info.item in
               let file ext =
                 (if Filename.is_relative item.file_name then
@@ -762,7 +762,7 @@ let install_backend_targets
                           (fun dep_name ->
                             "import " ^ String.to_snake_case dep_name ^ ".*;")
                           String.Set.(
-                            remove Clerk_rules.stdlib_target_name tdeps
+                            remove Module_graph.stdlib_target_name tdeps
                             |> elements)
                     in
                     copy_in_with_prefix
@@ -771,12 +771,13 @@ let install_backend_targets
                 extensions)
           build_info.modules_map;
         let target =
-          if is_java && not (target.tname = Clerk_rules.stdlib_target_name) then
+          if is_java && not (target.tname = Module_graph.stdlib_target_name)
+          then
             (* maven needs all the transitive dependencies *)
             { target with dependencies = String.Set.elements tdeps }
           else target
         in
-        B.write_target_def_file ~config ~dir target
+        B.write_target_def_file ~config ~info:build_info ~dir target
     in
     let rec targets_and_deps acc targets =
       (* Always install its dependencies together with a target *)
@@ -796,7 +797,7 @@ let install_backend_targets
           targets_and_deps acc targets
     in
     let stdlib =
-      String.Map.find Clerk_rules.stdlib_target_name build_info.targets_map
+      String.Map.find Module_graph.stdlib_target_name build_info.targets_map
     in
     let all_targets = targets_and_deps [stdlib] targets in
     List.iter install_target all_targets;
@@ -834,14 +835,14 @@ let advertise_installed ~config ~backends info targets =
   let modules =
     List.sort
       (fun m1 m2 ->
-        Mark.compare String.compare m1.Clerk_rules.name m2.Clerk_rules.name)
+        Mark.compare String.compare m1.Module_graph.name m2.Module_graph.name)
       targets.modules
     |> List.filter_map (fun m ->
         let bks =
           List.sort compare
             (module_backends info
                (List.map config_backend backends)
-               (Mark.remove m.Clerk_rules.name))
+               (Mark.remove m.Module_graph.name))
         in
         if bks = [] then None else Some (m, bks))
   in
@@ -880,7 +881,7 @@ let advertise_installed ~config ~backends info targets =
       (ppl
       @@ fun ppf (m, bks) ->
       fprintf ppf "@[<v 2>[@{<blue>%s@}]%a@]"
-        (Mark.remove m.Clerk_rules.name)
+        (Mark.remove m.Module_graph.name)
         (ppl
         @@ fun ppf bk ->
         File.format ppf
@@ -980,7 +981,7 @@ let run_targets
     Message.print_percent progress_pfx !progress total;
     incr progress;
     let target =
-      Var.expr_elt_to_string ~var_bindings:info.Clerk_rules.var_bindings
+      Var.expr_elt_to_string ~var_bindings:info.Module_graph.var_bindings
         (make_target ~build_dir ~backend ~main_exec:true item)
     in
     match backend with
@@ -994,7 +995,7 @@ let run_targets
              single target."
       in
       let catala_flags =
-        let bdgs = Var.get info.Clerk_rules.var_bindings Var.catala_flags in
+        let bdgs = Var.get info.Module_graph.var_bindings Var.catala_flags in
         if trace <> None then List.filter (( <> ) "--trace") bdgs else bdgs
       in
       let catala_flags =
@@ -1020,7 +1021,7 @@ let run_targets
         | _, Some Catala_utils.Global.JSON -> ["--trace-format=json"]
         | _, Some Human -> ["--trace-format=human"]
       in
-      let exec = Var.get info.Clerk_rules.var_bindings Var.catala_exe in
+      let exec = Var.get info.Module_graph.var_bindings Var.catala_exe in
       let cmd = exec @ [cmd; target] @ catala_flags in
       msg target;
       Message.debug "Running command: '%s'..." (String.concat " " cmd);
@@ -1037,7 +1038,7 @@ let run_targets
       | 0, _ ->
         let code, lines =
           run_artifact ~test ~trace:(trace <> None) config ~backend
-            ~var_bindings:info.Clerk_rules.var_bindings ?scope ~quiet target
+            ~var_bindings:info.Module_graph.var_bindings ?scope ~quiet target
         in
         if code <> 0 && quiet then List.iter print_endline lines;
         test_target, if test then count_success item lines else code, 0
@@ -1115,7 +1116,7 @@ let build_cmd : int Cmd.t =
     let targets, info =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
         ~trace:false
-        ~default:(empty_targets, Clerk_rules.empty_info)
+        ~default:(empty_targets, Module_graph.empty_info)
         ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
@@ -1209,7 +1210,7 @@ let run_cmd =
     let enabled_backends = backends_to_config backends in
     let exec_targets, _items, info =
       Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
-        ~default:([], [], Clerk_rules.empty_info)
+        ~default:([], [], Module_graph.empty_info)
         ~trace:(trace <> None) ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
@@ -1278,7 +1279,7 @@ let typecheck_cmd =
             (fun m -> (String.Map.find m info.modules_map).item)
             t.Config.tmodules)
         targets.clerk_targets
-      @ List.map (fun m -> m.Clerk_rules.item) targets.modules
+      @ List.map (fun m -> m.Module_graph.item) targets.modules
       @ List.concat_map snd targets.directories
       @ targets.source_files
       @ List.map (fun (_, it, _) -> it) targets.direct_targets
@@ -1382,7 +1383,7 @@ let test_cmd =
       Clerk_rules.run_ninja ~code_coverage ~config ~keep_going:false
         ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest:true
         ~tests:true ~trace:false
-        ~default:([], [], Clerk_rules.empty_info, [])
+        ~default:([], [], Module_graph.empty_info, [])
       @@ fun nin_ppf items info ->
       (* TODO: keep_going:true, to be able to still show a test report.
          We must not try to run the tests, however, since the artifacts we
@@ -1620,7 +1621,7 @@ let ci_cmd =
     let targets, exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
         ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true ~trace:false
-        ~default:(empty_targets, [], [], Clerk_rules.empty_info, [])
+        ~default:(empty_targets, [], [], Module_graph.empty_info, [])
       @@ fun nin_ppf items info ->
       let targets_build, targets_test =
         if target_args = [] then
