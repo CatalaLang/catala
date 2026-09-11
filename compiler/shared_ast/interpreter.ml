@@ -1027,7 +1027,10 @@ let evaluate_expr_trace : type d r.
     ~finally:(fun () ->
       match Global.options.trace with
       | None -> ()
-      | Some _ when disable_trace -> ()
+      | Some _ when disable_trace ->
+        (* Nothing is dumped, but trace events were still collected in the
+           global state *)
+        Runtime.reset_trace ()
       | Some ((lazy ppf), _) ->
         let trace = Runtime.retrieve_trace () in
         let output_trace ppf =
@@ -1037,7 +1040,9 @@ let evaluate_expr_trace : type d r.
         in
         Fun.protect
           (fun () -> output_trace ppf)
-          ~finally:(fun () -> Format.pp_print_flush ppf ()))
+          ~finally:(fun () ->
+            Format.pp_print_flush ppf ();
+            Runtime.reset_trace ()))
 
 let evaluate_expr_safe : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
