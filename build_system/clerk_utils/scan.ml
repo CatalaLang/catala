@@ -16,6 +16,13 @@
 
 open Catala_utils
 module L = Surface.Lexer_common
+module M = Map.Make (String)
+
+type expected_variable = string
+
+(* The two attributes are independent lines, and either may come first; each fills
+   its own field of the entry for that variable. *)
+let add_expected_value name value m = M.add name value m
 
 type item = {
   file_name : File.t;
@@ -26,6 +33,7 @@ type item = {
   included_files : File.t Mark.pos list;
   has_inline_tests : bool;
   has_scope_tests : int Lazy.t;
+  expected_variables : expected_variable M.t;
 }
 
 let libcatala = "libcatala"
@@ -111,6 +119,12 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
       | L.LINE_INLINE_TEST -> { acc with has_inline_tests = true }
       | L.LINE_TEST_ATTRIBUTE ->
         { acc with has_scope_tests = lazy (Lazy.force acc.has_scope_tests + 1) }
+      | L.LINE_TEST_VARIABLE (name, value) ->
+        {
+          acc with
+          expected_variables =
+            add_expected_value name value acc.expected_variables;
+        }
       | _ -> acc)
   in
   let item =
@@ -126,6 +140,7 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
         included_files = [];
         has_inline_tests = false;
         has_scope_tests = lazy 0;
+        expected_variables = M.empty;
       }
   in
   let has_scope_tests =
