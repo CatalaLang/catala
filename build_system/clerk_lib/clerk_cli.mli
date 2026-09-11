@@ -76,5 +76,6 @@ val init_term : ?allow_test_flags:bool -> unit -> config Term.t
 val run_command_line :
   ?setenv:(string * string) list ->
   ?quiet:bool ->
+  ?merge_stderr:bool ->
   string list ->
   int * string list

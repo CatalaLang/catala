@@ -1803,7 +1803,7 @@ let json_schema_cmd =
     in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
     Sys.chdir File.original_cwd;
-    fst (Clerk_cli.run_command_line cmd)
+    fst (Clerk_cli.run_command_line ~merge_stderr:false cmd)
   in
   let doc =
     "Display the JSON-schema of the input and output JSON objects of the given \
@@ -1833,7 +1833,7 @@ let exceptions_cmd =
     in
     Message.debug "Running command: '%s'..." (String.concat " " cmd);
     Sys.chdir File.original_cwd;
-    fst (Clerk_cli.run_command_line cmd)
+    fst (Clerk_cli.run_command_line ~merge_stderr:false cmd)
   in
   let doc =
     "Prints the exception tree for the definitions of a particular variable in \
