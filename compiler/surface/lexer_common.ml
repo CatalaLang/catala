@@ -103,6 +103,35 @@ exception Lexing_error of (Pos.t * string)
 let raise_lexer_error (loc : Pos.t) (token : string) =
   raise (Lexing_error (loc, token))
 
+(** Multi-word keywords (e.g. [under condition]) are matched by regexps that do
+    not enforce any separator afterwards, so input such as [under conditiontrue]
+    would otherwise be wrongly lexed as the keyword followed by [true]. This
+    checks that the character immediately following the last lexeme is not
+    whitespace (or EOF), and raises a lexing error if it is. It peeks at the
+    next character and restores the lexbuf position afterwards.
+
+    The check rejects any non-whitespace character — including '$', so
+    'under condition$1' is also rejected (the '$' starts a money literal, but
+    there's no space between the multi-word keyword and it). Only whitespace
+    characters (spaces, tabs, newlines, etc.) and EOF are allowed. *)
+let check_keyword_boundary lexbuf pos prev_lexeme =
+  let is_space c =
+    match Uchar.to_int c with
+    | 0x09 | 0x0A | 0x0B | 0x0C | 0x0D | 0x20 -> true (* tab, LF, VT, FF, CR, space *)
+    | n when n >= 0x0008 && n <= 0x000D -> true (* other control whitespace *)
+    | _ -> false
+  in
+  Sedlexing.mark lexbuf 0;
+  let bad =
+    match Sedlexing.next lexbuf with
+    | Some c -> not (is_space c)
+    | None -> false (* EOF is fine *)
+  in
+  if bad then raise_lexer_error pos prev_lexeme
+  else ignore (Sedlexing.backtrack lexbuf)
+(* Note: in the [bad] case the lexbuf state is abandoned since the
+   [Lexing_error] exception propagates. *)
+
 (** Associative list matching each punctuation string part of the Catala syntax
     with its {!module: Surface.Parser} token. Same for all the input languages
     (English, French, etc.) *)

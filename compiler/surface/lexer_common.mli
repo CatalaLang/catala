@@ -49,6 +49,16 @@ exception Lexing_error of (Catala_utils.Pos.t * string)
 val raise_lexer_error : Catala_utils.Pos.t -> string -> 'a
 (** Error-generating helper *)
 
+val check_keyword_boundary :
+  Sedlexing.lexbuf -> Catala_utils.Pos.t -> string -> unit
+(** Checks that the character immediately following the last lexeme is
+    whitespace (or EOF), and raises a lexing error if it is. Any
+    non-whitespace character — including '$' — is rejected, so
+    'under condition$1' triggers an error. Only whitespace characters
+    (spaces, tabs, newlines, etc.) and EOF are allowed. Used after
+    multi-word keywords to enforce that they must be followed by a
+    separator. *)
+
 val token_list_language_agnostic : (string * Tokens.token) list
 (** Associative list matching each punctuation string part of the Catala syntax
     with its {!Surface.Parser} token. Same for all the input languages (English,

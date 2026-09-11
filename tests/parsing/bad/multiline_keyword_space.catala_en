@@ -1,0 +1,38 @@
+## Missing space after multi-word keywords
+
+Space is mandatory after multi-word keywords such as `depends on` or
+`under condition` (see issue #830).
+
+```catala
+declaration scope A:
+  output i content integer depends onx content integer
+
+scope A under conditiontrue:
+  definition i of x equals 0
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[ERROR]─ 1/2 ─
+│
+│  Parsing error after token " ": what comes after could not be recognised
+│
+├─➤ tests/parsing/bad/multiline_keyword_space.catala_en:8.27-28:
+│   │
+│ 8 │   output i content integer depends onx content integer
+│   │                           ‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  Unclosed block or missing newline at the end of file.
+│  Did you forget a ``` delimiter ?
+│
+├─➤ tests/parsing/bad/multiline_keyword_space.catala_en:6-7:
+│   │
+│ 6 │ ```catala
+│   │ ‾‾‾‾‾‾‾‾‾
+│ 7 │ declaration scope A:
+│   │ 
+└─
+#return code 123#
+```
