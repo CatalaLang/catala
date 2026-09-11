@@ -23,6 +23,8 @@ declaration scope T:
   ## An integer input
   input x content integer
   ## An enum input
+  # something irrelevant
+  ## named e
   input e content E
   ## A context variable
   context c content integer
@@ -54,17 +56,17 @@ public class AnonymousClass {
         public static final CatalaArray<CatalaPosition> loc =
             new CatalaArray<CatalaPosition>
              (new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 33, 10, 33, 11),
+               ("tests/attributes/good/java_doc.catala_en", 35, 10, 35, 11),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 36, 23, 36, 24),
+               ("tests/attributes/good/java_doc.catala_en", 38, 23, 38, 24),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 37, 23, 37, 24),
+               ("tests/attributes/good/java_doc.catala_en", 39, 23, 39, 24),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 39, 5, 39, 79),
+               ("tests/attributes/good/java_doc.catala_en", 41, 5, 41, 79),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 39, 53, 39, 54),
+               ("tests/attributes/good/java_doc.catala_en", 41, 53, 41, 54),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 39, 57, 39, 58));
+               ("tests/attributes/good/java_doc.catala_en", 41, 57, 41, 58));
     }
     
     /**
@@ -229,6 +231,7 @@ public class AnonymousClass {
          
          * @param x_in An integer input
          * @param e_in An enum input
+         *             named e
          * @param c_in A context variable
          */
         public T

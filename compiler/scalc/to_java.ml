@@ -45,17 +45,22 @@ let format_doc
     let s = Format.asprintf "@[<hov>%a@]" pp_print_text s in
     let l = String.split_on_char '\n' s |> List.map (fun l -> "* " ^ l) in
     let pp_item ppf s = fprintf ppf "@[<h>%s@]" s in
-    (pp_print_list ~pp_sep:pp_print_cut pp_item) ppf l
+    Format.pp_open_vbox ppf 0;
+    (pp_print_list ~pp_sep:pp_print_cut pp_item) ppf l;
+    Format.pp_close_box ppf ()
+  in
+  let get_doc_attrs p =
+    Pos.get_attrs p (function Doc (d, _p) -> Some d | _ -> None)
+    |> function
+    | [] -> None
+    | l -> Some (String.concat "\n" (List.rev_map String.trim l))
   in
   let pos = get_pos v in
-  let doc_opt =
-    Pos.get_attr pos (function Doc (d, _p) -> Some d | _ -> None)
-  in
+  let doc_opt = get_doc_attrs pos in
   let params_with_doc =
     Option.map
       (List.filter_map (fun (n, p) ->
-           Pos.get_attr p (function Doc (d, _p) -> Some d | _ -> None)
-           |> Option.map (fun d -> param_to_text (n, d))))
+           get_doc_attrs p |> Option.map (fun d -> param_to_text (n, d))))
       params
   in
   match doc_opt, params_with_doc with
