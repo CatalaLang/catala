@@ -573,7 +573,11 @@ let init_term ?(allow_test_flags = false) () =
     $ Cli.Flags.output_format
     $ objects)
 
-let run_command_line ?(setenv = []) ?(quiet = false) cmdline =
+let run_command_line
+    ?(setenv = [])
+    ?(quiet = false)
+    ?(merge_stderr = true)
+    cmdline =
   if cmdline = [] then 0, []
   else
     let cmd = List.hd cmdline in
@@ -593,9 +597,10 @@ let run_command_line ?(setenv = []) ?(quiet = false) cmdline =
       |> Array.of_seq
     in
     let in_fd, out_fd = Unix.pipe () in
+    let err_fd = if merge_stderr then out_fd else Unix.stderr in
     let npid =
       Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin out_fd
-        out_fd
+        err_fd
     in
     Unix.close out_fd;
     let ic = Unix.in_channel_of_descr in_fd in
