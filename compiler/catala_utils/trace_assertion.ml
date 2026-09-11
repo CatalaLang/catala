@@ -220,8 +220,21 @@ let rec value_of_json (json : Yojson.Safe.t) : string option =
       | _ -> None))
   | _ -> None
 
+(** A single [catala interpret] run evaluates every test scope of the file and
+    dumps one JSON list per scope into the trace file, so the file holds a
+    sequence of JSON values rather than a single one: it must be read with
+    [seq_from_file], [from_file] would stop after the first list and report the
+    next one as junk. The lists are concatenated back into a single one, which
+    is what [check] walks through. *)
 let read_trace (file : File.t) : Yojson.Safe.t =
-  try Yojson.Safe.from_file file
+  try
+    `List
+      (List.rev
+         (Seq.fold_left
+            (fun acc -> function
+              | `List elts -> List.rev_append elts acc | elt -> elt :: acc)
+            []
+            (Yojson.Safe.seq_from_file file)))
   with Yojson.Json_error msg ->
     Message.error "Invalid JSON in the trace file %a:@ %s" File.format file msg
 
