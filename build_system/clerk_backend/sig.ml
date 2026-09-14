@@ -110,6 +110,9 @@ module type Spec = sig
 
   val install_runtime : config:Clerk_cli.config -> unit
   (** Sets up the runtime and stdlib to the appropriate target dir *)
+
+  val write_project_def :
+    config:Clerk_cli.config -> info:Module_graph.info -> dir:File.t -> unit
 end
 
 module type S = sig

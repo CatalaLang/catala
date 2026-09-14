@@ -443,6 +443,8 @@ let with_ninja_process
       [
         env;
         Message.env_forward_vars ();
+        (* %P gives a better percentage over estimated total runtime, but it's only
+           available from ninja 1.12 *)
         [| "NINJA_STATUS=[%f/%t] "; "CLICOLOR_FORCE=1" |];
       ]
   in

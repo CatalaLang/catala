@@ -799,11 +799,7 @@ let install_backend_targets
     in
     let all_targets = targets_and_deps [stdlib] targets in
     List.iter install_target all_targets;
-    if is_java then
-      File.with_formatter_of_file (bk_dir / "pom.xml")
-      @@ fun ppf ->
-      List.filter (fun t -> List.mem bk t.Config.backends) all_targets
-      |> Clerk_backend.Java.format_project_pom_xml ~config ppf
+    B.write_project_def ~config ~info:build_info ~dir:bk_dir
 (*  ; if target.Config.include_sources then
  *     all_modules_deps
  *     |> List.map (fun it -> it.Scan.file_name)

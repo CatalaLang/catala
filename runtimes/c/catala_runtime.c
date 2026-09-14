@@ -18,11 +18,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <setjmp.h>
 #include <gmp.h>
 #include <string.h>
 #include <assert.h>
-#include <stdarg.h>
 
 #include <dates_calc.h>
 #include "catala_runtime.h"

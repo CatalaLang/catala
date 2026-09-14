@@ -348,24 +348,23 @@ let organise_modules ~config ~var_bindings items =
   in
   check_cycles "targets" target_g;
   check_cycles "modules" module_g;
-  let linking_deps =
-    let module Topo = Graph.Topological.Make_stable (G) in
-    fun item ->
-      let depg =
-        let rec add_vertex depg m =
-          if G.mem_vertex depg m then depg
-          else
-            let depg = G.add_vertex depg m in
-            List.fold_left
-              (fun depg m1 ->
-                let depg = add_vertex depg m1 in
-                G.add_edge depg m m1)
-              depg (G.succ module_g m)
-        in
-        List.fold_left add_vertex G.empty
-          (List.map Mark.remove item.Scan.used_modules)
+  let module Topo = Graph.Topological.Make_stable (G) in
+  let linking_deps item =
+    let depg =
+      let rec add_vertex depg m =
+        if G.mem_vertex depg m then depg
+        else
+          let depg = G.add_vertex depg m in
+          List.fold_left
+            (fun depg m1 ->
+              let depg = add_vertex depg m1 in
+              G.add_edge depg m m1)
+            depg (G.succ module_g m)
       in
-      Topo.fold (fun m acc -> m :: acc) depg []
+      List.fold_left add_vertex G.empty
+        (List.map Mark.remove item.Scan.used_modules)
+    in
+    Topo.fold (fun m acc -> m :: acc) depg []
   in
   let target_g = Op.transitive_closure target_g in
   let module_g = Op.transitive_closure module_g in
@@ -381,9 +380,9 @@ let organise_modules ~config ~var_bindings items =
         (fun v g -> if String.Set.mem v set then g else G.remove_vertex g v)
         g g
   in
-  let modmap =
+  let modmap, target_modules =
     String.Map.fold
-      (fun m info new_modmap ->
+      (fun m info (new_modmap, target_modules) ->
         let dependents = G.pred module_g m in
         (* All the targets that effectively depend on m *)
         let targets =
@@ -397,6 +396,17 @@ let organise_modules ~config ~var_bindings items =
            on them and will access it that way) *)
         let base_targets =
           String.Set.union (leaves dep_target_graph) info.targets
+        in
+        let target_modules =
+          String.Set.fold
+            (fun target target_modules ->
+              String.Map.update target
+                (fun modules ->
+                  Some
+                    (String.Set.add m
+                       (Option.value ~default:String.Set.empty modules)))
+                target_modules)
+            base_targets target_modules
         in
         (* Message.debug "@[<h>Module @{<blue>%s@} (%s%a) to be attached to targets {%a}.@]"
          *   m (if String.Set.is_empty info.targets then "no explicit target" else "targets ")
@@ -475,33 +485,26 @@ let organise_modules ~config ~var_bindings items =
           Option.iter conflict_err (String.Set.choose_opt conflict_targets)
         in
         check_conflicts ();
-        String.Map.add m { info with targets = base_targets } new_modmap)
-      modmap modmap
+        ( String.Map.add m { info with targets = base_targets } new_modmap,
+          target_modules ))
+      modmap (modmap, String.Map.empty)
   in
   let tmap =
-    String.Map.fold
-      (fun m info tmap ->
-        String.Set.fold
-          (fun t tmap ->
-            String.Map.update t
-              (function
-                | Some target ->
-                  Some
-                    {
-                      target with
-                      Clerk_config.tmodules = m :: target.Clerk_config.tmodules;
-                    }
-                | None -> assert false)
-              tmap)
-          info.targets tmap)
-      modmap tmap
-    |> String.Map.map (fun target ->
+    String.Map.map
+      (fun target ->
+        let modules =
+          String.Map.find_opt target.Clerk_config.tname target_modules
+          |> Option.value ~default:String.Set.empty
+        in
+        let tmodules =
+          Topo.fold (fun m acc -> m :: acc) (subgraph module_g modules) []
+        in
         {
           target with
-          Clerk_config.tmodules =
-            List.sort_uniq String.compare target.Clerk_config.tmodules;
+          Clerk_config.tmodules;
           dependencies = G.succ target_g target.tname;
         })
+      tmap
   in
   if Catala_utils.Global.options.debug then (
     let f = File.(config.file.global.build_dir / "modules.dot") in
