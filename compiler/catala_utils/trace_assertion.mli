@@ -42,7 +42,7 @@ val normalize_value : value -> value
     "2024-1-3"...) the way the trace encoder does, so that both can be compared
     as plain strings. *)
 
-val read_trace : File.t -> Yojson.Safe.t
+val read_trace : File.t -> Yojson.Safe.t option
 (** Parses a trace file, failing with an error message rather than an exception.
     Convenience for the callers that do have a file; the trace may also be built
     in memory. *)
@@ -50,7 +50,7 @@ val read_trace : File.t -> Yojson.Safe.t
 val check :
   asserted_trace_variables:trace_assertions ->
   tested_scope:string ->
-  Yojson.Safe.t ->
+  Yojson.Safe.t option ->
   trace_assertion list
 (** [check ~asserted_trace_variables ~tested_scope trace] returns one entry per
     variable whose value does not match [trace]. Variables without a path are
