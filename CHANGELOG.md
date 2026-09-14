@@ -61,3 +61,12 @@ in behavior visible for the end-users of the tooling.
     building java targets now also generates a `maven` file
     (`pom.xml`) which can be used to easily compile and generate `jar`
     files.
+
+* [#1101](https://github.com/CatalaLang/catala/pull/1101) Check trace
+  assertion feature
+  - Added a new line token in lexer_common to recognize the asserted trace
+    variables declared by `#[testcase.variable]`
+  - Added a new module "trace_assertion" in clerk to look those variables up
+    in the trace and check their values
+  - Linking that in catala so that test or interpret command fails when an
+    asserted trace variable does not match the trace
