@@ -246,11 +246,9 @@ let target_backends targets =
 
 let setup_report_format ?fix_path verbosity diff_command coverage =
   (match verbosity with
-  | `Summary ->
-    Clerk_report.set_display_flags ~files:`None ~tests:`None ~coverage:false ()
+  | `Summary -> Clerk_report.set_display_flags ~files:`None ~tests:`None ()
   | `Short ->
-    Clerk_report.set_display_flags ~files:`Failed ~tests:`Failed ~diffs:false
-      ~coverage:false ()
+    Clerk_report.set_display_flags ~files:`Failed ~tests:`Failed ~diffs:false ()
   | `Failures ->
     if Catala_utils.Global.options.debug then
       Clerk_report.set_display_flags ~files:`All ()

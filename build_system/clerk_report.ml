@@ -377,7 +377,8 @@ let display_scope ~build_dir file ppf scope_test =
   else (
     Format.fprintf ppf "@{<red>■@} scope @{<hi_magenta>%s@} failed"
       scope_test.s_name;
-    print_command ~build_dir ppf file scope_test.s_command_line;
+    if disp_flags.diffs || Global.options.debug then
+      print_command ~build_dir ppf file scope_test.s_command_line;
     List.iter
       (fun (pos, msg) ->
         Format.fprintf ppf "@,%a %s" (pp_pos ~build_dir) pos msg)
