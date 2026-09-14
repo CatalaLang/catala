@@ -576,7 +576,7 @@ let init_term ?(allow_test_flags = false) () =
 let run_command_line
     ?(setenv = [])
     ?(quiet = false)
-    ?(merge_stderr = true)
+    ?(forward_stderr = false)
     cmdline =
   if cmdline = [] then 0, []
   else
@@ -597,7 +597,7 @@ let run_command_line
       |> Array.of_seq
     in
     let in_fd, out_fd = Unix.pipe () in
-    let err_fd = if merge_stderr then out_fd else Unix.stderr in
+    let err_fd = if forward_stderr then Unix.stderr else out_fd in
     let npid =
       Unix.create_process_env cmd (Array.of_list cmdline) env Unix.stdin out_fd
         err_fd
