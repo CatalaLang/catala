@@ -148,6 +148,8 @@ module Spec : Sig.Spec = struct
       ~filter:(fun f -> Filename.check_suffix f ".py" && f <> "__init__.py")
       ~src:(Lazy.force Poll.stdlib_dir / name / "src" / "catala")
       ~dst:dir
+
+  let write_project_def ~config:_ ~info:_ ~dir:_ = ()
 end
 
 include Common.Make_backend (Spec)

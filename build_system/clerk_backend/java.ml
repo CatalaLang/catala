@@ -274,6 +274,23 @@ module Spec : Sig.Spec = struct
           ~src:(config.file.global.build_dir / Scan.libcatala / name / subdir)
           ~dst:(dir / subdir))
       ["catala"; "org"]
+
+  let write_project_def ~config ~info ~dir =
+    File.with_formatter_of_file (dir / "pom.xml")
+    @@ fun ppf ->
+    let targets =
+      String.Map.fold
+        (fun _ t acc ->
+          if
+            List.exists
+              (fun bk -> Common.name (Common.get bk) = name)
+              t.Clerk_config.backends
+          then t :: acc
+          else acc)
+        info.Module_graph.targets_map []
+      |> List.rev
+    in
+    Java_project_file.format_project_pom_xml ~config ppf targets
 end
 
 include Common.Make_backend (Spec)

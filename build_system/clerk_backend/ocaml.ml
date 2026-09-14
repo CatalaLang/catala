@@ -373,11 +373,13 @@ module Spec : Sig.Spec = struct
         in
         if File.exists src_libcatala then copy_in ~dir ~src:src_libcatala
         else if File.exists src then copy_in ~dir ~src)
-      extensions;
-    File.with_out_channel (config.file.global.target_dir / name / "dune-project")
+      extensions
+
+  let write_project_def ~config ~info:_ ~dir =
+    File.(with_out_channel (dir / "dune-project"))
     @@ fun oc ->
     Printf.fprintf oc "(lang dune 3.13)\n";
-    match config.file.global.project_name with
+    match config.Clerk_cli.file.global.project_name with
     | None -> ()
     | Some p -> Printf.fprintf oc "(name %s)\n(package (name %s))\n" p p
 end
