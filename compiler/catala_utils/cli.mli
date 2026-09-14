@@ -95,6 +95,8 @@ module Flags : sig
 
   val trace_format : format_enum option Term.t
   (** Exported for clerk usage *)
+
+  val check_expected : bool Term.t
 end
 
 (** {2 Command-line application} *)

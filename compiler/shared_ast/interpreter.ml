@@ -1027,8 +1027,11 @@ let evaluate_expr_trace : type d r.
     ~finally:(fun () ->
       match Global.options.trace with
       | None -> ()
-      | Some _ when disable_trace -> ()
-      | Some (lazy ppf) ->
+      | Some _ when disable_trace ->
+        (* Nothing is dumped, but trace events were still collected in the
+           global state *)
+        Runtime.reset_trace ()
+      | Some ((lazy ppf), _) ->
         let trace = Runtime.retrieve_trace () in
         let output_trace ppf =
           match Global.options.trace_format with
@@ -1037,7 +1040,9 @@ let evaluate_expr_trace : type d r.
         in
         Fun.protect
           (fun () -> output_trace ppf)
-          ~finally:(fun () -> Format.pp_print_flush ppf ()))
+          ~finally:(fun () ->
+            Format.pp_print_flush ppf ();
+            Runtime.reset_trace ()))
 
 let evaluate_expr_safe : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
@@ -1279,11 +1284,16 @@ let interpret_program_dcalc ?input p s = interpret_program_dcalc ?input p s
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
    and [delcustom] are needed to expand and shrink the type of the terms to
    reflect that. *)
+(* This entry point is used for evaluations performed at compile-time (constant
+   folding in [Optimizations], and the computation by [Autotest] of the values
+   embedded in the generated test programs). Tracing is disabled: these are not
+   executions of the program, and their traces would otherwise be dumped to the
+   [--trace] destination, polluting the compiler output. *)
 let evaluate_expr ctx lang e =
   Fun.protect ~finally:Runtime.reset_trace
   @@ fun () ->
   let dummy_scope = ScopeName.fresh [] ("dummy", Pos.void) in
-  evaluate_expr_safe ctx lang dummy_scope (addcustom e)
+  evaluate_expr_safe ~disable_trace:true ctx lang dummy_scope (addcustom e)
 
 let loaded_modules = Hashtbl.create 17
 

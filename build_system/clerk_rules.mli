@@ -71,7 +71,8 @@ val run_ninja :
   default:'a ->
   ?keep_going:bool ->
   code_coverage:bool ->
-  trace:bool ->
+  ?trace:[ `FileName of Global.raw_file | `Stdout ] ->
+  ?trace_format:Global.format_enum ->
   autotest:bool ->
   ?clean_up_env:bool ->
   ?ninja_flags:string list ->

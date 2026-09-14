@@ -29,6 +29,7 @@ val run_tests :
   test_flags:string list ->
   report:File.t option ->
   out:File.t option ->
+  check_expected:bool ->
   File.t ->
   unit
 (** [run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out file] runs the
