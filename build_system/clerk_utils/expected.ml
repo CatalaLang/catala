@@ -221,24 +221,35 @@ let rec value_of_json (json : Yojson.Safe.t) : string option =
     [seq_from_file], [from_file] would stop after the first list and report the
     next one as junk. The lists are concatenated back into a single one, which
     is what [check_expected] walks through. *)
-let read_trace (file : File.t) : Yojson.Safe.t =
+let read_trace (file : File.t) : Yojson.Safe.t option =
   try
-    `List
-      (List.rev
-         (Seq.fold_left
-            (fun acc -> function
-              | `List elts -> List.rev_append elts acc | elt -> elt :: acc)
-            []
-            (Yojson.Safe.seq_from_file file)))
+    let traces =
+      `List
+        (List.rev
+           (Seq.fold_left
+              (fun acc -> function
+                | `List elts -> List.rev_append elts acc | elt -> elt :: acc)
+              []
+              (Yojson.Safe.seq_from_file file)))
+    in
+    Some traces
   with Yojson.Json_error msg ->
-    Message.error "Invalid JSON in the trace file %a:@ %s" File.format file msg
+    Message.warning
+      "Invalid JSON in the trace file %a:@ %s@.Disabling check-expected"
+      File.format file msg;
+    None
 
-let check_expected ~expected ~tested_scope (trace : Yojson.Safe.t) =
-  if M.is_empty expected then (
+let check_expected ~expected ~tested_scope (trace : Yojson.Safe.t option) =
+  if M.is_empty expected || Option.is_none trace then (
     Message.debug "No expected value to check for %s" tested_scope;
     [])
   else
-    let trace_elements = match trace with `List elts -> elts | elt -> [elt] in
+    let trace_elements =
+      match trace with
+      | Some (`List elts) -> elts
+      | Some elt -> [elt]
+      | _ -> (* Unreachable, none checked in if *) assert false
+    in
     (* Remove _test from the tested_scope name *)
     let testing_scope =
       String.sub tested_scope 0 (String.length tested_scope - 5)
