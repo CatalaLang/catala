@@ -16,14 +16,13 @@
 (** JSON export of the [dcalc] intermediate representation.
 
     Intended for machine consumption, e.g. differential testing of the Catala
-    runtime against external oracles. Every node is a JSON object with a
-    "tag" field naming the constructor and further fields for its children. *)
+    runtime against external oracles. Every node is a JSON object with a "tag"
+    field naming the constructor and further fields for its children. *)
 
 open Catala_utils
 open Shared_ast
 
-let lit_to_json : lit -> Yojson.Safe.t =
-  function
+let lit_to_json : lit -> Yojson.Safe.t = function
   | LBool b -> `Bool b
   | LInt i -> `String (Catala_runtime.integer_to_string i)
   | LUnit -> `String "()"
@@ -35,19 +34,22 @@ let lit_to_json : lit -> Yojson.Safe.t =
 let rec expr_to_json : type a m. Bindlib.ctxt -> (a, m) gexpr -> Yojson.Safe.t =
  fun bctx e ->
   match Mark.remove e with
-  | ELit l -> `Assoc [("tag", `String "lit"); ("value", lit_to_json l)]
-  | EVar v ->
-    `Assoc [("tag", `String "var"); ("name", `String (Bindlib.name_of v))]
+  | ELit l -> `Assoc ["tag", `String "lit"; "value", lit_to_json l]
+  | EVar v -> `Assoc ["tag", `String "var"; "name", `String (Bindlib.name_of v)]
   | EApp { f; args; _ } ->
     `Assoc
-      [ ("tag", `String "app");
-        ("f", expr_to_json bctx f);
-        ("args", `List (List.map (expr_to_json bctx) args)) ]
+      [
+        "tag", `String "app";
+        "f", expr_to_json bctx f;
+        "args", `List (List.map (expr_to_json bctx) args);
+      ]
   | EAppOp { op; args; _ } ->
     `Assoc
-      [ ("tag", `String "op");
-        ("op", `String (Print.operator_to_string (Mark.remove op)));
-        ("args", `List (List.map (expr_to_json bctx) args)) ]
+      [
+        "tag", `String "op";
+        "op", `String (Print.operator_to_string (Mark.remove op));
+        "args", `List (List.map (expr_to_json bctx) args);
+      ]
   | EAbs { binder; _ } ->
     let xs, body, bctx' = Bindlib.unmbind_in bctx binder in
     let params =
@@ -56,76 +58,94 @@ let rec expr_to_json : type a m. Bindlib.ctxt -> (a, m) gexpr -> Yojson.Safe.t =
       |> List.of_seq
     in
     `Assoc
-      [ ("tag", `String "abs"); ("params", `List params);
-        ("body", expr_to_json bctx' body) ]
+      [
+        "tag", `String "abs";
+        "params", `List params;
+        "body", expr_to_json bctx' body;
+      ]
   | EIfThenElse { cond; etrue; efalse } ->
     `Assoc
-      [ ("tag", `String "if");
-        ("cond", expr_to_json bctx cond);
-        ("then", expr_to_json bctx etrue);
-        ("else", expr_to_json bctx efalse) ]
+      [
+        "tag", `String "if";
+        "cond", expr_to_json bctx cond;
+        "then", expr_to_json bctx etrue;
+        "else", expr_to_json bctx efalse;
+      ]
   | EStruct { name; fields } ->
     `Assoc
-      [ ("tag", `String "struct");
-        ("name", `String (StructName.to_string name));
-        ("fields",
-         `Assoc
-           (List.map
-              (fun (f, ev) -> (StructField.to_string f, expr_to_json bctx ev))
-              (StructField.Map.bindings fields))) ]
+      [
+        "tag", `String "struct";
+        "name", `String (StructName.to_string name);
+        ( "fields",
+          `Assoc
+            (List.map
+               (fun (f, ev) -> StructField.to_string f, expr_to_json bctx ev)
+               (StructField.Map.bindings fields)) );
+      ]
   | EStructAccess { e; field; _ } ->
     `Assoc
-      [ ("tag", `String "struct_access");
-        ("e", expr_to_json bctx e);
-        ("field", `String (StructField.to_string field)) ]
+      [
+        "tag", `String "struct_access";
+        "e", expr_to_json bctx e;
+        "field", `String (StructField.to_string field);
+      ]
   | EInj { cons; e; _ } ->
     `Assoc
-      [ ("tag", `String "inj");
-        ("cons", `String (EnumConstructor.to_string cons));
-        ("e", expr_to_json bctx e) ]
+      [
+        "tag", `String "inj";
+        "cons", `String (EnumConstructor.to_string cons);
+        "e", expr_to_json bctx e;
+      ]
   | EMatch { e; cases; _ } ->
     `Assoc
-      [ ("tag", `String "match");
-        ("e", expr_to_json bctx e);
-        ("cases",
-         `Assoc
-           (List.map
-              (fun (c, ce) -> (EnumConstructor.to_string c, expr_to_json bctx ce))
-              (EnumConstructor.Map.bindings cases))) ]
+      [
+        "tag", `String "match";
+        "e", expr_to_json bctx e;
+        ( "cases",
+          `Assoc
+            (List.map
+               (fun (c, ce) ->
+                 EnumConstructor.to_string c, expr_to_json bctx ce)
+               (EnumConstructor.Map.bindings cases)) );
+      ]
   | ETuple es ->
     `Assoc
-      [ ("tag", `String "tuple");
-        ("items", `List (List.map (expr_to_json bctx) es)) ]
+      ["tag", `String "tuple"; "items", `List (List.map (expr_to_json bctx) es)]
   | ETupleAccess { e; index; _ } ->
     `Assoc
-      [ ("tag", `String "tuple_access");
-        ("e", expr_to_json bctx e);
-        ("index", `Int index) ]
+      [
+        "tag", `String "tuple_access";
+        "e", expr_to_json bctx e;
+        "index", `Int index;
+      ]
   | EDefault { excepts; just; cons } ->
     `Assoc
-      [ ("tag", `String "default");
-        ("excepts", `List (List.map (expr_to_json bctx) excepts));
-        ("just", expr_to_json bctx just);
-        ("cons", expr_to_json bctx cons) ]
+      [
+        "tag", `String "default";
+        "excepts", `List (List.map (expr_to_json bctx) excepts);
+        "just", expr_to_json bctx just;
+        "cons", expr_to_json bctx cons;
+      ]
   | EPureDefault e1 ->
-    `Assoc [("tag", `String "pure_default"); ("e", expr_to_json bctx e1)]
-  | EEmpty -> `Assoc [("tag", `String "empty")]
+    `Assoc ["tag", `String "pure_default"; "e", expr_to_json bctx e1]
+  | EEmpty -> `Assoc ["tag", `String "empty"]
   | EErrorOnEmpty e1 ->
-    `Assoc [("tag", `String "error_on_empty"); ("e", expr_to_json bctx e1)]
+    `Assoc ["tag", `String "error_on_empty"; "e", expr_to_json bctx e1]
   | EFatalError err ->
     `Assoc
-      [ ("tag", `String "fatal_error");
-        ("error", `String (Catala_runtime.error_to_string err)) ]
-  | EPos p ->
-    `Assoc [("tag", `String "pos"); ("pos", `String (Pos.to_string p))]
+      [
+        "tag", `String "fatal_error";
+        "error", `String (Catala_runtime.error_to_string err);
+      ]
+  | EPos p -> `Assoc ["tag", `String "pos"; "pos", `String (Pos.to_string p)]
   | EExternal _ | EScopeCall _ | EDStructAmend _ | EDStructAccess _
-  | ELocation _ | EAssert _ | EArray _ | ECustom _ | EFatalError_pos _
-  | EBad ->
+  | ELocation _ | EAssert _ | EArray _ | ECustom _ | EFatalError_pos _ | EBad ->
     (* Not expected in dcalc; kept for exhaustiveness *)
     `Assoc
-      [ ("tag", `String "unsupported");
-        ("detail",
-         `String (Format.asprintf "%a" (Print.expr ~debug:true ()) e)) ]
+      [
+        "tag", `String "unsupported";
+        "detail", `String (Format.asprintf "%a" (Print.expr ~debug:true ()) e);
+      ]
 
 let scope_let_kind_to_json = function
   | DestructuringInputStruct -> `String "get"
@@ -153,30 +173,37 @@ let scope_body_to_json body =
       ~f:(fun x sl ->
         lets :=
           `Assoc
-            [ ("kind", scope_let_kind_to_json sl.scope_let_kind);
-              ("var", `String (Bindlib.name_of x));
-              ("typ", `String (typ_to_string sl.scope_let_typ));
-              ("expr", expr_to_json Bindlib.empty_ctxt sl.scope_let_expr) ]
+            [
+              "kind", scope_let_kind_to_json sl.scope_let_kind;
+              "var", `String (Bindlib.name_of x);
+              "typ", `String (typ_to_string sl.scope_let_typ);
+              "expr", expr_to_json Bindlib.empty_ctxt sl.scope_let_expr;
+            ]
           :: !lets)
       body
   in
   `Assoc
-    [ ("input_struct", `String (StructName.to_string scope_body_input_struct));
-      ("output_struct", `String (StructName.to_string scope_body_output_struct));
-      ("lets", `List (List.rev !lets));
-      ("return", expr_to_json Bindlib.empty_ctxt last) ]
+    [
+      "input_struct", `String (StructName.to_string scope_body_input_struct);
+      "output_struct", `String (StructName.to_string scope_body_output_struct);
+      "lets", `List (List.rev !lets);
+      "return", expr_to_json Bindlib.empty_ctxt last;
+    ]
 
 let program_to_json prg =
   let scopes_ref = ref [] in
-  ignore @@ BoundList.iter
-      ~f:(fun _v item ->
-        match item with
-        | ScopeDef (sn, body) ->
-          scopes_ref :=
-            `Assoc
-              [ ("scope", `String (ScopeName.to_string sn));
-                ("body", scope_body_to_json body) ]
-            :: !scopes_ref
-        | Topdef _ -> ())
-      prg.code_items;
-  `Assoc [("program", `List (List.rev !scopes_ref))]
+  ignore
+  @@ BoundList.iter
+       ~f:(fun _v item ->
+         match item with
+         | ScopeDef (sn, body) ->
+           scopes_ref :=
+             `Assoc
+               [
+                 "scope", `String (ScopeName.to_string sn);
+                 "body", scope_body_to_json body;
+               ]
+             :: !scopes_ref
+         | Topdef _ -> ())
+       prg.code_items;
+  `Assoc ["program", `List (List.rev !scopes_ref)]

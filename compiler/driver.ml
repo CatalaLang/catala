@@ -710,15 +710,19 @@ module Commands = struct
           List.map
             (fun scope ->
               let scope_uid = get_scope_uid prg.decl_ctx scope in
-              match BoundList.find
-                      ~f:(function
-                        | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
-                          Some body
-                        | _ -> None)
-                      prg.code_items
+              match
+                BoundList.find
+                  ~f:(function
+                    | ScopeDef (name, body) when ScopeName.equal name scope_uid
+                      ->
+                      Some body
+                    | _ -> None)
+                  prg.code_items
               with
-              | body -> `Assoc [("scope", Dcalc.Json_export.scope_body_to_json body)]
-              | exception Not_found -> `Assoc [("error", `String "scope not found")])
+              | body ->
+                `Assoc ["scope", Dcalc.Json_export.scope_body_to_json body]
+              | exception Not_found ->
+                `Assoc ["error", `String "scope not found"])
             scopes
         in
         Format.fprintf fmt "%s" (Yojson.Safe.to_string (`List scopes_json));
@@ -732,7 +736,8 @@ module Commands = struct
               ( scope,
                 BoundList.find
                   ~f:(function
-                    | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
+                    | ScopeDef (name, body) when ScopeName.equal name scope_uid
+                      ->
                       Some body
                     | _ -> None)
                   prg.code_items );
