@@ -1,0 +1,39 @@
+## No separator after multi-word keyword before money literal
+
+The maintainer noted that `under condition$1=$2` must be rejected — `$` is
+not whitespace so it cannot immediately follow a multi-word keyword.
+github.com/CatalaLang/catala/pull/1086
+
+```catala
+declaration scope Test:
+  context output x content integer
+
+scope Test:
+  definition x under condition$1=$1 consequence equals 1
+```
+
+```catala-test-cli
+$ catala Typecheck --check-invariants
+┌─[ERROR]─ 1/2 ─
+│
+│  Parsing error after token " ": what comes after could not be recognised
+│
+├─➤ tests/parsing/bad/under_condition_money.catala_en:12.15-16:
+│    │
+│ 12 │   definition x under condition$1=$1 consequence equals 1
+│    │               ‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  Unclosed block or missing newline at the end of file.
+│  Did you forget a ``` delimiter ?
+│
+├─➤ tests/parsing/bad/under_condition_money.catala_en:7-8:
+│   │
+│ 7 │ ```catala
+│   │ ‾‾‾‾‾‾‾‾‾
+│ 8 │ declaration scope Test:
+│   │ 
+└─
+#return code 123#
+```
