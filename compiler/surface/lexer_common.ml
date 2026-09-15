@@ -110,14 +110,15 @@ let raise_lexer_error (loc : Pos.t) (token : string) =
     whitespace (or EOF), and raises a lexing error if it is. It peeks at the
     next character and restores the lexbuf position afterwards.
 
-    The check rejects any non-whitespace character — including '$', so
-    'under condition$1' is also rejected (the '$' starts a money literal, but
-    there's no space between the multi-word keyword and it). Only whitespace
-    characters (spaces, tabs, newlines, etc.) and EOF are allowed. *)
+    The check rejects any non-whitespace character — including '$', so 'under
+    condition$1' is also rejected (the '$' starts a money literal, but there's
+    no space between the multi-word keyword and it). Only whitespace characters
+    (spaces, tabs, newlines, etc.) and EOF are allowed. *)
 let check_keyword_boundary lexbuf pos prev_lexeme =
   let is_space c =
     match Uchar.to_int c with
-    | 0x09 | 0x0A | 0x0B | 0x0C | 0x0D | 0x20 -> true (* tab, LF, VT, FF, CR, space *)
+    | 0x09 | 0x0A | 0x0B | 0x0C | 0x0D | 0x20 ->
+      true (* tab, LF, VT, FF, CR, space *)
     | n when n >= 0x0008 && n <= 0x000D -> true (* other control whitespace *)
     | _ -> false
   in
