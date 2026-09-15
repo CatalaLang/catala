@@ -61,7 +61,8 @@ let test_scope_outs ctx lang acc env name scope =
       begin
         if not (Pos.has_attr (Mark.get (ScopeName.get_info name)) Test) then
           raise Exit;
-        Message.debug "Interpreting scope %a for autotest instrumentation..."
+        Message.debug
+          "Interpreting scope@ %a@ for@ autotest@ instrumentation..."
           ScopeName.format name;
         let mark =
           Expr.with_pos
@@ -86,8 +87,8 @@ let test_scope_outs ctx lang acc env name scope =
       if e <> Exit then
         Message.warning
           ~pos:(Mark.get (ScopeName.get_info name))
-          "Failed to interpret scope %a: not adding autotests. The generated \
-           test program should be expected to always fail."
+          "Failed to interpret scope@ %a:@ not@ adding@ autotests.@ The@ \
+           generated@ test@ program@ should@ be@ expected@ to@ always@ fail."
           ScopeName.format name;
       acc
     | output_expr -> ScopeName.Map.add name output_expr acc

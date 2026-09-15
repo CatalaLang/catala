@@ -15,7 +15,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
 open Clerk_utils
 
 val base_bindings :
@@ -29,36 +28,7 @@ val base_bindings :
 
 exception Stop_ninja
 
-type module_info = {
-  name : string Mark.pos;
-  item : Scan.item;
-  (* extra_items: Scan.item list; (* e.g. included files *) *)
-  targets : String.Set.t;
-}
-
-type callback_info = {
-  var_bindings : Var.bindings;
-  modules_map : module_info String.Map.t;
-  targets_map : Clerk_config.target String.Map.t;
-  target_deps : Clerk_config.target -> String.Set.t;
-      (** returns the names of the given target's dependencies *)
-  linking_deps : Scan.item -> string list;
-      (** item -> modules, topologically ordered *)
-  inclusion_map : Scan.item String.Map.t;
-      (** Map from source file names to a module that includes them, for all
-          source files that actually get included *)
-}
-(** Info passed to the callback that shall conclude the Ninja file, once the
-    whole file tree has been crawled. The modules and targets map differ from
-    the raw configuration information:
-    - the Stdlib target is added
-    - target contents are all modules to actually include in a given target
-    - target dependencies are flattened *)
-
-val empty_info : callback_info
-val stdlib_target_name : string
-
-val scan_project : config:Clerk_cli.config -> Scan.item list * callback_info
+val scan_project : config:Clerk_cli.config -> Scan.item list * Module_graph.info
 (** Builds the targets and module infos for the whole project similarly to
     [run_ninja], but without running Ninja. This should never be called this if
     Ninja is actually going to be called afterwards. *)
@@ -75,7 +45,7 @@ val run_ninja :
   autotest:bool ->
   ?clean_up_env:bool ->
   ?ninja_flags:string list ->
-  (Format.formatter -> Scan.item list -> callback_info -> 'a) ->
+  (Format.formatter -> Scan.item list -> Module_graph.info -> 'a) ->
   'a
 (** Scan the source tree, run a ninja process, and send to it the expected build
     instructions. A callback can be supplied to retrieve the source items, and
@@ -89,8 +59,3 @@ val run_ninja :
     variables.
 
     [default] is returned if the callback aborts with exception [Stop_ninja]. *)
-
-val module_backends : callback_info -> string -> Clerk_config.backend list
-(** Returns the list of backends supported by a given module by analysing the
-    clerk targets it belongs to, or, if none, the clerk targets of its
-    dependencies *)

@@ -297,6 +297,20 @@ let pfile =
     |> File.remove_prefix build_dir
     |> File.make_relative_to ~dir:original_cwd
 
+let quote_if_needed f =
+  if
+    String.exists
+      (function
+        | 'a' .. 'z'
+        | 'A' .. 'Z'
+        | '0' .. '9'
+        | '.' | '-' | '_' | '/' | ':' | '%' ->
+          false
+        | _ -> true)
+      f
+  then "\"" ^ f ^ "\""
+  else f
+
 let clean_command_line ~build_dir file cl =
   cl
   |> List.filter_map (fun s ->
@@ -305,7 +319,7 @@ let clean_command_line ~build_dir file cl =
         String.starts_with ~prefix:"-" s
         || not (String.contains s '/' || String.contains s '\\')
       then Some s
-      else Some (pfile ~build_dir s))
+      else Some (quote_if_needed (pfile ~build_dir s)))
   |> (function
   | catala :: cmd :: args ->
     catala
@@ -313,7 +327,9 @@ let clean_command_line ~build_dir file cl =
     ::
     (let rel_bindir = File.make_relative_to ~dir:File.original_cwd build_dir in
      if rel_bindir = "_build" then [] else ["--bin=" ^ rel_bindir])
-    @ ("-I" :: pfile ~build_dir (Filename.dirname file) :: args)
+    @ "-I"
+      :: quote_if_needed (pfile ~build_dir (Filename.dirname file))
+      :: args
   | cl -> cl)
   |> function
   | catala :: cmd :: args
@@ -361,7 +377,8 @@ let display_scope ~build_dir file ppf scope_test =
   else (
     Format.fprintf ppf "@{<red>■@} scope @{<hi_magenta>%s@} failed"
       scope_test.s_name;
-    print_command ~build_dir ppf file scope_test.s_command_line;
+    if disp_flags.diffs || Global.options.debug then
+      print_command ~build_dir ppf file scope_test.s_command_line;
     List.iter
       (fun (pos, msg) ->
         Format.fprintf ppf "@,%a %s" (pp_pos ~build_dir) pos msg)

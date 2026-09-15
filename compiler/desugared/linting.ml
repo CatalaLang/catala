@@ -313,8 +313,8 @@ let detect_unused_local_variables (p : program) : unit =
                   && names.(i).[0] <> '_'
                 then
                   Message.warning ~pos:vpos
-                    "The local variable@ \"%s\"@ is@ never@ used;@ maybe it's \
-                     unnecessary?"
+                    "The local variable@ \"@{<cyan>%s@}\"@ is@ never@ used;@ \
+                     maybe it's unnecessary?"
                     names.(i))
               pos
           end
