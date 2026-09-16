@@ -49,7 +49,6 @@ type info = {
   var_bindings : Var.bindings;
   modules_map : module_info String.Map.t;
   targets_map : Clerk_config.target String.Map.t;
-  target_deps : Clerk_config.target -> String.Set.t;
   linking_deps : Scan.item -> string list;
   inclusion_map : Scan.item String.Map.t;
 }
@@ -59,7 +58,6 @@ let empty_info =
     var_bindings = [];
     modules_map = String.Map.empty;
     targets_map = String.Map.empty;
-    target_deps = (fun t -> raise (String.Map.Not_found t.tname));
     linking_deps = (fun m -> raise (String.Map.Not_found m.file_name));
     inclusion_map = String.Map.empty;
   }
@@ -519,7 +517,6 @@ let organise_modules ~config ~var_bindings items =
     var_bindings;
     modules_map = modmap;
     targets_map = tmap;
-    target_deps;
     linking_deps;
     inclusion_map = inclusion_map items;
   }

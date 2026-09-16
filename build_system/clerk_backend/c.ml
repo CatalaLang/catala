@@ -209,19 +209,15 @@ module Spec : Sig.Spec = struct
     let open File in
     with_out_channel (dir / "make.deps")
     @@ fun oc ->
-    let modules =
-      String.Map.filter
-        (fun _ m ->
-          String.Set.mem target.Clerk_config.tname m.Module_graph.targets)
-        info.Module_graph.modules_map
-    in
-    String.Map.iter
-      (fun mname m ->
+    let modules = target.Clerk_config.tmodules in
+    List.iter
+      (fun mname ->
         Printf.fprintf oc "%s.o: %s.c %s.h" (String.to_id mname)
           (String.to_id mname) (String.to_id mname);
         List.iter
           (fun (dep, _) -> Printf.fprintf oc " %s.h" (String.to_id dep))
-          m.Module_graph.item.used_modules;
+          (String.Map.find mname info.Module_graph.modules_map).item
+            .used_modules;
         output_string oc "\n")
       modules;
     output_string oc "\n";

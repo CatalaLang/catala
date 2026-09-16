@@ -733,7 +733,7 @@ let install_backend_targets
           (* install_runtime already did the cleanup for the stdlib *)
           File.remove dir;
         ensure_dir dir;
-        let tdeps = build_info.target_deps target in
+        let tdeps = target.dependencies in
         List.iter
           (fun mname ->
             let mod_info =
@@ -768,9 +768,9 @@ let install_backend_targets
                     @ List.map
                         (fun dep_name ->
                           "import " ^ String.to_snake_case dep_name ^ ".*;")
-                        String.Set.(
-                          remove Module_graph.stdlib_target_name tdeps
-                          |> elements)
+                        (List.filter
+                           (( <> ) Module_graph.stdlib_target_name)
+                           tdeps)
                   in
                   copy_in_with_prefix
                     ~prefix:(String.concat "\n" prefix_lines ^ "\n\n")
