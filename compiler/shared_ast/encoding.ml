@@ -118,7 +118,7 @@ let rat_encoding : Val.t encoding =
                  "Unexpected runtime value %a instead of decimal while \
                   encoding to JSON"
                  Val.format v)
-           (fun f -> Val.V (Decimal, Q.of_float f));
+           (fun f -> Val.V (Decimal, Q.of_string (string_of_float f)));
          case int53 (fun _ -> None) (fun f -> Val.V (Decimal, Q.of_int64 f));
          case string
            (function Val.V (Decimal, d) -> Some (Q.to_string d) | _ -> None)
