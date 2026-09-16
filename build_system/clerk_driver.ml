@@ -704,104 +704,36 @@ let install_backend_targets
     (build_info : Module_graph.info)
     (targets : Clerk_config.target list)
     (bk : Clerk_config.backend) =
-  let open File in
   let module B = (val Clerk_backend.get bk) in
-  let target_dir = config.Cli.file.global.target_dir in
-  let build_dir = config.Cli.file.global.build_dir in
-  if not (List.exists (fun t -> List.mem bk t.Clerk_config.backends) targets)
-  then ()
-  else
-    let is_java = config_backend bk = `Java in
-    let bk_dir = target_dir / backend_subdir bk in
-    let extensions =
-      B.src_extensions
-      @
-      if config.include_objects then
-        List.sort_uniq compare (B.obj_extension :: B.module_extensions)
-      else []
-    in
-    B.install_runtime ~config;
-    let install_target target =
-      if not (List.mem bk target.Config.backends) then ()
+  let rec targets_and_deps acc targets =
+    (* Always install its dependencies together with a target *)
+    match targets with
+    | [] -> acc
+    | t :: targets ->
+      if List.exists (fun t1 -> t1.Config.tname = t.Config.tname) acc then
+        targets_and_deps acc targets
       else
-        let target_name =
-          if is_java then String.to_snake_case target.tname else target.tname
+        let acc = t :: acc in
+        let deps =
+          List.map
+            (fun t -> String.Map.find t build_info.targets_map)
+            t.dependencies
         in
-        let dir = bk_dir / target_name in
-        Message.debug "Installing target: %s" (B.name / target_name);
-        if target.Config.tname <> Module_graph.stdlib_target_name then
-          (* install_runtime already did the cleanup for the stdlib *)
-          File.remove dir;
-        ensure_dir dir;
-        let tdeps = target.dependencies in
-        List.iter
-          (fun mname ->
-            let mod_info =
-              String.Map.find mname build_info.Module_graph.modules_map
-            in
-            let item = mod_info.item in
-            let file ext =
-              (if Filename.is_relative item.file_name then
-                 build_dir / item.file_name
-               else item.file_name)
-              /../ backend_subdir bk
-              / Scan.target_basename item
-              -.- ext
-            in
-            List.iter
-              (fun ext ->
-                let src = file ext in
-                let src =
-                  if (not (exists src)) && item.is_stdlib then
-                    build_dir
-                    / Scan.libcatala
-                    / backend_subdir bk
-                    / B.stdlib_subdir
-                    / basename src
-                  else src
-                in
-                if not is_java then copy_in ~dir ~src
-                else if item.is_stdlib then ()
-                else
-                  let prefix_lines =
-                    ["package " ^ target_name ^ ";"]
-                    @ List.map
-                        (fun dep_name ->
-                          "import " ^ String.to_snake_case dep_name ^ ".*;")
-                        (List.filter
-                           (( <> ) Module_graph.stdlib_target_name)
-                           tdeps)
-                  in
-                  copy_in_with_prefix
-                    ~prefix:(String.concat "\n" prefix_lines ^ "\n\n")
-                    ~dir ~src)
-              extensions)
-          target.tmodules;
-        B.write_target_def_file ~config ~info:build_info ~dir target
-    in
-    let rec targets_and_deps acc targets =
-      (* Always install its dependencies together with a target *)
-      match targets with
-      | [] -> acc
-      | t :: targets ->
-        if List.exists (fun t1 -> t1.Config.tname = t.Config.tname) acc then
-          targets_and_deps acc targets
-        else
-          let acc = t :: acc in
-          let deps =
-            List.map
-              (fun t -> String.Map.find t build_info.targets_map)
-              t.dependencies
-          in
-          let acc = targets_and_deps acc deps in
-          targets_and_deps acc targets
-    in
+        let acc = targets_and_deps acc deps in
+        targets_and_deps acc targets
+  in
+  if List.exists (fun t -> List.mem bk t.Clerk_config.backends) targets then (
     let stdlib =
       String.Map.find Module_graph.stdlib_target_name build_info.targets_map
     in
     let all_targets = targets_and_deps [stdlib] targets in
-    List.iter install_target all_targets;
-    B.write_project_def ~config ~info:build_info ~dir:bk_dir
+    B.install_runtime ~config;
+    List.iter
+      (fun target ->
+        if List.mem bk target.Config.backends then
+          B.install_target ~config ~info:build_info target)
+      all_targets;
+    B.write_project_def ~config ~info:build_info)
 (*  ; if target.Config.include_sources then
  *     all_modules_deps
  *     |> List.map (fun it -> it.Scan.file_name)

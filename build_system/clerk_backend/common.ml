@@ -108,6 +108,52 @@ let obj_dep ~name:backend item =
       ^ (dirname item.file_name / String.to_id (basename item.file_name -.- ""))
       )
 
+let install_target_files
+    ~name:backend
+    ~stdlib_subdir
+    ~extensions
+    ~config
+    ~info
+    target_name
+    target
+    ~copy_in:copy_f =
+  let open File in
+  let target_dir = config.Clerk_cli.file.global.target_dir in
+  let build_dir = config.Clerk_cli.file.global.build_dir in
+  let bk_dir = target_dir / backend in
+  let dir = bk_dir / target_name in
+  Message.debug "Installing target: %s" (backend / target_name);
+  if target.Clerk_config.tname <> Module_graph.stdlib_target_name then
+    (* install_runtime already did the cleanup for the stdlib *)
+    File.remove dir;
+  ensure_dir dir;
+  List.iter
+    (fun mname ->
+      let mod_info = String.Map.find mname info.Module_graph.modules_map in
+      let item = mod_info.item in
+      let file ext =
+        (if Filename.is_relative item.file_name then build_dir / item.file_name
+         else item.file_name)
+        /../ backend
+        / Scan.target_basename item
+        -.- ext
+      in
+      List.iter
+        (fun ext ->
+          let src = file ext in
+          let src =
+            if (not (exists src)) && item.is_stdlib then
+              build_dir
+              / Scan.libcatala
+              / backend
+              / stdlib_subdir
+              / basename src
+            else src
+          in
+          copy_f ~src ~dir)
+        extensions)
+    target.tmodules
+
 module Make_backend (A : Sig.Spec) : Sig.S = struct
   module Backend = struct
     include A

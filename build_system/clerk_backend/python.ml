@@ -139,6 +139,13 @@ module Spec : Sig.Spec = struct
           (String.concat ", " target.Clerk_config.tmodules));
     File.with_out_channel (dir / "py.typed") ignore
 
+  let install_target ~config ~info target =
+    Common.install_target_files ~name ~stdlib_subdir ~extensions:src_extensions
+      ~config ~info target.Clerk_config.tname target ~copy_in:File.copy_in;
+    write_target_def_file ~config ~info
+      ~dir:(config.Clerk_cli.file.global.target_dir / name / target.tname)
+      target
+
   let install_runtime ~config =
     let open File in
     let dir = config.Clerk_cli.file.global.target_dir / name / Scan.libcatala in
@@ -149,7 +156,7 @@ module Spec : Sig.Spec = struct
       ~src:(Lazy.force Poll.stdlib_dir / name / "src" / "catala")
       ~dst:dir
 
-  let write_project_def ~config:_ ~info:_ ~dir:_ = ()
+  let write_project_def ~config:_ ~info:_ = ()
 end
 
 include Common.Make_backend (Spec)

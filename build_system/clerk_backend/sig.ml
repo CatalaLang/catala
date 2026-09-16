@@ -99,20 +99,22 @@ module type Spec = sig
   (** Subdirectory of the backend directory in "_build/libcatala" that holds the
       standard library files. Usually just the empty string. *)
 
-  val write_target_def_file :
-    config:Clerk_cli.config ->
-    info:Module_graph.info ->
-    dir:File.t ->
-    Clerk_config.target ->
-    unit
-  (** Called on the target directory under [_targets/<backend>/] after the files
-      have been copied in *)
-
   val install_runtime : config:Clerk_cli.config -> unit
   (** Sets up the runtime and stdlib to the appropriate target dir *)
 
+  val install_target :
+    config:Clerk_cli.config ->
+    info:Module_graph.info ->
+    Clerk_config.target ->
+    unit
+  (** Installs the files for the given target below
+      config.file.global.target_dir, and adds any relevant specification files
+      for that target *)
+
   val write_project_def :
-    config:Clerk_cli.config -> info:Module_graph.info -> dir:File.t -> unit
+    config:Clerk_cli.config -> info:Module_graph.info -> unit
+  (** Writes a backend-specific (Makefile, dune-project, pom.xml...) project
+      definition file to the backend-specific target dir *)
 end
 
 module type S = sig

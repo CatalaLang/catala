@@ -350,13 +350,23 @@ module Spec : Sig.Spec = struct
            (List.map String.to_id (Scan.libcatala :: target.dependencies)
            |> List.sort_uniq compare))
 
+  let install_extensions config =
+    src_extensions
+    @
+    if config.Clerk_cli.include_objects then obj_extension :: module_extensions
+    else []
+
+  let install_target ~config ~info target =
+    Common.install_target_files ~name ~stdlib_subdir
+      ~extensions:(install_extensions config)
+      ~config ~info target.Clerk_config.tname target ~copy_in:File.copy_in;
+    write_target_def_file ~config ~info
+      ~dir:File.(config.Clerk_cli.file.global.target_dir / name / target.tname)
+      target
+
   let install_runtime ~config =
     let open File in
-    let extensions =
-      src_extensions
-      @ if config.Clerk_cli.include_objects then ["cmi"; "cmx"] else []
-    in
-    let dir = config.file.global.target_dir / name / Scan.libcatala in
+    let dir = config.Clerk_cli.file.global.target_dir / name / Scan.libcatala in
     remove dir;
     ensure_dir dir;
     List.iter
@@ -373,10 +383,12 @@ module Spec : Sig.Spec = struct
         in
         if File.exists src_libcatala then copy_in ~dir ~src:src_libcatala
         else if File.exists src then copy_in ~dir ~src)
-      extensions
+      (install_extensions config)
 
-  let write_project_def ~config ~info:_ ~dir =
-    File.(with_out_channel (dir / "dune-project"))
+  let write_project_def ~config ~info:_ =
+    File.(
+      with_out_channel
+        (config.Clerk_cli.file.global.target_dir / name / "dune-project"))
     @@ fun oc ->
     Printf.fprintf oc "(lang dune 3.13)\n";
     match config.Clerk_cli.file.global.project_name with

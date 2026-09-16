@@ -63,6 +63,19 @@ val catala_obj_dep : Clerk_utils.Scan.item -> Ninja_utils.Expr.elt
 (** Pseudo-target that builds the item runtime dependencies for interpretation
     (cmxs for modules, or cmxs of all their dependencies for other items) *)
 
+val install_target_files :
+  name:string ->
+  stdlib_subdir:string ->
+  extensions:string list ->
+  config:Clerk_cli.config ->
+  info:Clerk_utils.Module_graph.info ->
+  string ->
+  Clerk_config.target ->
+  copy_in:(src:Catala_utils.File.t -> dir:Catala_utils.File.t -> unit) ->
+  unit
+(** Helper function to copy all relevant files of the given target from the
+    build dir to the target dir *)
+
 module Make_backend : functor (A : Sig.Spec) -> Sig.S
 
 val register : t -> unit

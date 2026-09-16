@@ -258,25 +258,53 @@ module Spec : Sig.Spec = struct
     in
     Java_project_file.format_target_pom_xml ~project_name ppf target
 
+  let install_extensions config =
+    src_extensions
+    @ if config.Clerk_cli.include_objects then module_extensions else []
+
+  let install_target ~config ~info target =
+    let target_name = String.to_snake_case target.Clerk_config.tname in
+    let () =
+      (* In the case of java, the stdlib is actually already installed by
+         the function `install_runtime` *)
+      if target.tname <> Module_graph.stdlib_target_name then
+        let copy_in =
+          let prefix_lines =
+            ["package " ^ target_name ^ ";"]
+            @ List.map
+                (fun dep_name ->
+                  "import " ^ String.to_snake_case dep_name ^ ".*;")
+                (List.filter
+                   (( <> ) Module_graph.stdlib_target_name)
+                   target.dependencies)
+          in
+          copy_in_with_prefix ~prefix:(String.concat "\n" prefix_lines ^ "\n\n")
+        in
+        Common.install_target_files ~name ~stdlib_subdir
+          ~extensions:(install_extensions config)
+          ~config ~info target_name target ~copy_in
+    in
+    write_target_def_file ~config ~info
+      ~dir:(config.Clerk_cli.file.global.target_dir / name / target_name)
+      target
+
   let install_runtime ~config =
     let open File in
-    let extensions =
-      src_extensions
-      @ if config.Clerk_cli.include_objects then ["class"] else []
-    in
-    let dir = config.file.global.target_dir / name / Scan.libcatala in
+    let dir = config.Clerk_cli.file.global.target_dir / name / Scan.libcatala in
     remove dir;
     ensure_dir dir;
     List.iter
       (fun subdir ->
         copy_dir ()
-          ~filter:(fun f -> List.exists (Filename.check_suffix f) extensions)
+          ~filter:(fun f ->
+            List.exists (Filename.check_suffix f) (install_extensions config))
           ~src:(config.file.global.build_dir / Scan.libcatala / name / subdir)
           ~dst:(dir / subdir))
       ["catala"; "org"]
 
-  let write_project_def ~config ~info ~dir =
-    File.with_formatter_of_file (dir / "pom.xml")
+  let write_project_def ~config ~info =
+    File.with_formatter_of_file
+      (config.Clerk_cli.file.global.target_dir / name / "pom.xml")
     @@ fun ppf ->
     let targets =
       String.Map.fold
