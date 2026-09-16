@@ -21,50 +21,6 @@ open Catala_utils
 let catala_flags_python = Var.make_vector "CATALA_FLAGS_PYTHON"
 let python = Var.make_vector "PYTHON"
 
-let linking_command ~build_dir link_deps item target =
-  (* a "linked" python module is a "Module.py" folder containing the module .py
-     file along with the runtime and all dependencies, plus a __init__.py
-     file *)
-  let open File in
-  let tdir = Filename.remove_extension target in
-  remove tdir;
-  ensure_dir tdir;
-  List.iter
-    (fun it ->
-      let src =
-        let f = Scan.target_file_name it in
-        (build_dir / dirname f / "python" / basename f) ^ ".py"
-      in
-      copy_in ~src ~dir:tdir)
-    (link_deps item);
-  copy_in ~src:(target -.- "py") ~dir:tdir;
-  close_out (open_out (tdir / "__init__.py"));
-  []
-
-let run_artifact config ~test ~trace ?scope ~var_bindings ?quiet src =
-  let open File in
-  let build_dir = config.Clerk_cli.file.global.build_dir in
-  let cmd =
-    let base = Filename.basename (File.remove_extension src) in
-    Var.get var_bindings python
-    @ ["-m"; base ^ "." ^ base]
-    @ Option.to_list scope
-    @ (if test && not Global.options.debug then ["--test"] else [])
-    @ (if Global.options.output_format = JSON then ["--json"] else [])
-    @ if trace then ["--trace"] else []
-  in
-  let pythonpath =
-    Backend_paths.pythonpath
-      [
-        build_dir / Scan.libcatala / "python";
-        File.dirname src;
-        Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH");
-      ]
-  in
-  Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
-    (String.concat " " cmd);
-  Clerk_cli.run_command_line ~setenv:["PYTHONPATH", pythonpath] ?quiet cmd
-
 module Spec : Sig.Spec = struct
   open Var
   open File
@@ -157,6 +113,50 @@ module Spec : Sig.Spec = struct
       ~dst:dir
 
   let write_project_def ~config:_ ~info:_ = ()
+
+  let linking_command ~build_dir ~var_bindings:_ link_deps item target =
+    (* a "linked" python module is a "Module.py" folder containing the module .py
+     file along with the runtime and all dependencies, plus a __init__.py
+     file *)
+    let open File in
+    let tdir = Filename.remove_extension target in
+    remove tdir;
+    ensure_dir tdir;
+    List.iter
+      (fun it ->
+        let src =
+          let f = Scan.target_file_name it in
+          (build_dir / dirname f / "python" / basename f) ^ ".py"
+        in
+        copy_in ~src ~dir:tdir)
+      (link_deps item);
+    copy_in ~src:(target -.- "py") ~dir:tdir;
+    close_out (open_out (tdir / "__init__.py"));
+    []
+
+  let run_artifact ~config ~var_bindings ~test ~trace ?scope ?quiet src =
+    let open File in
+    let build_dir = config.Clerk_cli.file.global.build_dir in
+    let cmd =
+      let base = Filename.basename (File.remove_extension src) in
+      Var.get var_bindings python
+      @ ["-m"; base ^ "." ^ base]
+      @ Option.to_list scope
+      @ (if test && not Global.options.debug then ["--test"] else [])
+      @ (if Global.options.output_format = JSON then ["--json"] else [])
+      @ if trace then ["--trace"] else []
+    in
+    let pythonpath =
+      Backend_paths.pythonpath
+        [
+          build_dir / Scan.libcatala / "python";
+          File.dirname src;
+          Option.value ~default:"" (Sys.getenv_opt "PYTHONPATH");
+        ]
+    in
+    Message.debug "Executing artifact: 'PYTHONPATH=%s %s'..." pythonpath
+      (String.concat " " cmd);
+    Clerk_cli.run_command_line ~setenv:["PYTHONPATH", pythonpath] ?quiet cmd
 end
 
 include Common.Make_backend (Spec)

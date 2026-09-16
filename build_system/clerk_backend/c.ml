@@ -23,42 +23,6 @@ let cc_exe = Var.make_vector "CC"
 let c_flags = Var.make_vector "CFLAGS"
 let c_include = Var.make_vector "C_INCLUDE_FLAGS"
 
-let linking_command ~build_dir ~var_bindings link_deps item target =
-  let open File in
-  let target_objs =
-    let base = Filename.chop_extension target in
-    let suffix = "+main" in
-    if String.ends_with ~suffix base then
-      [
-        String.sub base 0 (String.length base - String.length suffix) -.- "o";
-        target -.- "o";
-      ]
-    else [target -.- "o"]
-  in
-  Var.get var_bindings cc_exe
-  @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
-  @ [build_dir / Scan.libcatala / "c" / "catala_runtime.o"]
-  @ List.map
-      (fun it ->
-        let f = Scan.target_file_name it in
-        (build_dir / dirname f / "c" / basename f) ^ ".o")
-      (link_deps item)
-  @ ["-lgmp"]
-  @ target_objs
-  @ Var.get var_bindings c_flags
-  @ Var.get var_bindings c_include
-  @ ["-o"; target -.- "exe"]
-
-let run_artifact ~test ?scope ?quiet src =
-  let open File in
-  let cmd =
-    ((src -.- "exe") :: Option.to_list scope)
-    @ (if test && not Global.options.debug then ["--test"] else [])
-    @ if Global.options.output_format = JSON then ["--json"] else []
-  in
-  Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
-  Clerk_cli.run_command_line ?quiet cmd
-
 module Spec : Sig.Spec = struct
   open Var
   open File
@@ -320,6 +284,42 @@ VPATH = $(CLERK_TARGETS)
 
 include $(CLERK_TARGETS:=/make.deps)
 |make}
+
+  let linking_command ~build_dir ~var_bindings link_deps item target =
+    let open File in
+    let target_objs =
+      let base = Filename.chop_extension target in
+      let suffix = "+main" in
+      if String.ends_with ~suffix base then
+        [
+          String.sub base 0 (String.length base - String.length suffix) -.- "o";
+          target -.- "o";
+        ]
+      else [target -.- "o"]
+    in
+    Var.get var_bindings cc_exe
+    @ [build_dir / Scan.libcatala / "c" / "dates_calc.o"]
+    @ [build_dir / Scan.libcatala / "c" / "catala_runtime.o"]
+    @ List.map
+        (fun it ->
+          let f = Scan.target_file_name it in
+          (build_dir / dirname f / "c" / basename f) ^ ".o")
+        (link_deps item)
+    @ ["-lgmp"]
+    @ target_objs
+    @ Var.get var_bindings c_flags
+    @ Var.get var_bindings c_include
+    @ ["-o"; target -.- "exe"]
+
+  let run_artifact ~config:_ ~var_bindings:_ ~test ~trace:_ ?scope ?quiet src =
+    let open File in
+    let cmd =
+      ((src -.- "exe") :: Option.to_list scope)
+      @ (if test && not Global.options.debug then ["--test"] else [])
+      @ if Global.options.output_format = JSON then ["--json"] else []
+    in
+    Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
+    Clerk_cli.run_command_line ?quiet cmd
 end
 
 include Common.Make_backend (Spec)

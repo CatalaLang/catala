@@ -88,17 +88,6 @@ let linking_command ~build_dir ~backend ~info item target =
       (info.Module_graph.linking_deps it)
   in
   match backend with
-  | `OCaml ->
-    Clerk_backend.OCaml.linking_command ~build_dir ~var_bindings link_deps item
-      target
-  | `C ->
-    Clerk_backend.C.linking_command ~build_dir ~var_bindings link_deps item
-      target
-  | `Python ->
-    Clerk_backend.Python.linking_command ~build_dir link_deps item target
-  | `Java ->
-    Clerk_backend.Java.linking_command ~build_dir ~var_bindings link_deps item
-      target
   | `Custom rule ->
     let var_bindings =
       Var.binding_of_words Var.src
@@ -125,6 +114,9 @@ let linking_command ~build_dir ~backend ~info item target =
                (Var.Vector (String.sub s 1 (String.length s - 1)))
            else [Var.expand var_bindings s])
          rule.Config.commandline
+  | (`OCaml | `Python | `C | `Java) as bk ->
+    let module B = (val Clerk_backend.get (backend_to_config bk)) in
+    B.linking_command ~build_dir ~var_bindings link_deps item target
 
 let backend_from_arg config ~enabled_backends t =
   let disambiguate_using_subdir t backends ext =
@@ -256,14 +248,8 @@ let setup_report_format ?fix_path verbosity diff_command coverage =
   Clerk_report.set_display_flags ?fix_path ~diff_command ~coverage ()
 
 let run_artifact config ~backend ~var_bindings ?scope ?quiet ~test ~trace src =
-  match backend with
-  | `OCaml -> Clerk_backend.OCaml.run_artifact ~test ~trace ?scope ?quiet src
-  | `C -> Clerk_backend.C.run_artifact ~test ?scope ?quiet src
-  | `Python ->
-    Clerk_backend.Python.run_artifact config ~test ~trace ?scope ?quiet
-      ~var_bindings src
-  | `Java ->
-    Clerk_backend.Java.run_artifact ~var_bindings ~test ?scope ?quiet src
+  let module B = (val Clerk_backend.get (backend_to_config backend)) in
+  B.run_artifact ~config ~var_bindings ~test ~trace ?scope ?quiet src
 
 (* - Ninja target distribution - *)
 (* these functions take place in the clerk_run continuation, and explicit its targets. *)
