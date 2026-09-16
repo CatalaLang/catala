@@ -257,7 +257,21 @@ let scope =
         ~doc:"Select which scope of a given Catala file to run.")
 
 let variable = Catala_utils.Cli.Flags.ex_variable
-let scope_input = Catala_utils.Cli.Flags.scope_input
+
+let scope_input =
+  (* We do not reuse Catala's CLI flag as, when a large json file is
+     provided, it would parse the file and read and expand its content
+     which results in a too long command line when the input file is
+     large. *)
+  let open Arg in
+  value
+  & opt (some string) None
+  & info ["input"] ~docv:"FILE|JSON"
+      ~doc:
+        "Reads a JSON value from the given string or file ($(b,-) for stdin) \
+         and uses it as input value when interpreting the given scope. See \
+         also $(b,json-schema) command to generate the accepted JSON's schema \
+         for a given scope."
 
 let clerk_targets_or_files =
   Arg.(
