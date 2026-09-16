@@ -499,11 +499,14 @@ let organise_modules ~config ~var_bindings items =
         let tmodules =
           Topo.fold (fun m acc -> m :: acc) (subgraph module_g modules) []
         in
-        {
-          target with
-          Clerk_config.tmodules;
-          dependencies = G.succ target_g target.tname;
-        })
+        let dependencies =
+          Topo.fold
+            (fun m acc -> m :: acc)
+            (subgraph target_g
+               (String.Set.of_list (G.succ target_g target.tname)))
+            []
+        in
+        { target with Clerk_config.tmodules; dependencies })
       tmap
   in
   if Catala_utils.Global.options.debug then (
@@ -512,9 +515,6 @@ let organise_modules ~config ~var_bindings items =
     Message.debug "Module graph available at @{<blue;bold>%a@}"
       (Message.link ~target:(Message.file_url f) ())
       f);
-  let target_deps (t : Clerk_config.target) =
-    G.succ target_g t.tname |> String.Set.of_list
-  in
   {
     var_bindings;
     modules_map = modmap;

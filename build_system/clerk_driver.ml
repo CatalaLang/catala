@@ -340,7 +340,7 @@ let default_targets ~config info items =
     let clerk_targets =
       List.map
         (fun tname ->
-          try List.find (fun t -> t.Config.tname = tname) config.file.targets
+          try String.Map.find tname info.Module_graph.targets_map
           with Not_found ->
             Message.error "No definition found for default target %s" tname
               ~suggestions:
@@ -352,7 +352,14 @@ let default_targets ~config info items =
     { empty_targets with clerk_targets }
   | [] -> (
     match config.file.targets with
-    | _ :: _ as clerk_targets -> { empty_targets with clerk_targets }
+    | _ :: _ as clerk_targets ->
+      {
+        empty_targets with
+        clerk_targets =
+          List.map
+            (fun t -> String.Map.find t.Config.tname info.targets_map)
+            clerk_targets;
+      }
     | [] -> project_dir_targets ~config info items)
 
 let sort_user_target_args
@@ -367,7 +374,7 @@ let sort_user_target_args
   let clerk_targets, others =
     List.partition_map
       (fun arg ->
-        List.find_opt (fun ct -> arg = ct.Config.tname) config.file.targets
+        String.Map.find_opt arg info.targets_map
         |> function Some t -> Either.Left t | None -> Either.Right arg)
       args
   in
@@ -727,54 +734,49 @@ let install_backend_targets
           File.remove dir;
         ensure_dir dir;
         let tdeps = build_info.target_deps target in
-        String.Map.iter
-          (fun _ mod_info ->
-            if String.Set.mem target.tname mod_info.Module_graph.targets then
-              let item = mod_info.item in
-              let file ext =
-                (if Filename.is_relative item.file_name then
-                   build_dir / item.file_name
-                 else item.file_name)
-                /../ backend_subdir bk
-                / Scan.target_basename item
-                -.- ext
-              in
-              List.iter
-                (fun ext ->
-                  let src = file ext in
-                  let src =
-                    if (not (exists src)) && item.is_stdlib then
-                      build_dir
-                      / Scan.libcatala
-                      / backend_subdir bk
-                      / B.stdlib_subdir
-                      / basename src
-                    else src
+        List.iter
+          (fun mname ->
+            let mod_info =
+              String.Map.find mname build_info.Module_graph.modules_map
+            in
+            let item = mod_info.item in
+            let file ext =
+              (if Filename.is_relative item.file_name then
+                 build_dir / item.file_name
+               else item.file_name)
+              /../ backend_subdir bk
+              / Scan.target_basename item
+              -.- ext
+            in
+            List.iter
+              (fun ext ->
+                let src = file ext in
+                let src =
+                  if (not (exists src)) && item.is_stdlib then
+                    build_dir
+                    / Scan.libcatala
+                    / backend_subdir bk
+                    / B.stdlib_subdir
+                    / basename src
+                  else src
+                in
+                if not is_java then copy_in ~dir ~src
+                else if item.is_stdlib then ()
+                else
+                  let prefix_lines =
+                    ["package " ^ target_name ^ ";"]
+                    @ List.map
+                        (fun dep_name ->
+                          "import " ^ String.to_snake_case dep_name ^ ".*;")
+                        String.Set.(
+                          remove Module_graph.stdlib_target_name tdeps
+                          |> elements)
                   in
-                  if not is_java then copy_in ~dir ~src
-                  else if item.is_stdlib then ()
-                  else
-                    let prefix_lines =
-                      ["package " ^ target_name ^ ";"]
-                      @ List.map
-                          (fun dep_name ->
-                            "import " ^ String.to_snake_case dep_name ^ ".*;")
-                          String.Set.(
-                            remove Module_graph.stdlib_target_name tdeps
-                            |> elements)
-                    in
-                    copy_in_with_prefix
-                      ~prefix:(String.concat "\n" prefix_lines ^ "\n\n")
-                      ~dir ~src)
-                extensions)
-          build_info.modules_map;
-        let target =
-          if is_java && not (target.tname = Module_graph.stdlib_target_name)
-          then
-            (* maven needs all the transitive dependencies *)
-            { target with dependencies = String.Set.elements tdeps }
-          else target
-        in
+                  copy_in_with_prefix
+                    ~prefix:(String.concat "\n" prefix_lines ^ "\n\n")
+                    ~dir ~src)
+              extensions)
+          target.tmodules;
         B.write_target_def_file ~config ~info:build_info ~dir target
     in
     let rec targets_and_deps acc targets =
