@@ -63,11 +63,21 @@ val summary :
   bool
 (** Displays a summary to stdout; returns true if all tests succeeded *)
 
-val print_xml : build_dir:File.t -> file list -> bool
+val print_xml :
+  build_dir:File.t ->
+  ?backend_tests:
+    ((Clerk_utils.Scan.item * Clerk_cli.backend) * (int * int)) list ->
+  file list ->
+  bool
 (** Displays a summary in JUnit XML compatible format to stdout; returns true if
     all tests succeeded *)
 
-val print_json : build_dir:File.t -> file list -> bool
+val print_json :
+  build_dir:File.t ->
+  ?backend_tests:
+    ((Clerk_utils.Scan.item * Clerk_cli.backend) * (int * int)) list ->
+  file list ->
+  bool
 (** Displays a summary in VSCode Json compatible format to stdout; returns true
     if all tests succeeded *)
 

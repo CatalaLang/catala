@@ -500,7 +500,7 @@ let summary ~build_dir ?(backend_tests = []) tests =
   let ppf = Message.formatter_of_out_channel stdout () in
   Format.pp_open_vbox ppf 0;
   let tests = List.filter (fun f -> f.total > 0) tests in
-  let files, success_files, success, total =
+  let files, _success_files, success, total =
     List.fold_left
       (fun (files, success_files, success, total) file ->
         ( files + 1,
@@ -587,7 +587,7 @@ let summary ~build_dir ?(backend_tests = []) tests =
         box.print_line
           "@{<hi_blue;bold>%-13s@} @{<red;bold>%a@} @{<green;bold>%a@} \
            @{<bold>%10d@} @{<bold>%a@}"
-          "Computation"
+          "Interpreted"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
@@ -629,7 +629,7 @@ let summary ~build_dir ?(backend_tests = []) tests =
   Format.pp_print_flush ppf ();
   all_successful
 
-let print_json ~(build_dir : string) (tests : file list) =
+let print_json ~(build_dir : string) ?(backend_tests = []) (tests : file list) =
   let cwd = Sys.getcwd () in
   let ppf = Message.formatter_of_out_channel stdout () in
   let success, total =
@@ -665,6 +665,16 @@ let print_json ~(build_dir : string) (tests : file list) =
         "success", `Bool inline_test.i_success;
       ]
   in
+  let bk_map =
+    List.fold_left
+      (fun acc ((item, bk), result) ->
+        if bk = `Interpret then acc (* already reported as normal tests *)
+        else
+          String.Map.update item.Clerk_utils.Scan.file_name
+            (fun v -> Some ((bk, result) :: Option.value v ~default:[]))
+            acc)
+      String.Map.empty backend_tests
+  in
   let full_coverage =
     List.fold_left
       (fun acc (file : file) ->
@@ -688,13 +698,24 @@ let print_json ~(build_dir : string) (tests : file list) =
                         );
                         ( "tests",
                           `Assoc
-                            [
-                              ( "scopes",
-                                `List (List.map scope_to_json test.scopes) );
-                              ( "inline-tests",
-                                `List (List.map inline_tests_to_json test.tests)
-                              );
-                            ] );
+                            (( "scopes",
+                               `List (List.map scope_to_json test.scopes) )
+                            :: ( "inline-tests",
+                                 `List
+                                   (List.map inline_tests_to_json test.tests) )
+                            :: List.map
+                                 (fun (bk, (success, total)) ->
+                                   ( Clerk_cli.backend_name bk,
+                                     `Assoc
+                                       [
+                                         "success", `Int success;
+                                         "total", `Int total;
+                                       ] ))
+                                 (Option.value
+                                    (String.Map.find_opt
+                                       (File.remove_prefix build_dir test.name)
+                                       bk_map)
+                                    ~default:[])) );
                       ]))
                tests) );
         ( "coverage",
@@ -704,28 +725,59 @@ let print_json ~(build_dir : string) (tests : file list) =
   Format.fprintf ppf "%s@." (Yojson.to_string json);
   success = total
 
-let print_xml ~build_dir tests =
+let print_xml ~build_dir ?(backend_tests = []) tests =
   let ffile ppf f = Format.pp_print_string ppf (pfile ~build_dir f) in
   let ppf = Message.formatter_of_out_channel stdout () in
   let tests = List.filter (fun f -> f.total > 0) tests in
+  let bk_map =
+    List.fold_left
+      (fun acc ((item, bk), result) ->
+        if bk = `Interpret then acc (* already reported as normal tests *)
+        else
+          String.Map.update item.Clerk_utils.Scan.file_name
+            (fun v -> Some ((bk, result) :: Option.value v ~default:[]))
+            acc)
+      String.Map.empty backend_tests
+  in
   let success, total =
     List.fold_left
       (fun (success, total) file ->
         success + file.successful, total + file.total)
       (0, 0) tests
   in
+  let success, total =
+    List.fold_left
+      (fun (success, total) ((_item, _bk), (tsuccess, ttotal)) ->
+        success + tsuccess, total + ttotal)
+      (success, total) backend_tests
+  in
   Format.fprintf ppf "@[<v><?xml version=\"1.0\" encoding=\"UTF-8\"?>@,";
   Format.fprintf ppf "@[<v 2><testsuites tests=\"%d\" failures=\"%d\">@,"
     success (total - success);
   Format.pp_print_list
     (fun ppf f ->
+      let backend_tests =
+        Option.value
+          (String.Map.find_opt (File.remove_prefix build_dir f.name) bk_map)
+          ~default:[]
+      in
+      let successful =
+        List.fold_left
+          (fun acc (_bk, (success, _total)) -> acc + success)
+          f.successful backend_tests
+      in
+      let total =
+        List.fold_left
+          (fun acc (_bk, (_success, total)) -> acc + total)
+          f.total backend_tests
+      in
       Format.fprintf ppf
         "@[<v 2>@[<hov 1><testsuite@ name=\"%a\"@ tests=\"%d\"@ \
-         failures=\"%d\">@]@,"
-        ffile f.name f.total (f.total - f.successful);
-      Format.pp_print_list
-        (fun ppf t ->
-          Format.fprintf ppf "@[<v 2><testcase line=\"%d\">"
+         failures=\"%d\">@]"
+        ffile f.name successful (total - successful);
+      List.iter
+        (fun t ->
+          Format.fprintf ppf "@,@[<v 2><testcase line=\"%d\">"
             (fst t.i_expected).Lexing.pos_lnum;
           Format.fprintf ppf
             "@,\
@@ -741,14 +793,14 @@ let print_xml ~build_dir tests =
             print_diff ppf t.i_expected t.i_result;
             Format.fprintf ppf "@]@,</failure>");
           Format.fprintf ppf "@]@,</testcase>")
-        ppf f.tests;
-      Format.pp_print_list
-        (fun ppf t ->
+        f.tests;
+      List.iter
+        (fun t ->
           (match t.s_errors with
           | ((pos, _), _) :: _ ->
-            Format.fprintf ppf "@[<v 2><testcase name=\"%s\" line=\"%d\">"
+            Format.fprintf ppf "@,@[<v 2><testcase name=\"%s\" line=\"%d\">"
               t.s_name pos.pos_lnum
-          | _ -> Format.fprintf ppf "@[<v 2><testcase name=\"%s\">" t.s_name);
+          | _ -> Format.fprintf ppf "@,@[<v 2><testcase name=\"%s\">" t.s_name);
           Format.fprintf ppf
             "@,\
              @[<hv 2><property name=\"description\">@,\
@@ -767,7 +819,26 @@ let print_xml ~build_dir tests =
               ppf t.s_errors;
             Format.fprintf ppf "@]@,</failure>");
           Format.fprintf ppf "@]@,</testcase>")
-        ppf f.scopes;
+        f.scopes;
+      List.iter
+        (fun (bk, (success, total)) ->
+          Format.fprintf ppf "@,@[<v 2><testcase name=\"%s\">"
+            (Clerk_cli.backend_name bk);
+          Format.fprintf ppf
+            "@,\
+             @[<hv 2><property name=\"description\">@,\
+             @[<hov 2>%d scopes compiled to %s@]@;\
+             <0 -2></property>@]"
+            total
+            (Clerk_cli.backend_name bk);
+          if success < total then
+            Format.fprintf ppf
+              "@,\
+               @[<v 2><failure message=\"%d out of %d scopes \
+               failed\"></failure>@]"
+              (total - success) total;
+          Format.fprintf ppf "@]@,</testcase>")
+        backend_tests;
       Format.fprintf ppf "@]@,</testsuite>")
     ppf tests;
   Format.fprintf ppf "@]@,</testsuites>@]@.";

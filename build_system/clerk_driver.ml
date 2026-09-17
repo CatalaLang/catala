@@ -1395,9 +1395,9 @@ let test_cmd =
     else if
       (match report_format with
       | `JUnitXML -> print_xml
-      | `Terminal -> summary ~backend_tests
+      | `Terminal -> summary
       | `VSCodeJSON -> print_json)
-        ~build_dir test_reports
+        ~build_dir ~backend_tests test_reports
     then raise (Catala_utils.Cli.Exit_with 0)
     else raise (Catala_utils.Cli.Exit_with 1)
   in
@@ -1594,9 +1594,9 @@ let ci_cmd =
     let test_results =
       (match report_format with
       | `JUnitXML -> print_xml
-      | `Terminal -> summary ~backend_tests
+      | `Terminal -> summary
       | `VSCodeJSON -> print_json)
-        ~build_dir test_reports
+        ~build_dir ~backend_tests test_reports
     in
     if not test_results then raise (Catala_utils.Cli.Exit_with 1);
     List.iter
@@ -1646,10 +1646,9 @@ let report_cmd =
     let success =
       (match report_format with
       | `JUnitXML -> print_xml
-      | `Terminal ->
-        fun ~build_dir tests -> summary ?backend_tests:None ~build_dir tests
+      | `Terminal -> summary
       | `VSCodeJSON -> print_json)
-        ~build_dir tests
+        ~build_dir ?backend_tests:None tests
     in
     exit (if success then 0 else 1)
   in

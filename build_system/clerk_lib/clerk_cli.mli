@@ -59,6 +59,11 @@ val color : Global.when_enum Term.t
 val debug : bool Term.t
 (** Already included in [init_term] *)
 
+(** {2 Type utilities} *)
+
+val all_backends : backend list
+val backend_name : backend -> string
+
 (** {2 Initialisation of options} *)
 
 type config = {

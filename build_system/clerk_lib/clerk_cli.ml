@@ -123,7 +123,17 @@ let runtest_out =
     & info [] ~docv:"OUTFILE"
         ~doc:"Write the test outcome to file $(b,OUTFILE) instead of stdout.")
 
+(* Todo: this should be extensible with the registration of new backends *)
 type backend = [ `C | `Interpret | `OCaml | `Python | `Java ]
+
+let backend_name = function
+  | `Interpret -> "interpret"
+  | `OCaml -> "ocaml"
+  | `C -> "c"
+  | `Python -> "python"
+  | `Java -> "java"
+
+let all_backends = [`C; `Interpret; `OCaml; `Python; `Java]
 
 let backends =
   let arg =
@@ -132,14 +142,8 @@ let backends =
       & opt_all
           (list
              (enum
-                [
-                  "interpret", [`Interpret];
-                  "ocaml", [`OCaml];
-                  "c", [`C];
-                  "python", [`Python];
-                  "java", [`Java];
-                  "all", [`Interpret; `OCaml; `C; `Python; `Java];
-                ]))
+                (List.map (fun bk -> backend_name bk, [bk]) all_backends
+                @ ["all", all_backends])))
           []
       & info ["backend"; "b"] ~docv:"BACKEND"
           ~doc:
