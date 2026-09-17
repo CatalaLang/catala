@@ -218,7 +218,11 @@ let print_time_marker =
     let old_time = !time in
     time := new_time;
     let delta = (new_time -. old_time) *. 1000. in
-    if delta > 130. then
+    if delta > 130. && Sys.getenv_opt "OPAM_REPO_CI" <> Some "true" then
+      (* This can break CLI tests; for CI under our control, we assert that any
+         operation taking more than 130ms of CPU is an issue worth
+         investigating, so this stays enabled. However, it's best to disable it
+         on the opam repo ci, hence the environment check above. *)
       Format.fprintf ppf
         "[@{<bold;magenta>DEBUG@}] @{<hi_black>- %.0fms elapsed -@}@," delta
 
