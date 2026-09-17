@@ -583,24 +583,11 @@ let summary ~build_dir ?(backend_tests = []) tests =
         else Format.fprintf ppf "%8s %%" "-";
         Format.pp_close_stag ppf ()
       in
-      if files > 1 then
-        box.print_line
-          "@{<hi_blue;bold>%-13s@} @{<red;bold>%a@} @{<green;bold>%a@} \
-           @{<bold>%10d@} @{<bold>%a@}"
-          "Files"
-          (fun ppf -> function
-            | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
-            | n -> Format.fprintf ppf "%10d" n)
-          (files - success_files)
-          (fun ppf -> function
-            | 0 -> Format.fprintf ppf "@{<red>%10d@}" 0
-            | n -> Format.fprintf ppf "%10d" n)
-          success_files files ratio (success_files, files);
       if files > 0 then
         box.print_line
           "@{<hi_blue;bold>%-13s@} @{<red;bold>%a@} @{<green;bold>%a@} \
            @{<bold>%10d@} @{<bold>%a@}"
-          "Tests"
+          "Computation"
           (fun ppf -> function
             | 0 -> Format.fprintf ppf "@{<green>%10d@}" 0
             | n -> Format.fprintf ppf "%10d" n)
