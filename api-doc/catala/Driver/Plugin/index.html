@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Plugin (catala.Driver.Plugin)</title><meta charset="utf-8"/><link rel="stylesheet" href="../../../odoc.support/odoc.css"/><meta name="generator" content="odoc 3.1.0"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../../index.html">Index</a> &#x00BB; <a href="../../index.html">catala</a> &#x00BB; <a href="../index.html">Driver</a> &#x00BB; Plugin</nav><header class="odoc-preamble"><h1>Module <code><span>Driver.Plugin</span></code></h1></header><div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-register"><a href="#val-register" class="anchor"></a><code><span><span class="keyword">val</span> register : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?man</span>:<span><span class="xref-unresolved">Cmdliner</span>.Manpage.block list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?doc</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>(<span><a href="../../Catala_utils/Global/index.html#type-options">Catala_utils.Global.options</a> <span class="arrow">&#45;&gt;</span></span> unit)</span> <span class="xref-unresolved">Cmdliner</span>.Term.t</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-register_subcommands"><a href="#val-register_subcommands" class="anchor"></a><code><span><span class="keyword">val</span> register_subcommands : 
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?man</span>:<span><span class="xref-unresolved">Cmdliner</span>.Manpage.block list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?doc</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span><span>unit <span class="xref-unresolved">Cmdliner</span>.Cmd.t</span> list</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-register_attribute"><a href="#val-register_attribute" class="anchor"></a><code><span><span class="keyword">val</span> register_attribute : 
+  <span><span class="label">plugin</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">path</span>:<span>string list</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">contexts</span>:<span>(<span><a href="../../Desugared/Name_resolution/index.html#type-attribute_context">Desugared.Name_resolution.attribute_context</a> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span>(<span><span class="label">pos</span>:<a href="../../Catala_utils/Pos/index.html#type-t">Catala_utils.Pos.t</a> <span class="arrow">&#45;&gt;</span></span>
+    <span><a href="../../Shared_ast/index.html#type-attr_value">Shared_ast.attr_value</a> <span class="arrow">&#45;&gt;</span></span>
+    <span><a href="../../Catala_utils/Pos/index.html#type-attr">Catala_utils.Pos.attr</a> option</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div></div></div></body></html>
