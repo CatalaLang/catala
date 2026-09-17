@@ -309,9 +309,7 @@ module Spec : Sig.Spec = struct
         (match config.Clerk_cli.file.global.project_name with
         | None -> ""
         | Some n -> Printf.sprintf "\n (public_name %s.%s)" n target.tname)
-        (String.concat " "
-           (List.map String.to_id (Scan.libcatala :: target.dependencies)
-           |> List.sort_uniq compare))
+        (String.concat " " (List.map String.to_id target.dependencies))
 
   let install_extensions config =
     src_extensions
