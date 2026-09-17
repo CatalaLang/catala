@@ -144,13 +144,54 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
   in
   { item with has_scope_tests }
 
-let tree (dir : File.t) : (File.t * File.t list * item list) Seq.t =
+let dir d : item list =
+  Sys.readdir d
+  |> Array.to_list
+  |> List.sort File.compare
+  |> List.filter_map
+       File.(
+         fun f ->
+           match get_lang f with
+           | None -> None
+           | Some lang ->
+             if
+               not_hidden f
+               && try not (Sys.is_directory (d / f)) with Sys_error _ -> false
+             then Some (catala_file File.(d / f) lang)
+             else None)
+
+let tree (root : File.t) ?(includes : File.Set.t option) :
+    (File.t * File.t list * item list) Seq.t =
+  let filter_dirs =
+    match includes with
+    | Some inc -> (
+      fun d ->
+        (* we need to keep scanning if any include direcory is below d *)
+        match
+          File.Set.find_first_opt
+            File.(fun d1 -> compare (d1 / "") (d / "") >= 0)
+            inc
+        with
+        | None -> false
+        | Some d1 ->
+          String.starts_with
+            ~prefix:File.(String.lowercase_ascii d / "")
+            File.(String.lowercase_ascii d1 / ""))
+    | None -> File.not_hidden
+  in
   File.scan_tree
     (fun f ->
-      match get_lang f with
-      | None -> None
-      | Some lang -> Some (catala_file f lang))
-    dir
+      if
+        not
+          (match includes with
+          | None -> true
+          | Some inc -> File.(Set.mem (dirname f) inc))
+      then None
+      else
+        match get_lang f with
+        | None -> None
+        | Some lang -> Some (catala_file f lang))
+    ~filter_dirs root
 
 let target_basename t =
   match t.module_def with

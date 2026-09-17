@@ -38,4 +38,5 @@ val default :
   trace:bool ->
   inplace:bool ->
   config:Clerk_cli.config ->
+  include_dirs:string list ->
   Var.bindings

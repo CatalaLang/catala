@@ -69,7 +69,7 @@ let include_flags ~name:backend include_dirs =
          ])
        include_dirs
 
-let default ~code_coverage ~(trace : bool) ~inplace ~config =
+let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
   let options = config.Clerk_cli.file in
   let open Clerk_config in
   let options =
@@ -93,7 +93,7 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config =
     :: (if trace then ["--trace"] else [])
     @ options.global.catala_opts
   in
-  let includes = includes options.global.include_dirs in
+  let includes = includes include_dirs in
   let test_flags = config.Clerk_cli.test_flags in
   let def v x = def ~variables:options.variables v x in
   [
