@@ -281,10 +281,16 @@ and generate_option_encoder ctx typ =
           (function None -> 0, "Absent", None | Some x -> 1, "Present", Some x);
       }
   in
+  let proj_null = function
+    | V (Enum { name = "Optional" | "Optionnel"; constr }, v) -> (
+      match constr v with _, _, None -> Some () | _ -> None)
+    | _ -> None
+  in
   let inj_none _ = V (vtyp, None) in
   union
     [
       case unit_encoding proj_none inj_none;
+      case null proj_null inj_none;
       case (make_constant "Absent") proj_none inj_none;
       case
         (obj1 (req "Present" (generate_encoder ctx typ)))
@@ -376,50 +382,49 @@ and generate_struct_encoder (ctx : decl_ctx) (sname : StructName.t) =
   in
   let add_opt_field (encoding : t encoding) (sf, typ) : t encoding =
     let field_label, field_s = rename_field sf in
-    let bconv =
-      merge_objs encoding (obj1 (opt field_label (generate_encoder ctx typ)))
+    let all_enc =
+      let wrap_present v =
+        V
+          ( Enum { name = "Optional"; constr = (fun _ -> 1, "Present", Some v) },
+            () )
+      in
+      let unwrap_present = function
+        | V (Enum { name = "Optional"; constr }, v) -> (
+          match constr v with 1, "Present", Some v -> Some v | _ -> None)
+        | _ -> None
+      in
+      union
+        [
+          case (generate_encoder ctx typ) unwrap_present wrap_present;
+          case (generate_option_encoder ctx typ) Option.some Fun.id;
+        ]
     in
-    conv
-      (function
-        | V (Struct enc, data) as v ->
-          let rval =
-            List.assoc_opt field_s (enc.fields data)
-            |> Option.map (function
-              | V (Enum { name = "Optional" | "Optionnel"; constr }, data) ->
-                let _, _, x = constr data in
-                x
-              | _ -> assert false)
-            |> Option.join
-          in
-          v, rval
-        | _ -> assert false)
-      (function
-        | V (Struct enc, data), None ->
-          V
-            ( Struct { enc with fields = Fun.id },
-              ( field_s,
-                V
-                  ( Enum
-                      {
-                        name = "Optional";
-                        constr = (fun _ -> 0, "Absent", None);
-                      },
-                    () ) )
-              :: enc.fields data )
-        | V (Struct enc, data), Some rval ->
-          V
-            ( Struct { enc with fields = Fun.id },
-              ( field_s,
-                V
-                  ( Enum
-                      {
-                        name = "Optional";
-                        constr = (fun _ -> 1, "Present", Some rval);
-                      },
-                    () ) )
-              :: enc.fields data )
-        | _ -> assert false)
-      bconv
+    let bconv : (t * t option) encoding =
+      merge_objs encoding (obj1 (opt field_label all_enc))
+    in
+    let proj : t -> t * t option = function
+      | V (Struct enc, data) as v ->
+        let rval = List.assoc_opt field_s (enc.fields data) in
+        v, rval
+      | _ -> assert false
+    in
+    let inj : t * t option -> t = function
+      | V (Struct enc, data), None ->
+        V
+          ( Struct { enc with fields = Fun.id },
+            ( field_s,
+              V
+                ( Enum
+                    { name = "Optional"; constr = (fun _ -> 0, "Absent", None) },
+                  () ) )
+            :: enc.fields data )
+      | V (Struct enc, data), Some rval ->
+        V
+          ( Struct { enc with fields = Fun.id },
+            (field_s, rval) :: enc.fields data )
+      | _ -> assert false
+    in
+    conv proj inj bconv
   in
   def (Format.asprintf "%a" StructName.format_shortpath sname)
   @@ List.fold_left
