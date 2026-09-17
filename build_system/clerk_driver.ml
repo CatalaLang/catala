@@ -1004,10 +1004,7 @@ let run_targets
           | Some scope -> [Printf.sprintf "--scope=%s" scope])
         @ (match scope_input with
           | None -> []
-          | Some input ->
-            [
-              Printf.sprintf "--input=%s" (Yojson.Safe.to_string ~std:true input);
-            ])
+          | Some input -> [Printf.sprintf "--input=%s" input])
         @ (if whole_program then ["--whole-program"] else [])
         @ (match trace with
           | None -> []
