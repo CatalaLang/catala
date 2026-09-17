@@ -244,10 +244,19 @@ val format : Format.formatter -> t -> unit
 module Set : Set.S with type elt = t
 module Map : Map.S with type key = t
 
-val scan_tree : (t -> 'a option) -> t -> (t * t list * 'a list) Seq.t
-(** Recursively scans a directory for files. Directories or files matching ".*"
-    or "_*" are ignored. Unreadable files or subdirectories are ignored with a
-    debug message. If [t] is a plain file, scan just that non-recursively.
+val not_hidden : t -> bool
+(** Directories or files starting with a "." or "_" character are considered
+    hidden, at the exception of the current and parent dir shortcuts. *)
+
+val scan_tree :
+  (t -> 'a option) ->
+  ?filter_dirs:(t -> bool) ->
+  t ->
+  (t * t list * 'a list) Seq.t
+(** Recursively scans a directory for files. Files or dirs matching ".*" or "_*"
+    are ignored (unless overriden using [filter_dir] in the case of dirs).
+    Unreadable files or subdirectories are ignored with a debug message. If [t]
+    is a plain file, scan just that non-recursively.
 
     The matching results are returned grouped by directory, case-insensitively
     ordered by filename, as a list of non-empty subdirs and a list of extracted

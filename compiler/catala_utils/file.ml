@@ -395,34 +395,35 @@ module Map = Map.Make (struct
   let format = format
 end)
 
-let scan_tree f t =
+let not_hidden f =
+  let n = basename f in
+  match n.[0] with '.' -> n = "." || n = ".." | '_' -> false | _ -> true
+
+let scan_tree f ?(filter_dirs = not_hidden) t =
   let is_dir t =
     try Sys.is_directory t
     with Sys_error _ ->
       Message.debug "Cannot read %s, skipping" t;
       false
   in
-  let not_hidden t = match t.[0] with '.' | '_' -> false | _ -> true in
   let rec do_dir d =
     (try Sys.readdir d
      with Sys_error _ ->
        Message.debug "Cannot read %s, skipping" t;
        [||])
-    |> Array.to_list
-    |> List.filter not_hidden
-    |> List.map (fun t -> d / t)
+    |> Array.to_seq
+    |> Seq.map (fun t -> d / t)
     |> do_files d
-  and do_files d flist =
-    let dirs, files =
-      flist |> List.sort (fun a b -> compare a b) |> List.partition is_dir
-    in
-    let rec gather_subdirs subdirs_list_acc subdirs_seq () =
-      match subdirs_seq () with
-      | Seq.Nil -> (
-        match List.rev subdirs_list_acc, List.filter_map f files with
+  and do_files d fseq =
+    let dirs, files = fseq |> List.of_seq |> List.partition is_dir in
+    let rec gather_subdirs subdirs_list_acc subdirs () =
+      match subdirs with
+      | [] -> (
+        let files = files |> List.filter not_hidden |> List.sort compare in
+        match subdirs_list_acc, List.filter_map f files with
         | [], [] -> Seq.Nil
-        | sdirs, items -> Seq.return (d, sdirs, items) ())
-      | Seq.Cons (subdir_name, subdir_next) -> (
+        | sdirs, items -> Seq.return (d, List.rev sdirs, items) ())
+      | subdir_name :: subdir_next -> (
         match do_dir subdir_name () with
         | Seq.Nil -> gather_subdirs subdirs_list_acc subdir_next ()
         | Seq.Cons (sd0, sds) ->
@@ -432,7 +433,7 @@ let scan_tree f t =
                 (gather_subdirs (subdir_name :: subdirs_list_acc) subdir_next)
             ))
     in
-    gather_subdirs [] (List.to_seq dirs)
+    gather_subdirs [] (dirs |> List.filter filter_dirs |> List.sort compare)
   in
   if is_dir t then do_dir t else Seq.return (dirname t, [], Option.to_list (f t))
 

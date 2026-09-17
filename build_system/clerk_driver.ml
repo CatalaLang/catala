@@ -1669,7 +1669,7 @@ let list_vars_cmd =
   let run config =
     let var_bindings =
       Var.env_of_bindings
-        (Clerk_rules.base_bindings ~autotest:false ~trace:false
+        (Clerk_rules.base_bindings () ~autotest:false ~trace:false
            ~code_coverage:false
            ~enabled_backends:
              (List.map snd (Clerk_config.registered_backends ()))
@@ -1704,7 +1704,7 @@ let list_vars_cmd =
 let json_schema_cmd =
   let run config file scope =
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+      Clerk_rules.base_bindings () ~autotest:false ~code_coverage:false
         ~trace:false ~enabled_backends:[] ~config ~inplace:true
     in
     let catala_exe = Var.get var_bindings Var.catala_exe in
@@ -1732,7 +1732,7 @@ let exceptions_cmd =
        artifacts required. Bypass ninja and call catala directly from the
        project root instead of the build dir (with [inplace:true]) *)
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+      Clerk_rules.base_bindings () ~autotest:false ~code_coverage:false
         ~trace:false ~enabled_backends:[] ~config ~inplace:true
     in
     let catala_exe = Var.get var_bindings Var.catala_exe in

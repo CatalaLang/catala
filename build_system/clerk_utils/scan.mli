@@ -43,7 +43,11 @@ val get_lang : File.t -> Global.backend_lang option
 val catala_file : File.t -> Global.backend_lang -> item
 (** Scans a single Catala file into an item *)
 
-val tree : File.t -> (File.t * File.t list * item list) Seq.t
+val dir : File.t -> item list
+(** Non-recursively scans a single directory *)
+
+val tree :
+  File.t -> ?includes:File.Set.t -> (File.t * File.t list * item list) Seq.t
 (** Recursively scans a directory, and returns the corresponding subdirectories
     and items in sequence, by directory. *)
 

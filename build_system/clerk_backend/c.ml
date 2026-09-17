@@ -73,7 +73,7 @@ module Spec : Sig.Spec = struct
       ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     Nj.rule "c-object"
       ~command:
-        [!!cc_exe; !!input; !!c_flags; !!c_include; !!includes;
+        [!!cc_exe; !!input; !!c_flags; !!c_include;
          Word "-c"; Word "-o"; !!output]
       ~description:[Word "<cc>"; Word "⇒"; !!output];
   ]
@@ -132,7 +132,7 @@ module Spec : Sig.Spec = struct
          ~outputs:[Common.target ~name "c"]
          ~implicit_out:(Common.target ~name "h" :: implicit_out))
 
-  let build_object ~include_dirs ~same_dir_modules:_ item =
+  let build_object item =
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
     let implicit_modules = List.map (Common.interface_dep ~name) modules in
@@ -142,10 +142,6 @@ module Spec : Sig.Spec = struct
         ~implicit_in:
           (Common.target ~name "h" :: Word "@c/runtime/src" :: implicit_modules)
         ~outputs:[Common.target ~name "o"]
-        ~vars:
-          [
-            Nj.Binding.make Var.includes (Flags.include_flags ~name include_dirs);
-          ]
       ::
       (if Lazy.force item.has_scope_tests > 0 then
          [
@@ -155,12 +151,7 @@ module Spec : Sig.Spec = struct
                (Common.target ~name "h"
                :: Word "@c/runtime/src"
                :: implicit_modules)
-             ~outputs:[Common.target ~name "+main.o"]
-             ~vars:
-               [
-                 Nj.Binding.make Var.includes
-                   (Flags.include_flags ~name include_dirs);
-               ];
+             ~outputs:[Common.target ~name "+main.o"];
          ]
        else [])
     in
