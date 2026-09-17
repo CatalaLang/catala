@@ -25,87 +25,6 @@ let javac_flags = Var.make_vector "JAVAC_FLAGS"
 let jar = Var.make_vector "JAR"
 let java = Var.make_vector "JAVA"
 
-let linking_command ~build_dir ~var_bindings link_deps item target =
-  let jar_target = target -.- "jar" in
-  let classes =
-    let class_files =
-      target
-      :: List.filter_map
-           (fun it ->
-             if it.Scan.is_stdlib then None
-             else
-               let f = Scan.target_file_name it in
-               Some ((build_dir / dirname f / "java" / basename f) -.- "class"))
-           (link_deps item)
-    in
-    let (h : (string, string list) Hashtbl.t) = Hashtbl.create 5 in
-    (* 'javac' generates one file per inner class. Sadly, we do generate a lot
-       of those. We need to pack those in the jar as well. *)
-    let fetch_inner_classes class_file =
-      let basename = File.(remove_extension (basename class_file)) in
-      let dirname = Filename.dirname class_file in
-      let dir_classes =
-        Hashtbl.find_opt h dirname
-        |> function
-        | Some dir_classes -> dir_classes
-        | None ->
-          let dir_contents =
-            try Sys.readdir dirname with Sys_error _ -> [||]
-          in
-          let dir_classes =
-            Seq.filter
-              (String.ends_with ~suffix:".class")
-              (Array.to_seq dir_contents)
-            |> List.of_seq
-          in
-          Hashtbl.replace h dirname dir_classes;
-          dir_classes
-      in
-      List.filter_map
-        (fun clazz ->
-          if String.starts_with ~prefix:(basename ^ "$") clazz then
-            Some (dirname / clazz)
-          else None)
-        dir_classes
-    in
-    List.concat_map
-      (fun class_file -> class_file :: fetch_inner_classes class_file)
-      class_files
-  in
-  let java_dir_prefix = build_dir / Scan.libcatala / "java" in
-  let runtime_class_files =
-    File.scan_tree
-      (fun f -> if Filename.check_suffix f ".class" then Some f else None)
-      java_dir_prefix
-    |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
-    |> List.of_seq
-  in
-  let entries =
-    List.map
-      (fun clazz -> Filename.dirname clazz, Filename.basename clazz)
-      classes
-    @ List.map
-        (fun clazz -> java_dir_prefix, File.remove_prefix java_dir_prefix clazz)
-        runtime_class_files
-  in
-  (* fixme: this function isn't advised as doing side-effects *)
-  let argfile = jar_target ^ ".jarargs" in
-  File.with_out_channel ~bin:false argfile (fun oc ->
-      output_string oc (Backend_paths.jar_argfile_content entries));
-  Var.get var_bindings jar @ ["--create"; "--file"; jar_target; "@" ^ argfile]
-
-let run_artifact ~var_bindings ~test ?scope ?quiet src =
-  let target_main = File.remove_extension (Filename.basename src) in
-  let cmd =
-    Var.get var_bindings java
-    @ ["-cp"; src -.- "jar"; target_main]
-    @ Option.to_list scope
-    @ (if test && not Global.options.debug then ["--test"] else [])
-    @ if Global.options.output_format = JSON then ["--json"] else []
-  in
-  Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
-  Clerk_cli.run_command_line ?quiet cmd
-
 include Java_project_file
 
 module Spec : Sig.Spec = struct
@@ -246,6 +165,7 @@ module Spec : Sig.Spec = struct
 
   let write_target_def_file
       ~(config : Clerk_cli.config)
+      ~info:_
       ~(dir : File.t)
       (target : Clerk_config.target) =
     let open File in
@@ -257,22 +177,149 @@ module Spec : Sig.Spec = struct
     in
     Java_project_file.format_target_pom_xml ~project_name ppf target
 
+  let install_extensions config =
+    src_extensions
+    @ if config.Clerk_cli.include_objects then module_extensions else []
+
+  let install_target ~config ~info target =
+    let target_name = String.to_snake_case target.Clerk_config.tname in
+    let () =
+      (* In the case of java, the stdlib is actually already installed by
+         the function `install_runtime` *)
+      if target.tname <> Module_graph.stdlib_target_name then
+        let copy_in =
+          let prefix_lines =
+            ["package " ^ target_name ^ ";"]
+            @ List.map
+                (fun dep_name ->
+                  "import " ^ String.to_snake_case dep_name ^ ".*;")
+                (List.filter
+                   (( <> ) Module_graph.stdlib_target_name)
+                   target.dependencies)
+          in
+          copy_in_with_prefix ~prefix:(String.concat "\n" prefix_lines ^ "\n\n")
+        in
+        Common.install_target_files ~name ~stdlib_subdir
+          ~extensions:(install_extensions config)
+          ~config ~info target_name target ~copy_in
+    in
+    write_target_def_file ~config ~info
+      ~dir:(config.Clerk_cli.file.global.target_dir / name / target_name)
+      target
+
   let install_runtime ~config =
     let open File in
-    let extensions =
-      src_extensions
-      @ if config.Clerk_cli.include_objects then ["class"] else []
-    in
-    let dir = config.file.global.target_dir / name / Scan.libcatala in
+    let dir = config.Clerk_cli.file.global.target_dir / name / Scan.libcatala in
     remove dir;
     ensure_dir dir;
     List.iter
       (fun subdir ->
         copy_dir ()
-          ~filter:(fun f -> List.exists (Filename.check_suffix f) extensions)
+          ~filter:(fun f ->
+            List.exists (Filename.check_suffix f) (install_extensions config))
           ~src:(config.file.global.build_dir / Scan.libcatala / name / subdir)
           ~dst:(dir / subdir))
       ["catala"; "org"]
+
+  let write_project_def ~config ~info =
+    File.with_formatter_of_file
+      (config.Clerk_cli.file.global.target_dir / name / "pom.xml")
+    @@ fun ppf ->
+    let targets =
+      String.Map.fold
+        (fun _ t acc ->
+          if
+            List.exists
+              (fun bk -> Common.name (Common.get bk) = name)
+              t.Clerk_config.backends
+          then t :: acc
+          else acc)
+        info.Module_graph.targets_map []
+      |> List.rev
+    in
+    Java_project_file.format_project_pom_xml ~config ppf targets
+
+  let linking_command ~build_dir ~var_bindings link_deps item target =
+    let jar_target = target -.- "jar" in
+    let classes =
+      let class_files =
+        target
+        :: List.filter_map
+             (fun it ->
+               if it.Scan.is_stdlib then None
+               else
+                 let f = Scan.target_file_name it in
+                 Some ((build_dir / dirname f / "java" / basename f) -.- "class"))
+             (link_deps item)
+      in
+      let (h : (string, string list) Hashtbl.t) = Hashtbl.create 5 in
+      (* 'javac' generates one file per inner class. Sadly, we do generate a lot
+       of those. We need to pack those in the jar as well. *)
+      let fetch_inner_classes class_file =
+        let basename = File.(remove_extension (basename class_file)) in
+        let dirname = Filename.dirname class_file in
+        let dir_classes =
+          Hashtbl.find_opt h dirname
+          |> function
+          | Some dir_classes -> dir_classes
+          | None ->
+            let dir_contents =
+              try Sys.readdir dirname with Sys_error _ -> [||]
+            in
+            let dir_classes =
+              Seq.filter
+                (String.ends_with ~suffix:".class")
+                (Array.to_seq dir_contents)
+              |> List.of_seq
+            in
+            Hashtbl.replace h dirname dir_classes;
+            dir_classes
+        in
+        List.filter_map
+          (fun clazz ->
+            if String.starts_with ~prefix:(basename ^ "$") clazz then
+              Some (dirname / clazz)
+            else None)
+          dir_classes
+      in
+      List.concat_map
+        (fun class_file -> class_file :: fetch_inner_classes class_file)
+        class_files
+    in
+    let java_dir_prefix = build_dir / Scan.libcatala / "java" in
+    let runtime_class_files =
+      File.scan_tree
+        (fun f -> if Filename.check_suffix f ".class" then Some f else None)
+        java_dir_prefix
+      |> Seq.flat_map (fun (_, _, files) -> List.to_seq files)
+      |> List.of_seq
+    in
+    let entries =
+      List.map
+        (fun clazz -> Filename.dirname clazz, Filename.basename clazz)
+        classes
+      @ List.map
+          (fun clazz ->
+            java_dir_prefix, File.remove_prefix java_dir_prefix clazz)
+          runtime_class_files
+    in
+    (* fixme: this function isn't advised as doing side-effects *)
+    let argfile = jar_target ^ ".jarargs" in
+    File.with_out_channel ~bin:false argfile (fun oc ->
+        output_string oc (Backend_paths.jar_argfile_content entries));
+    Var.get var_bindings jar @ ["--create"; "--file"; jar_target; "@" ^ argfile]
+
+  let run_artifact ~config:_ ~var_bindings ~test ~trace:_ ?scope ?quiet src =
+    let target_main = File.remove_extension (Filename.basename src) in
+    let cmd =
+      Var.get var_bindings java
+      @ ["-cp"; src -.- "jar"; target_main]
+      @ Option.to_list scope
+      @ (if test && not Global.options.debug then ["--test"] else [])
+      @ if Global.options.output_format = JSON then ["--json"] else []
+    in
+    Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
+    Clerk_cli.run_command_line ?quiet cmd
 end
 
 include Common.Make_backend (Spec)

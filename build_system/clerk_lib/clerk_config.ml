@@ -26,6 +26,10 @@ let register_backend ~name backend =
 
 let registered_backends () = !registered_backends
 
+let backend_name bk =
+  let name, _ = List.find (fun (_, bk1) -> bk = bk1) (registered_backends ()) in
+  name
+
 type doc_backend = Html | Latex
 
 type global = {

@@ -75,43 +75,6 @@ module OCaml_Flags = struct
     ]
 end
 
-let linking_command ~build_dir ~var_bindings link_deps item target =
-  let open File in
-  let target_objs =
-    let base = Filename.chop_extension target in
-    let suffix = "+main" in
-    if String.ends_with ~suffix base then
-      [
-        String.sub base 0 (String.length base - String.length suffix) -.- "cmx";
-        target -.- "cmx";
-      ]
-    else [target -.- "cmx"]
-  in
-  Var.get var_bindings ocamlopt_exe
-  @ List.map (Var.expand var_bindings) (Lazy.force OCaml_Flags.ocaml_link)
-  @ [build_dir / Scan.libcatala / name / "dates_calc.cmx"]
-  @ [build_dir / Scan.libcatala / name / "catala_runtime.cmx"]
-  @ Var.get var_bindings ocaml_flags
-  @ Var.get var_bindings ocaml_include
-  @ List.map
-      (fun it ->
-        let f = Scan.target_file_name it in
-        (build_dir / dirname f / name / basename f) ^ ".cmx")
-      (link_deps item)
-  @ target_objs
-  @ ["-o"; target -.- "exe"]
-
-let run_artifact ~test ~(trace : bool) ?scope ?quiet src =
-  let open File in
-  let cmd =
-    ((src -.- "exe") :: Option.to_list scope)
-    @ (if test && not Global.options.debug then ["--test"] else [])
-    @ (if trace then ["--trace"] else [])
-    @ if Global.options.output_format = JSON then ["--json"] else []
-  in
-  Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
-  Clerk_cli.run_command_line ?quiet cmd
-
 module Spec : Sig.Spec = struct
   open Var.Op
   module Nj = Ninja_utils
@@ -326,7 +289,7 @@ module Spec : Sig.Spec = struct
     in
     List.to_seq obj
 
-  let write_target_def_file ~config ~dir target =
+  let write_target_def_file ~config ~info:_ ~dir target =
     let open File in
     with_out_channel (dir / "dune")
     @@ fun oc ->
@@ -346,17 +309,25 @@ module Spec : Sig.Spec = struct
         (match config.Clerk_cli.file.global.project_name with
         | None -> ""
         | Some n -> Printf.sprintf "\n (public_name %s.%s)" n target.tname)
-        (String.concat " "
-           (List.map String.to_id (Scan.libcatala :: target.dependencies)
-           |> List.sort_uniq compare))
+        (String.concat " " (List.map String.to_id target.dependencies))
+
+  let install_extensions config =
+    src_extensions
+    @
+    if config.Clerk_cli.include_objects then obj_extension :: module_extensions
+    else []
+
+  let install_target ~config ~info target =
+    Common.install_target_files ~name ~stdlib_subdir
+      ~extensions:(install_extensions config)
+      ~config ~info target.Clerk_config.tname target ~copy_in:File.copy_in;
+    write_target_def_file ~config ~info
+      ~dir:File.(config.Clerk_cli.file.global.target_dir / name / target.tname)
+      target
 
   let install_runtime ~config =
     let open File in
-    let extensions =
-      src_extensions
-      @ if config.Clerk_cli.include_objects then ["cmi"; "cmx"] else []
-    in
-    let dir = config.file.global.target_dir / name / Scan.libcatala in
+    let dir = config.Clerk_cli.file.global.target_dir / name / Scan.libcatala in
     remove dir;
     ensure_dir dir;
     List.iter
@@ -373,13 +344,61 @@ module Spec : Sig.Spec = struct
         in
         if File.exists src_libcatala then copy_in ~dir ~src:src_libcatala
         else if File.exists src then copy_in ~dir ~src)
-      extensions;
-    File.with_out_channel (config.file.global.target_dir / name / "dune-project")
+      (install_extensions config)
+
+  let write_project_def ~config ~info:_ =
+    File.(
+      with_out_channel
+        (config.Clerk_cli.file.global.target_dir / name / "dune-project"))
     @@ fun oc ->
     Printf.fprintf oc "(lang dune 3.13)\n";
-    match config.file.global.project_name with
+    match config.Clerk_cli.file.global.project_name with
     | None -> ()
     | Some p -> Printf.fprintf oc "(name %s)\n(package (name %s))\n" p p
+
+  let linking_command ~build_dir ~var_bindings link_deps item target =
+    let open File in
+    let target_objs =
+      let base = Filename.chop_extension target in
+      let suffix = "+main" in
+      if String.ends_with ~suffix base then
+        [
+          String.sub base 0 (String.length base - String.length suffix) -.- "cmx";
+          target -.- "cmx";
+        ]
+      else [target -.- "cmx"]
+    in
+    Var.get var_bindings ocamlopt_exe
+    @ List.map (Var.expand var_bindings) (Lazy.force OCaml_Flags.ocaml_link)
+    @ [build_dir / Scan.libcatala / name / "dates_calc.cmx"]
+    @ [build_dir / Scan.libcatala / name / "catala_runtime.cmx"]
+    @ Var.get var_bindings ocaml_flags
+    @ Var.get var_bindings ocaml_include
+    @ List.map
+        (fun it ->
+          let f = Scan.target_file_name it in
+          (build_dir / dirname f / name / basename f) ^ ".cmx")
+        (link_deps item)
+    @ target_objs
+    @ ["-o"; target -.- "exe"]
+
+  let run_artifact
+      ~config:_
+      ~var_bindings:_
+      ~test
+      ~(trace : bool)
+      ?scope
+      ?quiet
+      src =
+    let open File in
+    let cmd =
+      ((src -.- "exe") :: Option.to_list scope)
+      @ (if test && not Global.options.debug then ["--test"] else [])
+      @ (if trace then ["--trace"] else [])
+      @ if Global.options.output_format = JSON then ["--json"] else []
+    in
+    Message.debug "Executing artifact: '%s'..." (String.concat " " cmd);
+    Clerk_cli.run_command_line ?quiet cmd
 end
 
 include Common.Make_backend (Spec)

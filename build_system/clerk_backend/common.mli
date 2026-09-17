@@ -35,11 +35,11 @@ val extern_src :
 
 (** We use 3 types of pseudo-targets for compiled objets. The <modname> below is
     the normalised module name (using String.to_id)
-    - @catala-obj/<modname> ([catala_obj_target]) is what is needed for Catala
+    - \@catala-obj/<modname> ([catala_obj_target]) is what is needed for Catala
       evaluation (an OCaml cmxs)
-    - @<backend>/interface/<modname> ([module_target]) is the possibly compiled
+    - \@<backend>/interface/<modname> ([module_target]) is the possibly compiled
       interface that dependent modules will need to be compiled (e,g, .h, .cmi)
-    - @<backend>/obj/<modname> or @<backend>/obj/<filename> ([obj_target]) is
+    - \@<backend>/obj/<modname> or \@<backend>/obj/<filename> ([obj_target]) is
       the compiled object for linking, including all its dependencies. This
       allows transitive compilation of required objects before linking *)
 
@@ -62,6 +62,19 @@ val obj_dep : name:string -> Clerk_utils.Scan.item -> Ninja_utils.Expr.elt
 val catala_obj_dep : Clerk_utils.Scan.item -> Ninja_utils.Expr.elt
 (** Pseudo-target that builds the item runtime dependencies for interpretation
     (cmxs for modules, or cmxs of all their dependencies for other items) *)
+
+val install_target_files :
+  name:string ->
+  stdlib_subdir:string ->
+  extensions:string list ->
+  config:Clerk_cli.config ->
+  info:Clerk_utils.Module_graph.info ->
+  string ->
+  Clerk_config.target ->
+  copy_in:(src:Catala_utils.File.t -> dir:Catala_utils.File.t -> unit) ->
+  unit
+(** Helper function to copy all relevant files of the given target from the
+    build dir to the target dir *)
 
 module Make_backend : functor (A : Sig.Spec) -> Sig.S
 
