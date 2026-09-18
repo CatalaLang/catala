@@ -1,0 +1,3 @@
+[project]
+name = "catala"
+include_dirs = [ "tests", "tests-extra", "doc" ]

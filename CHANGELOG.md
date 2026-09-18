@@ -38,7 +38,8 @@ in behavior visible for the end-users of the tooling.
   - `clerk` now also allows `--backend all` to compile/test/run all compatible
     backends
   - When building targets defined in `clerk.toml`, `clerk build` now generates
-    library definition files in OCaml and Python (more to come)
+    library definition files in OCaml and Python (Java (#1093) and C (#1099)
+    have been added in subsequent PRs)
   - In general, better handling of caching and faster builds (made sure in
     particular that the underlying `ninja` build process is run only once)
 
@@ -61,3 +62,10 @@ in behavior visible for the end-users of the tooling.
     building java targets now also generates a `maven` file
     (`pom.xml`) which can be used to easily compile and generate `jar`
     files.
+
+* [#1110](https://github.com/CatalaLang/catala/pull/1110) Changes in
+  `clerk.toml`:
+  - `include_dirs` is now recursive and defaults to the project root
+  - `exclude_dirs` is now available
+  - they no longer control visibility, but the directories that will
+    be scanned for sources by `clerk`.
