@@ -1,0 +1,14 @@
+# Ayuda familiar ficticia
+
+```catala
+declaración ámbito Ayuda:
+  salida prestación contenido dinero
+  entrada ingresos contenido dinero
+
+ámbito Ayuda:
+  definición prestación bajo condición (ingresos < 30000 €) consecuencia igual a 1200 €
+```
+
+```catala-test-cli
+$ catala typecheck
+```
