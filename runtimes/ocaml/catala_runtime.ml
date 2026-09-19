@@ -268,7 +268,7 @@ module Print = struct
   let bigsep () =
     match !lang with `En -> ",", 3 | `Fr | `Es -> " ", 3 | `Pl -> ",", 3
 
-  let decsep () = match !lang with `En | `Es -> "." | `Fr -> "," | `Pl -> "."
+  let decsep () = match !lang with `En -> "." | `Fr | `Es -> "," | `Pl -> "."
   let unit ppf () = Format.pp_print_string ppf "()"
 
   let bool ppf b =
@@ -348,12 +348,16 @@ module Print = struct
       | [] -> []
     in
     let splur n s = if abs n > 1 then n, s ^ "s" else n, s in
+    let splur_es n = function
+      | "mes" when abs n > 1 -> n, "meses"
+      | s -> splur n s
+    in
     Format.pp_print_char ppf '[';
     (match !lang with
       | `En -> [splur y "year"; splur m "month"; splur d "day"]
       | `Fr -> [splur y "an"; m, "mois"; splur d "jour"]
       | `Pl -> [y, "rok"; m, "miesiac"; d, "dzien"]
-      | `Es -> [splur y "año"; splur m "mes"; splur d "día"])
+      | `Es -> [splur_es y "año"; splur_es m "mes"; splur_es d "día"])
     |> filter0
     |> Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.pp_print_string ppf ", ")

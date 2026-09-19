@@ -1,7 +1,10 @@
 import re
 
-from pygments.lexer import RegexLexer, bygroups
+from pygments.lexer import RegexLexer
 from pygments.token import Comment, Generic, Keyword, Name, Number, Operator, Text, Whitespace
+
+
+__all__ = ["CustomLexer"]
 
 
 class CustomLexer(RegexLexer):
@@ -24,8 +27,8 @@ class CustomLexer(RegexLexer):
             (r"^\s*#.*$", Comment.Single),
             (r"\b(?:entrada|salida|interno)(?:\s+salida)?\s+\w+", Keyword.Declaration),
             (r"\b(?:ámbito|consecuencia|dato|depende\s+de|declaración|contexto|decreciente|creciente|lista\s+de|opcional\s+de|contiene|enumeración|suma|cumplida|definición|estado|etiqueta|excepción|igual\s+a|coincide|cualquiera|tipo|con\s+patrón|bajo\s+condición|condición|contenido|estructura|aserción|regla|sea|existe|entre|combinar|transformar\s+cada|ordenar|en\s+orden\s+(?:creciente|decreciente)|inicialmente|imposible)\b", Keyword.Reserved),
-            (r"\b(?:si|entonces|si\s+no|y|o|o\s+bien|no|máximo|mínimo|es|pero\s+reemplazando|para|todos|en|tal|que|redondear|número)\b", Keyword.Declaration),
-            (r"\b(?:entero|dinero|decimal|fecha|duración|booleano|posicion_fuente)\b", Keyword.Type),
+            (r"\b(?:si\s+no|si|entonces|o\s+bien|o|y|no|máximo|mínimo|es|pero\s+reemplazando|para|todos|en|tal|que|redondear|número)\b", Keyword.Declaration),
+            (r"\b(?:entero|dinero|decimal|fecha|duración|booleano|posición_fuente)\b", Keyword.Type),
             (r"\b(?:verdadero|falso|Presente|Ausente)\b", Keyword.Constant),
             (r"\|\d+-\d+-\d+\|", Number.Integer),
             (r"\b\d+(?:[,.]\d+)?\b", Number),

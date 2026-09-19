@@ -8,3 +8,7 @@ salida hoy contenido fecha
 ámbito Estandar:
   definición hoy igual a |2026-01-01|
 ```
+
+```catala-test-cli
+$ catala test-scope Estandar
+```

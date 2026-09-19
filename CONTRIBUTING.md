@@ -106,9 +106,9 @@ The Catala language should be adapted to any legislative text that follows a
 general-to-specifics statutes order. Therefore, there exists multiple versions
 of the Catala surface syntax, adapted to the language of the legislative text.
 
-Currently, Catala supports English, French, Polish, and Spain-Spanish legislative
-text via the `--language=en`, `--language=fr`, `--language=pl`, or
-`--language=es` options. Spanish sources use the `.catala_es` extension.
+Currently, Catala supports English, French, Polish and Spanish legislative text
+via the `--language=en`, `--language=fr`, `--language=pl` or `--language=es`
+options.
 
 To add support for a new language:
 

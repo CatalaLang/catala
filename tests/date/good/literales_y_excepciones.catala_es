@@ -25,3 +25,11 @@
   excepción base
   definición ayuda bajo condición falso consecuencia igual a 0 €
 ```
+
+```catala-test-cli
+$ catala test-scope Literales
+```
+
+```catala-test-cli
+$ catala test-scope Excepciones
+```

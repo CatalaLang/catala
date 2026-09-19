@@ -7,3 +7,7 @@ declaración ámbito Roto:
 ámbito Roto:
   definición resultado palabra_inexistente 1
 ```
+
+```catala-test-cli
+$ catala typecheck
+```
