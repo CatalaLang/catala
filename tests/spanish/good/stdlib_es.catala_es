@@ -1,0 +1,10 @@
+Prueba de la biblioteca estándar española.
+
+```catala
+declaración ámbito Estandar:
+
+salida hoy contenido fecha
+
+ámbito Estandar:
+  definición hoy igual a |2026-01-01|
+```

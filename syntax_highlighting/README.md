@@ -34,7 +34,13 @@ the root of the repository, depending on the language you want to use :
 
 or
 
-    make vscode_en
+make vscode_en
+
+Spanish compiler support is included in the core repository. The Spanish
+Pygments lexer is installed with `make pygmentize_es` (or the aggregate
+`make pygments` target). A Vim syntax file is available at
+`syntax_highlighting/es/vim/catala_es.vim`; VS Code and tree-sitter grammar
+support remains an external follow-up.
 
 You can now reload VSCode and check that you have syntax highlighting on any `.catala` file.
 

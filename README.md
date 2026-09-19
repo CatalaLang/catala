@@ -136,7 +136,7 @@ details.
 
 A complete and handy reference of the Catala syntax can be found in
 the [cheat sheet](https://catalalang.github.io/catala/syntax.pdf) (for
-French and English versions of the syntax).
+French, English, Polish, and Spanish versions of the syntax).
 
 ### Formal semantics
 

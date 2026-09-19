@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "catala_es_lexer"
+version = "0.8"
+dependencies = ["pygments"]
+
+[project.entry-points."pygments.lexers"]
+catala-es-lexer = "catala_es_lexer.lexer:CustomLexer"

@@ -1,0 +1,27 @@
+# Literales representativos de la sintaxis española
+
+```catala
+#[test] declaración ámbito Literales:
+  salida total contenido dinero
+  salida proporción contenido decimal
+  salida fecha_inicio contenido fecha
+  salida periodo contenido duración
+
+ámbito Literales:
+  definición total igual a 1200 €
+  definición proporción igual a 0,15
+  definición fecha_inicio igual a |2026-01-01|
+  definición periodo igual a |2026-02-01| - fecha_inicio
+```
+
+```catala
+#[test] declaración ámbito Excepciones:
+  salida ayuda contenido dinero
+
+ámbito Excepciones:
+  etiqueta base
+  definición ayuda igual a 1200 €
+
+  excepción base
+  definición ayuda bajo condición falso consecuencia igual a 0 €
+```
