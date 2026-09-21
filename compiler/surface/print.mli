@@ -15,3 +15,9 @@
    the License. *)
 
 val format_primitive_typ : Format.formatter -> Ast.primitive_typ -> unit
+val format_expr : Format.formatter -> Ast.expression -> unit
+
+val format_expr_debug : Format.formatter -> Ast.expression -> unit
+(** Prints the expression as its AST constructors (e.g.
+    [Tuple [Ident ([], "x", None); Literal (LBool false)]]), without positions.
+    For debugging. *)
