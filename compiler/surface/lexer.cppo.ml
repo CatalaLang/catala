@@ -970,6 +970,24 @@ let line_dir_arg_upcase_re =
       eol
     ])
 
+
+(* Both "testcase.variable" attributes take a "<variable name>:<argument>" quoted
+   argument; only the attribute name and the meaning of the argument differ. The
+   regexps are not anchored: the attribute may appear anywhere on the line, as the
+   sedlex rules below allow. The argument is bounded by the closing quote and not
+   by ']', since a path argument such as "[0].trace[6]" contains brackets. *)
+let testcase_variable_re attribute =
+  Re.(compile @@ seq [
+      str "#["; rep space;
+      str attribute; rep space; char '=';
+      rep space; char '"'; group (rep (diff notnl (set "\":")));
+      char ':'; group (rep (diff notnl (char '"')));
+      char '"'; rep (diff notnl (char ']')); char ']'
+    ])
+
+(* "#[testcase.variable = "<name>:<expected value>"]" *)
+let line_testcase_variable_re = testcase_variable_re "testcase.variable"
+
 let lex_line ~context (lexbuf : lexbuf) : (string * L.line_token) option =
   match !context with
   | `Law ->
@@ -1019,6 +1037,14 @@ let lex_line ~context (lexbuf : lexbuf) : (string * L.line_token) option =
      | "```", Star hspace, (eol | eof) ->
        context := `Law;
        Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
+     | Star (Sub (any_but_eol, "#") | "#[", Star (Sub (any_but_eol, ']'), ']')),
+       "#[", Star hspace, "testcase.variable", Star hspace, "=", Star hspace, "\"", Star (Sub (any_but_eol, '"')), "\"", Chars " \t\n]", Star any_but_eol, (eol | eof) ->
+       (* test directives can be anywhere on the line, but must not be in a comment. Fixme: we don't handle the case where it would be within another multi-line attribute or a string *)
+       let str = Utf8.lexeme lexbuf in
+       (try
+          let g = Re.exec line_testcase_variable_re str in
+          Some (str, LINE_TEST_VARIABLE (Re.Group.get g 1, Re.Group.get g 2))
+        with Not_found -> Some (str, LINE_ANY))
      | Star (Sub (any_but_eol, "#") | "#[", Star (Sub (any_but_eol, ']'), ']')),
        "#[", Star hspace, "test", Chars " \t\n]", Star any_but_eol, (eol | eof) ->
        (* test directives can be anywhere on the line, but must not be in a comment. Fixme: we don't handle the case where it would be within another multi-line attribute or a string *)

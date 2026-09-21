@@ -26,6 +26,7 @@ type item = {
   included_files : File.t Mark.pos list;
   has_inline_tests : bool;
   has_scope_tests : int Lazy.t;
+  asserted_trace_variables : Trace_assertion.trace_assertions;
 }
 
 let libcatala = "libcatala"
@@ -111,6 +112,13 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
       | L.LINE_INLINE_TEST -> { acc with has_inline_tests = true }
       | L.LINE_TEST_ATTRIBUTE ->
         { acc with has_scope_tests = lazy (Lazy.force acc.has_scope_tests + 1) }
+      | L.LINE_TEST_VARIABLE (name, value) ->
+        {
+          acc with
+          asserted_trace_variables =
+            Trace_assertion.add_asserted_trace_variable name value
+              acc.asserted_trace_variables;
+        }
       | _ -> acc)
   in
   let item =
@@ -126,6 +134,7 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
         included_files = [];
         has_inline_tests = false;
         has_scope_tests = lazy 0;
+        asserted_trace_variables = Trace_assertion.M.empty;
       }
   in
   let has_scope_tests =
