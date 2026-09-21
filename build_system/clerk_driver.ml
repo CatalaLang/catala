@@ -1004,11 +1004,11 @@ let raw_cmd : int Cmd.t =
             else f)
           targets
       in
-      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~trace:false
+      Clerk_rules.run_ninja ~trace:false ~code_coverage ~config ~autotest
         ~default:0 ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
     else (
       Format.eprintf "Available targets:@.";
-      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~trace:false
+      Clerk_rules.run_ninja ~trace:false ~code_coverage ~config ~autotest
         ~default:0
         ~ninja_flags:(ninja_flags @ ["-t"; "targets"])
         (fun _ _ _ -> 0))
@@ -1512,8 +1512,9 @@ let run_ninja_start ~config ~ninja_flags ~enabled_backends cont =
       ]
       enabled_backends
   in
-  Clerk_rules.run_ninja ~skip_project_scan:true ~code_coverage:false ~default:0
-    ~config ~enabled_backends:(List.map Clerk_backend.id enabled_backends)
+  Clerk_rules.run_ninja ~trace:false ~skip_project_scan:true
+    ~code_coverage:false ~default:0 ~config
+    ~enabled_backends:(List.map Clerk_backend.id enabled_backends)
     ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
       Nj.format_def nin_ppf (Nj.default default);
       cont ())
@@ -1521,8 +1522,7 @@ let run_ninja_start ~config ~ninja_flags ~enabled_backends cont =
 let start_cmd =
   let run config (ninja_flags : string list) =
     let enabled_backends = target_backends config.Cli.file.targets in
-    run_ninja_start ~config ~ninja_flags ~enabled_backends ~trace:false
-      (fun () -> 0)
+    run_ninja_start ~config ~ninja_flags ~enabled_backends (fun () -> 0)
   in
   let doc =
     "This command prepares the local build environment of the project with \

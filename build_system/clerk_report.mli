@@ -31,6 +31,8 @@ type inline_test = {
   i_result : pos;  (** Same for the actual result in the destination file *)
 }
 
+type trace_assertion = Trace_assertion.failed_trace_assertions
+
 type scope_test = {
   s_success : bool;
   s_name : string;
@@ -80,6 +82,8 @@ val print_json :
   bool
 (** Displays a summary in VSCode Json compatible format to stdout; returns true
     if all tests succeeded *)
+
+val display_trace_assertion : Format.formatter -> trace_assertion -> unit
 
 val set_display_flags :
   ?files:[ `All | `Failed | `None ] ->

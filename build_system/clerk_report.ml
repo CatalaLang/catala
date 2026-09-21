@@ -30,6 +30,12 @@ type inline_test = {
   i_result : pos;
 }
 
+(* Defined in [Clerk_utils], so that the compiler can check trace assertions
+   without depending on the reporting layer *)
+type trace_assertion = Trace_assertion.failed_trace_assertions
+
+let display_trace_assertion = Trace_assertion.display
+
 type scope_test = {
   s_success : bool;
   s_name : string;
@@ -345,7 +351,7 @@ let pp_pos ~build_dir ppf (start, stop) =
     (Pos.from_lpos ({ start with pos_fname }, { stop with pos_fname }))
 
 let print_command ~build_dir ppf file cmd =
-  Format.fprintf ppf "@,@[<h>$ @{<yellow>%a@}@]"
+  Format.fprintf ppf "@[<h>$ @{<yellow>%a@}@]"
     (Format.pp_print_list ~pp_sep:Format.pp_print_space Format.pp_print_string)
     (clean_command_line ~build_dir file cmd)
 
@@ -354,10 +360,11 @@ let display ~build_dir file ppf t =
   if t.i_success then (
     Format.fprintf ppf "@{<green>■@} %a cli test passed" (pp_pos ~build_dir)
       t.i_expected;
-    if Global.options.debug then
-      print_command ~build_dir ppf file t.i_command_line)
+    if Global.options.debug then (
+      Format.pp_print_cut ppf ();
+      print_command ~build_dir ppf file t.i_command_line))
   else (
-    Format.fprintf ppf "@{<red>■@} %a cli test failed" (pp_pos ~build_dir)
+    Format.fprintf ppf "@{<red>■@} %a cli test failed@," (pp_pos ~build_dir)
       t.i_expected;
     print_command ~build_dir ppf file t.i_command_line;
     if disp_flags.diffs then (
@@ -372,17 +379,21 @@ let display_scope ~build_dir file ppf scope_test =
       "@{<green>■@} scope @{<hi_magenta>%s@} passed (@{<hi_magenta>%d µs@})"
       scope_test.s_name
       (int_of_float (scope_test.s_time *. 1000000.));
-    if Global.options.debug then
-      print_command ~build_dir ppf file scope_test.s_command_line)
+    if Global.options.debug then (
+      Format.pp_print_cut ppf ();
+      print_command ~build_dir ppf file scope_test.s_command_line))
   else (
-    Format.fprintf ppf "@{<red>■@} scope @{<hi_magenta>%s@} failed"
+    Format.fprintf ppf "@{<red>■@} scope @{<hi_magenta>%s@} failed@,"
       scope_test.s_name;
-    if disp_flags.diffs || Global.options.debug then
-      print_command ~build_dir ppf file scope_test.s_command_line;
+    if disp_flags.diffs || Global.options.debug then (
+      Format.pp_open_vbox ppf 2;
+      Format.fprintf ppf "@{<red>■@} ";
+      print_command ~build_dir ppf file scope_test.s_command_line);
     List.iter
       (fun (pos, msg) ->
         Format.fprintf ppf "@,%a %s" (pp_pos ~build_dir) pos msg)
-      scope_test.s_errors);
+      scope_test.s_errors;
+    Format.pp_close_box ppf ());
   Format.pp_close_box ppf ()
 
 let display_file ~build_dir ppf (t : file) =
