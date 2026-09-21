@@ -1435,7 +1435,13 @@ let runtest_cmd =
       code_coverage
       out
       file
-      whole_program =
+      whole_program
+      check_trace_assertion
+      color =
+    (* 'clerk runtest' is spawned by ninja with pipes for stdout/stderr, so the
+       "auto" default detects no terminal and drops all styling. The parent clerk
+       knows whether its own output is a terminal and forwards the decision. *)
+    let _options = Catala_utils.Global.enforce_options ~color () in
     let catala_opts =
       catala_opts
       @ List.fold_right (fun dir opts -> "-I" :: dir :: opts) include_dirs []
@@ -1444,7 +1450,7 @@ let runtest_cmd =
     let catala_opts =
       if whole_program then "--whole-program" :: catala_opts else catala_opts
     in
-    Clerk_runtest.run_tests
+    Clerk_runtest.run_tests ~check_trace_assertion
       ~catala_exe:(Option.value ~default:"catala" catala_exe)
       ~catala_opts ~code_coverage ~test_flags ~report ~out file;
     0
@@ -1464,7 +1470,9 @@ let runtest_cmd =
       $ Cli.code_coverage
       $ Cli.runtest_out
       $ Cli.single_file
-      $ Cli.whole_program)
+      $ Cli.whole_program
+      $ Cli.check_trace_assertion
+      $ Cli.color)
 
 let run_ninja_start ~config ~ninja_flags ~enabled_backends cont =
   let enabled_backends =

@@ -56,4 +56,5 @@ val check :
     variable whose value does not match [trace]. Variables without a path are
     reported in a single warning and left unchecked. *)
 
+val trace_assertion_to_json : trace_assertion -> Yojson.t
 val display : Format.formatter -> trace_assertion -> unit

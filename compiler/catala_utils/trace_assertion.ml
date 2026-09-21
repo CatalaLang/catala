@@ -279,6 +279,15 @@ let check ~asserted_trace_variables ~tested_scope (trace : Yojson.Safe.t) =
     in
     failures
 
+let trace_assertion_to_json (assertion : trace_assertion) : Yojson.t =
+  `Assoc
+    ([
+       "variable", `String assertion.name; "expected", `String assertion.expected;
+     ]
+    @ Option.fold ~none:[]
+        ~some:(fun a -> ["value", `String a])
+        assertion.current_value)
+
 let display ppf (assertion : trace_assertion) =
   let f =
     Format.fprintf ppf
