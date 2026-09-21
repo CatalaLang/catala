@@ -390,6 +390,16 @@ let objects =
          compiler to compile those into objects (e.g. $(b,.o) files. Note that \
          this is done anyway when necessary, like when running backend tests."
 
+let check_trace_assertion =
+  let open Arg in
+  value
+  & flag
+  & info ["check-trace-assertion"]
+      ~doc:
+        "Check the values asserted by the $(i,#[testcase.variable]) attributes \
+         against the execution trace when testing or executing Catala scopes \
+         (forwards $(b,--check-trace-assertion) to Catala)."
+
 let info =
   let doc =
     "Build system for Catala, a specification language for tax and social \
