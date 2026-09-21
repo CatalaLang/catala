@@ -8,7 +8,7 @@
 
 open Catala_runtime
 
-module M = Map.Make(Z)
+module M = Stdlib.Map.Make(Z)
 
 module Dictionnary = ExternalType(struct
   type t = money M.t
