@@ -30,6 +30,12 @@ type inline_test = {
   i_result : pos;
 }
 
+(* Defined in [Clerk_utils], so that the compiler can check trace assertions
+   without depending on the reporting layer *)
+type trace_assertion = Catala_utils.Trace_assertion.trace_assertion
+
+let display_trace_assertion = Catala_utils.Trace_assertion.display
+
 type scope_test = {
   s_success : bool;
   s_name : string;
@@ -37,6 +43,7 @@ type scope_test = {
   s_errors : (pos * string) list;
   s_time : float;
   s_coverage : Coverage.coverage_map option;
+  s_trace_assertions : trace_assertion list;
 }
 
 type file = {
@@ -345,7 +352,7 @@ let pp_pos ~build_dir ppf (start, stop) =
     (Pos.from_lpos ({ start with pos_fname }, { stop with pos_fname }))
 
 let print_command ~build_dir ppf file cmd =
-  Format.fprintf ppf "@,@[<h>$ @{<yellow>%a@}@]"
+  Format.fprintf ppf "@[<h>$ @{<yellow>%a@}@]"
     (Format.pp_print_list ~pp_sep:Format.pp_print_space Format.pp_print_string)
     (clean_command_line ~build_dir file cmd)
 
@@ -354,16 +361,21 @@ let display ~build_dir file ppf t =
   if t.i_success then (
     Format.fprintf ppf "@{<green>■@} %a cli test passed" (pp_pos ~build_dir)
       t.i_expected;
-    if Global.options.debug then
-      print_command ~build_dir ppf file t.i_command_line)
+    if Global.options.debug then (
+      Format.pp_print_cut ppf ();
+      print_command ~build_dir ppf file t.i_command_line))
   else (
-    Format.fprintf ppf "@{<red>■@} %a cli test failed" (pp_pos ~build_dir)
+    Format.fprintf ppf "@{<red>■@} %a cli test failed@," (pp_pos ~build_dir)
       t.i_expected;
     print_command ~build_dir ppf file t.i_command_line;
     if disp_flags.diffs then (
       Format.pp_print_cut ppf ();
       print_diff ppf t.i_expected t.i_result));
   Format.pp_close_box ppf ()
+
+let print_trace_assertions ppf (assertions : trace_assertion list) =
+  if assertions <> [] then
+    Format.pp_print_list display_trace_assertion ppf assertions
 
 let display_scope ~build_dir file ppf scope_test =
   Format.pp_open_vbox ppf 2;
@@ -372,18 +384,24 @@ let display_scope ~build_dir file ppf scope_test =
       "@{<green>■@} scope @{<hi_magenta>%s@} passed (@{<hi_magenta>%d µs@})"
       scope_test.s_name
       (int_of_float (scope_test.s_time *. 1000000.));
-    if Global.options.debug then
-      print_command ~build_dir ppf file scope_test.s_command_line)
+    if Global.options.debug then (
+      Format.pp_print_cut ppf ();
+      print_command ~build_dir ppf file scope_test.s_command_line))
   else (
-    Format.fprintf ppf "@{<red>■@} scope @{<hi_magenta>%s@} failed"
+    Format.fprintf ppf "@{<red>■@} scope @{<hi_magenta>%s@} failed@,"
       scope_test.s_name;
-    if disp_flags.diffs || Global.options.debug then
-      print_command ~build_dir ppf file scope_test.s_command_line;
+    if disp_flags.diffs || Global.options.debug then (
+      Format.pp_open_vbox ppf 2;
+      Format.fprintf ppf "@{<red>■@} ";
+      print_command ~build_dir ppf file scope_test.s_command_line);
     List.iter
       (fun (pos, msg) ->
         Format.fprintf ppf "@,%a %s" (pp_pos ~build_dir) pos msg)
-      scope_test.s_errors);
-  Format.pp_close_box ppf ()
+      scope_test.s_errors;
+    Format.pp_close_box ppf ());
+  Format.pp_close_box ppf ();
+  Format.pp_print_cut ppf ();
+  print_trace_assertions ppf scope_test.s_trace_assertions
 
 let display_file ~build_dir ppf (t : file) =
   let pp_file ppf f =
@@ -407,7 +425,10 @@ let display_file ~build_dir ppf (t : file) =
     let scopes =
       match disp_flags.tests with
       | `All | `FailedFile -> scopes
-      | `Failed -> List.filter (fun s -> not s.s_success) scopes
+      | `Failed ->
+        List.filter
+          (fun s -> (not s.s_success) || List.length s.s_trace_assertions > 0)
+          scopes
       | `None -> assert false
     in
     if scopes <> [] then (
@@ -643,6 +664,10 @@ let print_json ~(build_dir : string) ?(backend_tests = []) (tests : file list) =
       [
         "scope_name", `String scope.s_name;
         "success", `Bool scope.s_success;
+        ( "expected",
+          `List
+            (List.map Trace_assertion.trace_assertion_to_json
+               scope.s_trace_assertions) );
         ( "errors",
           `List
             (List.map
@@ -809,7 +834,7 @@ let print_xml ~build_dir ?(backend_tests = []) tests =
             (Format.pp_print_list ~pp_sep:Format.pp_print_space
                Format.pp_print_string)
             (clean_command_line ~build_dir f.name t.s_command_line);
-          if not t.s_success then (
+          if (not t.s_success) || List.length t.s_trace_assertions > 0 then (
             Format.fprintf ppf "@,@[<v 2><failure message=\"Scope failed\">@,";
             Format.pp_print_list
               (fun ppf (pos, msg) ->

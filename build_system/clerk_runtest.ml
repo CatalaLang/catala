@@ -170,7 +170,26 @@ let get_pos pos_fname pos_lnum col =
   let pos_bol = -1 in
   { Lexing.pos_fname; pos_lnum; pos_bol; pos_cnum = pos_bol + col }
 
+(* The trace destination is always passed as [--trace=<file>] (see
+   [Backend_common.Flags]); a bare [--trace] means stdout, in which case there is
+   no file to read back. The last occurrence wins, as with cmdliner. *)
+let trace_file_of_opts catala_opts : File.t option =
+  let prefix = "--trace=" in
+  List.fold_left
+    (fun acc opt ->
+      if String.starts_with ~prefix opt then
+        Some (String.remove_prefix ~prefix opt)
+      else acc)
+    None catala_opts
+
+(* 'clerk runtest' does not parse the catala global flags itself, so the option
+   is looked up in the flags forwarded to the interpreter, as [trace_file_of_opts]
+   does for the trace destination. *)
+let no_fail_on_assert_of_opts catala_opts =
+  List.mem "--no-fail-on-assert" catala_opts
+
 let run_catala_test_scopes
+    ~asserted_trace_variables
     ~code_coverage
     test_flags
     catala_exe
@@ -217,6 +236,7 @@ let run_catala_test_scopes
           (Re.replace_string re_endline ~by:"")
           (In_channel.input_line command_ic))
   in
+  let trace_file = trace_file_of_opts catala_opts in
   let parse_error line =
     let re_error =
       let open Re in
@@ -305,6 +325,7 @@ let run_catala_test_scopes
                 @ ["--scope=" ^ scope];
               s_errors = List.rev errs;
               s_time = delta;
+              s_trace_assertions = [];
               s_coverage =
                 (if code_coverage && result then
                    let hex_coverage_string = Re.Group.get g 3 in
@@ -341,11 +362,25 @@ let run_catala_test_scopes
         s_errors = errs;
         s_time = Sys.time () -. start_time;
         s_coverage = None;
+        s_trace_assertions = [];
       }
       :: scopes_results
     else scopes_results
   in
-  List.rev scopes_results
+  let open Clerk_report in
+  (* Only now that the interpreter has exited is the trace file complete *)
+  List.rev_map
+    (fun result ->
+      match trace_file with
+      | None -> result
+      | Some trace ->
+        let trace_assertions =
+          Trace_assertion.check ~asserted_trace_variables
+            ~tested_scope:result.s_name
+            (Trace_assertion.read_trace trace)
+        in
+        { result with s_trace_assertions = trace_assertions })
+    scopes_results
 
 (** Directly runs the test (not using ninja, this will be called by ninja rules
     through the "clerk runtest" command) *)
@@ -356,6 +391,7 @@ let run_tests
     ~test_flags
     ~report
     ~out
+    ~check_trace_assertion
     filename =
   let module L = Surface.Lexer_common in
   let lang =
@@ -482,41 +518,57 @@ let run_tests
         :: !rtests;
       lines
   in
-  let rec process ~has_test_scopes ~includes lines =
+  let rec process ~asserted_trace_variables ~has_test_scopes ~includes lines =
     match Seq.uncons lines with
     | Some ((str, L.LINE_INLINE_TEST, _), lines) ->
       push_line str;
       let lines = run_inline_test lines in
-      process ~has_test_scopes ~includes lines
+      process ~asserted_trace_variables ~has_test_scopes ~includes lines
     | Some ((str, L.LINE_TEST_ATTRIBUTE, _), lines) ->
       push_line str;
-      process ~has_test_scopes:true ~includes lines
+      process ~asserted_trace_variables ~has_test_scopes:true ~includes lines
+    | Some ((str, L.LINE_TEST_VARIABLE (name, value), _), lines)
+      when check_trace_assertion ->
+      push_line str;
+      process
+        ~asserted_trace_variables:
+          (Trace_assertion.add_asserted_trace_variable name value
+             asserted_trace_variables)
+        ~has_test_scopes:true ~includes lines
     | Some ((str, L.LINE_INCLUDE f, _), lines) ->
       push_line str;
       let f = if Filename.is_relative f then File.(filename /../ f) else f in
-      process ~has_test_scopes ~includes:(f :: includes) lines
+      process ~asserted_trace_variables ~has_test_scopes
+        ~includes:(f :: includes) lines
     | Some ((str, _, _), lines) ->
       push_line str;
-      process ~has_test_scopes ~includes lines
-    | None -> has_test_scopes, includes
+      process ~asserted_trace_variables ~has_test_scopes ~includes lines
+    | None -> has_test_scopes, includes, asserted_trace_variables
   in
-  let has_test_scopes, includes =
-    process ~has_test_scopes:false ~includes:[] lines
+  let has_test_scopes, includes, asserted_trace_variables =
+    process ~asserted_trace_variables:Trace_assertion.M.empty
+      ~has_test_scopes:false ~includes:[] lines
   in
   let has_test_scopes =
     has_test_scopes || List.exists (Scan.has_test_scope ~lang) includes
   in
   let scopes_results =
     if has_test_scopes then
-      run_catala_test_scopes ~code_coverage test_flags catala_exe catala_opts
-        filename
+      run_catala_test_scopes ~asserted_trace_variables ~code_coverage test_flags
+        catala_exe catala_opts filename
     else []
   in
+  (* Mismatching asserted trace variables are treated like failed assertions:
+     under --no-fail-on-assert they are reported but do not fail the test *)
+  let fail_on_assert = not (no_fail_on_assert_of_opts catala_opts) in
   let successful_test_scopes, failed_test_scopes, coverage =
     List.fold_left
       (fun (nsucc, nfail, code_coverage) t ->
         let x, y =
-          if t.Clerk_report.s_success then nsucc + 1, nfail
+          if
+            t.Clerk_report.s_success
+            && ((not fail_on_assert) || t.Clerk_report.s_trace_assertions = [])
+          then nsucc + 1, nfail
           else nsucc, nfail + 1
         in
         let code_coverage =
