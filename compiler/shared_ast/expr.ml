@@ -271,6 +271,14 @@ let take_attr (e, m) f =
   let a, pos = Pos.take_attr (mark_pos m) f in
   a, (e, with_pos pos m)
 
+let take_attrs (e, m) f =
+  let rec get_attrs acc pos =
+    let a, pos = Pos.take_attr pos f in
+    match a with None -> acc, pos | Some attr -> get_attrs (attr :: acc) pos
+  in
+  let attrs, pos = get_attrs [] (mark_pos m) in
+  attrs, (e, with_pos pos m)
+
 let map_ty (type m) (ty_f : typ -> typ) (m : m mark) : m mark =
   map_mark (fun pos -> pos) ty_f m
 
@@ -1187,6 +1195,12 @@ let rec embed_value : type a.
   | EInj { name; cons; e = payload }
     when EnumName.equal name ConstantNames.option_enum ->
     Print.UserFacing.embed_option (embed_value ctx) cons payload
+  | EEmpty ->
+    (* The value of an empty default, e.g. that of an undefined internal
+       variable when interpreting the default calculus; rendered as lcalc
+       renders it. *)
+    Print.UserFacing.embed_option (embed_value ctx) ConstantNames.none_constr
+      (ELit LUnit, Mark.get e)
   | EInj { name; cons; e = payload } ->
     let seq_find_index f s =
       (* [Seq.find_index] in OCaml >= 5.01 only *)
