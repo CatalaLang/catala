@@ -470,7 +470,9 @@ let organise_modules ~config ~var_bindings items =
                use@ it.@]@,\
                @,\
                @[<hov>The dependency graph in Dot format is available in@ \
-               @{<bold;blue>%t@}.@]@]"
+               @{<bold;blue>%t@}.@]@,\
+               @,\
+               @[<hov>See the %t@ for@ a@ more@ detailed@ explanation.@]@]"
               cflt m
               (Format.pp_print_list (fun ppf t ->
                    Format.fprintf ppf "- @{<yellow>%s@}" t))
@@ -479,6 +481,12 @@ let organise_modules ~config ~var_bindings items =
               (let f = File.(config.file.global.build_dir / "modules.dot") in
                File.with_out_channel f (fun oc -> print_dot oc new_modmap);
                fun ppf -> Message.link ~target:(Message.file_url f) () ppf f)
+              (fun ppf ->
+                Message.pp_link ppf
+                  ~target:
+                    "https://book.catala-lang.org/en/6-1-clerk-toml.html#dependencies"
+                  "\"dependencies\"@ section@ of@ the@ clerk.toml@ page@ of@ \
+                   the@ manual")
           in
           Option.iter conflict_err (String.Set.choose_opt conflict_targets)
         in

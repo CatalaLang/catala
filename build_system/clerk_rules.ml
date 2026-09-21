@@ -25,6 +25,8 @@ let include_dirs ~config =
   let open File in
   let exclude_dirs =
     String.Set.of_list config.Clerk_cli.file.global.exclude_dirs
+    |> String.Set.add config.Clerk_cli.file.global.build_dir
+    |> String.Set.add config.Clerk_cli.file.global.target_dir
   in
   let rec incl (seen, acc) d =
     if String.Set.mem d seen then seen, acc
@@ -61,7 +63,7 @@ let base_bindings
     ~enabled_backends
     ~inplace
     () =
-  Message.debug "INCLUDES: %a"
+  Message.debug "Resolved include dirs: %a"
     (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
     includes;
   let options = config.Clerk_cli.file in
@@ -148,7 +150,10 @@ let gen_build_statements
            (fun (f, _) ->
              if dir / basename f = f then Nj.Expr.Word (!Var.tdir / basename f)
              else Word (!Var.builddir / f))
-           item.included_files)
+           item.included_files
+        @ List.map
+            (fun m -> Nj.Expr.Word ("@catala/src/" ^ String.to_id m))
+            modules)
       ~outputs:[catala_src]
   in
   let has_scope_tests = Lazy.force item.has_scope_tests > 0 in
