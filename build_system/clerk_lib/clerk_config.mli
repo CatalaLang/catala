@@ -59,12 +59,22 @@ type custom_rule = {
       (* ${OCAMLOPT_EXE} ${OCAML_FLAGS} -I ${dir} ${in} -a -o ${out} *)
 }
 
+type backend_conf = { use_libs : string list }
+
+type backends_conf = {
+  ocaml : backend_conf;
+  c : backend_conf;
+  python : backend_conf;
+  java : backend_conf;
+}
+
 type config_file = {
   global : global;
   variables : (string * string list) list;
   targets : target list;
   docs : doc list;
   custom_rules : custom_rule list;
+  backends_conf : backends_conf;
 }
 
 type t = config_file
