@@ -16,6 +16,9 @@
    (copy
     ../../syntax_highlighting/pl/pygments/catala_pl_lexer/lexer.py
     lexer_pl.py)
+   (copy
+    ../../syntax_highlighting/es/pygments/catala_es_lexer/lexer.py
+    lexer_es.py)
    (run ocaml-crunch -e py -m plain -o %{target} .))))
 
 (documentation
