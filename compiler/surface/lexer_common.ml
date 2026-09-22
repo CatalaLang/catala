@@ -137,6 +137,8 @@ type line_token =
   | LINE_MODULE_DEF of string * bool (* > Module Xxx [external] *)
   | LINE_MODULE_USE of string (* > Using Xxx [as Yyy] *)
   | LINE_TEST_ATTRIBUTE (* any line containing a #[test] attribute *)
+  | LINE_TEST_VARIABLE of string * string
+    (* #[testcase.variable = "<name>:<expected value>"] *)
   | LINE_ANY (* anything else *)
 
 module type LocalisedLexer = sig

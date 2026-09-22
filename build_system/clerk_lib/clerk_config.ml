@@ -41,6 +41,7 @@ type global = {
   catala_opts : string list;
   default_targets : string list;
   include_sources : bool;
+  check_trace_assertion : bool option;
 }
 
 type target = {
@@ -85,6 +86,7 @@ let default_global =
     build_dir = "_build";
     target_dir = "_targets";
     include_sources = true;
+    check_trace_assertion = None;
   }
 
 let default_config =
@@ -108,6 +110,7 @@ let project_encoding () =
            build_dir;
            target_dir;
            include_sources;
+           check_trace_assertion;
          } ->
       ( project_name,
         (if include_dirs = default_global.include_dirs then None
@@ -117,7 +120,8 @@ let project_encoding () =
         proj_empty_list default_targets,
         build_dir,
         target_dir,
-        include_sources ))
+        include_sources,
+        check_trace_assertion ))
     (fun ( project_name,
            include_dirs,
            catala_exe,
@@ -125,7 +129,8 @@ let project_encoding () =
            default_targets,
            build_dir,
            target_dir,
-           include_sources )
+           include_sources,
+           check_trace_assertion )
        ->
       {
         project_name;
@@ -139,8 +144,9 @@ let project_encoding () =
         build_dir;
         target_dir;
         include_sources;
+        check_trace_assertion;
       })
-  @@ obj8
+  @@ obj9
        (opt_field ~name:"name" @@ string)
        (opt_field ~name:"include_dirs" @@ list string)
        (opt_field ~name:"catala_exe" @@ string)
@@ -150,6 +156,9 @@ let project_encoding () =
        (dft_field ~name:"target_dir" ~default:default_global.target_dir string)
        (dft_field ~name:"include_sources"
           ~default:default_global.include_sources bool)
+       (* Left as an option rather than defaulted: an absent key is reported as a
+          likely oversight, while an explicit "false" is a deliberate choice. *)
+       (opt_field ~name:"check_trace_assertion" @@ bool)
 
 let target_encoding () =
   let open Clerk_toml_encoding in

@@ -835,7 +835,7 @@ let advertise_installed ~config ~backends info targets =
    the appropriate backend compiler when needed) *)
 let run_targets
     ?(whole_program = false)
-    ?trace
+    ?(trace : [ `FileName of Global.raw_file | `Stdout ] option)
     ?trace_format
     ~test
     config
@@ -844,6 +844,9 @@ let run_targets
     scope_input
     (test_targets, info) =
   let build_dir = config.Cli.file.global.build_dir in
+  let check_trace_assertion =
+    Option.value ~default:false config.Cli.file.global.check_trace_assertion
+  in
   let show_progress = (not Global.options.debug) && Unix.isatty Unix.stdout in
   let progress_pfx =
     if test then "Running backend tests..." else "Running compiled targets..."
@@ -898,8 +901,45 @@ let run_targets
       Var.expr_elt_to_string ~var_bindings:info.Module_graph.var_bindings
         (make_target ~build_dir ~backend ~main_exec:true item)
     in
+    let pp_context ppf () =
+      Format.fprintf ppf "%a" File.format item.Scan.file_name;
+      match scope with
+      | None -> ()
+      | Some s -> Format.fprintf ppf " (scope @{<bold>%s@})" s
+    in
     match backend with
     | `Interpret ->
+      let has_asserted_trace_variables =
+        not (Trace_assertion.M.is_empty item.Scan.asserted_trace_variables)
+      in
+      let check_trace_assertion, trace_format =
+        match trace with
+        | None when has_asserted_trace_variables ->
+          if check_trace_assertion then
+            Message.warning
+              "@[<hov>There are asserted trace variables in %a but no trace \
+               file has been provided:@ disabling the \"check trace \
+               assertion\" feature.@]"
+              pp_context ();
+          false, trace_format
+        | Some (`FileName file) when has_asserted_trace_variables ->
+          if Filename.extension (file :> string) = ".json" then
+            check_trace_assertion, Some Global.JSON
+          else check_trace_assertion, trace_format
+        | _ -> check_trace_assertion, trace_format
+      in
+      let check_trace_assertion =
+        match trace_format with
+        | Some Global.Human | None ->
+          if has_asserted_trace_variables && check_trace_assertion then
+            Message.warning
+              "@[<hov>There are asserted trace variables in %a but the trace \
+               is not in JSON format:@ disabling the \"check trace assertion\" \
+               feature.@]"
+              pp_context ();
+          false
+        | _ -> check_trace_assertion
+      in
       let () =
         match scope_input, test_targets with
         | None, _ | Some _, [_] -> ()
@@ -921,6 +961,7 @@ let run_targets
           | None -> []
           | Some input -> [Printf.sprintf "--input=%s" input])
         @ (if whole_program then ["--whole-program"] else [])
+        @ (if check_trace_assertion then ["--check-trace-assertion"] else [])
         @ (match trace with
           | None -> []
           | Some `Stdout -> ["--trace"]
@@ -983,12 +1024,11 @@ let raw_cmd : int Cmd.t =
             else f)
           targets
       in
-      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~trace:false
-        ~default:0 ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~default:0
+        ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
     else (
       Format.eprintf "Available targets:@.";
-      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~trace:false
-        ~default:0
+      Clerk_rules.run_ninja ~code_coverage ~config ~autotest ~default:0
         ~ninja_flags:(ninja_flags @ ["-t"; "targets"])
         (fun _ _ _ -> 0))
   in
@@ -1025,8 +1065,7 @@ let build_cmd : int Cmd.t =
     in
     let enabled_backends = backends_to_config backends in
     let targets, info =
-      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
-        ~trace:false
+      Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends ?trace:None
         ~default:(empty_targets, Module_graph.empty_info)
         ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
@@ -1101,7 +1140,7 @@ let run_cmd =
       (ninja_flags : string list)
       prepare_only
       whole_program
-      trace
+      (trace : [ `FileName of Global.raw_file | `Stdout ] option)
       trace_format =
     let config : Cli.config = config in
     let backends = if backends = [] then [`Interpret] else backends in
@@ -1122,7 +1161,7 @@ let run_cmd =
     let exec_targets, _items, info =
       Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
         ~default:([], [], Module_graph.empty_info)
-        ~trace:(trace <> None) ~ninja_flags ~autotest:false ~clean_up_env:false
+        ?trace ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
         if target_args = [] then default_targets ~config info items
@@ -1290,10 +1329,17 @@ let test_cmd =
       backends_to_config (`Interpret :: backends)
       (* Autotests always require the interpret (OCaml) objects *)
     in
+    let check_trace_assertion =
+      config.Clerk_cli.file.global.check_trace_assertion = Some true
+    in
+    let trace = if check_trace_assertion then Some `Stdout else None in
+    let trace_format =
+      if check_trace_assertion then Some Global.JSON else None
+    in
     let exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~code_coverage ~config ~keep_going:false
         ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest:true
-        ~tests:true ~trace:false
+        ~tests:true ?trace ?trace_format
         ~default:([], [], Module_graph.empty_info, [])
       @@ fun nin_ppf items info ->
       (* TODO: keep_going:true, to be able to still show a test report.
@@ -1432,7 +1478,13 @@ let runtest_cmd =
       code_coverage
       out
       file
-      whole_program =
+      whole_program
+      check_trace_assertion
+      color =
+    (* 'clerk runtest' is spawned by ninja with pipes for stdout/stderr, so the
+       "auto" default detects no terminal and drops all styling. The parent clerk
+       knows whether its own output is a terminal and forwards the decision. *)
+    let _options = Catala_utils.Global.enforce_options ~color () in
     let catala_opts =
       catala_opts
       @ List.fold_right (fun dir opts -> "-I" :: dir :: opts) include_dirs []
@@ -1441,7 +1493,7 @@ let runtest_cmd =
     let catala_opts =
       if whole_program then "--whole-program" :: catala_opts else catala_opts
     in
-    Clerk_runtest.run_tests
+    Clerk_runtest.run_tests ~check_trace_assertion
       ~catala_exe:(Option.value ~default:"catala" catala_exe)
       ~catala_opts ~code_coverage ~test_flags ~report ~out file;
     0
@@ -1461,7 +1513,9 @@ let runtest_cmd =
       $ Cli.code_coverage
       $ Cli.runtest_out
       $ Cli.single_file
-      $ Cli.whole_program)
+      $ Cli.whole_program
+      $ Cli.check_trace_assertion
+      $ Cli.color)
 
 let run_ninja_start ~config ~ninja_flags ~enabled_backends cont =
   let enabled_backends =
@@ -1491,8 +1545,7 @@ let run_ninja_start ~config ~ninja_flags ~enabled_backends cont =
 let start_cmd =
   let run config (ninja_flags : string list) =
     let enabled_backends = target_backends config.Cli.file.targets in
-    run_ninja_start ~config ~ninja_flags ~enabled_backends ~trace:false
-      (fun () -> 0)
+    run_ninja_start ~config ~ninja_flags ~enabled_backends (fun () -> 0)
   in
   let doc =
     "This command prepares the local build environment of the project with \
@@ -1531,7 +1584,7 @@ let ci_cmd =
     let enabled_backends = backends_to_config backends in
     let targets, exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
-        ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true ~trace:false
+        ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true ?trace:None
         ~default:(empty_targets, [], [], Module_graph.empty_info, [])
       @@ fun nin_ppf items info ->
       let targets_build, targets_test =
