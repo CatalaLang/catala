@@ -19,9 +19,14 @@
 
 type asserted_trace_variable
 
+val asserted_trace_variable_to_string : asserted_trace_variable -> string
+
 module M : Map.S with type key = asserted_trace_variable
 
 type value
+
+val value_to_string : value -> string
+
 type trace_assertions = value M.t
 
 val add_asserted_trace_variable :

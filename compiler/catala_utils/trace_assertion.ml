@@ -18,7 +18,13 @@ module M = Map.Make (String)
 module Runtime = Catala_runtime
 
 type asserted_trace_variable = string
+
+let asserted_trace_variable_to_string = Fun.id
+
 type value = string
+
+let value_to_string = Fun.id
+
 type trace_assertions = value M.t
 
 type trace_assertion = {
