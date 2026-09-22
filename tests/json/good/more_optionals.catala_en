@@ -1,0 +1,39 @@
+```catala-metadata
+declaration structure Slot:
+  data share content optional of decimal
+
+declaration scope S:
+  input slot content Slot
+  input shares content list of optional of decimal
+  output echo_slot content Slot
+  output echo_shares content list of optional of decimal
+
+scope S:
+  definition echo_slot equals slot
+  definition echo_shares equals shares
+```
+
+```catala-test-cli
+$ catala test-scope S -F json --input {"slot":{},"shares":[{}]} --disable-warnings
+{"echo_slot":{"share":"Absent"},"echo_shares":["Absent"]}
+```
+
+```catala-test-cli
+$ catala test-scope S -F json --input {"slot":{"share":null},"shares":[null]} --disable-warnings
+{"echo_slot":{"share":"Absent"},"echo_shares":["Absent"]}
+```
+
+```catala-test-cli
+$ catala test-scope S -F json --input {"slot":{"share":"Absent"},"shares":["Absent"]} --disable-warnings
+{"echo_slot":{"share":"Absent"},"echo_shares":["Absent"]}
+```
+
+```catala-test-cli
+$ catala test-scope S -F json --input {"slot":{"share":{"Present":"1/2"}},"shares":[{"Present":"0.5"}]} --disable-warnings
+{"echo_slot":{"share":{"Present":"1/2"}},"echo_shares":[{"Present":"1/2"}]}
+```
+
+```catala-test-cli
+$ catala test-scope S -F json --input {"slot":{"share":"1/2"},"shares":[]} --disable-warnings
+{"echo_slot":{"share":{"Present":"1/2"}},"echo_shares":[]}
+```
