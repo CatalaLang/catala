@@ -45,7 +45,7 @@ depends: [
   "otoml" {>= "1.0"}
   "json-data-encoding" { >= "1.0.1" }
   "odoc" {with-doc}
-  "ocamlformat" {?cataladevmode & cataladevmode & = "0.28.1"}
+  "ocamlformat" {?cataladevmode & cataladevmode & = "0.29.0"}
   "obelisk" {?cataladevmode & cataladevmode}
   "conf-ninja" {post}
   # --- the following are "optional runtime dependencies" ---
