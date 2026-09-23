@@ -69,3 +69,10 @@ val target_basename : item -> File.t
 val target_file_name : item -> File.t
 (** Like [target_basename], but returns a relative filename to the build
     directory, without extension *)
+
+val include_dirs : config:Clerk_cli.config -> string list
+(** Returns the list of all directories to include given a project's [config].
+    Excludes directories declared in the [config]'s [exclude_dirs] along with
+    the '_target' and '_build' directories. Sub-directories of the [config]'s
+    [include_dirs] are also returned: hence, the default ["."] value will return
+    all (sub-)directories minus the excluded dirs. *)

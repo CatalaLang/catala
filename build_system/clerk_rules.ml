@@ -21,42 +21,9 @@ module Nj = Ninja_utils
 
 (**{1 Building rules}*)
 
-let include_dirs ~config =
-  let open File in
-  let exclude_dirs =
-    String.Set.of_list config.Clerk_cli.file.global.exclude_dirs
-    |> String.Set.add config.Clerk_cli.file.global.build_dir
-    |> String.Set.add config.Clerk_cli.file.global.target_dir
-  in
-  let rec incl (seen, acc) d =
-    if String.Set.mem d seen then seen, acc
-    else
-      let entries = try Sys.readdir d with Sys_error _ -> [||] in
-      let entries = Seq.filter not_hidden (Array.to_seq entries) in
-      let subdirs, files =
-        Seq.partition
-          (fun f -> try Sys.is_directory (d / f) with Sys_error _ -> false)
-          entries
-      in
-      let seen = String.Set.add d seen in
-      let acc =
-        if Seq.exists (fun f -> Scan.get_lang f <> None) files then
-          String.Set.add d acc
-        else acc
-      in
-      Seq.fold_left (fun acc2 f -> incl acc2 (d / f)) (seen, acc) subdirs
-  in
-  let _, inc =
-    List.fold_left
-      (fun acc2 d -> incl acc2 d)
-      (exclude_dirs, String.Set.empty)
-      config.file.global.include_dirs
-  in
-  String.Set.elements inc
-
 let base_bindings
     ~config
-    ?(includes = include_dirs ~config)
+    ?(includes = Scan.include_dirs ~config)
     ~code_coverage
     ~trace
     ~autotest
@@ -671,7 +638,7 @@ let run_ninja
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
-  let includes = include_dirs ~config in
+  let includes = Scan.include_dirs ~config in
   let var_bindings =
     base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
       ~inplace:false ~includes ()
@@ -813,7 +780,7 @@ let run_ninja
       ret)
 
 let scan_project ~config =
-  let includes = include_dirs ~config in
+  let includes = Scan.include_dirs ~config in
   let var_bindings =
     base_bindings ~code_coverage:false ~trace:false ~autotest:false
       ~enabled_backends:[] ~inplace:true ~config ~includes ()
