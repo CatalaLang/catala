@@ -35,14 +35,13 @@ module Spec : Sig.Spec = struct
   let all_obj_extensions = ["o"]
   let stdlib_subdir = ""
 
-  let var_defs ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
-      =
+  let var_defs ~config ~autotest ~use_default_flags ~test_flags ~include_dirs =
     let open Flags in
     let catala_flags =
       catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:false
     in
-    let def = def ~variables in
+    let def = def ~variables:config.Clerk_cli.file.variables in
     [
       def catala_flags_c (lazy catala_flags);
       def cc_exe (lazy ["cc"]);

@@ -33,17 +33,13 @@ module Spec : Sig.Spec = struct
   let all_obj_extensions = ["py"]
   let stdlib_subdir = ""
 
-  let var_defs
-      ~variables
-      ~autotest
-      ~use_default_flags
-      ~test_flags
-      ~include_dirs:_ =
+  let var_defs ~config ~autotest ~use_default_flags ~test_flags ~include_dirs:_
+      =
     let catala_flags =
       Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true
     in
-    let def = Flags.def ~variables in
+    let def = Flags.def ~variables:config.Clerk_cli.file.variables in
     [def catala_flags_python (lazy catala_flags); def python (lazy ["python3"])]
 
   let[@ocamlformat "disable"] rules =
