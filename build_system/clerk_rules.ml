@@ -44,8 +44,8 @@ let base_bindings
     List.concat_map
       (fun bk ->
         let module Backend : Clerk_backend.S = (val Clerk_backend.get bk) in
-        Backend.var_defs ~variables:options.variables ~autotest
-          ~use_default_flags ~test_flags ~include_dirs:includes)
+        Backend.var_defs ~config ~autotest ~use_default_flags ~test_flags
+          ~include_dirs:includes)
       enabled_backends
   in
   default_flags @ backend_flags

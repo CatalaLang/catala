@@ -43,7 +43,7 @@ module type Spec = sig
   (** extensions for all compiled objects by this backend, dot excluded *)
 
   val var_defs :
-    variables:(string * string list) list ->
+    config:Clerk_cli.config ->
     autotest:bool ->
     use_default_flags:bool ->
     test_flags:string list ->
@@ -52,8 +52,8 @@ module type Spec = sig
   (** Returns a list of variables assigned for the Ninja file generated. Those
       variables can be the compiler exec of your backends, flags for a specific
       command, include ...
-      - [~variables] is the list of already defined variables, if a variables is
-        already defined it will takes this value instead of the one given
+      - The user-defined variables from [config.file.variables] take precedence
+        (but can use the default binding using "$\{default\}")
       - [~autotest] if the flag is activated, add the autotest flag to the
         catala command, each call to the catala command will come with autotest
       - [~use_default_flags] flag to tell if the catala command should only use
@@ -62,7 +62,7 @@ module type Spec = sig
       - [~test_flags] is a list of tests that will be passed to the catala
         interpreter tests if called
       - [~include_dirs] the list of the different direcory to include each time,
-        usually this comes from the config in the clerk.toml file. *)
+        already recursively resolved by use of [Scan.include_dirs]. *)
 
   val rules : Nj.def list
   (** List of base Ninja rules needed by the backend *)
