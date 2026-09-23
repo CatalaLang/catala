@@ -43,7 +43,7 @@ module Spec : Sig.Spec = struct
   let stdlib_subdir = "catala" / "stdlib"
 
   let var_defs
-      ~variables
+      ~config
       ~autotest
       ~use_default_flags
       ~test_flags
@@ -53,7 +53,7 @@ module Spec : Sig.Spec = struct
       Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true ~trace
     in
-    let def v x = Var.def ~overrides:variables v x in
+    let def v x = Var.def ~overrides:config.Clerk_cli.file.variables v x in
     let word w = Ninja_utils.Expr.Word w in
     [
       def catala_flags_java catala_flags;
