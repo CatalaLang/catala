@@ -85,22 +85,26 @@ let test_override_rejects_ref () =
     (raises_compiler_error (fun () ->
          CVar.binding_of_words_override CVar.catala_flags ["${builddir}/x"]))
 
+let default = lazy ["xxx"; "yyy"]
+
 let test_override_accepts_clean () =
   check_list "clean vector override passes through" ["-O"; "--trace"]
     (CVar.binding_to_words
-       (CVar.binding_of_words_override CVar.catala_flags ["-O"; "--trace"]))
+       (CVar.binding_of_words_override ~default CVar.catala_flags
+          ["-O"; "--trace"]))
 
 (* the CLI splits override values on spaces before kinds are known, so a
    scalar must rejoin them: a spaced path is one value, not two words *)
 let test_override_rejoins_spaced_scalar () =
   check_list "spaced scalar value is kept whole" ["/a b/catala"]
     (CVar.binding_to_words
-       (CVar.binding_of_words_override CVar.catala_exe ["/a"; "b/catala"]))
+       (CVar.binding_of_words_override ~default CVar.catala_exe
+          ["/a"; "b/catala"]))
 
 let test_override_accepts_single_scalar () =
   check_list "single-word scalar value passes through" ["catala.exe"]
     (CVar.binding_to_words
-       (CVar.binding_of_words_override CVar.catala_exe ["catala.exe"]))
+       (CVar.binding_of_words_override ~default CVar.catala_exe ["catala.exe"]))
 
 (* include_flags feeds rule-scoped ninja bindings spliced into compile
    commands, which the shell re-parses: each dir must stay a single Word so

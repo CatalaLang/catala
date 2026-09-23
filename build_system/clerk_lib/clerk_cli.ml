@@ -186,13 +186,41 @@ let vars_override =
     & info ["vars"] ~docv:"VAR=VALUE"
         ~doc:
           "Override the given build variable with the given value. Use \
-           $(i,clerk list-vars) to list the available variables.")
+           $(i,clerk list-vars) to list the available variables. The special \
+           value $(b,\\${VAR}) (matching the variable name) can be used to \
+           expand to the previous value of the variable being defined.")
 
-(* Command-line overrides shadow the [variables] table, they don't replace it:
-   both are read with [List.assoc_opt], which takes the first match. *)
 let variable_overrides ~config_vars cli_vars =
-  List.map (fun (var, value) -> var, String.split_on_char ' ' value) cli_vars
-  @ config_vars
+  let rec split s wstart i =
+    if i > String.length s then
+      if wstart > i then []
+      else [String.sub s wstart (String.length s - wstart)]
+    else
+      let rec find_endquote c i =
+        if i >= String.length s then String.length s
+        else if s.[i] = c then i
+        else
+          match s.[i] with
+          | '\\' -> find_endquote c (i + 2)
+          | ('"' | '\'') as c1 -> find_endquote c (find_endquote c1 (i + 1) + 1)
+          | _ -> find_endquote c (i + 1)
+      in
+      match s.[i] with
+      | ' ' -> String.sub s wstart (i - wstart) :: split s (i + 1) (i + 1)
+      | ('"' | '\'') as c -> split s wstart (find_endquote c (i + 1) + 1)
+      | '\\' -> split s wstart (i + 2)
+      | _ -> split s wstart (i + 1)
+  in
+  let expand_default var s =
+    let vref = "${" ^ var ^ "}" in
+    if s = vref then Option.value ~default:[] (List.assoc_opt var config_vars)
+    else [s]
+  in
+  List.map
+    (fun (var, value) ->
+      var, List.concat_map (expand_default var) (split value 0 0))
+    cli_vars
+  @ List.filter (fun (v, _) -> not (List.mem_assoc v cli_vars)) config_vars
 
 let config_file =
   Arg.(
