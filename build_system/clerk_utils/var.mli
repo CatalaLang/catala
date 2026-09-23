@@ -58,12 +58,14 @@ val test_id : string t
 type bindings = Ninja_utils.Binding.any list
 
 val binding_of_words : 'a t -> string list -> Ninja_utils.Binding.any
-(** Packs flat words into a typed payload; errors if a scalar var receives
-    several words *)
+(** Packs flat words into a typed payload; concatenated with spaces in the case
+    of scalars *)
 
-val binding_of_words_override : 'a t -> string list -> Ninja_utils.Binding.any
-(** {!binding_of_words} plus the border guards (no refs, no quote characters) —
-    for user-supplied override values only *)
+val binding_of_words_override :
+  'a t -> default:string list Lazy.t -> string list -> Ninja_utils.Binding.any
+(** Creates a variable binding from a list of words, for user-supplied override
+    values. As a special case, a self-reference [${varname}] that matches the
+    var being defined is expanded to the given default argument. *)
 
 val binding_to_words : Ninja_utils.Binding.any -> string list
 (** Projection to the string-level env consumed by {!get_var}/direct exec *)
