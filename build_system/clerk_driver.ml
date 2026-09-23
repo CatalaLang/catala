@@ -409,7 +409,17 @@ let sort_user_target_args
                 others )
             | None -> modules, item :: source_files, others
           with Not_found ->
-            Message.error "Source file %a not found" File.format arg)
+            Message.error "@[<v>@[<hov>Source file@ %a@ not@ found%t"
+              File.format arg (fun ppf ->
+                if File.check_file arg = None then Format.fprintf ppf "@]@]"
+                else
+                  Format.fprintf ppf
+                    ".@]@,\
+                     @[<hov>The file was excluded from the project scope@ by@ \
+                     the@ values@ configured@ for@ @{<yellow>include_dirs@}@ \
+                     and@ @{<yellow>exclude_dirs@} ;@ You can retry with@ \
+                     @{<yellow>-I \"%s\"@}@ to@ temporarily@ include@ it.@]@]"
+                    (File.dirname arg)))
       (modules, [], []) others
   in
   let direct_targets =
