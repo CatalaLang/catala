@@ -89,31 +89,29 @@ let linking_command ~build_dir ~backend ~info item target =
   in
   match backend with
   | `Custom rule ->
+    let srcvar = Var.make_vector "src" in
+    let dstvar = Var.make_vector "dst" in
     let var_bindings =
-      Var.binding_of_words Var.src
+      Nj.Binding.make srcvar
         (List.flatten
            (List.map
               (fun it ->
                 let f = Scan.target_file_name it in
                 let f = dirname f / rule_subdir rule / basename f in
                 List.map
-                  (fun ext -> (build_dir / f) -.- ext)
+                  (fun ext -> Nj.Expr.Word ((build_dir / f) -.- ext))
                   rule.Config.in_exts)
               (link_deps item @ [item])))
-      :: Var.binding_of_words Var.dst
+      :: Nj.Binding.make dstvar
            (let f = Scan.target_file_name item in
             let f = dirname f / rule_subdir rule / basename f in
-            List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.out_exts)
+            List.map
+              (fun ext -> Nj.Expr.Word ((build_dir / f) -.- ext))
+              rule.Config.out_exts)
       :: var_bindings
     in
-    List.flatten
-    @@ List.map
-         (fun s ->
-           if String.length s > 1 && s.[0] = '$' && s.[1] <> '{' then
-             Var.get var_bindings
-               (Var.Vector (String.sub s 1 (String.length s - 1)))
-           else [Var.expand var_bindings s])
-         rule.Config.commandline
+    Var.expr_to_list ~var_bindings
+      (List.map (fun w -> Nj.Expr.Word w) rule.Config.commandline)
   | (`OCaml | `Python | `C | `Java) as bk ->
     let module B = (val Clerk_backend.get (backend_to_config bk)) in
     B.linking_command ~build_dir ~var_bindings link_deps item target

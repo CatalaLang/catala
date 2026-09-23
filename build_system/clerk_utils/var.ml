@@ -55,38 +55,6 @@ let re_var =
 
 type bindings = Nj.Binding.any list
 
-let has_ref = Re.execp (Re.compile re_var)
-
-let binding_of_words (type a) (v : a t) (words : string list) : Nj.Binding.any =
-  match v with
-  (* the CLI splits values on spaces before kinds are known; a scalar is one
-     value, so rejoin (lossless: the split was on a single space) *)
-  | Scalar _ -> Nj.Binding.make v (String.concat " " words)
-  | Vector _ ->
-    Nj.Binding.make v (List.map (fun w -> Ninja_utils.Expr.Word w) words)
-
-(* border guards: overrides only — authored defaults legitimately contain
-   refs. Refs would expand in direct exec but quote-glue at emission; reject
-   rather than diverge. Composition would need an append form (--vars X+=y),
-   not implemented. *)
-let binding_of_words_override (type a) (v : a t) (words : string list) :
-    Nj.Binding.any =
-  List.iter
-    (fun w ->
-      if has_ref w then
-        Message.error
-          "Invalid word %S in the value of variable @{<blue;bold>$%s@}: \
-           variable references are not supported in overrides"
-          w (name v);
-      if String.contains w '"' then
-        Message.error
-          "Invalid word %S in the value of variable @{<blue;bold>$%s@}: quote \
-           characters are not supported (values are quoted automatically; for \
-           C string macros, prefer an included header)"
-          w (name v))
-    words;
-  binding_of_words v words
-
 let binding_to_words (bnd : Nj.Binding.any) : string list =
   let expr_words e =
     List.concat_map
@@ -102,6 +70,18 @@ let env_of_bindings bs =
   List.map
     (fun (Ninja_utils.Binding.Any (v, _) as b) -> name v, binding_to_words b)
     bs
+
+let expr_of_list s =
+  let re = Re.(compile (whole_string re_var)) in
+  List.map
+    (fun s ->
+      match Re.exec_opt re s with
+      | Some g -> Nj.Expr.Splice (Vector (Re.Group.get g 1))
+      | None -> Word s)
+    s
+
+let raw_replace f s =
+  Re.replace ~all:true (Re.compile re_var) ~f:(fun g -> f (Re.Group.get g 1)) s
 
 let take_binding bindings var =
   let rec aux : type a.
@@ -130,14 +110,10 @@ let rec get : type a. bindings -> a t -> string list =
   in
   expr_to_list ~var_bindings exp
 
-and expand =
-  let re_var = Re.(compile re_var) in
-  fun var_bindings s ->
-    Re.replace ~all:true re_var
-      ~f:(fun g ->
-        let var = Scalar (Re.Group.get g 1) in
-        String.concat " " (get var_bindings var))
-      s
+and expand var_bindings s =
+  raw_replace
+    (fun vname -> String.concat " " (get var_bindings (Scalar vname)))
+    s
 
 and expr_elt_to_list ?(var_bindings = []) e =
   match e with
@@ -159,6 +135,42 @@ let file_list_to_string files =
 
 let file_list_of_string s =
   List.filter (( <> ) "") (String.split_on_char file_list_sep (String.trim s))
+
+let def (type a) ~overrides (var : a t) (default_value : a Lazy.t) :
+    Nj.Binding.any =
+  let rec findq vname = function
+    | (v1, x) :: r when vname = v1 -> Some (x, r)
+    | _ :: r -> findq vname r
+    | [] -> None
+  in
+  let var_ref vname = "${" ^ vname ^ "}" in
+  match var with
+  | Scalar vname ->
+    let rec value overrides =
+      match findq vname overrides with
+      | None -> Lazy.force default_value
+      | Some (words, overrides) ->
+        raw_replace
+          (fun v ->
+            if v = vname then value overrides
+            else var_ref v (* leave unchanged *))
+          (String.concat " " words)
+    in
+    Nj.Binding.make var (value overrides)
+  | Vector vname ->
+    let rec value overrides =
+      match findq vname overrides with
+      | None -> Lazy.force default_value
+      | Some (words, overrides) ->
+        let vref = var_ref vname in
+        List.concat_map
+          (fun w ->
+            if w = "" then []
+            else if w = vref then value overrides
+            else [Nj.Expr.Word w])
+          words
+    in
+    Nj.Binding.make var (value overrides)
 
 module Op = struct
   let ( ! ) = ref

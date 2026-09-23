@@ -19,7 +19,7 @@ open Clerk_utils
 open Catala_utils
 
 let catala_flags_c = Var.make_vector "CATALA_FLAGS_C"
-let cc_exe = Var.make_vector "CC"
+let cc_exe = Var.make_scalar "CC"
 let c_flags = Var.make_vector "CFLAGS"
 let c_include = Var.make_vector "C_INCLUDE_FLAGS"
 
@@ -42,27 +42,29 @@ module Spec : Sig.Spec = struct
       catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:false
     in
-    let def = def ~variables in
+    let def v x = Var.def ~overrides:variables v x in
+    let word w = Ninja_utils.Expr.Word w in
     [
-      def catala_flags_c (lazy catala_flags);
-      def cc_exe (lazy ["cc"]);
+      def catala_flags_c catala_flags;
+      def cc_exe (lazy "cc");
       def c_flags
         (lazy
-          [
-            "-std=c89";
-            "-pedantic";
-            "-Wall";
-            "-Wno-unused-function";
-            "-Wno-unused-variable";
-            "-Wno-unused-but-set-variable";
-            "-Werror";
-            "-fPIC";
-            "-g";
-          ]);
+          (List.map word
+             [
+               "-std=c89";
+               "-pedantic";
+               "-Wall";
+               "-Wno-unused-function";
+               "-Wno-unused-variable";
+               "-Wno-unused-but-set-variable";
+               "-Werror";
+               "-fPIC";
+               "-g";
+             ]));
       def c_include
         (lazy
-          (["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]
-          @ Flags.includes ~name include_dirs));
+          ([word "-I"; word File.(Var.(!builddir) / Scan.libcatala / name)]
+          @ List.map word (Flags.includes ~name include_dirs)));
     ]
 
   let[@ocamlformat "disable"] rules =

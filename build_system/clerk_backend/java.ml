@@ -20,10 +20,10 @@ open Catala_utils
 open File
 
 let catala_flags_java = Var.make_vector "CATALA_FLAGS_JAVA"
-let javac = Var.make_vector "JAVAC"
+let javac = Var.make_scalar "JAVAC"
 let javac_flags = Var.make_vector "JAVAC_FLAGS"
-let jar = Var.make_vector "JAR"
-let java = Var.make_vector "JAVA"
+let jar = Var.make_scalar "JAR"
+let java = Var.make_scalar "JAVA"
 let class_path = Var.make_scalar "CLASS_PATH"
 
 include Java_project_file
@@ -48,13 +48,14 @@ module Spec : Sig.Spec = struct
       Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true
     in
-    let def = Flags.def ~variables in
+    let def v x = Var.def ~overrides:variables v x in
+    let word w = Ninja_utils.Expr.Word w in
     [
-      def catala_flags_java (lazy catala_flags);
-      def java (lazy ["java"]);
-      def javac (lazy ["javac"]);
-      def jar (lazy ["jar"]);
-      def javac_flags (lazy ["-implicit:none"]);
+      def catala_flags_java catala_flags;
+      def java (lazy "java");
+      def javac (lazy "javac");
+      def jar (lazy "jar");
+      def javac_flags (lazy [word "-implicit:none"]);
       Nj.Binding.make class_path
         (Backend_paths.classpath ~backend:name include_dirs);
     ]

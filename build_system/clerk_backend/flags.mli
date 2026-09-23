@@ -17,12 +17,6 @@
 
 open Clerk_utils
 
-val def :
-  variables:(string * string list) list ->
-  'a Var.t ->
-  string list Lazy.t ->
-  Ninja_utils.Binding.any
-
 val includes : ?name:string -> string list -> string list
 val include_flags : name:string -> string list -> Ninja_utils.Expr.t
 
@@ -31,7 +25,7 @@ val catala_backend_flags :
   use_default_flags:bool ->
   test_flags:string list ->
   accepts_closure_conversion:bool ->
-  string list
+  Ninja_utils.Expr.t Lazy.t
 
 val default :
   code_coverage:bool ->

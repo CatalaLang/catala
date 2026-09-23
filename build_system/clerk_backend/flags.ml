@@ -19,14 +19,6 @@ open Ninja_utils
 open Clerk_utils
 open Catala_utils
 
-let def (type a) ~variables (var : a Var.t) (value : string list Lazy.t) :
-    Binding.any =
-  match List.assoc_opt (Var.name var) variables with
-  | Some vl -> Var.binding_of_words_override var vl
-  | None -> Var.binding_of_words var (Lazy.force value)
-
-(* stored unquoted: quoting happens at emission *)
-
 let includes ?name:backend include_dirs =
   List.fold_right
     (fun dir flags ->
@@ -44,16 +36,18 @@ let catala_backend_flags
     ~use_default_flags
     ~test_flags
     ~accepts_closure_conversion =
-  (if autotest then ["--autotest"] else [])
-  @
-  if use_default_flags then ["-O"]
-  else
-    List.filter
-      (function
-        | "-O" | "--optimize" -> true
-        | "--closure-conversion" -> accepts_closure_conversion
-        | _ -> false)
-      test_flags
+  lazy
+    (List.map (fun w -> Expr.Word w)
+    @@ (if autotest then ["--autotest"] else [])
+    @
+    if use_default_flags then ["-O"]
+    else
+      List.filter
+        (function
+          | "-O" | "--optimize" -> true
+          | "--closure-conversion" -> accepts_closure_conversion
+          | _ -> false)
+        test_flags)
 
 let include_flags ~name:backend include_dirs =
   let open File in
@@ -86,42 +80,43 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
       }
     else options
   in
+  let word s = Expr.Word s in
   let catala_flags =
     lazy
-      ((if inplace then "--stdlib=" ^ Lazy.force Poll.stdlib_dir
-        else "--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
-       :: ("--directory=" ^ Var.(!builddir))
-       :: (if trace then ["--trace"] else [])
-      @ options.global.catala_opts)
+      ((if inplace then Expr.Word ("--stdlib=" ^ Lazy.force Poll.stdlib_dir)
+        else Expr.Word ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala)))
+       :: Expr.Word ("--directory=" ^ Var.(!builddir))
+       :: (if trace then [Expr.Word "--trace"] else [])
+      @ List.map word options.global.catala_opts)
   in
-  let includes = lazy (includes include_dirs) in
+  let includes = lazy (List.map word (includes include_dirs)) in
   let test_flags = config.Clerk_cli.test_flags in
-  let def v x = def ~variables:options.variables v x in
+  let def v x = Var.def ~overrides:options.variables v x in
   [
-    def Var.ninja_required_version (lazy ["1.7"]);
+    def Var.ninja_required_version (lazy "1.7");
     (* use of implicit outputs *)
-    def Var.builddir (lazy [options.global.build_dir]);
-    def Var.runtime (lazy [Lazy.force Poll.runtime_dir]);
-    def Var.clerk_exe (lazy [Lazy.force Poll.clerk_exe]);
+    def Var.builddir (lazy options.global.build_dir);
+    def Var.runtime Poll.runtime_dir;
+    def Var.clerk_exe Poll.clerk_exe;
     def Var.catala_exe
       (lazy
-        [
-          (match options.global.catala_exe with
-          | Some e -> File.check_exec e
-          | None -> Lazy.force Poll.catala_exe);
-        ]);
+        (match options.global.catala_exe with
+        | Some e -> File.check_exec e
+        | None -> Lazy.force Poll.catala_exe));
     def Var.catala_flags catala_flags;
     def Var.catala_includes includes;
     def Var.clerk_flags
       (lazy
-        ("-e"
-         :: Var.(!catala_exe)
-         :: ("--test-flags=" ^ String.concat "," test_flags)
+        (word "-e"
+         :: Var.(!!catala_exe)
+         :: word ("--test-flags=" ^ String.concat "," test_flags)
          :: Lazy.force includes
-        @ (if code_coverage then ["--code-coverage"] else [])
+        @ (if code_coverage then [word "--code-coverage"] else [])
         @ List.map
-            (fun f -> "--catala-opts=" ^ f)
+            (function
+              | Expr.Word s -> word ("--catala-opts=" ^ s)
+              | _ -> Message.error "Unallowed variable reference in Catala args")
             (Lazy.force catala_flags
             @ Lazy.force includes
-            @ if code_coverage then ["--whole-program"] else [])));
+            @ if code_coverage then [word "--whole-program"] else [])));
   ]
