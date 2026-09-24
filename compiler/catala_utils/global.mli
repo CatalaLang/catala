@@ -66,6 +66,7 @@ type options = private {
   mutable whole_program : bool;
   mutable bin_dir : string;
   mutable gen_external : bool;
+  mutable dynlink : file list;
   mutable no_stdlib : bool;
 }
 (** Global options, common to all subcommands (note: the fields are internally
@@ -94,6 +95,7 @@ val enforce_options :
   ?whole_program:bool ->
   ?bin_dir:string ->
   ?gen_external:bool ->
+  ?dynlink:file list ->
   ?no_stdlib:bool ->
   unit ->
   options
