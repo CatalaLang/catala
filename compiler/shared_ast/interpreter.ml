@@ -1289,6 +1289,37 @@ let evaluate_expr ctx lang e =
 
 let loaded_modules = Hashtbl.create 17
 
+let rec dynlink_error =
+  let printexc = function
+    | Dynlink.Error e -> dynlink_error e
+    | Failure s -> s
+    | e -> Printexc.to_string e
+  in
+  function
+  | Dynlink.Cannot_open_dynamic_library e -> printexc e
+  | Dynlink.Library's_module_initializers_failed e -> printexc e
+  | e -> Dynlink.error_message e
+
+let load_dynlibs =
+  let dynlibs =
+    lazy
+      (let objs =
+         List.map
+           (fun l -> Dynlink.adapt_filename File.(l -.- "cmo"))
+           Global.options.dynlink
+       in
+       List.iter
+         (fun o ->
+           try Dynlink.loadfile o with
+           | Dynlink.Error (Module_already_loaded _) -> ()
+           | Dynlink.Error err ->
+             Message.error
+               "Could not load external library@ @{<yellow>%s@}:@\n%s" o
+               (dynlink_error err))
+         objs)
+  in
+  fun () -> Lazy.force dynlibs
+
 let load_runtime_modules ~hashf prg =
   let load (mname, intf_id) =
     let hash = hashf intf_id.hash in
@@ -1325,8 +1356,7 @@ let load_runtime_modules ~hashf prg =
          with Dynlink.Error dl_err ->
            Message.error
              "While loading compiled module from %a:@;<1 2>@[<hov>%a@]"
-             File.format obj_file Format.pp_print_text
-             (Dynlink.error_message dl_err));
+             File.format obj_file Format.pp_print_text (dynlink_error dl_err));
       match Runtime.check_module (ModuleName.to_string mname) expect_hash with
       | Ok () -> Hashtbl.add loaded_modules mname hash
       | Error _ when Global.options.whole_program ->
@@ -1374,6 +1404,7 @@ let load_runtime_modules ~hashf prg =
     else prg.decl_ctx.ctx_modules
   in
   let modules_list_topo = Program.modules_to_list modules_to_load in
+  load_dynlibs ();
   if modules_list_topo <> [] then
     Message.debug "Loading shared modules... %a"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (m, _) ->
