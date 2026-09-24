@@ -114,6 +114,16 @@ module OCaml_Flags = struct
           @ ["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]));
       def ocaml_link
         (lazy (snd (Lazy.force base_libs) @ snd (Lazy.force custom_libs)));
+      Ninja_utils.Binding.make Var.catala_flags
+        (Ninja_utils.Expr.Splice Var.catala_flags
+        :: List.map
+             (fun l -> Ninja_utils.Expr.Word ("--dynlink=" ^ l))
+             (snd (Lazy.force custom_libs)));
+      Ninja_utils.Binding.make Var.clerk_flags
+        (Ninja_utils.Expr.Splice Var.clerk_flags
+        :: List.map
+             (fun l -> Ninja_utils.Expr.Word ("-c--dynlink=" ^ l))
+             (snd (Lazy.force custom_libs)));
     ]
 end
 

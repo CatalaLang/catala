@@ -116,17 +116,19 @@ let env_of_bindings bs =
     (fun (Ninja_utils.Binding.Any (v, _) as b) -> name v, binding_to_words b)
     bs
 
-let rec take_binding : type a. bindings -> a t -> bindings * Nj.Expr.t option =
- fun bindings var ->
-  match var, bindings with
-  | _, [] -> [], None
-  | Scalar n1, Nj.Binding.Any (Scalar n2, value) :: r when n1 = n2 ->
-    r, Some [Word value]
-  | Vector n1, Nj.Binding.Any (Vector n2, value) :: r when n1 = n2 ->
-    r, Some value
-  | _, bnd :: r ->
-    let bindings, ret = take_binding r var in
-    bnd :: bindings, ret
+let take_binding bindings var =
+  let rec aux : type a.
+      bindings -> bindings -> a t -> bindings * Nj.Expr.t option =
+   fun acc bindings var ->
+    match var, bindings with
+    | _, [] -> acc, None
+    | Scalar n1, Nj.Binding.Any (Scalar n2, value) :: r when n1 = n2 ->
+      List.rev_append r acc, Some [Word value]
+    | Vector n1, Nj.Binding.Any (Vector n2, value) :: r when n1 = n2 ->
+      List.rev_append r acc, Some value
+    | _, bnd :: r -> aux (bnd :: acc) r var
+  in
+  aux [] (List.rev bindings) var
 
 let rec get : type a. bindings -> a t -> string list =
  fun var_bindings v ->
