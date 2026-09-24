@@ -45,6 +45,7 @@ type options = {
   mutable whole_program : bool;
   mutable bin_dir : string;
   mutable gen_external : bool;
+  mutable dynlink : file list;
   mutable no_stdlib : bool;
 }
 
@@ -72,6 +73,7 @@ let options =
     whole_program = false;
     bin_dir = Filename.current_dir_name;
     gen_external = false;
+    dynlink = [];
     no_stdlib = false;
   }
 
@@ -93,6 +95,7 @@ let enforce_options
     ?whole_program
     ?bin_dir
     ?gen_external
+    ?dynlink
     ?no_stdlib
     () =
   Option.iter (fun x -> options.input_src <- x) input_src;
@@ -112,6 +115,7 @@ let enforce_options
   Option.iter (fun x -> options.whole_program <- x) whole_program;
   Option.iter (fun x -> options.bin_dir <- x) bin_dir;
   Option.iter (fun x -> options.gen_external <- x) gen_external;
+  Option.iter (fun x -> options.dynlink <- x) dynlink;
   Option.iter (fun x -> options.no_stdlib <- x) no_stdlib;
   options
 
