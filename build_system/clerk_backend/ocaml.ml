@@ -68,10 +68,12 @@ module OCaml_Flags = struct
       def catala_flags_ocaml (lazy catala_flags);
       def ocamlc_exe (lazy ["ocamlc"]);
       def ocamlopt_exe (lazy ["ocamlopt"]);
-      def ocaml_flags (lazy []);
+      def ocaml_flags (lazy ["-w"; "-24"]);
       def ocaml_include
         (lazy
-          (Lazy.force ocaml_include_value @ Flags.includes ~name include_dirs));
+          (Lazy.force ocaml_include_value
+          @ Flags.includes ~name include_dirs
+          @ ["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]));
     ]
 end
 
@@ -88,8 +90,17 @@ module Spec : Sig.Spec = struct
   let stdlib_subdir = ""
 
   let[@ocamlformat "disable"] rules =
-    let runtime_include = File.(Var.(!builddir) / Scan.libcatala / name) in
     let description = [Nj.Expr.Word ("<" ^ name ^ ">"); Nj.Expr.Word "⇒"; !!Var.output] in
+    let include_first =
+      Nj.Expr.Word File.(!Var.tdir / name)
+      (* `-I $tdir/ocaml` needs to be put first, even if already present
+         further on, because if a file with the same name already exists in
+         another `-I` dir, its `cmi` could mix things up.
+
+         The issue is that ocamlc|opt searches cmi files in the include dirs. A
+         better alternative would be to use `-cmi-file` explicitely, but that is
+         only available from 5.0.0 on *)
+    in
     [
       Nj.rule "catala-ocaml" ~description:[Nj.Expr.Word "<catala>"; Nj.Expr.Word name; Nj.Expr.Word "⇒"; !!Var.output]
         ~command:[!!Var.catala_exe; Nj.Expr.Word name; !!Var.catala_flags; !!catala_flags_ocaml;
@@ -97,24 +108,21 @@ module Spec : Sig.Spec = struct
 
       Nj.rule "ocaml-bytobject" ~description
         ~command:[
-          !!ocamlc_exe; Nj.Expr.Word "-c"; !!ocaml_flags; !!ocaml_include;
-          Nj.Expr.Word "-I"; Nj.Expr.Word runtime_include;
-          !!Var.includes;
+          !!ocamlc_exe; Nj.Expr.Word "-c"; !!ocaml_flags; Nj.Expr.Word "-I"; include_first;
+          !!ocaml_include;
           !!Var.input
         ];
 
       Nj.rule "ocaml-natobject" ~description
         ~command:[
-          !!ocamlopt_exe; Nj.Expr.Word "-c"; !!ocaml_flags; !!ocaml_include;
-          Nj.Expr.Word "-I"; Nj.Expr.Word runtime_include;
-          !!Var.includes;
+          !!ocamlopt_exe; Nj.Expr.Word "-c"; !!ocaml_flags; Nj.Expr.Word "-I"; include_first;
+          !!ocaml_include;
           !!Var.input
         ];
 
       Nj.rule "ocaml-module" ~description
         ~command:
           [!!ocamlopt_exe; Nj.Expr.Word "-shared"; !!ocaml_flags; !!ocaml_include;
-           Nj.Expr.Word "-I"; Nj.Expr.Word runtime_include;
            !!Var.input;
            Nj.Expr.Word "-o"; !!Var.output];
     ]
@@ -207,7 +215,7 @@ module Spec : Sig.Spec = struct
          ~outputs:[Common.target ~name "ml"]
          ~implicit_out:(Common.target ~name "mli" :: implicit_out))
 
-  let build_object ~include_dirs ~same_dir_modules:_ item =
+  let build_object item =
     let open Scan in
     let modules = List.rev_map Mark.remove item.used_modules in
     let implicit_modules = List.map (Common.interface_dep ~name) modules in
@@ -220,25 +228,16 @@ module Spec : Sig.Spec = struct
     let obj =
       [
         Nj.build "ocaml-bytobject"
-          ~inputs:[Common.target ~name "mli"; Common.target ~name "ml"]
+          ~inputs:[Common.target ~name "mli"]
           ~implicit_in:(implicit_modules @ [Nj.Expr.Word "@ocaml/runtime.cmi"])
-          ~outputs:(List.map (Common.target ~name) ["cmi"; "cmo"])
-          ~vars:
-            [
-              Nj.Binding.make Var.includes
-                (Flags.include_flags ~name include_dirs);
-            ];
+          ~outputs:(List.map (Common.target ~name) ["cmi"]);
         Nj.build "ocaml-natobject"
           ~inputs:[Common.target ~name "ml"]
           ~implicit_in:
             ((Common.target ~name "cmi" :: implicit_modules_nat)
             @ [Nj.Expr.Word "@ocaml/runtime.cmi"])
           ~outputs:(List.map (Common.target ~name) ["cmx"; "o"])
-          ~vars:
-            [
-              Nj.Binding.make Var.includes
-                (Flags.include_flags ~name include_dirs);
-            ];
+          ~vars:[Nj.Binding.make Var.tdir !Var.tdir];
       ]
     in
     let obj =
@@ -278,12 +277,7 @@ module Spec : Sig.Spec = struct
               (List.map
                  (fun ext -> Common.target ~name ("+main." ^ ext))
                  ["cmx"; "o"])
-            ~vars:
-              [
-                Nj.Binding.make Var.includes
-                  (Flags.include_flags ~name include_dirs
-                  @ [Nj.Expr.Word "-w"; Nj.Expr.Word "-24"]);
-              ];
+            ~vars:[Nj.Binding.make Var.tdir !Var.tdir];
         ]
       else []
     in

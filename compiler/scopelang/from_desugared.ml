@@ -85,8 +85,6 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
       let e =
         Expr.elocation (ScopelangScopeVar { name = Mark.copy name st.v }) m
       in
-      Message.debug ">> %a#%a => allow_empty %b" ScopeVar.format
-        (Mark.remove name) StateName.format state st.allow_empty;
       if st.allow_empty then Expr.make_erroronempty e else e)
   | ELocation (ToplevelVar v) -> Expr.elocation (ToplevelVar v) m
   | EDStructAmend { name_opt = Some name; e; fields } ->

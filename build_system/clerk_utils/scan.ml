@@ -144,13 +144,54 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
   in
   { item with has_scope_tests }
 
-let tree (dir : File.t) : (File.t * File.t list * item list) Seq.t =
+let dir d : item list =
+  Sys.readdir d
+  |> Array.to_list
+  |> List.sort File.compare
+  |> List.filter_map
+       File.(
+         fun f ->
+           match get_lang f with
+           | None -> None
+           | Some lang ->
+             if
+               not_hidden f
+               && try not (Sys.is_directory (d / f)) with Sys_error _ -> false
+             then Some (catala_file File.(d / f) lang)
+             else None)
+
+let tree (root : File.t) ?(includes : File.Set.t option) :
+    (File.t * File.t list * item list) Seq.t =
+  let filter_dirs =
+    match includes with
+    | Some inc -> (
+      fun d ->
+        (* we need to keep scanning if any include direcory is below d *)
+        match
+          File.Set.find_first_opt
+            File.(fun d1 -> compare (d1 / "") (d / "") >= 0)
+            inc
+        with
+        | None -> false
+        | Some d1 ->
+          String.starts_with
+            ~prefix:File.(String.lowercase_ascii d / "")
+            File.(String.lowercase_ascii d1 / ""))
+    | None -> File.not_hidden
+  in
   File.scan_tree
     (fun f ->
-      match get_lang f with
-      | None -> None
-      | Some lang -> Some (catala_file f lang))
-    dir
+      if
+        not
+          (match includes with
+          | None -> true
+          | Some inc -> File.(Set.mem (dirname f) inc))
+      then None
+      else
+        match get_lang f with
+        | None -> None
+        | Some lang -> Some (catala_file f lang))
+    ~filter_dirs root
 
 let target_basename t =
   match t.module_def with
@@ -161,3 +202,36 @@ let target_file_name t =
   let open File in
   let dir = if t.is_stdlib then libcatala else File.dirname t.file_name in
   dir / target_basename t
+
+let include_dirs ~config =
+  let open File in
+  let exclude_dirs =
+    String.Set.of_list config.Clerk_cli.file.global.exclude_dirs
+    |> String.Set.add config.Clerk_cli.file.global.build_dir
+    |> String.Set.add config.Clerk_cli.file.global.target_dir
+  in
+  let rec incl (seen, acc) d =
+    if String.Set.mem d seen then seen, acc
+    else
+      let entries = try Sys.readdir d with Sys_error _ -> [||] in
+      let entries = Seq.filter not_hidden (Array.to_seq entries) in
+      let subdirs, files =
+        Seq.partition
+          (fun f -> try Sys.is_directory (d / f) with Sys_error _ -> false)
+          entries
+      in
+      let seen = String.Set.add d seen in
+      let acc =
+        if Seq.exists (fun f -> get_lang f <> None) files then
+          String.Set.add d acc
+        else acc
+      in
+      Seq.fold_left (fun acc2 f -> incl acc2 (d / f)) (seen, acc) subdirs
+  in
+  let _, inc =
+    List.fold_left
+      (fun acc2 d -> incl acc2 d)
+      (exclude_dirs, String.Set.empty)
+      config.file.global.include_dirs
+  in
+  String.Set.elements inc

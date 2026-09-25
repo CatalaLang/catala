@@ -43,7 +43,6 @@ val runtime : string t
 (** {2 Definition spreading different rules} *)
 
 val tdir : string t
-val includes : Expr.t t
 
 (** {2 Rule vars, Used in specific rules} *)
 
@@ -51,7 +50,6 @@ val input : string t
 val output : string t
 val src : string t
 val dst : string t
-val class_path : string t
 val cat_files : string t
 val test_id : string t
 

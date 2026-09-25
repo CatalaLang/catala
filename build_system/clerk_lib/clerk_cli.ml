@@ -77,6 +77,20 @@ let target_dir =
           "Directory where final compilation targets should be written. \
            Defaults to '_target'.")
 
+let scan_dirs =
+  let arg =
+    Arg.(
+      value
+      & opt_all (list ~sep:':' string) []
+      & info ["I"; "include"] ~docv:"DIR"
+          ~doc:
+            "Limit the scan for catala source files to the given directories, \
+             overriding the $(i,include_dirs) field of the \"clerk.toml\" \
+             file. Several dirs can be specified by repeating the flag or \
+             separating them with '$(b,:)'.")
+  in
+  Term.(const List.flatten $ arg)
+
 let include_dirs =
   let arg =
     Arg.(
@@ -583,7 +597,7 @@ let init_term ?(allow_test_flags = false) () =
     $ catala_opts
     $ build_dir
     $ target_dir
-    $ include_dirs
+    $ scan_dirs
     $ vars_override
     $ color
     $ debug
