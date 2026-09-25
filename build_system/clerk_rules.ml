@@ -44,8 +44,8 @@ let base_bindings
     List.concat_map
       (fun bk ->
         let module Backend : Clerk_backend.S = (val Clerk_backend.get bk) in
-        Backend.var_defs ~variables:options.variables ~autotest
-          ~use_default_flags ~test_flags ~include_dirs:includes)
+        Backend.var_defs ~config ~autotest ~use_default_flags ~test_flags
+          ~include_dirs:includes)
       enabled_backends
   in
   default_flags @ backend_flags
@@ -744,23 +744,27 @@ let run_ninja
               let supported =
                 Module_graph.module_backends callback_info mname
               in
-              let missing =
+              let missing_bk, missing =
                 List.fold_left
-                  (fun missing (module Bk : Clerk_backend.S) ->
+                  (fun (missing_bk, missing) (module Bk : Clerk_backend.S) ->
                     if List.mem Bk.T supported then
                       List.fold_right
-                        (fun ext missing ->
-                          let _, missing =
+                        (fun ext (missing_bk, missing) ->
+                          let _, missing1 =
                             Clerk_backend.extern_src
                               ~filename:m.item.Scan.file_name ~name:Bk.name ~ext
                               ~missing
                           in
-                          missing)
-                        Bk.src_extensions missing
-                    else missing)
-                  [] enabled_backends
+                          ( (if missing = missing1 then missing_bk
+                             else Some Bk.name),
+                            missing1 ))
+                        Bk.src_extensions (missing_bk, missing)
+                    else missing_bk, missing)
+                  (None, []) enabled_backends
               in
-              if missing <> [] then
+              match missing_bk with
+              | None -> ()
+              | Some bk ->
                 let modname, pos = Option.get m.item.Scan.module_def in
                 Message.error ~pos
                   "@[<v>@[<hov>Module @{<blue>%s@} is marked as external,@ \
@@ -772,7 +776,7 @@ let run_ninja
                   (Format.pp_print_list
                      ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
                      File.format)
-                  missing mname m.item.Scan.file_name)
+                  missing bk m.item.Scan.file_name)
           callback_info.modules_map
       in
       let ret = callback nin_ppf items_list callback_info in

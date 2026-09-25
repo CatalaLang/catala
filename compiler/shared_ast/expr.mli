@@ -295,13 +295,13 @@ val map :
     AST. For instance, if you want to remove all errors on empty, you can write
 
     {[
-      let remove_error_empty e =
-        let rec f e =
-          match Mark.remove e with
-          | EErrorOnEmpty e1 -> Expr.map ~f e1
-          | _ -> Expr.map ~f e
-        in
-        f e
+    let remove_error_empty e =
+      let rec f e =
+        match Mark.remove e with
+        | EErrorOnEmpty e1 -> Expr.map ~f e1
+        | _ -> Expr.map ~f e
+      in
+      f e
     ]}
 
     This can even be used to translate between different kinds of ASTs: see
@@ -309,9 +309,9 @@ val map :
     this:
 
     {[
-      let rec translate = function
-        | SpecificCase e -> TargetCase (translate e)
-        | (All | Other | Common | Cases) as e -> Expr.map ~f:translate e
+    let rec translate = function
+      | SpecificCase e -> TargetCase (translate e)
+      | (All | Other | Common | Cases) as e -> Expr.map ~f:translate e
     ]}
 
     The [e] parameter passed to [map] here needs to have only the common cases
@@ -343,13 +343,12 @@ val shallow_fold :
     traversal functions. This can be used to compute free variables with e.g.:
 
     {[
-      let rec free_vars = function
-        | EVar v, _ -> Var.Set.singleton v
-        | EAbs { binder; _ }, _ ->
-          let vs, body = Bindlib.unmbind binder in
-          Array.fold_right Var.Set.remove vs (free_vars body)
-        | e ->
-          shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
+    let rec free_vars = function
+      | EVar v, _ -> Var.Set.singleton v
+      | EAbs { binder; _ }, _ ->
+        let vs, body = Bindlib.unmbind binder in
+        Array.fold_right Var.Set.remove vs (free_vars body)
+      | e -> shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
     ]} *)
 
 val map_gather :
@@ -365,11 +364,10 @@ val map_gather :
     Typically used with a set of variables used in the rewrite:
 
     {[
-      let rec rewrite e =
-        match Mark.remove e with
-        | Specific_case -> Var.Set.singleton x, some_rewrite_fun e
-        | _ ->
-          Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union ~f:rewrite e
+    let rec rewrite e =
+      match Mark.remove e with
+      | Specific_case -> Var.Set.singleton x, some_rewrite_fun e
+      | _ -> Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union ~f:rewrite e
     ]}
 
     See [Lcalc.closure_conversion] for a real-world example. *)

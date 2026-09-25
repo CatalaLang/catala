@@ -22,7 +22,7 @@ open Catala_utils
 let def (type a) ~variables (var : a Var.t) (value : string list Lazy.t) :
     Binding.any =
   match List.assoc_opt (Var.name var) variables with
-  | Some vl -> Var.binding_of_words_override var vl
+  | Some vl -> Var.binding_of_words_override var ~default:value vl
   | None -> Var.binding_of_words var (Lazy.force value)
 
 (* stored unquoted: quoting happens at emission *)

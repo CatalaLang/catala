@@ -16,7 +16,6 @@
 
 include Definitions
 module Var = Var
-module Qident = Qident
 module Type = Type
 module Operator = Operator
 module Expr = Expr

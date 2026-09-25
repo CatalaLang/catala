@@ -42,13 +42,12 @@ module Spec : Sig.Spec = struct
   let all_obj_extensions = ["class"]
   let stdlib_subdir = "catala" / "stdlib"
 
-  let var_defs ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
-      =
+  let var_defs ~config ~autotest ~use_default_flags ~test_flags ~include_dirs =
     let catala_flags =
       Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true
     in
-    let def = Flags.def ~variables in
+    let def = Flags.def ~variables:config.Clerk_cli.file.variables in
     [
       def catala_flags_java (lazy catala_flags);
       def java (lazy ["java"]);
@@ -56,7 +55,8 @@ module Spec : Sig.Spec = struct
       def jar (lazy ["jar"]);
       def javac_flags (lazy ["-implicit:none"]);
       Nj.Binding.make class_path
-        (Backend_paths.classpath ~backend:name include_dirs);
+        (Backend_paths.classpath ~backend:name
+           (include_dirs @ config.Clerk_cli.file.backends_conf.java.use_libs));
     ]
 
   let[@ocamlformat "disable"] rules =
@@ -172,7 +172,7 @@ module Spec : Sig.Spec = struct
       config.Clerk_cli.file.global.project_name
       |> Option.value ~default:"default-project"
     in
-    Java_project_file.format_target_pom_xml ~project_name ppf target
+    Java_project_file.format_target_pom_xml ~config ~project_name ppf target
 
   let install_extensions config =
     src_extensions

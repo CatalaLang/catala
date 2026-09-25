@@ -50,9 +50,12 @@ let re_var =
   let open Re in
   seq [str "${"; group (rep1 (diff any (char '}'))); char '}']
 
-type bindings = Nj.Binding.any list
+let get_var_ref s =
+  match Re.exec_opt Re.(compile (whole_string re_var)) s with
+  | Some g -> Some (Re.Group.get g 1)
+  | None -> None
 
-let has_ref = Re.execp (Re.compile re_var)
+type bindings = Nj.Binding.any list
 
 let binding_of_words (type a) (v : a t) (words : string list) : Nj.Binding.any =
   match v with
@@ -62,27 +65,40 @@ let binding_of_words (type a) (v : a t) (words : string list) : Nj.Binding.any =
   | Vector _ ->
     Nj.Binding.make v (List.map (fun w -> Ninja_utils.Expr.Word w) words)
 
-(* border guards: overrides only — authored defaults legitimately contain
-   refs. Refs would expand in direct exec but quote-glue at emission; reject
-   rather than diverge. Composition would need an append form (--vars X+=y),
-   not implemented. *)
-let binding_of_words_override (type a) (v : a t) (words : string list) :
-    Nj.Binding.any =
-  List.iter
-    (fun w ->
-      if has_ref w then
-        Message.error
-          "Invalid word %S in the value of variable @{<blue;bold>$%s@}: \
-           variable references are not supported in overrides"
-          w (name v);
-      if String.contains w '"' then
-        Message.error
-          "Invalid word %S in the value of variable @{<blue;bold>$%s@}: quote \
-           characters are not supported (values are quoted automatically; for \
-           C string macros, prefer an included header)"
-          w (name v))
-    words;
-  binding_of_words v words
+let binding_of_words_override
+    (type a)
+    (v : a t)
+    ~(default : string list Lazy.t)
+    (words : string list) : Nj.Binding.any =
+  let expand_self w =
+    match get_var_ref w with
+    | Some v1 when v1 = name v -> true
+    | Some _ ->
+      Message.error
+        "Invalid word %S in the value of variable @{<blue;bold>$%s@}: variable \
+         references are not supported in overrides"
+        w (name v)
+    | None -> false
+  in
+  match v with
+  | Scalar _ ->
+    let items =
+      List.map
+        (fun w ->
+          if expand_self w then String.concat " " (Lazy.force default) else w)
+        words
+    in
+    Nj.Binding.make v (String.concat " " items)
+  | Vector _ ->
+    let words =
+      List.concat_map
+        (fun w ->
+          if expand_self w then
+            List.map (fun s -> Nj.Expr.Word s) (Lazy.force default)
+          else [Ninja_utils.Expr.Word w])
+        words
+    in
+    Nj.Binding.make v words
 
 let binding_to_words (bnd : Nj.Binding.any) : string list =
   let expr_words e =
@@ -100,17 +116,19 @@ let env_of_bindings bs =
     (fun (Ninja_utils.Binding.Any (v, _) as b) -> name v, binding_to_words b)
     bs
 
-let rec take_binding : type a. bindings -> a t -> bindings * Nj.Expr.t option =
- fun bindings var ->
-  match var, bindings with
-  | _, [] -> [], None
-  | Scalar n1, Nj.Binding.Any (Scalar n2, value) :: r when n1 = n2 ->
-    r, Some [Word value]
-  | Vector n1, Nj.Binding.Any (Vector n2, value) :: r when n1 = n2 ->
-    r, Some value
-  | _, bnd :: r ->
-    let bindings, ret = take_binding r var in
-    bnd :: bindings, ret
+let take_binding bindings var =
+  let rec aux : type a.
+      bindings -> bindings -> a t -> bindings * Nj.Expr.t option =
+   fun acc bindings var ->
+    match var, bindings with
+    | _, [] -> acc, None
+    | Scalar n1, Nj.Binding.Any (Scalar n2, value) :: r when n1 = n2 ->
+      List.rev_append r acc, Some [Word value]
+    | Vector n1, Nj.Binding.Any (Vector n2, value) :: r when n1 = n2 ->
+      List.rev_append r acc, Some value
+    | _, bnd :: r -> aux (bnd :: acc) r var
+  in
+  aux [] (List.rev bindings) var
 
 let rec get : type a. bindings -> a t -> string list =
  fun var_bindings v ->

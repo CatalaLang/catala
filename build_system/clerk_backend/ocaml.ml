@@ -24,46 +24,83 @@ let ocamlc_exe = Var.make_vector "OCAMLC_EXE"
 let ocamlopt_exe = Var.make_vector "OCAMLOPT_EXE"
 let ocaml_flags = Var.make_vector "OCAML_FLAGS"
 let ocaml_include = Var.make_vector "OCAML_INCLUDE"
+let ocaml_link = Var.make_vector "OCAML_LINK"
 
 module OCaml_Flags = struct
-  let ocaml_include_and_lib : (string list * string list) Lazy.t =
-    lazy
-      (let link_libs = ["zarith"] in
-       let includes_libs =
-         List.map
-           (fun lib ->
-             match
-               File.(check_directory (Lazy.force Poll.ocaml_libdir / lib))
-             with
-             | None ->
-               Message.error
-                 "Required OCaml library not found at %a.@ Try `opam install \
-                  %s'"
-                 File.format
-                 File.(Lazy.force Poll.ocaml_libdir / lib)
-                 lib
-             | Some d ->
-               ( ["-I"; d],
-                 String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa" ))
-           link_libs
-       in
-       let includes, libs = List.split includes_libs in
-       List.concat includes, libs)
+  let resolve_libs libs : string list * string list =
+    if libs = [] then [], []
+    else
+      let cmd = "ocamlfind" in
+      let args =
+        "query"
+        :: "-predicates"
+        :: "native"
+        :: "-r"
+        :: "-format"
+        :: "%d\x1f%+a" (* ASCII field separator char *)
+        :: libs
+      in
+      let ans =
+        File.process_out
+          ~check_exit:(function
+            | 0 -> ()
+            | _ ->
+              Message.error
+                "@[<v>@[<hov>Could not locate the required OCaml libraries: \
+                 the command@ @{<magenta>%s@}@ failed.@]@,\
+                 @[<hov>Try `opam install <lib>` ?@]@]"
+                (String.concat " " (cmd :: args)))
+          cmd args
+      in
+      let lines = String.split_on_char '\n' ans in
+      let inc, lib =
+        List.filter_map
+          (fun l ->
+            try
+              let n = String.index l '\x1f' in
+              Some
+                ( ["-I"; String.sub l 0 n],
+                  String.trim (String.sub l (n + 1) (String.length l - n - 1))
+                )
+            with Not_found | Invalid_argument _ -> None)
+          lines
+        |> List.split
+      in
+      List.flatten inc, lib
 
-  let ocaml_link : string list Lazy.t =
-    lazy (snd (Lazy.force ocaml_include_and_lib))
+  let ocaml_include_and_lib () : string list * string list =
+    (* This could be replaced with the more generic function above; however,
+       this is a faster path for simple libs (one dir and cmxa), and doesn't
+       rely on ocamlfind, so it's better to keep it as is for now *)
+    let link_libs = ["zarith"] in
+    let includes_libs =
+      List.map
+        (fun lib ->
+          match File.(check_directory (Lazy.force Poll.ocaml_libdir / lib)) with
+          | None ->
+            Message.error
+              "Required OCaml library not found at %a.@ Try `opam install %s'"
+              File.format
+              File.(Lazy.force Poll.ocaml_libdir / lib)
+              lib
+          | Some d ->
+            ["-I"; d], String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa")
+        link_libs
+    in
+    let includes, libs = List.split includes_libs in
+    List.concat includes, libs
 
-  let ocaml_include_value : string list Lazy.t =
-    lazy (fst (Lazy.force ocaml_include_and_lib))
-
-  let default ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
-      =
+  let default ~config ~autotest ~use_default_flags ~test_flags ~include_dirs =
     let open Flags in
     let catala_flags =
       catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true
     in
-    let def = def ~variables in
+    let base_libs = lazy (ocaml_include_and_lib ()) in
+    let custom_libs =
+      lazy (resolve_libs config.Clerk_cli.file.backends_conf.ocaml.use_libs)
+    in
+    let def = def ~variables:config.file.variables in
     [
       def catala_flags_ocaml (lazy catala_flags);
       def ocamlc_exe (lazy ["ocamlc"]);
@@ -71,9 +108,22 @@ module OCaml_Flags = struct
       def ocaml_flags (lazy ["-w"; "-24"]);
       def ocaml_include
         (lazy
-          (Lazy.force ocaml_include_value
+          (fst (Lazy.force base_libs)
+          @ fst (Lazy.force custom_libs)
           @ Flags.includes ~name include_dirs
           @ ["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]));
+      def ocaml_link
+        (lazy (snd (Lazy.force base_libs) @ snd (Lazy.force custom_libs)));
+      Ninja_utils.Binding.make Var.catala_flags
+        (Ninja_utils.Expr.Splice Var.catala_flags
+        :: List.map
+             (fun l -> Ninja_utils.Expr.Word ("--dynlink=" ^ l))
+             (snd (Lazy.force custom_libs)));
+      Ninja_utils.Binding.make Var.clerk_flags
+        (Ninja_utils.Expr.Splice Var.clerk_flags
+        :: List.map
+             (fun l -> Ninja_utils.Expr.Word ("-c--dynlink=" ^ l))
+             (snd (Lazy.force custom_libs)));
     ]
 end
 
@@ -303,7 +353,9 @@ module Spec : Sig.Spec = struct
         (match config.Clerk_cli.file.global.project_name with
         | None -> ""
         | Some n -> Printf.sprintf "\n (public_name %s.%s)" n target.tname)
-        (String.concat " " (List.map String.to_id target.dependencies))
+        (String.concat " "
+           (config.file.backends_conf.ocaml.use_libs
+           @ List.map String.to_id target.dependencies))
 
   let install_extensions config =
     src_extensions
@@ -363,11 +415,11 @@ module Spec : Sig.Spec = struct
       else [target -.- "cmx"]
     in
     Var.get var_bindings ocamlopt_exe
-    @ List.map (Var.expand var_bindings) (Lazy.force OCaml_Flags.ocaml_link)
-    @ [build_dir / Scan.libcatala / name / "dates_calc.cmx"]
-    @ [build_dir / Scan.libcatala / name / "catala_runtime.cmx"]
     @ Var.get var_bindings ocaml_flags
     @ Var.get var_bindings ocaml_include
+    @ Var.get var_bindings ocaml_link
+    @ [build_dir / Scan.libcatala / name / "dates_calc.cmx"]
+    @ [build_dir / Scan.libcatala / name / "catala_runtime.cmx"]
     @ List.map
         (fun it ->
           let f = Scan.target_file_name it in

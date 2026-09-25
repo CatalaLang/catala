@@ -555,14 +555,14 @@ let rec convert_to_dcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
           (from_info filename start_line start_column end_line end_column)
           law_headings)
       mark
-  | TDefault typ, V (Enum { name = "Optional"; constr }, v) -> begin
-    match constr v with
+  | TDefault typ, V (Enum { name = "Optional"; constr }, v) ->
+    begin match constr v with
     | 0, "Absent", None -> Expr.eempty mark
     | 1, "Present", Some rval -> Expr.epuredefault (f typ rval) mark
     | _ -> assert false
-  end
-  | TOption typ, V (Enum { name = "Optional"; constr }, v) -> begin
-    match constr v with
+    end
+  | TOption typ, V (Enum { name = "Optional"; constr }, v) ->
+    begin match constr v with
     | 0, "Absent", None ->
       Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.none_constr
         ~e:(Expr.elit LUnit mark) mark
@@ -570,7 +570,7 @@ let rec convert_to_dcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
       Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.some_constr
         ~e:(f typ rval) mark
     | _ -> assert false
-  end
+    end
   | TEnum ename, V (Enum { name = _; constr }, v) ->
     let _idx, cstr, v = constr v in
     let cons, typ_v =
@@ -639,8 +639,7 @@ let rec convert_to_lcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
   | TTuple [typ; (TLit TPos, _)], rval ->
     Expr.etuple [f typ rval; Expr.epos Pos.void mark] mark
   | (TDefault typ | TOption typ), V (Enum { name = "Optional"; constr }, v) ->
-    begin
-    match constr v with
+    begin match constr v with
     | 0, "Absent", None ->
       Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.none_constr
         ~e:(Expr.elit LUnit mark) mark
@@ -648,7 +647,7 @@ let rec convert_to_lcalc ctx (mark : 'm mark) (typ : typ) (rval : Val.t) :
       Expr.einj ~name:ConstantNames.option_enum ~cons:ConstantNames.some_constr
         ~e:(f typ rval) mark
     | _ -> assert false
-  end
+    end
   | TEnum ename, V (Enum { name = _; constr }, v) ->
     let _idx, cstr, v = constr v in
     let cons, typ_v =

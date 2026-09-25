@@ -186,13 +186,21 @@ let vars_override =
     & info ["vars"] ~docv:"VAR=VALUE"
         ~doc:
           "Override the given build variable with the given value. Use \
-           $(i,clerk list-vars) to list the available variables.")
+           $(i,clerk list-vars) to list the available variables. The special \
+           value $(b,\\${VAR}) (matching the variable name) can be used to \
+           expand to the previous value of the variable being defined.")
 
-(* Command-line overrides shadow the [variables] table, they don't replace it:
-   both are read with [List.assoc_opt], which takes the first match. *)
 let variable_overrides ~config_vars cli_vars =
-  List.map (fun (var, value) -> var, String.split_on_char ' ' value) cli_vars
-  @ config_vars
+  let expand_default var s =
+    let vref = "${" ^ var ^ "}" in
+    if s = vref then Option.value ~default:[] (List.assoc_opt var config_vars)
+    else [s]
+  in
+  List.map
+    (fun (var, value) ->
+      var, List.concat_map (expand_default var) (String.split_on_spaces value))
+    cli_vars
+  @ List.filter (fun (v, _) -> not (List.mem_assoc v cli_vars)) config_vars
 
 let config_file =
   Arg.(
