@@ -342,7 +342,9 @@ let organise_modules ~config ~var_bindings items =
         ((v :: vs) @ [v])
         (let f = File.(config.file.global.build_dir / "modules.dot") in
          File.with_out_channel f (fun oc -> print_dot oc modmap);
-         fun ppf -> Message.link ~target:(Message.file_url f) () ppf f)
+         fun ppf ->
+           let f = File.make_relative_to ~dir:File.original_cwd f in
+           Message.link ~target:(Message.file_url f) () ppf f)
   in
   check_cycles "targets" target_g;
   check_cycles "modules" module_g;
@@ -480,7 +482,9 @@ let organise_modules ~config ~var_bindings items =
               m
               (let f = File.(config.file.global.build_dir / "modules.dot") in
                File.with_out_channel f (fun oc -> print_dot oc new_modmap);
-               fun ppf -> Message.link ~target:(Message.file_url f) () ppf f)
+               fun ppf ->
+                 let f = File.make_relative_to ~dir:File.original_cwd f in
+                 Message.link ~target:(Message.file_url f) () ppf f)
               (fun ppf ->
                 Message.pp_link ppf
                   ~target:
@@ -518,6 +522,7 @@ let organise_modules ~config ~var_bindings items =
   if Catala_utils.Global.options.debug then (
     let f = File.(config.file.global.build_dir / "modules.dot") in
     File.with_out_channel f (fun oc -> print_dot oc modmap);
+    let f = File.make_relative_to ~dir:File.original_cwd f in
     Message.debug "Module graph available at @{<blue;bold>%a@}"
       (Message.link ~target:(Message.file_url f) ())
       f);

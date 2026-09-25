@@ -88,3 +88,7 @@ val re_split_delim : ?pos:int -> ?len:int -> Re.re -> t -> t list
 
     Note: from Re, but not available before 1.12 -- remove once we update the
     dependency *)
+
+val split_on_spaces : string -> string list
+(** Splits the given string at spaces, handling nested pairs of single or double
+    quotes and their backslash-escapes *)
