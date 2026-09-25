@@ -1,4 +1,4 @@
-(dirs runtimes compiler build_system tests tests-extra stdlib)
+(dirs runtimes compiler build_system tests tests-extra stdlib languages)
 
 (data_only_dirs syntax_highlighting)
 
