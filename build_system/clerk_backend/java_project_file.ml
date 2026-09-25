@@ -33,7 +33,11 @@ let format_dependency ~project_name ppf (dep_name : string) =
     \    </dependency>"
     groupId artifactId version
 
-let format_target_pom_xml ~project_name ppf (target : Clerk_config.target) =
+let format_target_pom_xml
+    ~config
+    ~project_name
+    ppf
+    (target : Clerk_config.target) =
   let open Format in
   let groupId, artifactId, version, src_dir, finalName, include_dir =
     if target.tname = Scan.libcatala then
@@ -63,7 +67,7 @@ let format_target_pom_xml ~project_name ppf (target : Clerk_config.target) =
 |}
         (pp_print_list ~pp_sep:Format.pp_print_newline
            (format_dependency ~project_name))
-        target.dependencies
+        (config.Clerk_cli.file.backends_conf.java.use_libs @ target.dependencies)
   in
   fprintf ppf
     {|<?xml version="1.0" encoding="UTF-8"?>
