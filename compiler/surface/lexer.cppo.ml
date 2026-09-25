@@ -25,7 +25,6 @@ module R = Re.Pcre
    - `MR_*` are sedlex regexps matching the token (inferred from the strings if absent,
      but should be present for any token containing spacing, and for any non-latin1
      character)
-   - `MX_*` are full matching rules of the form `sedlex regexp -> ocaml expression`
 *)
 
 (* Avoid the need for defining the regexps when they are simple strings *)
@@ -230,11 +229,11 @@ module R = Re.Pcre
 #ifndef MR_INITIALLY
   #define MR_INITIALLY MS_INITIALLY
 #endif
-#ifndef MR_Impossible
-  #define MR_Impossible MS_Impossible
+#ifndef MR_IMPOSSIBLE
+  #define MR_IMPOSSIBLE MS_IMPOSSIBLE
 #endif
-#ifndef MR_Cardinal
-  #define MR_Cardinal MS_Cardinal
+#ifndef MR_CARDINAL
+  #define MR_CARDINAL MS_CARDINAL
 #endif
 #ifndef MR_YEAR
   #define MR_YEAR MS_YEAR
@@ -251,8 +250,8 @@ module R = Re.Pcre
 #ifndef MR_FALSE
   #define MR_FALSE MS_FALSE
 #endif
-#ifndef MR_Round
-  #define MR_Round MS_Round
+#ifndef MR_ROUND
+  #define MR_ROUND MS_ROUND
 #endif
 #ifndef MR_INPUT
   #define MR_INPUT MS_INPUT
@@ -351,9 +350,9 @@ let token_list : (string * token) list =
 let lex_builtin (s : string) : Ast.builtin_expression option =
   let lexbuf = Utf8.from_string s in
   match%sedlex lexbuf with
-  | MR_Impossible, eof -> Some Impossible
-  | MR_Cardinal, eof -> Some Cardinal
-  | MR_Round, eof -> Some Round
+  | MR_IMPOSSIBLE, eof -> Some Impossible
+  | MR_CARDINAL, eof -> Some Cardinal
+  | MR_ROUND, eof -> Some Round
   | MR_INTEGER, eof -> Some ToInteger
   | MR_DECIMAL, eof -> Some ToDecimal
   | MR_MONEY, eof -> Some ToMoney

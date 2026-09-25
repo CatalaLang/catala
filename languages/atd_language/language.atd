@@ -1,0 +1,122 @@
+type tokens = {
+  all : string;
+  among : string;
+  and_ <json name="and"> : string;
+  and_then : string;
+  assertion : string;
+  but_replace : string;
+  combine : string;
+  condition : string;
+  consequence : string;
+  contains : string;
+  content : string;
+  context : string;
+  data : string;
+  day : string;
+  declaration : string;
+  decreasing : string;
+  defined_as : string;
+  definition : string;
+  depends : string;
+  else_ <json name="else"> : string;
+  enum : string;
+  exception_ <json name="exception"> : string;
+  exists : string;
+  false_ <json name="false"> : string;
+  filled : string;
+  for_ <json name="for"> : string;
+  if_ <json name="if"> : string;
+  in_ <json name="in"> : string;
+  increasing : string;
+  initially : string;
+  input : string;
+  internal : string;
+  is : string;
+  label : string;
+  let_ <json name="let"> : string;
+  list : string;
+  map_each : string;
+  match_ <json name="match"> : string;
+  maximum : string;
+  minimum : string;
+  month : string;
+  not_ <json name="not"> : string;
+  of_ <json name="of"> : string;
+  option : string;
+  or_ <json name="or"> : string;
+  or_if_list_empty : string;
+  order_ascending : string;
+  order_descending : string;
+  output : string;
+  rule : string;
+  scope : string;
+  sort : string;
+  state : string;
+  struct_ <json name="struct"> : string;
+  such : string;
+  sum : string;
+  that : string;
+  then_ <json name="then"> : string;
+  to_ <json name="to"> : string;
+  true_ <json name="true"> : string;
+  type_ <json name="type"> : string;
+  under_condition : string;
+  we_have : string;
+  wildcard : string;
+  with_ <json name="with"> : string;
+  with_v : string;
+  xor : string;
+  year : string;
+}
+
+type specific_delimiters = {
+  decimal_separator : string;
+  money_delim : string;
+  money_op_suffix : string;
+  money_prefix : string;
+  money_suffix : string;
+}
+
+type types = {
+  boolean : string;
+  date : string;
+  decimal : string;
+  duration : string;
+  integer : string;
+  money : string;
+  position : string;
+}
+
+type optionals = {
+  present : string;
+  absent : string;
+}
+
+type functions = {
+  round : string;
+  impossible : string;
+  cardinal : string;
+}
+
+type builtins = {
+  types : types;
+  optionals : optionals;
+  functions : functions ;
+}
+
+type directives = {
+  external_ <json name="external">  : string;
+  law_include : string;
+  module_alias : string;
+  module_def : string;
+  module_use : string;
+}
+
+type language = {
+  lang_name : string;
+  file_ext_suffix: string;
+  tokens : tokens;
+  specific_delimiters : specific_delimiters;
+  builtins : builtins;
+  directives : directives;
+}

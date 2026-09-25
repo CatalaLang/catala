@@ -92,3 +92,17 @@
  (alias create-parser-messages)
  (action
   (diff parser.messages parser.messages.new)))
+
+(rule
+ (mode promote)
+ (action
+  (with-stdout-to
+    lexer_en.cppo.ml
+   (run %{exe:../../languages/atd_language/macro_lang_gen.exe} %{dep:../../languages/english.json}))))
+
+(rule
+ (mode promote)
+ (action
+  (with-stdout-to
+    lexer_fr.cppo.ml
+   (run %{exe:../../languages/atd_language/macro_lang_gen.exe} %{dep:../../languages/french.json}))))

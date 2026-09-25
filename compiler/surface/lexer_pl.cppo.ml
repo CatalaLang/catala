@@ -136,11 +136,11 @@
 
 (* Builtin functions *)
 
-#define MS_Round "zaokrąglony"
-#define MR_Round "zaokr", 0x0105, "glony"
-#define MS_Impossible "niemożliwe"
-#define MR_Impossible "niemo", 0x017C, "liwe"
-#define MS_Cardinal "liczba"
+#define MS_ROUND "zaokrąglony"
+#define MR_ROUND "zaokr", 0x0105, "glony"
+#define MS_IMPOSSIBLE "niemożliwe"
+#define MR_IMPOSSIBLE "niemo", 0x017C, "liwe"
+#define MS_CARDINAL "liczba"
 
 
 (* Directives *)
