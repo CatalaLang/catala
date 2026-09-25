@@ -13,3 +13,7 @@ in behavior visible for the end-users of the tooling.
   in the Java generation: generated class names could clash in some
   situations, maven groupId was based on verbatim clerk project's name
   which could be syntactically invalid.
+
+* [#1113](https://github.com/CatalaLang/catala/pull/1113) Add the
+  `use_libraries` field to `clerk.toml`, allowing external modules to rely on
+  external backend-specific libraries.

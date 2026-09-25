@@ -22,6 +22,25 @@ let catala_flags_c = Var.make_vector "CATALA_FLAGS_C"
 let cc_exe = Var.make_scalar "CC"
 let c_flags = Var.make_vector "CFLAGS"
 let c_include = Var.make_vector "C_INCLUDE_FLAGS"
+let c_link = Var.make_vector "C_LINK_FLAGS"
+
+let resolve_libs libs : string list * string list =
+  if libs = [] then [], []
+  else
+    let process_out cmd args =
+      File.process_out cmd args ~check_exit:(function
+        | 0 -> ()
+        | _ ->
+          Message.error
+            "@[<v>@[<hov>Could not locate the required C libraries: the \
+             command@ @{<magenta>%s@}@ failed.@]@,\
+             @[<hov>Check that they are installed on the system ?@]@]"
+            (String.concat " " (cmd :: args)))
+      |> String.trim
+    in
+    let cflags = process_out "pkg-config" ("--cflags" :: libs) in
+    let link = process_out "pkg-config" ("--libs" :: libs) in
+    Clerk_cli.split_on_spaces cflags, Clerk_cli.split_on_spaces link
 
 module Spec : Sig.Spec = struct
   open Var
@@ -47,6 +66,9 @@ module Spec : Sig.Spec = struct
       catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:false ~trace
     in
+    let custom_libs =
+      lazy (resolve_libs config.Clerk_cli.file.backends_conf.c.use_libs)
+    in
     let def v x = Var.def ~overrides:config.Clerk_cli.file.variables v x in
     let word w = Ninja_utils.Expr.Word w in
     [
@@ -55,21 +77,23 @@ module Spec : Sig.Spec = struct
       def c_flags
         (lazy
           (List.map word
-             [
-               "-std=c89";
-               "-pedantic";
-               "-Wall";
-               "-Wno-unused-function";
-               "-Wno-unused-variable";
-               "-Wno-unused-but-set-variable";
-               "-Werror";
-               "-fPIC";
-               "-g";
-             ]));
+             ([
+                "-std=c89";
+                "-pedantic";
+                "-Wall";
+                "-Wno-unused-function";
+                "-Wno-unused-variable";
+                "-Wno-unused-but-set-variable";
+                "-Werror";
+                "-fPIC";
+                "-g";
+              ]
+             @ fst (Lazy.force custom_libs))));
       def c_include
         (lazy
           ([word "-I"; word File.(Var.(!builddir) / Scan.libcatala / name)]
           @ List.map word (Flags.includes ~name include_dirs)));
+      def c_link (lazy (List.map word (snd (Lazy.force custom_libs))));
     ]
 
   let[@ocamlformat "disable"] rules =
@@ -275,11 +299,15 @@ module Spec : Sig.Spec = struct
     Printf.fprintf oc "CLERK_TARGETS =";
     List.iter (Printf.fprintf oc " %s") tgs;
     Printf.fprintf oc "\n";
+    output_string oc "INCLUDE = $(CLERK_TARGETS:%=-I%)\n";
+    Printf.fprintf oc "CFLAGS = $(INCLUDE) %s\n"
+      (String.concat " "
+         (List.map String.quote (Var.get info.var_bindings c_flags)));
+    Printf.fprintf oc "LDLIBS = %s -lgmp\n"
+      (String.concat " "
+         (List.map String.quote (Var.get info.var_bindings c_link)));
     output_string oc
       {make|
-INCLUDE = $(CLERK_TARGETS:%=-I%)
-CFLAGS = -fPIC $(INCLUDE)
-LDLIBS = -lgmp
 
 all: $(CLERK_TARGETS:=.so)
 
@@ -318,6 +346,7 @@ include $(CLERK_TARGETS:=/make.deps)
           (build_dir / dirname f / "c" / basename f) ^ ".o")
         (link_deps item)
     @ ["-lgmp"]
+    @ Var.get var_bindings c_link
     @ target_objs
     @ Var.get var_bindings c_flags
     @ (if Sys.win32 then
