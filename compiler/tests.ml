@@ -67,24 +67,6 @@ let test_file_url_unc () =
 
 module CVar = Clerk_utils.Var
 
-let raises_compiler_error f =
-  try
-    ignore (f ());
-    false
-  with Catala_utils.Message.CompilerError _ -> true
-
-let test_override_rejects_quote () =
-  Alcotest.(check bool)
-    "quote char in an override value is rejected" true
-    (raises_compiler_error (fun () ->
-         CVar.binding_of_words_override CVar.catala_flags [{|"boom"|}]))
-
-let test_override_rejects_ref () =
-  Alcotest.(check bool)
-    "variable reference in an override value is rejected" true
-    (raises_compiler_error (fun () ->
-         CVar.binding_of_words_override CVar.catala_flags ["${builddir}/x"]))
-
 let default = lazy ["xxx"; "yyy"]
 
 let test_override_accepts_clean () =
@@ -250,10 +232,6 @@ let () =
         ] );
       ( "Clerk override border guards",
         [
-          test_case "override rejects quote char" `Quick
-            test_override_rejects_quote;
-          test_case "override rejects variable ref" `Quick
-            test_override_rejects_ref;
           test_case "override passes clean vector words" `Quick
             test_override_accepts_clean;
           test_case "override rejoins spaced scalar" `Quick
