@@ -150,8 +150,3 @@
 #define MR_MODULE_USE "Using"
 #define MR_MODULE_ALIAS "as"
 #define MR_EXTERNAL "external"
-#define MX_AT_PAGE \
-   '@', Star hspace, "p.", Star hspace, Plus digit -> \
-      let s = Utf8.lexeme lexbuf in \
-      let i = String.index s '.' in \
-      AT_PAGE (int_of_string (String.trim (String.sub s i (String.length s - i))))
