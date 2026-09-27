@@ -1,4 +1,4 @@
-type tokens = {
+type keywords = {
   all : string;
   among : string;
   and_ <json name="and"> : string;
@@ -69,12 +69,13 @@ type tokens = {
   year : string;
 }
 
+type money_unit_position = [ Left <json name="left"> | Right <json name="right"> ]
+
 type specific_delimiters = {
   decimal_separator : string;
+  money_unit : string;
+  money_unit_position : money_unit_position;
   money_delim : string;
-  money_op_suffix : string;
-  money_prefix : string;
-  money_suffix : string;
 }
 
 type types = {
@@ -115,7 +116,7 @@ type directives = {
 type language = {
   lang_name : string;
   file_ext_suffix: string;
-  tokens : tokens;
+  keywords : keywords;
   specific_delimiters : specific_delimiters;
   builtins : builtins;
   directives : directives;

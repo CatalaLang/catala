@@ -2,7 +2,7 @@
 
 (* Defining the lexer macros for french *)
 
-(* Tokens *)
+(* Keywords *)
 
 #define MS_ALL "tout"
 #define MS_AMONG "parmi"

@@ -1,7 +1,7 @@
 {
     "lang_name": "english",
     "file_ext_suffix": "en",
-    "tokens": {
+    "keywords": {
         "scope": "scope",
         "consequence": "consequence",
         "data": "data",
@@ -72,11 +72,10 @@
         "internal": "internal"
     },
     "specific_delimiters": {
-        "money_op_suffix": "$",
         "decimal_separator": ".",
-        "money_prefix": "$",
-        "money_delim": ",",
-        "money_suffix": ""
+        "money_unit": "$",
+        "money_unit_position": "left",
+        "money_delim": ","
     },
     "builtins": {
         "types":{

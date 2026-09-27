@@ -7,7 +7,8 @@
    ((pps sedlex.ppx)
     lexer_en
     lexer_fr
-    lexer_pl))))
+    lexer_pl)))
+)
 
 (rule
  (copy ast.mli ast.ml))
@@ -96,13 +97,10 @@
 (rule
  (mode promote)
  (action
-  (with-stdout-to
-    lexer_en.cppo.ml
-   (run %{exe:../../languages/atd_language/macro_lang_gen.exe} %{dep:../../languages/english.json}))))
-
-(rule
- (mode promote)
- (action
-  (with-stdout-to
-    lexer_fr.cppo.ml
-   (run %{exe:../../languages/atd_language/macro_lang_gen.exe} %{dep:../../languages/french.json}))))
+  (progn
+   (with-stdout-to
+     lexer_en.cppo.ml
+    (run %{exe:../../languages/gen/macros.exe} %{dep:../../languages/english.json}))
+   (with-stdout-to
+     lexer_fr.cppo.ml
+    (run %{exe:../../languages/gen/macros.exe} %{dep:../../languages/french.json})))))

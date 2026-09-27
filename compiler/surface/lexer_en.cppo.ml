@@ -2,7 +2,7 @@
 
 (* Defining the lexer macros for english *)
 
-(* Tokens *)
+(* Keywords *)
 
 #define MS_ALL "all"
 #define MS_AMONG "among"

@@ -51,7 +51,7 @@ let format_regexp ppf re =
 let format_regexp_macro ppf (tok_name, re) =
   Format.fprintf ppf "@[<h>#define MR_%s %a@]" tok_name format_regexp re
 
-let format_token_macro ppf (tok_name, s) =
+let format_macro ppf (tok_name, s) =
   let r = string_to_regexp s in
   Format.fprintf ppf "@[<h>#define MS_%s \"%s\"@]" tok_name s;
   match r with
@@ -70,82 +70,82 @@ let format_lang_macro_file ppf (language : Language_t.language) =
   dl ();
   fprintf ppf {|(* Defining the lexer macros for %s *)|} language.lang_name;
   dl ();
-  fprintf ppf {|(* Tokens *)|};
+  fprintf ppf {|(* Keywords *)|};
   dl ();
   let lp =
-    let toks = language.tokens in
+    let kwds = language.keywords in
     [
-      "ALL", toks.all;
-      "AMONG", toks.among;
-      "AND", toks.and_;
-      "AND_THEN", toks.and_then;
-      "ASSERTION", toks.assertion;
-      "BUT_REPLACE", toks.but_replace;
-      "COMBINE", toks.combine;
-      "CONDITION", toks.condition;
-      "CONSEQUENCE", toks.consequence;
-      "CONTAINS", toks.contains;
-      "CONTENT", toks.content;
-      "CONTEXT", toks.context;
-      "DATA", toks.data;
-      "DAY", toks.day;
-      "DECLARATION", toks.declaration;
-      "DECREASING", toks.decreasing;
-      "DEFINED_AS", toks.defined_as;
-      "DEFINITION", toks.definition;
-      "DEPENDS", toks.depends;
-      "ELSE", toks.else_;
-      "ENUM", toks.enum;
-      "EXCEPTION", toks.exception_;
-      "EXISTS", toks.exists;
-      "FALSE", toks.false_;
-      "FILLED", toks.filled;
-      "FOR", toks.for_;
-      "IF", toks.if_;
-      "IN", toks.in_;
-      "INCREASING", toks.increasing;
-      "INITIALLY", toks.initially;
-      "INPUT", toks.input;
-      "INTERNAL", toks.internal;
-      "IS", toks.is;
-      "LABEL", toks.label;
-      "LET", toks.let_;
-      "LIST", toks.list;
-      "MAP_EACH", toks.map_each;
-      "MATCH", toks.match_;
-      "MAXIMUM", toks.maximum;
-      "MINIMUM", toks.minimum;
-      "MONTH", toks.month;
-      "NOT", toks.not_;
-      "OF", toks.of_;
-      "OPTION", toks.option;
-      "OR", toks.or_;
-      "OR_IF_LIST_EMPTY", toks.or_if_list_empty;
-      "ORDER_ASCENDING", toks.order_ascending;
-      "ORDER_DESCENDING", toks.order_descending;
-      "OUTPUT", toks.output;
-      "RULE", toks.rule;
-      "SCOPE", toks.scope;
-      "SORT", toks.sort;
-      "STATE", toks.state;
-      "STRUCT", toks.struct_;
-      "SUCH", toks.such;
-      "SUM", toks.sum;
-      "THAT", toks.that;
-      "THEN", toks.then_;
-      "TO", toks.to_;
-      "TRUE", toks.true_;
-      "TYPE", toks.type_;
-      "UNDER_CONDITION", toks.under_condition;
-      "WE_HAVE", toks.we_have;
-      "WILDCARD", toks.wildcard;
-      "WITH", toks.with_;
-      "WITH_V", toks.with_v;
-      "XOR", toks.xor;
-      "YEAR", toks.year;
+      "ALL", kwds.all;
+      "AMONG", kwds.among;
+      "AND", kwds.and_;
+      "AND_THEN", kwds.and_then;
+      "ASSERTION", kwds.assertion;
+      "BUT_REPLACE", kwds.but_replace;
+      "COMBINE", kwds.combine;
+      "CONDITION", kwds.condition;
+      "CONSEQUENCE", kwds.consequence;
+      "CONTAINS", kwds.contains;
+      "CONTENT", kwds.content;
+      "CONTEXT", kwds.context;
+      "DATA", kwds.data;
+      "DAY", kwds.day;
+      "DECLARATION", kwds.declaration;
+      "DECREASING", kwds.decreasing;
+      "DEFINED_AS", kwds.defined_as;
+      "DEFINITION", kwds.definition;
+      "DEPENDS", kwds.depends;
+      "ELSE", kwds.else_;
+      "ENUM", kwds.enum;
+      "EXCEPTION", kwds.exception_;
+      "EXISTS", kwds.exists;
+      "FALSE", kwds.false_;
+      "FILLED", kwds.filled;
+      "FOR", kwds.for_;
+      "IF", kwds.if_;
+      "IN", kwds.in_;
+      "INCREASING", kwds.increasing;
+      "INITIALLY", kwds.initially;
+      "INPUT", kwds.input;
+      "INTERNAL", kwds.internal;
+      "IS", kwds.is;
+      "LABEL", kwds.label;
+      "LET", kwds.let_;
+      "LIST", kwds.list;
+      "MAP_EACH", kwds.map_each;
+      "MATCH", kwds.match_;
+      "MAXIMUM", kwds.maximum;
+      "MINIMUM", kwds.minimum;
+      "MONTH", kwds.month;
+      "NOT", kwds.not_;
+      "OF", kwds.of_;
+      "OPTION", kwds.option;
+      "OR", kwds.or_;
+      "OR_IF_LIST_EMPTY", kwds.or_if_list_empty;
+      "ORDER_ASCENDING", kwds.order_ascending;
+      "ORDER_DESCENDING", kwds.order_descending;
+      "OUTPUT", kwds.output;
+      "RULE", kwds.rule;
+      "SCOPE", kwds.scope;
+      "SORT", kwds.sort;
+      "STATE", kwds.state;
+      "STRUCT", kwds.struct_;
+      "SUCH", kwds.such;
+      "SUM", kwds.sum;
+      "THAT", kwds.that;
+      "THEN", kwds.then_;
+      "TO", kwds.to_;
+      "TRUE", kwds.true_;
+      "TYPE", kwds.type_;
+      "UNDER_CONDITION", kwds.under_condition;
+      "WE_HAVE", kwds.we_have;
+      "WILDCARD", kwds.wildcard;
+      "WITH", kwds.with_;
+      "WITH_V", kwds.with_v;
+      "XOR", kwds.xor;
+      "YEAR", kwds.year;
     ]
   in
-  (pp_print_list ~pp_sep:pp_print_newline format_token_macro) ppf lp;
+  (pp_print_list ~pp_sep:pp_print_newline format_macro) ppf lp;
   dl ();
   fprintf ppf {|(* Specific delimiters *)|};
   dl ();
@@ -154,17 +154,19 @@ let format_lang_macro_file ppf (language : Language_t.language) =
   pp_print_newline ppf ();
   fprintf ppf "#define MR_MONEY_DELIM '%c'" sd.money_delim.[0];
   pp_print_newline ppf ();
-  format_token_macro ppf ("MONEY_OP_SUFFIX", sd.money_op_suffix);
+  format_macro ppf ("MONEY_OP_SUFFIX", sd.money_unit);
   pp_print_newline ppf ();
-  if sd.money_prefix = "" then fprintf ppf "#define MR_MONEY_PREFIX \"\""
+  if sd.money_unit_position = `Right then
+    fprintf ppf "#define MR_MONEY_PREFIX \"\""
   else
     fprintf ppf "#define MR_MONEY_PREFIX %a, Star hspace" format_regexp
-      (string_to_regexp sd.money_prefix);
+      (string_to_regexp sd.money_unit);
   pp_print_newline ppf ();
-  if sd.money_suffix = "" then fprintf ppf "#define MR_MONEY_SUFFIX \"\""
+  if sd.money_unit_position = `Left then
+    fprintf ppf "#define MR_MONEY_SUFFIX \"\""
   else
     fprintf ppf "#define MR_MONEY_SUFFIX Star hspace, %a" format_regexp
-      (string_to_regexp sd.money_suffix);
+      (string_to_regexp sd.money_unit);
   dl ();
   fprintf ppf {|(* Builtins *)|};
   dl ();
@@ -187,7 +189,7 @@ let format_lang_macro_file ppf (language : Language_t.language) =
       "CARDINAL", f.cardinal;
     ]
   in
-  (pp_print_list ~pp_sep:pp_print_newline format_token_macro) ppf bt;
+  (pp_print_list ~pp_sep:pp_print_newline format_macro) ppf bt;
   dl ();
   fprintf ppf {|(* Directives *)|};
   dl ();
@@ -210,4 +212,4 @@ let () =
   let lang =
     Lexing.from_string c |> Language_j.read_language (Yojson.init_lexer ())
   in
-  Format.printf "%a" format_lang_macro_file lang
+  format_lang_macro_file Format.std_formatter lang

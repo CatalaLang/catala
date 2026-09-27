@@ -17,8 +17,3 @@
  (wrapped false)
  (libraries catala_utils shared_ast atdgen-runtime)
 )
-
-(executable
- (name macro_lang_gen)
- (modules macro_lang_gen)
- (libraries catala_utils shared_ast sedlex atd_language))

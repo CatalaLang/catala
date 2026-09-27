@@ -1,7 +1,7 @@
 {
     "lang_name": "french",
     "file_ext_suffix": "fr",
-    "tokens": {
+    "keywords": {
         "scope": "champ d'application",
         "consequence": "conséquence",
         "data": "donnée",
@@ -72,11 +72,10 @@
         "internal": "interne"
     },
     "specific_delimiters": {
-        "money_op_suffix": "€",
         "decimal_separator": ",",
-        "money_prefix": "",
-        "money_delim": " ",
-        "money_suffix": "€"
+        "money_unit": "€",
+        "money_unit_position": "right",
+        "money_delim": " "
     },
     "builtins": {
         "types":{
