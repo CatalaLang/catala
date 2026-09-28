@@ -103,4 +103,7 @@
     (run %{exe:../../languages/gen/macros.exe} %{dep:../../languages/english.json}))
    (with-stdout-to
      lexer_fr.cppo.ml
-    (run %{exe:../../languages/gen/macros.exe} %{dep:../../languages/french.json})))))
+    (run %{exe:../../languages/gen/macros.exe} %{dep:../../languages/french.json}))
+   (with-stdout-to
+     lexer_pl.cppo.ml
+    (run %{exe:../../languages/gen/macros.exe} %{dep:../../languages/polish.json})))))
