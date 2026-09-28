@@ -22,25 +22,30 @@ module Nj = Ninja_utils
 (**{1 Building rules}*)
 
 let base_bindings
+    ~config
+    ?(includes = Scan.include_dirs ~config)
     ~code_coverage
     ~trace
     ~autotest
     ~enabled_backends
     ~inplace
-    ~config =
+    () =
+  Message.debug "Resolved include dirs: %a"
+    (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
+    includes;
   let options = config.Clerk_cli.file in
   let test_flags = config.Clerk_cli.test_flags in
   let use_default_flags = test_flags = [] && options.global.catala_opts = [] in
   let default_flags =
     Clerk_backend.default_flags ~code_coverage ~trace ~inplace ~config
+      ~include_dirs:includes
   in
   let backend_flags =
     List.concat_map
       (fun bk ->
         let module Backend : Clerk_backend.S = (val Clerk_backend.get bk) in
         Backend.var_defs ~variables:options.variables ~autotest
-          ~use_default_flags ~test_flags
-          ~include_dirs:options.global.include_dirs)
+          ~use_default_flags ~test_flags ~include_dirs:includes)
       enabled_backends
   in
   default_flags @ backend_flags
@@ -86,11 +91,9 @@ let static_base_rules ~tests enabled_backends =
   Clerk_backend.static_base_rules @ backend_static_rules @ test_rules
 
 let gen_build_statements
-    (include_dirs : string list)
     ~(tests : bool)
     (enabled_backends : (module Clerk_backend.S) list)
     (autotest : bool)
-    (same_dir_modules : (string * File.t) list)
     ~is_stdlib
     (item : Scan.item) : Nj.ninja =
   let open File in
@@ -116,11 +119,7 @@ let gen_build_statements
              else Word (!Var.builddir / f))
            item.included_files
         @ List.map
-            (fun m ->
-              try
-                Nj.Expr.Word
-                  (!Var.tdir / basename (List.assoc m same_dir_modules))
-              with Not_found -> Nj.Expr.Word ("@catala/src/" ^ String.to_id m))
+            (fun m -> Nj.Expr.Word ("@catala/src/" ^ String.to_id m))
             modules)
       ~outputs:[catala_src]
   in
@@ -156,8 +155,7 @@ let gen_build_statements
   in
   let backend_objects =
     List.map
-      (fun (module Backend : Clerk_backend.S) ->
-        Backend.build_object ~include_dirs ~same_dir_modules item)
+      (fun (module Backend : Clerk_backend.S) -> Backend.build_object item)
       enabled_backends
   in
   let phony_targets =
@@ -258,19 +256,10 @@ let gen_build_statements
 let gen_build_statements_dir
     ~is_stdlib
     (dir : string)
-    (include_dirs : string list)
     ~(tests : bool)
     (enabled_backends : (module Clerk_backend.S) list)
     (autotest : bool)
     (items : Scan.item list) : Nj.ninja =
-  let same_dir_modules =
-    List.filter_map
-      (fun item ->
-        Option.map
-          (fun name -> Mark.remove name, item.Scan.file_name)
-          item.Scan.module_def)
-      items
-  in
   let check_conflicts seen item =
     let fname = item.Scan.file_name in
     let s = Scan.target_file_name item in
@@ -295,8 +284,7 @@ let gen_build_statements_dir
   @@ Seq.cons (Nj.comment "")
   @@ Seq.cons (Nj.binding (Nj.Binding.make Var.tdir (!Var.builddir / dir)))
   @@ Seq.flat_map
-       (gen_build_statements ~tests ~is_stdlib include_dirs enabled_backends
-          autotest same_dir_modules)
+       (gen_build_statements ~tests ~is_stdlib enabled_backends autotest)
        (List.to_seq items)
 
 let dir_test_rules dir subdirs items =
@@ -356,7 +344,7 @@ let output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings =
 
 let output_ninja_file_item_statements
     nin_ppf
-    ~config
+    ~config:_
     ~tests
     ~enabled_backends
     ~autotest
@@ -367,9 +355,8 @@ let output_ninja_file_item_statements
     match seq () with
     | Seq.Cons ((dir, subdirs, items), seq) ->
       Nj.format nin_ppf
-      @@ gen_build_statements_dir dir ~is_stdlib ~tests
-           config.Clerk_cli.file.global.include_dirs enabled_backends autotest
-           items;
+      @@ gen_build_statements_dir dir ~is_stdlib ~tests enabled_backends
+           autotest items;
       if (not is_stdlib) && tests then
         Nj.format nin_ppf @@ dir_test_rules dir subdirs items;
       Seq.append (List.to_seq items) (print_and_get_items seq) ()
@@ -400,7 +387,7 @@ let output_ninja_file
       Seq.Nil)
   @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~enabled_backends
        ~autotest ~is_stdlib:false project_tree
-  @@ fun () -> Seq.Nil
+  @@ Seq.empty
 
 (** {1 Driver} *)
 
@@ -565,11 +552,13 @@ let with_ninja_process
 
 let scan_stdlib_items () =
   let stdlib_dir = Lazy.force Poll.stdlib_dir in
-  Seq.memoize (Scan.tree stdlib_dir)
+  Seq.cons (stdlib_dir, [], Scan.dir stdlib_dir) Seq.empty
 
-let scan_project_items ~cleanup ~config =
+let scan_project_items ~cleanup ~config ~includes =
   let insource = Lazy.force Poll.catala_source_tree_root <> None in
-  let item_tree = Scan.tree Filename.current_dir_name in
+  let item_tree =
+    Scan.tree ~includes:(File.Set.of_list includes) Filename.current_dir_name
+  in
   let item_tree =
     (* Cleanup leftover source files in _build when we scan the
        corresponding directory in the source tree *)
@@ -649,9 +638,10 @@ let run_ninja
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
+  let includes = Scan.include_dirs ~config in
   let var_bindings =
     base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
-      ~inplace:false
+      ~inplace:false ~includes ()
   in
   let known =
     let var_bindings = Var.env_of_bindings var_bindings in
@@ -679,7 +669,7 @@ let run_ninja
       let stdlib_tree = scan_stdlib_items () in
       let item_tree =
         if skip_project_scan then Seq.empty
-        else scan_project_items ~cleanup:true ~config
+        else scan_project_items ~cleanup:true ~config ~includes
       in
       let items =
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
@@ -790,13 +780,14 @@ let run_ninja
       ret)
 
 let scan_project ~config =
+  let includes = Scan.include_dirs ~config in
   let var_bindings =
     base_bindings ~code_coverage:false ~trace:false ~autotest:false
-      ~enabled_backends:[] ~inplace:true ~config
+      ~enabled_backends:[] ~inplace:true ~config ~includes ()
   in
   let items =
     scan_stdlib_items ()
-    |> Seq.append (scan_project_items ~cleanup:false ~config)
+    |> Seq.append (scan_project_items ~cleanup:false ~config ~includes)
     |> Seq.flat_map (fun (_, _, it) -> List.to_seq it)
   in
   let info = Module_graph.organise_modules ~config ~var_bindings items in

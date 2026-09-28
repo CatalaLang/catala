@@ -409,7 +409,17 @@ let sort_user_target_args
                 others )
             | None -> modules, item :: source_files, others
           with Not_found ->
-            Message.error "Source file %a not found" File.format arg)
+            Message.error "@[<v>@[<hov>Source file@ %a@ not@ found%t"
+              File.format arg (fun ppf ->
+                if File.check_file arg = None then Format.fprintf ppf "@]@]"
+                else
+                  Format.fprintf ppf
+                    ".@]@,\
+                     @[<hov>The file was excluded from the project scope@ by@ \
+                     the@ values@ configured@ for@ @{<yellow>include_dirs@}@ \
+                     and@ @{<yellow>exclude_dirs@} ;@ You can retry with@ \
+                     @{<yellow>-I \"%s\"@}@ to@ temporarily@ include@ it.@]@]"
+                    (File.dirname arg)))
       (modules, [], []) others
   in
   let direct_targets =
@@ -919,10 +929,7 @@ let run_targets
           | Some scope -> [Printf.sprintf "--scope=%s" scope])
         @ (match scope_input with
           | None -> []
-          | Some input ->
-            [
-              Printf.sprintf "--input=%s" (Yojson.Safe.to_string ~std:true input);
-            ])
+          | Some input -> [Printf.sprintf "--input=%s" input])
         @ (if whole_program then ["--whole-program"] else [])
         @ (match trace with
           | None -> []
@@ -1672,7 +1679,7 @@ let list_vars_cmd =
   let run config =
     let var_bindings =
       Var.env_of_bindings
-        (Clerk_rules.base_bindings ~autotest:false ~trace:false
+        (Clerk_rules.base_bindings () ~autotest:false ~trace:false
            ~code_coverage:false
            ~enabled_backends:
              (List.map snd (Clerk_config.registered_backends ()))
@@ -1707,7 +1714,7 @@ let list_vars_cmd =
 let json_schema_cmd =
   let run config file scope =
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+      Clerk_rules.base_bindings () ~autotest:false ~code_coverage:false
         ~trace:false ~enabled_backends:[] ~config ~inplace:true
     in
     let catala_exe = Var.get var_bindings Var.catala_exe in
@@ -1735,7 +1742,7 @@ let exceptions_cmd =
        artifacts required. Bypass ninja and call catala directly from the
        project root instead of the build dir (with [inplace:true]) *)
     let var_bindings =
-      Clerk_rules.base_bindings ~autotest:false ~code_coverage:false
+      Clerk_rules.base_bindings () ~autotest:false ~code_coverage:false
         ~trace:false ~enabled_backends:[] ~config ~inplace:true
     in
     let catala_exe = Var.get var_bindings Var.catala_exe in

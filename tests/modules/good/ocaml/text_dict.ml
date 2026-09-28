@@ -5,7 +5,7 @@ open Catala_runtime
 module Mod_def = Mod_def
 module Text = Text
 
-module M = Map.Make(struct
+module M = Stdlib.Map.Make(struct
     type t = Text.Text.t
     let compare a b = Value.compare ({filename=__FILE__; start_line=0; start_column=0;end_line=0;end_column=0; law_headings=[]})
         (Value.embed Text.Text.rtype a)

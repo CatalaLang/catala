@@ -77,6 +77,20 @@ let target_dir =
           "Directory where final compilation targets should be written. \
            Defaults to '_target'.")
 
+let scan_dirs =
+  let arg =
+    Arg.(
+      value
+      & opt_all (list ~sep:':' string) []
+      & info ["I"; "include"] ~docv:"DIR"
+          ~doc:
+            "Limit the scan for catala source files to the given directories, \
+             overriding the $(i,include_dirs) field of the \"clerk.toml\" \
+             file. Several dirs can be specified by repeating the flag or \
+             separating them with '$(b,:)'.")
+  in
+  Term.(const List.flatten $ arg)
+
 let include_dirs =
   let arg =
     Arg.(
@@ -257,7 +271,21 @@ let scope =
         ~doc:"Select which scope of a given Catala file to run.")
 
 let variable = Catala_utils.Cli.Flags.ex_variable
-let scope_input = Catala_utils.Cli.Flags.scope_input
+
+let scope_input =
+  (* We do not reuse Catala's CLI flag as, when a large json file is
+     provided, it would parse the file and read and expand its content
+     which results in a too long command line when the input file is
+     large. *)
+  let open Arg in
+  value
+  & opt (some string) None
+  & info ["input"] ~docv:"FILE|JSON"
+      ~doc:
+        "Reads a JSON value from the given string or file ($(b,-) for stdin) \
+         and uses it as input value when interpreting the given scope. See \
+         also $(b,json-schema) command to generate the accepted JSON's schema \
+         for a given scope."
 
 let clerk_targets_or_files =
   Arg.(
@@ -569,7 +597,7 @@ let init_term ?(allow_test_flags = false) () =
     $ catala_opts
     $ build_dir
     $ target_dir
-    $ include_dirs
+    $ scan_dirs
     $ vars_override
     $ color
     $ debug

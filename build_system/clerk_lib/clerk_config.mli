@@ -27,6 +27,7 @@ type doc_backend = Html | Latex
 type global = {
   project_name : string option;
   include_dirs : File.t list;
+  exclude_dirs : File.t list;
   build_dir : File.t;
   target_dir : File.t;
   catala_exe : File.t option;

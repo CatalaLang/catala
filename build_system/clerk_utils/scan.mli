@@ -43,7 +43,11 @@ val get_lang : File.t -> Global.backend_lang option
 val catala_file : File.t -> Global.backend_lang -> item
 (** Scans a single Catala file into an item *)
 
-val tree : File.t -> (File.t * File.t list * item list) Seq.t
+val dir : File.t -> item list
+(** Non-recursively scans a single directory *)
+
+val tree :
+  File.t -> ?includes:File.Set.t -> (File.t * File.t list * item list) Seq.t
 (** Recursively scans a directory, and returns the corresponding subdirectories
     and items in sequence, by directory. *)
 
@@ -65,3 +69,10 @@ val target_basename : item -> File.t
 val target_file_name : item -> File.t
 (** Like [target_basename], but returns a relative filename to the build
     directory, without extension *)
+
+val include_dirs : config:Clerk_cli.config -> string list
+(** Returns the list of all directories to include given a project's [config].
+    Excludes directories declared in the [config]'s [exclude_dirs] along with
+    the '_target' and '_build' directories. Sub-directories of the [config]'s
+    [include_dirs] are also returned: hence, the default ["."] value will return
+    all (sub-)directories minus the excluded dirs. *)

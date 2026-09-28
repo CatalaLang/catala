@@ -24,6 +24,7 @@ let javac = Var.make_vector "JAVAC"
 let javac_flags = Var.make_vector "JAVAC_FLAGS"
 let jar = Var.make_vector "JAR"
 let java = Var.make_vector "JAVA"
+let class_path = Var.make_scalar "CLASS_PATH"
 
 include Java_project_file
 
@@ -41,12 +42,8 @@ module Spec : Sig.Spec = struct
   let all_obj_extensions = ["class"]
   let stdlib_subdir = "catala" / "stdlib"
 
-  let var_defs
-      ~variables
-      ~autotest
-      ~use_default_flags
-      ~test_flags
-      ~include_dirs:_ =
+  let var_defs ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
+      =
     let catala_flags =
       Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true
@@ -58,6 +55,8 @@ module Spec : Sig.Spec = struct
       def javac (lazy ["javac"]);
       def jar (lazy ["jar"]);
       def javac_flags (lazy ["-implicit:none"]);
+      Nj.Binding.make class_path
+        (Backend_paths.classpath ~backend:name include_dirs);
     ]
 
   let[@ocamlformat "disable"] rules =
@@ -138,9 +137,8 @@ module Spec : Sig.Spec = struct
               else Common.target ~name "java");
            ])
 
-  let build_object ~include_dirs ~same_dir_modules:_ item =
+  let build_object item =
     let modules = List.rev_map Mark.remove item.Scan.used_modules in
-    let java_class_path = Backend_paths.classpath ~backend:name include_dirs in
     Seq.return
       (Nj.build "java-class"
          ~inputs:
@@ -157,8 +155,7 @@ module Spec : Sig.Spec = struct
              (if item.is_stdlib then
                 Word ((!Var.tdir / name / stdlib_subdir / !Var.dst) -.- "class")
               else Common.target ~name "class");
-           ]
-         ~vars:[Nj.Binding.make Var.class_path java_class_path])
+           ])
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name)

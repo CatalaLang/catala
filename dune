@@ -39,7 +39,7 @@
    catala.html
    (pipe-stdout
     (run catala --help=groff)
-    (run groff -P -l -P -r -mandoc -Thtml)))))
+    (run groff -P -l -P -r -mandoc -Thtml -Kutf8)))))
 
 (rule
  (alias doc)
@@ -48,7 +48,7 @@
    clerk.html
    (pipe-stdout
     (run clerk --help=groff)
-    (run groff -P -l -P -r -mandoc -Thtml)))))
+    (run groff -P -l -P -r -mandoc -Thtml -Kutf8)))))
 
 (alias
  (name exec)

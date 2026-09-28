@@ -25,6 +25,7 @@ val catala_opts : string list Term.t
 val autotest : bool Term.t
 val prepare_only : bool Term.t
 val build_dir : string option Term.t
+val scan_dirs : string list Term.t
 val include_dirs : string list Term.t
 val test_flags : string list Term.t
 val runtest_report : string option Term.t
@@ -39,7 +40,7 @@ val single_file : string Term.t
 val reset_test_outputs : bool Term.t
 val scope : string Term.t
 val scope_opt : string option Term.t
-val scope_input : Yojson.Safe.t option Term.t
+val scope_input : string option Term.t
 val variable : string Term.t
 val clerk_targets_or_files : string list Term.t
 val clerk_targets_or_files_or_folders : string list Term.t

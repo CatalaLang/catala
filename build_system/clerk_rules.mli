@@ -18,12 +18,14 @@
 open Clerk_utils
 
 val base_bindings :
+  config:Clerk_cli.config ->
+  ?includes:string list ->
   code_coverage:bool ->
   trace:bool ->
   autotest:bool ->
   enabled_backends:Clerk_config.backend list ->
   inplace:bool ->
-  config:Clerk_cli.config ->
+  unit ->
   Var.bindings
 
 exception Stop_ninja

@@ -83,7 +83,7 @@ module Spec : Sig.Spec = struct
       (Nj.build "catala-python" ?vars ~inputs ~implicit_in
          ~outputs:[Common.target ~name "py"])
 
-  let build_object ~include_dirs:_ ~same_dir_modules:_ _ = Seq.empty
+  let build_object _ = Seq.empty
 
   let runtime_dir : File.t Lazy.t =
     lazy File.(Lazy.force Poll.runtime_dir / name / "src" / "catala")

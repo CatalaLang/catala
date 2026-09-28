@@ -34,7 +34,6 @@ let runtime = make_scalar "CATALA_RUNTIME"
 (* Definition spreading different rules *)
 
 let tdir = make_scalar "tdir"
-let includes = make_vector "includes"
 
 (* Rule vars, Used in specific rules *)
 
@@ -42,7 +41,6 @@ let input = make_scalar "in"
 let output = make_scalar "out"
 let src = make_scalar "src"
 let dst = make_scalar "dst"
-let class_path = make_scalar "class_path"
 let cat_files = make_scalar "cat_files" (* Useful on Windows only *)
 
 (* let scope = make "scope" *)

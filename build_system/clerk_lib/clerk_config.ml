@@ -35,6 +35,7 @@ type doc_backend = Html | Latex
 type global = {
   project_name : string option;
   include_dirs : File.t list;
+  exclude_dirs : File.t list;
   build_dir : File.t;
   target_dir : File.t;
   catala_exe : File.t option;
@@ -79,6 +80,7 @@ let default_global =
   {
     project_name = None;
     include_dirs = [Filename.current_dir_name];
+    exclude_dirs = [];
     catala_exe = None;
     catala_opts = [];
     default_targets = [];
@@ -102,6 +104,7 @@ let project_encoding () =
     (fun {
            project_name;
            include_dirs;
+           exclude_dirs;
            catala_exe;
            catala_opts;
            default_targets;
@@ -112,6 +115,7 @@ let project_encoding () =
       ( project_name,
         (if include_dirs = default_global.include_dirs then None
          else Some include_dirs),
+        proj_empty_list exclude_dirs,
         catala_exe,
         proj_empty_list catala_opts,
         proj_empty_list default_targets,
@@ -120,6 +124,7 @@ let project_encoding () =
         include_sources ))
     (fun ( project_name,
            include_dirs,
+           exclude_dirs,
            catala_exe,
            catala_opts,
            default_targets,
@@ -133,6 +138,7 @@ let project_encoding () =
           (match include_dirs with
           | None -> default_global.include_dirs
           | Some l -> l);
+        exclude_dirs = inj_empty_list exclude_dirs;
         catala_exe;
         catala_opts = inj_empty_list catala_opts;
         default_targets = inj_empty_list default_targets;
@@ -140,9 +146,10 @@ let project_encoding () =
         target_dir;
         include_sources;
       })
-  @@ obj8
+  @@ obj9
        (opt_field ~name:"name" @@ string)
        (opt_field ~name:"include_dirs" @@ list string)
+       (opt_field ~name:"exclude_dirs" @@ list string)
        (opt_field ~name:"catala_exe" @@ string)
        (opt_field ~name:"catala_opts" @@ list string)
        (opt_field ~name:"default_targets" @@ list string)
