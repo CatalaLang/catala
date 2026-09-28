@@ -6,11 +6,7 @@ dependencies = [
   "gmpy2 ~= 2.2.0rc1",
   "typing",
   "mypy",
-  "dates_calc",
-  "types-python-dateutil",
   "autopep8",
-  "termcolor",
-  "types-termcolor",
   "typer[all]",
   "typing-extensions",
 ]
