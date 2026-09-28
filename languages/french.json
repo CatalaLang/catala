@@ -1,6 +1,6 @@
 {
-    "lang_name": "french",
-    "file_ext_suffix": "fr",
+    "name": "french",
+    "code": "fr",
     "keywords": {
         "scope": "champ d'application",
         "consequence": "conséquence",

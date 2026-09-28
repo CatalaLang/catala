@@ -14,12 +14,12 @@
    implied. See the License for the specific language governing
    permissions and limitations under the License. *)
 
-open Catala_utils
+open Utils
 
 type re_kind = Str of string | Space | Unicode of Uchar.t
 
 let string_to_regexp s =
-  let s = String.utf8_seq s in
+  let s = utf8_seq s in
   let is_space = ( = ) 0x20 in
   let is_ascii = ( > ) 128 in
   let rec loop (acc, cl) s =
@@ -68,7 +68,7 @@ let format_lang_macro_file ppf (language : Language_t.language) =
   in
   fprintf ppf {|(* This file has been generated, do not edit manually. *)|};
   dl ();
-  fprintf ppf {|(* Defining the lexer macros for %s *)|} language.lang_name;
+  fprintf ppf {|(* Defining the lexer macros for %s *)|} language.name;
   dl ();
   fprintf ppf {|(* Keywords *)|};
   dl ();
@@ -208,7 +208,7 @@ let format_lang_macro_file ppf (language : Language_t.language) =
   ()
 
 let () =
-  let c = File.contents Sys.argv.(1) in
+  let c = contents Sys.argv.(1) in
   let lang =
     Lexing.from_string c |> Language_j.read_language (Yojson.init_lexer ())
   in

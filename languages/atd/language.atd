@@ -114,8 +114,8 @@ type directives = {
 }
 
 type language = {
-  lang_name : string;
-  file_ext_suffix: string;
+  name : string;
+  code: string;
   keywords : keywords;
   specific_delimiters : specific_delimiters;
   builtins : builtins;

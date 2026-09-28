@@ -15,5 +15,5 @@
  (public_name catala.atd-language)
  (modules language_j language_t)
  (wrapped false)
- (libraries catala_utils shared_ast atdgen-runtime)
+ (libraries atdgen-runtime)
 )

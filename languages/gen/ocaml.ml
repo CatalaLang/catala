@@ -14,12 +14,10 @@
    implied. See the License for the specific language governing
    permissions and limitations under the License. *)
 
-(* => lang.json => ocaml value *)
-
-open Catala_utils
+open Utils
 
 let () =
-  let c = File.contents Sys.argv.(1) in
+  let c = contents Sys.argv.(1) in
   let lang =
     Lexing.from_string c |> Language_j.read_language (Yojson.init_lexer ())
   in
@@ -30,8 +28,6 @@ let () =
     pp_print_newline ppf ()
   in
   fprintf ppf "open Language_t";
-  dl ();
-  fprintf ppf "module L = struct";
   dl ();
   let format_field_def ppf (name, s) = fprintf ppf "%s = %S" name s in
   let format_keywords ppf =
@@ -184,21 +180,18 @@ let () =
   format_directives ppf;
   fprintf ppf
     {|let language = {
-  lang_name = %S;
-  file_ext_suffix = %S;
+  name = %S;
+  code = %S;
   keywords;
   specific_delimiters;
   builtins;
   directives;
 }
 |}
-    lang.lang_name lang.file_ext_suffix;
+    lang.name lang.code;
   fprintf ppf "@\n";
-  fprintf ppf "@[<v 2>module Lexer =@ Surface.Lexer_%s@]" lang.file_ext_suffix;
   dl ();
-  fprintf ppf "end";
-  dl ();
-  fprintf ppf "include L";
-  dl ();
-  fprintf ppf "let () = Langs.register_language (module L)";
+  fprintf ppf "type Languages.t += T";
+  fprintf ppf "@\n";
+  fprintf ppf "let () = Languages.register_language (T, language)";
   fprintf ppf "@\n"

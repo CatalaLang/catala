@@ -1,6 +1,6 @@
 {
-    "lang_name": "polish",
-    "file_ext_suffix": "pl",
+    "name": "polish",
+    "code": "pl",
     "keywords": {
         "scope": "zakres",
         "consequence": "konsekwencja",

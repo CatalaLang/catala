@@ -1,6 +1,6 @@
 {
-    "lang_name": "english",
-    "file_ext_suffix": "en",
+    "name": "english",
+    "code": "en",
     "keywords": {
         "scope": "scope",
         "consequence": "consequence",

@@ -1,9 +1,11 @@
+(library (name utils) (modules utils))
+
 (executable
  (name macros)
  (modules macros)
- (libraries catala_utils shared_ast atd_language))
+ (libraries utils atd_language))
 
 (executable
  (name ocaml)
  (modules ocaml)
- (libraries catala_utils shared_ast atd_language))
+ (libraries utils atd_language))
