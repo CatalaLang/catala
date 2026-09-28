@@ -712,11 +712,12 @@ let run_ninja
               let inputs =
                 List.fold_left
                   (fun acc m ->
+                    let s = String.to_id m in
                     if config.include_objects then
-                      Nj.Expr.Word (Printf.sprintf "@%s/obj/%s" bk_name m)
+                      Nj.Expr.Word (Printf.sprintf "@%s/obj/%s" bk_name s)
                       :: acc
                     else
-                      Nj.Expr.Word (Printf.sprintf "@%s/src/%s" bk_name m)
+                      Nj.Expr.Word (Printf.sprintf "@%s/src/%s" bk_name s)
                       :: acc)
                   inputs modules
               in
