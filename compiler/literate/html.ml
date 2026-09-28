@@ -181,7 +181,7 @@ let rec law_structure_to_html
        %a"
       h_number id id h_name
       (match heading.law_heading_id, language with
-      | Some id, `Fr -> (
+      | Some id, French.T -> (
         try
           P.sprintf
             "<a class=\"link-article\" \
@@ -240,11 +240,10 @@ let ast_to_html
     (program : A.program) : unit =
   let toc =
     match language with
-    | `Fr -> "Sommaire"
-    | `En -> "Table of contents"
-    | `Pl -> "Spis treści."
+    | French.T -> "Sommaire"
+    | Polish.T -> "Spis treści."
+    | English.T | _ -> "Table of contents"
   in
-
   Format.fprintf fmt
     "@[<hov 2><details class=\"toc\">@\n\
      <summary>%s</summary>@\n\

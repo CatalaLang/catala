@@ -22,7 +22,7 @@
 (library
  (name languages)
  (public_name catala.languages)
- (libraries re atd_language)
+ (libraries catala.runtime_ocaml re atd_language)
  (flags (:standard -linkall))
  (wrapped false)
  (modules languages french english polish)

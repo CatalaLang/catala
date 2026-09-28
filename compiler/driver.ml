@@ -281,7 +281,12 @@ module Commands = struct
           | lang -> Some lang, Global.enforce_options ~language:(Some lang) ()
           | exception Failure _ -> None, options)
       in
-      Option.iter Catala_runtime.Print.set_lang lang;
+      let rlang =
+        match lang with
+        | Some French.T -> French.runtime_lang
+        | Some English.T | _ -> English.runtime_lang
+      in
+      Catala_runtime.Print.set_lang rlang;
       options
     in
     Term.(const setup $ Cli.Flags.Global.options)

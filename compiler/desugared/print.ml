@@ -102,7 +102,7 @@ let rec print_exception_node
     children
 
 let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
-  let lang = Option.value Global.options.language ~default:`En in
+  let lang = Option.value Global.options.language ~default:English.T in
   let margin = Format.pp_get_margin fmt () in
   Format.pp_open_vbox fmt 0;
   print_exception_node fmt lang margin "" 0 t;
@@ -110,7 +110,7 @@ let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
 
 let format_exception_forest ~is_condition fmt trees =
   Format.pp_open_vbox fmt 0;
-  let lang = Option.value Global.options.language ~default:`En in
+  let lang = Option.value Global.options.language ~default:English.T in
   let margin = Format.pp_get_margin fmt () in
   if is_condition then (
     Format.fprintf fmt "@{<yellow>(default: false)@}";
