@@ -21,7 +21,8 @@ module G = Global
 (* Manipulation of types used by flags & options *)
 
 (** Associates a {!type: Global.backend_lang} with its string represtation. *)
-let languages = ["en", `En; "fr", `Fr; "pl", `Pl]
+let languages =
+  List.map (fun (c, l) -> l.Language_t.code, c) (Languages.languages ())
 
 let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
@@ -44,23 +45,13 @@ let raw_file =
 
 (* Some helpers for catala sources *)
 
-let extensions =
-  [
-    "catala_fr", `Fr;
-    "catala_fr.md", `Fr;
-    "catala_en", `En;
-    "catala_en.md", `En;
-    "catala_pl", `Pl;
-    "catala_pl.md", `Pl;
-  ]
-
 let file_lang filename =
-  List.assoc_opt (File.extension filename) extensions
+  Languages.file_lang filename
   |> function
-  | Some lang -> lang
+  | Some lang -> fst lang
   | None -> (
     match Global.options.language with
-    | Some lang -> lang
+    | Some code -> code
     | None ->
       Format.kasprintf failwith
         "Could not infer language variant from the extension of \

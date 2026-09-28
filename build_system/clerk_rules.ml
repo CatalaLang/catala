@@ -583,7 +583,7 @@ let scan_project_items ~cleanup ~config ~includes =
             let in_build =
               Sys.readdir dir
               |> Array.to_seq
-              |> Seq.filter (fun f -> Scan.get_lang f <> None)
+              |> Seq.filter (fun f -> Languages.file_lang f <> None)
               |> File.Set.of_seq
             in
             let leftover = File.Set.diff in_build current in
@@ -614,10 +614,13 @@ let scan_project_items ~cleanup ~config ~includes =
           List.map
             (fun it ->
               let used_modules =
-                match Scan.get_lang it.Scan.file_name with
-                | Some lg ->
-                  let lg = if Global.has_localised_stdlib lg then lg else `En in
-                  ("Stdlib_" ^ Cli.language_code lg, Pos.from_file f)
+                match Languages.file_lang it.Scan.file_name with
+                | Some (lg, lang) ->
+                  let lang =
+                    if Global.has_localised_stdlib lg then lang
+                    else English.language
+                  in
+                  ("Stdlib_" ^ lang.code, Pos.from_file f)
                   :: it.Scan.used_modules
                 | None -> it.Scan.used_modules
               in
