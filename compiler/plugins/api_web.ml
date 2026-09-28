@@ -505,7 +505,7 @@ let run
     monomorphize_types
     _options =
   let options =
-    Global.enforce_options ~trace:(Some (lazy Format.std_formatter)) ()
+    Global.enforce_options ~trace:(Some (lazy Format.std_formatter, `Stdout)) ()
   in
   let prg, type_ordering, _ =
     Driver.Passes.lcalc options ~includes ~stdlib ~optimize ~check_invariants

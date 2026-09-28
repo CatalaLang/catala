@@ -40,6 +40,10 @@ val catala_exe : string t
 val catala_flags : Expr.t t
 val runtime : string t
 
+val trace : Expr.t t
+(** Trace destination passed to the test rules. Must be referenced directly in a
+    rule's command so that individual edges can override it. *)
+
 (** {2 Definition spreading different rules} *)
 
 val tdir : string t

@@ -69,3 +69,11 @@ in behavior visible for the end-users of the tooling.
   - `exclude_dirs` is now available
   - they no longer control visibility, but the directories that will
     be scanned for sources by `clerk`.
+* [#1101](https://github.com/CatalaLang/catala/pull/1101) Check trace
+  assertion feature
+  - Added a new line token in lexer_common to recognize the asserted trace
+    variables declared by `#[testcase.variable]`
+  - Added a new module "trace_assertion" in clerk to look those variables up
+    in the trace and check their values
+  - Linking that in catala so that test or interpret command fails when an
+    asserted trace variable does not match the trace

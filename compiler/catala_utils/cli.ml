@@ -336,19 +336,22 @@ module Flags = struct
         let trace, trace_format =
           match trace, trace_format with
           | None, _ -> None, trace_format
-          | Some `Stdout, _ -> Some (lazy (Message.std_ppf ())), trace_format
+          | Some `Stdout, _ ->
+            Some (lazy (Message.std_ppf ()), `Stdout), trace_format
           | Some (`FileName (f : Global.raw_file)), Some _ ->
             ( Some
-                (lazy
-                  (Message.formatter_of_out_channel (open_out (f :> file)) ())),
+                ( lazy
+                    (Message.formatter_of_out_channel (open_out (f :> file)) ()),
+                  `FileName f ),
               trace_format )
           | Some (`FileName f), None ->
             let trace_format =
               if Filename.extension (f :> file) = ".json" then JSON else Human
             in
             ( Some
-                (lazy
-                  (Message.formatter_of_out_channel (open_out (f :> file)) ())),
+                ( lazy
+                    (Message.formatter_of_out_channel (open_out (f :> file)) ()),
+                  `FileName f ),
               Some trace_format )
         in
         let bin_dir =
@@ -442,6 +445,17 @@ module Flags = struct
                or separating them with '$(b,:)'.")
     in
     Term.(const List.flatten $ arg)
+
+  let check_trace_assertion =
+    let open Arg in
+    value
+    & flag
+    & info ["check-trace-assertion"]
+        ~doc:
+          "Check the values asserted by the $(i,#[testcase.variable]) \
+           attributes against the execution trace, and fail if they don't \
+           match. Requires a trace file in JSON format (see $(b,--trace) and \
+           $(b,--trace-format))."
 
   let check_invariants =
     value

@@ -54,7 +54,8 @@ type options = private {
   mutable debug : bool;
   mutable color : when_enum;
   mutable message_format : message_format_enum;
-  mutable trace : Format.formatter Lazy.t option;
+  mutable trace :
+    (Format.formatter Lazy.t * [ `FileName of raw_file | `Stdout ]) option;
   mutable trace_format : format_enum;
   mutable output_format : format_enum;
   mutable plugins_dirs : file list;
@@ -82,7 +83,7 @@ val enforce_options :
   ?debug:bool ->
   ?color:when_enum ->
   ?message_format:message_format_enum ->
-  ?trace:Format.formatter Lazy.t option ->
+  ?trace:(Format.formatter Lazy.t * [ `FileName of raw_file | `Stdout ]) option ->
   ?trace_format:format_enum ->
   ?output_format:format_enum ->
   ?plugins_dirs:file list ->
