@@ -614,7 +614,9 @@ let scan_project_items ~cleanup ~config ~includes =
               let used_modules =
                 match Scan.get_lang it.Scan.file_name with
                 | Some lg ->
-                  let lg = if Global.has_localised_stdlib lg then lg else `En in
+                  let lg =
+                    if Global.has_localised_stdlib lg then lg else English.T
+                  in
                   ("Stdlib_" ^ Cli.language_code lg, Pos.from_file f)
                   :: it.Scan.used_modules
                 | None -> it.Scan.used_modules

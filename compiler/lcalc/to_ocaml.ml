@@ -877,7 +877,7 @@ let catala_test_commands = if commands = [] then test_scopes else commands
          (Catala_runtime.retrieve_trace ()));@]@,\
          @[<v 2>Format.eprintf \"\\x1b[32m[RESULT]\\x1b[m Scope %a executed \
          successfully.@@.\";@]@,"
-        (match p.lang with `En -> "En" | `Fr -> "Fr" | _ -> "En")
+        (match p.lang with French.T -> "Fr" | English.T -> "En" | _ -> "En")
         (ScopeName.original_base scope)
         format_initial_call_trace (scope, e) (format_expr p.decl_ctx) e
         ScopeName.format_original scope;
