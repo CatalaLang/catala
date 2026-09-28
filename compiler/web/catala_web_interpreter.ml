@@ -124,7 +124,12 @@ let setup_files (js_options : 'a Js.t) =
     with Not_found ->
       Message.error "Unrecognised input locale %S" language_str
   in
-  Catala_runtime.Print.set_lang language;
+  let rlang =
+    match language with
+    | French.T -> French.runtime_lang
+    | English.T | _ -> English.runtime_lang
+  in
+  Catala_runtime.Print.set_lang rlang;
   (* Create virtual files for modules *)
   List.iter
     (fun (name, content) ->
