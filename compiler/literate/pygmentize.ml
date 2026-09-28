@@ -17,15 +17,6 @@
 open Catala_utils
 open Literate_common
 
-let lang_of_ext s =
-  if String.starts_with ~prefix:"catala_" s then
-    match s with
-    | "catala_en" -> Some `En
-    | "catala_fr" -> Some `Fr
-    | "catala_pl" -> Some `Pl
-    | _ -> failwith "Unknown Catala dialect"
-  else None
-
 let exec () =
   let args = List.tl (Array.to_list Sys.argv) in
   let rec find_lang acc = function
@@ -36,14 +27,11 @@ let exec () =
   let lang, args = find_lang [] args in
   let catala_lang =
     match lang with
-    | Some l -> lang_of_ext l
+    | Some l ->
+      let r = List.assoc_opt l Cli.languages in
+      if r = None then failwith "Unknown Catala dialect" else r
     | None ->
-      List.find_map
-        (fun s ->
-          match File.extension s with
-          | "" -> None
-          | e -> lang_of_ext (String.sub e 1 (String.length e - 1)))
-        args
+      List.find_map (fun s -> Option.map fst (Languages.file_lang s)) args
   in
   match catala_lang with
   | None -> Unix.execvp "pygmentize" (Array.of_list args)

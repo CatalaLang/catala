@@ -393,7 +393,8 @@ let sort_user_target_args
   let modules, source_files, others =
     List.fold_left
       (fun (modules, source_files, others) arg ->
-        if Scan.get_lang arg = None then modules, source_files, arg :: others
+        if Languages.file_lang arg = None then
+          modules, source_files, arg :: others
         else
           try
             let item = List.find (fun it -> it.Scan.file_name = arg) items in

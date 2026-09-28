@@ -193,5 +193,8 @@ let () =
   dl ();
   fprintf ppf "type Languages.t += T";
   fprintf ppf "@\n";
+  fprintf ppf "let runtime_lang : Catala_runtime.Print.lang = `%s"
+    (String.capitalize_ascii lang.code);
+  fprintf ppf "@\n";
   fprintf ppf "let () = Languages.register_language (T, language)";
   fprintf ppf "@\n"
