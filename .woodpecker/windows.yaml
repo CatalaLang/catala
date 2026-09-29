@@ -49,12 +49,14 @@ steps:
   - name: test
     image: powershell
     environment: *env
+    # PowerShell doesn't stop on a failing native command: without the check,
+    # the step's status is the last command's.
     commands:
       - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
-      - dune exec -- clerk test tests doc
-      - dune exec -- clerk test tests --backend ocaml -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc
-      - dune exec -- clerk test tests --backend java -c--disable-warnings
-      - dune exec -- clerk test tests --backend c -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc
+      - dune exec -- clerk test tests doc; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
+      - dune exec -- clerk test tests --backend ocaml -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
+      - dune exec -- clerk test tests --backend java -c--disable-warnings; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
+      - dune exec -- clerk test tests --backend c -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
 
   - name: examples
     image: powershell
