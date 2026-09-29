@@ -1770,6 +1770,31 @@ let exceptions_cmd =
     Term.(
       const run $ Cli.init_term () $ Cli.single_file $ Cli.scope $ Cli.variable)
 
+let cat_list_cmd =
+  let run list_file out =
+    let files =
+      In_channel.with_open_bin list_file In_channel.input_all
+      |> Var.file_list_of_string
+    in
+    Out_channel.with_open_bin out (fun oc ->
+        List.iter
+          (fun f ->
+            In_channel.with_open_bin f In_channel.input_all
+            |> Out_channel.output_string oc)
+          files);
+    0
+  in
+  let doc =
+    "Internal (Windows): concatenates the files listed in $(i,LIST) into \
+     $(i,OUT), in place of [cat]."
+  in
+  Cmd.v
+    (Cmd.info ~docs:Manpage.s_none ~doc "cat-list")
+    Term.(
+      const run
+      $ Arg.(required & pos 0 (some string) None & info [] ~docv:"LIST")
+      $ Arg.(required & pos 1 (some string) None & info [] ~docv:"OUT"))
+
 let main_cmd =
   Cmd.group Cli.info
     [
@@ -1781,6 +1806,7 @@ let main_cmd =
       clean_cmd;
       ci_cmd;
       runtest_cmd;
+      cat_list_cmd;
       report_cmd;
       raw_cmd;
       list_vars_cmd;
