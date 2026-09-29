@@ -15,6 +15,28 @@ scope IncomeTax2:
 
 ```catala-test-cli
 $ catala test-scope IncomeTax2
+┌─[WARNING]─
+│
+│  The variable "суммаНалоговыхБаз" is not written in
+│  snake_case; consider renaming it to
+│  "сумма_налоговых_баз".
+│
+├─➤ tests/name_resolution/good/cyrillic.catala_en:8.11-28:
+│   │
+│ 8 │   context суммаНалоговыхБаз content money
+│   │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Identifier made of non-latin characters
+┌─[WARNING]─
+│
+│  The variable "суммаНалоговыхБаг" is not written in
+│  snake_case; consider renaming it to
+│  "сумма_налоговых_баг".
+│
+├─➤ tests/name_resolution/good/cyrillic.catala_en:9.10-27:
+│   │
+│ 9 │   output суммаНалоговыхБаг content money # doesn't mean anything, but could trigger a conflict
+│   │          ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Identifier made of non-latin characters
 ┌─[RESULT]─ IncomeTax2 ─
 │ суммаНалоговыхБаг = $10.00
 └─
