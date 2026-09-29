@@ -1132,12 +1132,12 @@ let run_cmd =
     let exec_targets, _items, info =
       Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
         ~default:([], [], Module_graph.empty_info)
-        ~trace:(trace <> None) ~ninja_flags ~autotest:false ~clean_up_env:false
+        ~trace:(trace <> None) ~ninja_flags ~autotest:true ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
         if target_args = [] then default_targets ~config info items
         else
-          sort_user_target_args config ~autotest:false ~backends items info
+          sort_user_target_args config ~autotest:true ~backends items info
             target_args
       in
       target_debug_message targets;
