@@ -120,9 +120,11 @@ module Spec : Sig.Spec = struct
           !!Var.input
         ];
 
+      (* No include dirs: this link doesn't need them, and on Windows each
+         one becomes a flexlink search path, which is slow. *)
       Nj.rule "ocaml-module" ~description
         ~command:
-          [!!ocamlopt_exe; Nj.Expr.Word "-shared"; !!ocaml_flags; !!ocaml_include;
+          [!!ocamlopt_exe; Nj.Expr.Word "-shared"; !!ocaml_flags;
            !!Var.input;
            Nj.Expr.Word "-o"; !!Var.output];
     ]
