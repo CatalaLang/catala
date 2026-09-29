@@ -41,7 +41,9 @@ let input = make_scalar "in"
 let output = make_scalar "out"
 let src = make_scalar "src"
 let dst = make_scalar "dst"
-let cat_files = make_scalar "cat_files" (* Useful on Windows only *)
+let rspfile = make_scalar "rspfile"
+let rspfile_content = make_scalar "rspfile_content"
+let test_files = make_scalar "test_files" (* Useful on Windows only *)
 
 (* let scope = make "scope" *)
 let test_id = make_scalar "test-id"
@@ -146,19 +148,22 @@ and expr_to_list ?(var_bindings = []) exp =
 let expr_elt_to_string ?var_bindings elt =
   String.concat " " (expr_elt_to_list ?var_bindings elt)
 
-(* cmd has no [cat]: [copy /b "a"+"b" out]. Quoted per element — the whole list
-   quoted is one file name, unquoted breaks on spaces. *)
-let cmd_concat_operand files =
-  String.concat "+" (List.map (fun f -> "\"" ^ f ^ "\"") ("nul" :: files))
+(* '|' can't occur in a Windows path: no quoting, unlike ninja's [$in_newline] *)
+let file_list_sep = '|'
+
+let file_list_to_string files =
+  String.concat (String.make 1 file_list_sep) files
+
+let file_list_of_string s =
+  List.filter (( <> ) "") (String.split_on_char file_list_sep (String.trim s))
 
 module Op = struct
   let ( ! ) = ref
 
   (* Crutch: these expand to text that must not be quoted (ninja escapes
-     in/out, [cat_files] carries its own quotes). Belongs in the type. *)
+     in/out). Belongs in the type. *)
   let ( !! ) : type a. a t -> Ninja_utils.Expr.elt = function
-    | Scalar _ as v ->
-      if v = input || v = output || v = cat_files then Raw !v else Word !v
+    | Scalar _ as v -> if v = input || v = output then Raw !v else Word !v
     | Vector _ as v -> Splice v
 end
 

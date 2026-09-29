@@ -67,17 +67,18 @@ let static_base_rules ~tests enabled_backends =
             ]
           ~description:[Word "<catala>"; Word "tests"; Word "⇐"; !!input];
         Nj.rule "dir-tests"
+          ?vars:
+            (if Sys.win32 then
+               (* the file list can exceed cmd's command-line limit *)
+               Some
+                 [
+                   Nj.Binding.make rspfile "$out.rsp";
+                   Nj.Binding.make rspfile_content "$test_files";
+                 ]
+             else None)
           ~command:
             (if Sys.win32 then
-               [
-                 Raw "cmd";
-                 Raw "/c";
-                 Raw "copy";
-                 Raw "/by";
-                 Raw ">nul";
-                 !!cat_files;
-                 !!output;
-               ]
+               [!!clerk_exe; Word "cat-list"; Raw "$out.rsp"; !!output]
              else [Word "cat"; !!input; Raw ">"; !!output])
           ~description:[Word "<test>"; !!test_id];
       ]
@@ -319,7 +320,7 @@ let dir_test_rules dir subdirs items =
           (Nj.Binding.make Var.test_id dir
           ::
           (if Sys.win32 then
-             [Nj.Binding.make Var.cat_files (Var.cmd_concat_operand inputs)]
+             [Nj.Binding.make Var.test_files (Var.file_list_to_string inputs)]
            else []));
     ]
 

@@ -215,11 +215,16 @@ let test_jar_argfile_escaping () =
 
 (* Only emitted under [Sys.win32], out of reach of the Linux testsuite. *)
 
-let test_cmd_concat_operand () =
-  check "cmd copy operand quotes each file"
-    {|"nul"+"C:\build\a@test"+"C:\build\spaced dir\b@test"|}
-    (CVar.cmd_concat_operand
-       [{|C:\build\a@test|}; {|C:\build\spaced dir\b@test|}])
+let test_file_list_roundtrip () =
+  let files =
+    [
+      {|${builddir}\a@test|};
+      {|C:\spaced dir\DPC_+_6, é & co@test|};
+      {|C:\Résidence, nationalité\t=1;2^3%PATH%@test|};
+    ]
+  in
+  check_list "dir-tests file list round-trips" files
+    (CVar.file_list_of_string (CVar.file_list_to_string files))
 
 let () =
   let open Alcotest in
@@ -288,9 +293,7 @@ let () =
           test_case "argfile escapes a Windows path" `Quick
             test_jar_argfile_escaping;
         ] );
-      ( "Windows test-report concatenation (cmd copy)",
-        [
-          test_case "copy operand quotes each file" `Quick
-            test_cmd_concat_operand;
-        ] );
+      ( "Windows test-report file list",
+        [test_case "round-trips awkward paths" `Quick test_file_list_roundtrip]
+      );
     ]
