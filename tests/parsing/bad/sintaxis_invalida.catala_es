@@ -1,0 +1,13 @@
+La palabra reservada malformada debe producir un diagnóstico, no un crash.
+
+```catala
+declaración ámbito Roto:
+  salida resultado con contenido entero
+
+ámbito Roto:
+  definición resultado palabra_inexistente 1
+```
+
+```catala-test-cli
+$ catala typecheck
+```

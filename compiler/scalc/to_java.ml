@@ -1072,7 +1072,7 @@ let format_tests ctx ppf p =
               pp_print_string ppf (java_string (ScopeName.original_base name))))
          tests;
        fprintf ppf "@,CatalaGlobals.lang = CatalaGlobals.Language.%s;@\n"
-         (match p.lang with `En -> "EN" | `Fr -> "FR" | `Pl -> "EN");
+         (match p.lang with `En -> "EN" | `Fr -> "FR" | `Pl -> "EN" | `Es -> "EN");
        fprintf ppf "@[<v 4>for (int i = 0; i < args.length; i++) {";
        fprintf ppf "@,if (args[i].equals(\"--test\")) { test_mode = true; }";
        fprintf ppf
