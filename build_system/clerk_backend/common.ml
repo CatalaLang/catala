@@ -41,8 +41,8 @@ let static_base_rules =
     Ninja_utils.rule "copy"
       ~command:
         (if Sys.win32 then
-           (* not [copy]: it reads [+] in a file name as concatenation. The
-              redirection also gives the copy a fresh timestamp. *)
+           (* [type] with a redirection: the output gets a fresh timestamp,
+              which ninja needs to see it as rebuilt. *)
            [Raw "cmd"; Raw "/c"; Raw "type"; !!input; Raw ">"; !!output]
          else [Word "cp"; Word "-f"; !!input; !!output])
       ~description:[Word "<copy>"; !!input];
