@@ -1132,12 +1132,12 @@ let run_cmd =
     let exec_targets, _items, info =
       Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
         ~default:([], [], Module_graph.empty_info)
-        ~trace:(trace <> None) ~ninja_flags ~autotest:true ~clean_up_env:false
+        ~trace:(trace <> None) ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
         if target_args = [] then default_targets ~config info items
         else
-          sort_user_target_args config ~autotest:true ~backends items info
+          sort_user_target_args config ~autotest:false ~backends items info
             target_args
       in
       target_debug_message targets;
@@ -1263,6 +1263,10 @@ let test_cmd =
       (ninja_flags : string list) : int =
     let enable_backend_tests = List.exists (( <> ) `Interpret) backends in
     let backends = if backends = [] then [`Interpret] else backends in
+    let autotest =
+      (* Disable autotest in interpret only mode *)
+      backends <> [`Interpret]
+    in
     let build_dir = config.Cli.file.global.build_dir in
     setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
       code_coverage;
@@ -1302,8 +1306,8 @@ let test_cmd =
     in
     let exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~code_coverage ~config ~keep_going:false
-        ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest:true
-        ~tests:true ~trace:false
+        ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest ~tests:true
+        ~trace:false
         ~default:([], [], Module_graph.empty_info, [])
       @@ fun nin_ppf items info ->
       (* TODO: keep_going:true, to be able to still show a test report.
@@ -1313,7 +1317,7 @@ let test_cmd =
       let targets =
         if target_args = [] then project_dir_targets ~config info items
         else
-          sort_user_target_args config ~autotest:true ~backends items info
+          sort_user_target_args config ~autotest ~backends items info
             target_args
       in
       target_debug_message targets;
