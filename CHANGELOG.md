@@ -3,6 +3,9 @@
 One line per change, be concise and explicit. Document only external changes
 in behavior visible for the end-users of the tooling.
 
+* [#1126](https://github.com/CatalaLang/catala/pull/1126) New lint warning
+  for variables, fields and other names that are not written in snake_case.
+
 * [#1082](https://github.com/CatalaLang/catala/pull/1082) New lint warning
   for local variables (`let ... in`) that are never used.
 

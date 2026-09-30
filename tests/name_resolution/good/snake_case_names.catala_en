@@ -1,0 +1,137 @@
+## Names that are not in snake_case
+
+```catala
+declaration structure Person:
+  data birthDate content date
+  data section_121_b_2_A content boolean
+
+declaration scope Sub:
+  output x content integer
+
+declaration scope A:
+  input p content Person
+  output totalValue content integer
+    state art93quaterI
+    state finalAmount
+  output f content integer depends on inputValue content integer
+  output montantÉlevé content integer
+  subScope scope Sub
+  output x2Yz content integer
+  output a_Bc content integer
+  output holdsURL content boolean
+
+declaration addOne content integer
+  depends on someArg content integer
+  equals
+  let localVar equals someArg in
+  localVar + 1
+
+scope Sub:
+  definition x equals 1
+
+scope A:
+  definition totalValue state art93quaterI equals addOne of 0
+  definition totalValue state finalAmount equals totalValue + subScope.x
+  definition f of inputValue equals inputValue
+  definition montantÉlevé equals 0
+  definition x2Yz equals 0
+  definition a_Bc equals if p.section_121_b_2_A then 1 else 0
+  definition holdsURL equals p.birthDate > |2000-01-01|
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[WARNING]─
+│
+│  The field "birthDate" is not written in snake_case; consider renaming it
+│  to "birth_date".
+│
+├─➤ tests/name_resolution/good/snake_case_names.catala_en:5.8-17:
+│   │
+│ 5 │   data birthDate content date
+│   │        ‾‾‾‾‾‾‾‾‾
+└─ Names that are not in snake_case
+┌─[WARNING]─
+│
+│  The variable "totalValue" is not written in snake_case; consider renaming
+│  it to "total_value".
+│
+├─➤ tests/name_resolution/good/snake_case_names.catala_en:13.10-20:
+│    │
+│ 13 │   output totalValue content integer
+│    │          ‾‾‾‾‾‾‾‾‾‾
+└─ Names that are not in snake_case
+┌─[WARNING]─
+│
+│  The state "finalAmount" is not written in snake_case; consider renaming it
+│  to "final_amount".
+│
+├─➤ tests/name_resolution/good/snake_case_names.catala_en:15.11-22:
+│    │
+│ 15 │     state finalAmount
+│    │           ‾‾‾‾‾‾‾‾‾‾‾
+└─ Names that are not in snake_case
+┌─[WARNING]─
+│
+│  The parameter "inputValue" is not written in snake_case; consider renaming
+│  it to "input_value".
+│
+├─➤ tests/name_resolution/good/snake_case_names.catala_en:16.39-49:
+│    │
+│ 16 │   output f content integer depends on inputValue content integer
+│    │                                       ‾‾‾‾‾‾‾‾‾‾
+└─ Names that are not in snake_case
+┌─[WARNING]─
+│
+│  The variable "montantÉlevé" is not written in snake_case; consider
+│  renaming it to "montant_élevé".
+│
+├─➤ tests/name_resolution/good/snake_case_names.catala_en:17.10-22:
+│    │
+│ 17 │   output montantÉlevé content integer
+│    │          ‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Names that are not in snake_case
+┌─[WARNING]─
+│
+│  The sub-scope "subScope" is not written in snake_case; consider renaming
+│  it to "sub_scope".
+│
+├─➤ tests/name_resolution/good/snake_case_names.catala_en:18.3-11:
+│    │
+│ 18 │   subScope scope Sub
+│    │   ‾‾‾‾‾‾‾‾
+└─ Names that are not in snake_case
+┌─[WARNING]─
+│
+│  The toplevel declaration "addOne" is not written in snake_case; consider
+│  renaming it to "add_one".
+│
+├─➤ tests/name_resolution/good/snake_case_names.catala_en:23.13-19:
+│    │
+│ 23 │ declaration addOne content integer
+│    │             ‾‾‾‾‾‾
+└─ Names that are not in snake_case
+┌─[WARNING]─
+│
+│  The parameter "someArg" is not written in snake_case; consider renaming it
+│  to "some_arg".
+│
+├─➤ tests/name_resolution/good/snake_case_names.catala_en:24.14-21:
+│    │
+│ 24 │   depends on someArg content integer
+│    │              ‾‾‾‾‾‾‾
+└─ Names that are not in snake_case
+┌─[WARNING]─
+│
+│  The local variable "localVar" is not written in snake_case; consider
+│  renaming it to "local_var".
+│
+├─➤ tests/name_resolution/good/snake_case_names.catala_en:26.7-15:
+│    │
+│ 26 │   let localVar equals someArg in
+│    │       ‾‾‾‾‾‾‾‾
+└─ Names that are not in snake_case
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```

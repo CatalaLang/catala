@@ -324,10 +324,118 @@ let detect_unused_local_variables (p : program) : unit =
       aux e)
     ~init:() p
 
+(** Names that should be in snake_case but contain a CamelCase word boundary.
+    Isolated uppercase letters are allowed since they are used in legal
+    references (e.g. [section_121_b_2_A], [art93quaterI]). Types, scopes and
+    constructors are not checked: underscores are commonly used there for
+    article numbers. *)
+let detect_non_snake_case_names (p : program) : unit =
+  let add kind (name, pos) names =
+    if
+      Pos.equal pos Pos.void
+      || (not (String.has_camel_case_boundary name))
+      || Pos.Map.mem pos names
+    then names
+    else Pos.Map.add pos (kind, name) names
+  in
+  let names =
+    ScopeName.Map.fold
+      (fun _ scope names ->
+        let names =
+          ScopeVar.Map.fold
+            (fun var states names ->
+              let names = add "variable" (ScopeVar.get_info var) names in
+              match states with
+              | WholeVar -> names
+              | States states ->
+                List.fold_left
+                  (fun names state ->
+                    add "state" (StateName.get_info state) names)
+                  names states)
+            scope.scope_vars names
+        in
+        let names =
+          ScopeVar.Map.fold
+            (fun var _ names -> add "sub-scope" (ScopeVar.get_info var) names)
+            scope.scope_sub_scopes names
+        in
+        ScopeDef.Map.fold
+          (fun def scope_def names ->
+            match def, scope_def.scope_def_parameters with
+            | (_, ScopeDef.Var _), Some (params, _) ->
+              List.fold_left
+                (fun names (param, _) -> add "parameter" param names)
+                names params
+            | _ -> names)
+          scope.scope_defs names)
+      p.program_root.module_scopes Pos.Map.empty
+  in
+  let names =
+    TopdefName.Map.fold
+      (fun name topdef names ->
+        List.fold_left
+          (fun names arg -> add "parameter" arg names)
+          (add "toplevel declaration" (TopdefName.get_info name) names)
+          topdef.topdef_arg_names)
+      p.program_root.module_topdefs names
+  in
+  let names =
+    let scope_structs =
+      ScopeName.Map.fold
+        (fun _ info acc ->
+          StructName.Set.add info.in_struct_name
+            (StructName.Set.add info.out_struct_name acc))
+        p.program_ctx.ctx_scopes StructName.Set.empty
+    in
+    StructName.Map.fold
+      (fun s_name fields names ->
+        if
+          StructName.path s_name <> []
+          || StructName.Set.mem s_name scope_structs
+        then names
+        else
+          StructField.Map.fold
+            (fun field _ names ->
+              add "field" (StructField.get_info field) names)
+            fields names)
+      p.program_ctx.ctx_structs names
+  in
+  let names =
+    (* Local variables, including the ones synthesized by desugaring: those
+       have no CamelCase boundary so they are never reported. Toplevel
+       parameters, already added above, are skipped by position. *)
+    Ast.fold_exprs
+      ~f:(fun names e ->
+        let rec aux e names =
+          let names =
+            match Mark.remove e with
+            | EAbs { binder; pos; _ } ->
+              let vars = Bindlib.mbinder_names binder in
+              List.mapi (fun i vpos -> vars.(i), vpos) pos
+              |> List.fold_left
+                   (fun names v -> add "local variable" v names)
+                   names
+            | _ -> names
+          in
+          Expr.shallow_fold aux e names
+        in
+        aux e names)
+      ~init:names p
+  in
+  Pos.Map.iter
+    (fun pos (kind, name) ->
+      Message.warning ~pos
+        "The %s@ \"@{<cyan>%s@}\"@ is@ not@ written@ in@ snake_case;@ \
+         consider@ renaming@ it@ to@ \"@{<cyan>%s@}\"."
+        kind name
+        (String.camel_to_snake_case name))
+    names
+
 let lint_program (p : program) : unit =
   detect_empty_definitions p;
   detect_dead_code p;
   detect_unused_struct_fields p;
   detect_unused_enum_constructors p;
   detect_identical_rules p;
-  detect_unused_local_variables p
+  detect_unused_local_variables p;
+  detect_non_snake_case_names p

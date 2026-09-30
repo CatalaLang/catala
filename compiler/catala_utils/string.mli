@@ -44,6 +44,15 @@ val begins_with_uppercase : string -> bool
 (** [begins_with_uppercase s] returns if the first letter of [s] is uppercase.
     Handles utf8. [false] if [s] is empty. *)
 
+val has_camel_case_boundary : string -> bool
+(** [has_camel_case_boundary s] returns if [s] contains a lowercase letter
+    followed by an uppercase letter and another lowercase letter, as in
+    ["totalValue"]. Handles utf8. *)
+
+val camel_to_snake_case : string -> string
+(** Converts CamelCase into snake_case, preserving diacritics (unlike
+    [to_snake_case]). Handles utf8. *)
+
 val to_snake_case : string -> string
 (** Converts CamlCase into snake_case after removing all diacritics on Latin
     letters. *)

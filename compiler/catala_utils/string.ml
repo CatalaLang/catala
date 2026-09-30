@@ -39,6 +39,40 @@ let begins_with_uppercase (s : string) : bool =
   (not (s = ""))
   && get_utf_8_uchar s 0 |> Uchar.utf_decode_uchar |> Uucp.Case.is_upper
 
+let has_camel_case_boundary (s : string) : bool =
+  let a = Array.of_seq (utf8_seq s) in
+  let rec aux i =
+    i + 2 < Array.length a
+    && (Uucp.Case.is_lower a.(i)
+        && Uucp.Case.is_upper a.(i + 1)
+        && Uucp.Case.is_lower a.(i + 2)
+       || aux (i + 1))
+  in
+  aux 0
+
+let camel_to_snake_case (s : string) : string =
+  let a = Array.of_seq (utf8_seq s) in
+  let n = Array.length a in
+  let buf = Buffer.create (length s + 4) in
+  Array.iteri
+    (fun i c ->
+      if Uucp.Case.is_upper c then begin
+        if
+          i > 0
+          && (not (Uchar.equal a.(i - 1) (Uchar.of_char '_')))
+          && ((not (Uucp.Case.is_upper a.(i - 1)))
+             || (i + 1 < n && Uucp.Case.is_lower a.(i + 1)))
+        then Buffer.add_char buf '_';
+        (* Keep [c] when its lowercase form has several characters (e.g. with a
+           combining mark), which may not be valid in an identifier *)
+        match Uucp.Case.Map.to_lower c with
+        | `Uchars [c] -> Buffer.add_utf_8_uchar buf c
+        | `Self | `Uchars _ -> Buffer.add_utf_8_uchar buf c
+      end
+      else Buffer.add_utf_8_uchar buf c)
+    a;
+  Buffer.contents buf
+
 let to_id s =
   if s = "_" then s
   else

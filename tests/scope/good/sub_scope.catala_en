@@ -27,6 +27,16 @@ scope B:
 
 ```catala-test-cli
 $ catala Typecheck --check-invariants
+┌─[WARNING]─
+│
+│  The sub-scope "scopeAbis" is not written in snake_case; consider renaming
+│  it to "scope_abis".
+│
+├─➤ tests/scope/good/sub_scope.catala_en:13.3-12:
+│    │
+│ 13 │   scopeAbis scope A
+│    │   ‾‾‾‾‾‾‾‾‾
+└─ Article
 ┌─[RESULT]─
 │ All invariant checks passed
 └─
@@ -37,6 +47,16 @@ $ catala Typecheck --check-invariants
 
 ```catala-test-cli
 $ catala test-scope A
+┌─[WARNING]─
+│
+│  The sub-scope "scopeAbis" is not written in snake_case; consider renaming
+│  it to "scope_abis".
+│
+├─➤ tests/scope/good/sub_scope.catala_en:13.3-12:
+│    │
+│ 13 │   scopeAbis scope A
+│    │   ‾‾‾‾‾‾‾‾‾
+└─ Article
 ┌─[RESULT]─ A ─
 │ a = -1
 │ b = false
@@ -46,6 +66,16 @@ $ catala test-scope A
 
 ```catala-test-cli
 $ catala test-scope B
+┌─[WARNING]─
+│
+│  The sub-scope "scopeAbis" is not written in snake_case; consider renaming
+│  it to "scope_abis".
+│
+├─➤ tests/scope/good/sub_scope.catala_en:13.3-12:
+│    │
+│ 13 │   scopeAbis scope A
+│    │   ‾‾‾‾‾‾‾‾‾
+└─ Article
 ┌─[RESULT]─ B ─
 │ a = 42
 │ b = true
