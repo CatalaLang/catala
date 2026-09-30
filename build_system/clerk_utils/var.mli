@@ -50,7 +50,9 @@ val input : string t
 val output : string t
 val src : string t
 val dst : string t
-val cat_files : string t
+val rspfile : string t
+val rspfile_content : string t
+val test_files : string t
 val test_id : string t
 
 (** {1 Utility functions} *)
@@ -70,8 +72,11 @@ val binding_to_words : Ninja_utils.Binding.any -> string list
 
 val env_of_bindings : bindings -> (string * string list) list
 
-val cmd_concat_operand : string list -> string
-(** Value for {!cat_files}: files joined for [cmd /c copy /b], each quoted. *)
+val file_list_to_string : string list -> string
+(** Content of the Windows [dir-tests] response file, read back by
+    {!file_list_of_string} ([clerk cat-list]) *)
+
+val file_list_of_string : string -> string list
 
 val get : bindings -> 'a t -> string list
 (** replaces [${xvar}] with its value, recursively *)
