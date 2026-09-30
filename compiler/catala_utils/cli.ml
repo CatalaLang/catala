@@ -305,6 +305,18 @@ module Flags = struct
              template files in the target language, to be used as a basis for \
              writing the corresponding implementation."
 
+    let dynlink =
+      let env = Cmd.Env.info "CATALA_DYNLINK" in
+      let arg =
+        value
+        & opt_all (list filepath) []
+        & info ["dynlink"] ~env
+            ~doc:
+              "Dynamically load the given OCaml shared object files before \
+               loading any compiled Catala modules"
+      in
+      Term.(const List.flatten $ arg)
+
     let flags =
       let make
           language
@@ -322,7 +334,8 @@ module Flags = struct
           no_fail_on_assert
           whole_program
           bin_dir
-          gen_external : options =
+          gen_external
+          dynlink : options =
         if debug then Printexc.record_backtrace true;
         let path_rewrite =
           match directory with
@@ -365,7 +378,7 @@ module Flags = struct
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
           ~trace_format ~output_format ~plugins_dirs ~disable_warnings
           ~max_prec_digits ~path_rewrite ~stop_on_error ~no_fail_on_assert
-          ~whole_program ~bin_dir ~gen_external ()
+          ~whole_program ~bin_dir ~gen_external ~dynlink ()
       in
       Term.(
         const make
@@ -384,7 +397,8 @@ module Flags = struct
         $ no_fail_on_assert
         $ whole_program
         $ bin_dir
-        $ gen_external)
+        $ gen_external
+        $ dynlink)
 
     let options =
       let make input_src name directory options : options =
