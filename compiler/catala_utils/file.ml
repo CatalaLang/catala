@@ -467,29 +467,53 @@ module Tree = struct
     in
     aux t (snd (path_to_list path))
 
+  (* [matches] are (entry name, path) pairs *)
+  let unambiguous = function
+    | [] -> None
+    | [(_, path)] -> Some path
+    | matches ->
+      Message.error
+        "Multiple files match the same module name:@ @[<v>%a@]@,\
+         @{<bold>Hint:@} Rename your modules to avoid conflicts. You may need \
+         to run `clerk clean`"
+        (Format.pp_print_list format)
+        (List.sort compare (List.map fst matches))
+
   let lookup t path =
     try
       let t = subtree t (dirname path) in
       let fname = String.to_id (Filename.basename path) in
-      let matches =
-        Map.filter_map
-          (fun s m ->
-            match equal (String.to_id s) fname, m with
-            | true, (path, F) -> Some path
-            | _ -> None)
-          (Lazy.force t)
-      in
-      match Map.cardinal matches with
-      | 0 -> None
-      | 1 -> Some (snd (Map.choose matches))
-      | _ ->
-        Message.error
-          "Multiple files match the same module name:@ @[<v>%a@]@,\
-           @{<bold>Hint:@} Rename your modules to avoid conflicts. You may \
-           need to run `clerk clean`"
-          (Format.pp_print_list format)
-          (List.map fst (Map.bindings matches))
+      Map.fold
+        (fun s m acc ->
+          match equal (String.to_id s) fname, m with
+          | true, (path, F) -> (s, path) :: acc
+          | _ -> acc)
+        (Lazy.force t) []
+      |> unambiguous
     with Not_found -> None
+
+  let index t =
+    let files_by_id =
+      lazy
+        (Map.fold
+           (fun s m acc ->
+             match m with
+             | path, F ->
+               String.Map.update
+                 (String.lowercase_ascii (String.to_id s))
+                 (fun l -> Some ((s, path) :: Option.value ~default:[] l))
+                 acc
+             | _, D _ -> acc)
+           (Lazy.force t) String.Map.empty)
+    in
+    fun path ->
+      if Filename.basename path <> path then lookup t path
+      else
+        String.Map.find_opt
+          (String.lowercase_ascii (String.to_id path))
+          (Lazy.force files_by_id)
+        |> Option.value ~default:[]
+        |> unambiguous
 
   let union t1 t2 =
     lazy (Map.union (fun _ x _ -> Some x) (Lazy.force t1) (Lazy.force t2))

@@ -226,6 +226,54 @@ let test_file_list_roundtrip () =
   check_list "dir-tests file list round-trips" files
     (CVar.file_list_of_string (CVar.file_list_to_string files))
 
+(* [Tree.index] must give the same answers as [Tree.lookup], errors included *)
+let test_tree_index_matches_lookup () =
+  let module File = Catala_utils.File in
+  let dir = Filename.temp_dir "catala-tree" "" in
+  let touch f = close_out (open_out (Filename.concat dir f)) in
+  List.iter touch
+    ["Foo.catala_en"; "Bär_baz.catala_fr"; "Dup.catala_en"; "dûp.catala_en"];
+  Sys.mkdir (Filename.concat dir "sub") 0o755;
+  touch (Filename.concat "sub" "Inner.catala_en");
+  Fun.protect ~finally:(fun () ->
+      List.iter
+        (fun f -> Sys.remove (Filename.concat dir f))
+        [
+          "Foo.catala_en";
+          "Bär_baz.catala_fr";
+          "Dup.catala_en";
+          "dûp.catala_en";
+          Filename.concat "sub" "Inner.catala_en";
+        ];
+      Sys.rmdir (Filename.concat dir "sub");
+      Sys.rmdir dir)
+  @@ fun () ->
+  let tree = File.Tree.build dir in
+  let result f path =
+    match f path with
+    | r -> Ok (Option.map Filename.basename r)
+    | exception Catala_utils.Message.CompilerError _ -> Error "ambiguous"
+  in
+  let pp = function Ok (Some p) -> p | Ok None -> "none" | Error e -> e in
+  let lookup = File.Tree.index tree in
+  List.iter
+    (fun q ->
+      check q (pp (result (File.Tree.lookup tree) q)) (pp (result lookup q)))
+    [
+      "Foo.catala_en";
+      "foo.catala_en";
+      "Bar_baz.catala_fr";
+      "BAR_BAZ.catala_fr";
+      "Dup.catala_en";
+      "Missing.catala_en";
+      "sub";
+      "Inner.catala_en";
+    ];
+  check "accented file found from its ASCII name" "Bär_baz.catala_fr"
+    (pp (result lookup "Bar_baz.catala_fr"));
+  check "two files simplifying to the same name are an error" "ambiguous"
+    (pp (result lookup "Dup.catala_en"))
+
 let () =
   let open Alcotest in
   run "Unit tests"
@@ -243,6 +291,11 @@ let () =
             test_reverse_path_no_drive_strip;
           test_case "make_relative_to drive-case" `Quick
             test_make_relative_to_drive_case;
+        ] );
+      ( "File trees",
+        [
+          test_case "index agrees with lookup" `Quick
+            test_tree_index_matches_lookup;
         ] );
       ( "File URLs (Windows drive + UNC)",
         [

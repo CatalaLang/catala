@@ -290,6 +290,11 @@ module Tree : sig
       `String.to_id`, and case-insensitively) ; and returns its path with the
       correct case if so *)
 
+  val index : t -> path -> path option
+  (** [index t] behaves like [lookup t], but indexes the names at the root of
+      [t] on first use: for many lookups in the same tree, apply it once and
+      reuse the result. *)
+
   val union : t -> t -> t
   (** Merges two trees. In case of conflict, lhs entry wins *)
 end

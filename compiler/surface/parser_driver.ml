@@ -699,19 +699,27 @@ let load_modules
   let err_req_pos chain =
     List.map (fun mpos -> "Module required from", mpos) chain
   in
+  (* One tree and index per requiring directory, instead of one per lookup *)
+  let lookups = Hashtbl.create 17 in
   let find_module in_stdlib req_chain (mname, mpos) =
     let required_from_file = Pos.get_file mpos in
-    let includes =
-      if in_stdlib then stdlib_includes
-      else
-        File.Tree.union includes
-          (File.Tree.build (File.dirname required_from_file))
+    let key =
+      if in_stdlib then None else Some (File.dirname required_from_file)
     in
-    match
-      List.filter_map
-        (fun (ext, _) -> File.Tree.lookup includes (mname ^ ext))
-        extensions
-    with
+    let lookup =
+      match Hashtbl.find_opt lookups key with
+      | Some lookup -> lookup
+      | None ->
+        let tree =
+          match key with
+          | None -> stdlib_includes
+          | Some dir -> File.Tree.union includes (File.Tree.build dir)
+        in
+        let lookup = File.Tree.index tree in
+        Hashtbl.add lookups key lookup;
+        lookup
+    in
+    match List.filter_map (fun (ext, _) -> lookup (mname ^ ext)) extensions with
     | [] ->
       if in_stdlib then
         Message.error
