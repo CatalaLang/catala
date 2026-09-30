@@ -506,8 +506,9 @@ and val_to_runtime : type d r.
     | TLit TUnit, _ -> (
       let exception
         (* Constant constructor case *)
-        Found of int
-      in
+          Found of
+          int
+        in
       match
         EnumConstructor.Map.fold
           (fun c ty n ->
@@ -520,8 +521,9 @@ and val_to_runtime : type d r.
     | ty -> (
       let exception
         (* Non-constant constructor *)
-        Found of int
-      in
+          Found of
+          int
+        in
       match
         EnumConstructor.Map.fold
           (fun c ty n ->
@@ -1181,7 +1183,7 @@ let interpret_program_lcalc ?input p s :
       Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
         "The interpretation of the program doesn't yield a struct \
          corresponding to the scope variables"
-  end
+    end
   | _ ->
     Message.error ~pos:(Expr.pos e) "%a" Format.pp_print_text
       "The interpreter can only interpret terms starting with functions having \
@@ -1229,7 +1231,7 @@ let interpret_program_dcalc ?input ?on_expr p s :
       Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
         "The interpretation of a program should always yield a struct \
          corresponding to the scope variables"
-  end
+    end
   | _ ->
     Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
       "The interpreter can only interpret terms starting with functions having \

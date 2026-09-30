@@ -46,9 +46,9 @@ let invariant_default_no_arrow () : string * invariant_expr =
   ( "default_no_arrow",
     fun _ctx e ->
       match Mark.remove e with
-      | EDefault _ -> begin
-        match Mark.remove (Expr.ty e) with TArrow _ -> Fail | _ -> Pass
-      end
+      | EDefault _ ->
+        begin match Mark.remove (Expr.ty e) with TArrow _ -> Fail | _ -> Pass
+        end
       | _ -> Ignore )
 
 (* Structural invariant: no partial evaluation *)
@@ -67,11 +67,11 @@ let invariant_no_return_a_function () : string * invariant_expr =
   ( "no_return_a_function",
     fun _ctx e ->
       match Mark.remove e with
-      | EAbs _ -> begin
-        match Mark.remove (Expr.ty e) with
+      | EAbs _ ->
+        begin match Mark.remove (Expr.ty e) with
         | TArrow (_, (TArrow _, _)) -> Fail
         | _ -> Pass
-      end
+        end
       | _ -> Ignore )
 
 let invariant_app_inversion () : string * invariant_expr =
