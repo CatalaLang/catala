@@ -120,9 +120,9 @@ module Spec : Sig.Spec = struct
           !!Var.input
         ];
 
-      (* No include dirs: this link doesn't need them, and on Windows each
-         one becomes a flexlink search path, which is slow. *)
-      Nj.rule "ocaml-module" ~description
+      (* Input must be an already compiled .cmx: linking it needs no include
+         dirs. *)
+      Nj.rule "ocaml-link-cmx" ~description
         ~command:
           [!!ocamlopt_exe; Nj.Expr.Word "-shared"; !!ocaml_flags;
            !!Var.input;
@@ -248,7 +248,7 @@ module Spec : Sig.Spec = struct
         | Some _ ->
           obj
           @ [
-              Nj.build "ocaml-module"
+              Nj.build "ocaml-link-cmx"
                 ~inputs:[Common.target ~name "cmx"]
                 ~outputs:[Common.target ~name "cmxs"];
             ]
