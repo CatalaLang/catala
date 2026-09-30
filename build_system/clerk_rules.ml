@@ -494,13 +494,14 @@ let with_ninja_process
       | "ninja: no work to do." -> readwait ()
       | line ->
         (if Global.options.debug then print_endline line
-         else if isatty then
+         else
            match Re.exec_opt ninja_count_re line with
-           | None -> print_endline line
+           | None -> if isatty then print_endline line else prerr_endline line
            | Some gs ->
-             let count = int_of_string (Re.Group.get gs 1) in
-             let total = int_of_string (Re.Group.get gs 2) in
-             Message.print_percent "Compiling..." count total);
+             if isatty then
+               let count = int_of_string (Re.Group.get gs 1) in
+               let total = int_of_string (Re.Group.get gs 2) in
+               Message.print_percent "Compiling..." count total);
         readwait ()
     in
     ( npid,
