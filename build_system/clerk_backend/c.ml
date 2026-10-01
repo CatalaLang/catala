@@ -123,10 +123,15 @@ module Spec : Sig.Spec = struct
         ~outputs:[Word ((c_base /../ "dates_calc") -.- "o")];
     ]
 
+  (* The test main is the one source including its own header with quotes.
+     opam's Cygwin gcc only splits on '/' to find a source's folder: with '\'
+     the #include can resolve to a namesake in the -I folders. Spelled with
+     '/' where ninja first sees it, the spelling $in keeps. *)
+  let test_main =
+    Nj.Expr.Word (!Var.tdir ^ "/" ^ name ^ "/" ^ !Var.dst ^ "+main.c")
+
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in ~has_scope_tests =
-    let implicit_out =
-      if has_scope_tests then [Common.target ~name "+main.c"] else []
-    in
+    let implicit_out = if has_scope_tests then [test_main] else [] in
     Seq.return
       (Nj.build "catala-c" ?vars ~inputs ~implicit_in
          ~outputs:[Common.target ~name "c"]
@@ -145,8 +150,7 @@ module Spec : Sig.Spec = struct
       ::
       (if Lazy.force item.has_scope_tests > 0 then
          [
-           Nj.build "c-object"
-             ~inputs:[Common.target ~name "+main.c"]
+           Nj.build "c-object" ~inputs:[test_main]
              ~implicit_in:
                (Common.target ~name "h"
                :: Word "@c/runtime/src"
