@@ -226,6 +226,100 @@ let test_file_list_roundtrip () =
   check_list "dir-tests file list round-trips" files
     (CVar.file_list_of_string (CVar.file_list_to_string files))
 
+(* [File.Tree.lookup] against its rule, spelled out over real folders: [to_id]
+   and case-insensitive, plain files only, left folder wins on a same name,
+   several matches are an error *)
+let test_tree_lookup_matches_reference () =
+  let module File = Catala_utils.File in
+  (* not [Filename.temp_dir]: needs OCaml 5.1 *)
+  let root = Filename.temp_file "catala-tree" "" in
+  Sys.remove root;
+  Sys.mkdir root 0o755;
+  let ( / ) = Filename.concat in
+  let files =
+    [
+      "a" / "Foo.catala_en";
+      "a" / "Bär_baz.catala_fr";
+      "a" / "Dup.catala_en";
+      "a" / "dûp.catala_en";
+      "a" / "Same.catala_en";
+      "a" / "Cross.catala_en";
+      "a" / "sub" / "Inner.catala_en";
+      "b" / "Same.catala_en";
+      "b" / "cröss.catala_en";
+    ]
+  in
+  List.iter (fun d -> Sys.mkdir (root / d) 0o755) ["a"; "a" / "sub"; "b"];
+  List.iter (fun f -> close_out (open_out (root / f))) files;
+  Fun.protect ~finally:(fun () ->
+      List.iter (fun f -> Sys.remove (root / f)) files;
+      List.iter (fun d -> Sys.rmdir (root / d)) ["a" / "sub"; "a"; "b"; ""])
+  @@ fun () ->
+  let dirs = [root / "a"; root / "b"] in
+  let id s = String.lowercase_ascii (Catala_utils.String.to_id s) in
+  let reference query =
+    let merged =
+      List.fold_left
+        (fun acc dir ->
+          Array.fold_left
+            (fun acc f ->
+              if List.exists (fun (g, _) -> File.equal f g) acc then acc
+              else acc @ [f, dir / f])
+            acc (Sys.readdir dir))
+        [] dirs
+    in
+    let entries, name =
+      match String.split_on_char '/' query with
+      | [sub; name] -> (
+        match List.find_opt (fun (g, _) -> File.equal g sub) merged with
+        | Some (_, p) when Sys.is_directory p ->
+          Array.to_list (Sys.readdir p) |> List.map (fun f -> f, p / f), name
+        | _ -> [], name)
+      | _ -> merged, query
+    in
+    List.filter
+      (fun (f, p) -> (not (Sys.is_directory p)) && id f = id name)
+      entries
+    |> function [] -> "none" | [(f, _)] -> f | _ -> "ambiguous"
+  in
+  let tree =
+    File.Tree.union
+      (File.Tree.build (root / "a"))
+      (File.Tree.build (root / "b"))
+  in
+  let actual query =
+    match File.Tree.lookup tree query with
+    | Some p -> Filename.basename p
+    | None -> "none"
+    | exception Catala_utils.Message.CompilerError _ -> "ambiguous"
+  in
+  let queries =
+    [
+      "Foo.catala_en";
+      "foo.catala_en";
+      "Bar_baz.catala_fr";
+      "BAR_BAZ.catala_fr";
+      "Dup.catala_en";
+      "Missing.catala_en";
+      "sub";
+      "Inner.catala_en";
+      "sub/Inner.catala_en";
+      "Same.catala_en";
+      "Cross.catala_en";
+    ]
+  in
+  (* twice: the second round uses the built index *)
+  List.iter (fun q -> check q (reference q) (actual q)) (queries @ queries);
+  check "accented file found from its ASCII name" "Bär_baz.catala_fr"
+    (actual "Bar_baz.catala_fr");
+  check "same name in two folders: left wins"
+    (root / "a" / "Same.catala_en")
+    (Option.get (File.Tree.lookup tree "Same.catala_en"));
+  check "different names, same id, across folders: an error" "ambiguous"
+    (actual "Cross.catala_en");
+  check "path through a subfolder" "Inner.catala_en"
+    (actual "sub/Inner.catala_en")
+
 let () =
   let open Alcotest in
   run "Unit tests"
@@ -243,6 +337,11 @@ let () =
             test_reverse_path_no_drive_strip;
           test_case "make_relative_to drive-case" `Quick
             test_make_relative_to_drive_case;
+        ] );
+      ( "File trees",
+        [
+          test_case "lookup matches the reference rule" `Quick
+            test_tree_lookup_matches_reference;
         ] );
       ( "File URLs (Windows drive + UNC)",
         [
