@@ -120,9 +120,11 @@ module Spec : Sig.Spec = struct
           !!Var.input
         ];
 
-      Nj.rule "ocaml-module" ~description
+      (* Input must be an already compiled .cmx: linking it needs no include
+         dirs. *)
+      Nj.rule "ocaml-link-cmx" ~description
         ~command:
-          [!!ocamlopt_exe; Nj.Expr.Word "-shared"; !!ocaml_flags; !!ocaml_include;
+          [!!ocamlopt_exe; Nj.Expr.Word "-shared"; !!ocaml_flags;
            !!Var.input;
            Nj.Expr.Word "-o"; !!Var.output];
     ]
@@ -254,7 +256,7 @@ module Spec : Sig.Spec = struct
         | Some _ ->
           obj
           @ [
-              Nj.build "ocaml-module"
+              Nj.build "ocaml-link-cmx"
                 ~inputs:[Common.target ~name "cmx"]
                 ~outputs:[Common.target ~name "cmxs"];
             ]
