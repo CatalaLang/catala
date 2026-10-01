@@ -1,5 +1,5 @@
 opam-version: "2.0"
-version: "1.2.1"
+version: "1.3.0"
 synopsis:
   "Compiler and library for the literate programming language for tax code specification"
 description: """
@@ -47,7 +47,7 @@ depends: [
   "odoc" {with-doc}
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.29.0"}
   "obelisk" {?cataladevmode & cataladevmode}
-  "conf-ninja" {post}
+  "conf-ninja" {post | with-test}
   # --- the following are "optional runtime dependencies" ---
   # they're listed here mostly for documentation ; one can export
   # OPAMVAR_cataladevmode=1 before installation to automatically get them
