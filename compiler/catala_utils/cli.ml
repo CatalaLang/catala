@@ -76,6 +76,14 @@ let exec_dir =
   else (* searched in PATH *)
     Filename.dirname Sys.executable_name
 
+(* See https://erratique.ch/software/cmdliner/doc/cli.html#completion_protocol *)
+let autocomplete_mode =
+  Array.length Sys.argv >= 2
+  && Sys.argv.(1) = "--__complete"
+  &&
+  (Unix.putenv "CMDLINER_LEGACY_PREFIXES" "false";
+   true)
+
 (** CLI flags and options *)
 
 let s_plugins = "INSTALLED PLUGINS"

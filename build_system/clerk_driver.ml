@@ -1822,6 +1822,7 @@ let main () =
     exit excode
   in
   Sys.catch_break true;
+  if Catala_utils.Cli.autocomplete_mode then exit (Cmd.eval' main_cmd);
   try exit (Cmdliner.Cmd.eval' ~catch:false main_cmd) with
   | Catala_utils.Cli.Exit_with n -> exit n
   | Message.CompilerError content ->

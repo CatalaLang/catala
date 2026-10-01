@@ -1490,6 +1490,8 @@ let main () =
   (* Peek to load plugins before the command-line is parsed proper (plugins add
      their own commands) *)
   let plugins =
+    if Cli.autocomplete_mode then
+      ignore (Global.enforce_options ~debug:false ());
     let plugins_dirs =
       match
         Cmdliner.Cmd.eval_peek_opts ~argv Cli.Flags.Global.flags
@@ -1519,8 +1521,10 @@ let main () =
        Catala internal mutable state. *)
     Plugin.list ()
   in
-  let command = catala_t plugins in
   let open Cmdliner in
+  if Cli.autocomplete_mode then
+    exit (Cmd.eval (Cmd.group Cli.info Commands.commands));
+  let command = catala_t plugins in
   let[@inline] exit_with_error excode fcontent =
     let bt = Printexc.get_raw_backtrace () in
     Message.Content.emit (fcontent ()) Error;
