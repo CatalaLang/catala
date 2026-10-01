@@ -66,15 +66,35 @@ type custom_rule = {
   commandline : string list;
 }
 
+type backend_conf = { use_libs : string list }
+
+type backends_conf = {
+  ocaml : backend_conf;
+  c : backend_conf;
+  python : backend_conf;
+  java : backend_conf;
+}
+
 type config_file = {
   global : global;
   variables : (string * string list) list;
   targets : target list;
   docs : doc list;
   custom_rules : custom_rule list;
+  backends_conf : backends_conf;
 }
 
 type t = config_file
+
+let default_backend_conf = { use_libs = [] }
+
+let default_backends_confs =
+  {
+    ocaml = default_backend_conf;
+    c = default_backend_conf;
+    python = default_backend_conf;
+    java = default_backend_conf;
+  }
 
 let default_global =
   {
@@ -96,6 +116,7 @@ let default_config =
     targets = [];
     docs = [];
     custom_rules = [];
+    backends_conf = default_backends_confs;
   }
 
 let project_encoding () =
@@ -204,27 +225,52 @@ let custom_rule_encoding () =
 
 let variables_encoding () = Clerk_toml_encoding.(binding_list (list string))
 
+let backend_config () =
+  let open Clerk_toml_encoding in
+  conv (fun { use_libs } -> use_libs) (fun use_libs -> { use_libs })
+  @@ obj1 (dft_field ~name:"use_libraries" ~default:[] @@ list string)
+
+let backends_table_encoding () =
+  let backend_config = backend_config () in
+  let open Clerk_toml_encoding in
+  convt
+    (fun { ocaml; c; python; java } ->
+      let ( ! ) c = if c = default_backend_conf then None else Some c in
+      !ocaml, !c, !python, !java)
+    (fun (ocaml, c, python, java) ->
+      let ( ! ) = Option.value ~default:default_backend_conf in
+      { ocaml = !ocaml; c = !c; python = !python; java = !java })
+  @@ table4
+       (table_opt ~name:"ocaml" backend_config)
+       (table_opt ~name:"c" backend_config)
+       (table_opt ~name:"python" backend_config)
+       (table_opt ~name:"java" backend_config)
+
 let raw_config_encoding () =
   let open Clerk_toml_encoding in
-  table5
-    (table_opt ~name:"project" (project_encoding ()))
-    (table_opt ~name:"variables" (variables_encoding ()))
-    (multi_table ~name:"target" (target_encoding ()))
-    (multi_table ~name:"doc" (doc_encoding ()))
-    (multi_table ~name:"rule" (custom_rule_encoding ()))
+  merge_tables
+    (table5
+       (table_opt ~name:"project" (project_encoding ()))
+       (table_opt ~name:"variables" (variables_encoding ()))
+       (multi_table ~name:"target" (target_encoding ()))
+       (multi_table ~name:"doc" (doc_encoding ()))
+       (multi_table ~name:"rule" (custom_rule_encoding ())))
+    (backends_table_encoding ())
 
 let config_encoding () : config_file Clerk_toml_encoding.t =
   let open Clerk_toml_encoding in
   convt
-    (fun { global; variables; targets; docs; custom_rules } ->
-      Some global, proj_empty_list variables, targets, docs, custom_rules)
-    (fun (global, variables, targets, docs, custom_rules) ->
+    (fun { global; variables; targets; docs; custom_rules; backends_conf } ->
+      ( (Some global, proj_empty_list variables, targets, docs, custom_rules),
+        backends_conf ))
+    (fun ((global, variables, targets, docs, custom_rules), backends_conf) ->
       {
         global = Option.value global ~default:default_global;
         variables = inj_empty_list variables;
         targets;
         docs;
         custom_rules;
+        backends_conf;
       })
   @@ raw_config_encoding ()
 

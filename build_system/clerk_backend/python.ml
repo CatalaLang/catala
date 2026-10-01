@@ -33,17 +33,13 @@ module Spec : Sig.Spec = struct
   let all_obj_extensions = ["py"]
   let stdlib_subdir = ""
 
-  let var_defs
-      ~variables
-      ~autotest
-      ~use_default_flags
-      ~test_flags
-      ~include_dirs:_ =
+  let var_defs ~config ~autotest ~use_default_flags ~test_flags ~include_dirs:_
+      =
     let catala_flags =
       Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true
     in
-    let def = Flags.def ~variables in
+    let def = Flags.def ~variables:config.Clerk_cli.file.variables in
     [def catala_flags_python (lazy catala_flags); def python (lazy ["python3"])]
 
   let[@ocamlformat "disable"] rules =
@@ -92,7 +88,8 @@ module Spec : Sig.Spec = struct
     let open File in
     File.with_out_channel (dir / "__init__.py") (fun oc ->
         Printf.fprintf oc "__all__ = [%s]\n"
-          (String.concat ", " target.Clerk_config.tmodules));
+          (String.concat ", "
+             (List.map String.quote target.Clerk_config.tmodules)));
     File.with_out_channel (dir / "py.typed") ignore
 
   let install_target ~config ~info target =
@@ -112,7 +109,35 @@ module Spec : Sig.Spec = struct
       ~src:(Lazy.force Poll.stdlib_dir / name / "src" / "catala")
       ~dst:dir
 
-  let write_project_def ~config:_ ~info:_ = ()
+  let write_project_def ~config ~info =
+    File.(
+      with_out_channel
+        (config.Clerk_cli.file.global.target_dir / name / "pyproject.toml"))
+    @@ fun oc ->
+    output_string oc "[project]\n";
+    Option.iter
+      (fun n -> Printf.fprintf oc "name = %s\n" (String.quote n))
+      config.Clerk_cli.file.global.project_name;
+    output_string oc "version = \"0.1\"\n\n";
+    if config.file.backends_conf.python.use_libs <> [] then (
+      output_string oc "dependencies = [\n";
+      List.iter
+        (fun l -> Printf.fprintf oc "  %s,\n" (String.quote l))
+        config.file.backends_conf.python.use_libs;
+      output_string oc "]\n");
+    output_string oc
+      {toml|
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+|toml};
+    String.Map.iter
+      (fun t _ -> Printf.fprintf oc "  %s,\n" (String.quote t))
+      info.Module_graph.targets_map;
+    output_string oc "]\n"
 
   let linking_command ~build_dir ~var_bindings:_ link_deps item target =
     (* a "linked" python module is a "Module.py" folder containing the module .py
