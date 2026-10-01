@@ -1,0 +1,39 @@
+## Unicode letter after multi-word keywords must be caught
+
+The boundary check must cover non-ASCII identifier characters (e.g. 'e' with
+accent) so that 'sous conditioné' is also caught as a lexer error.  An
+ASCII-only check would miss non-ASCII letters.
+
+```catala
+declaration scope A:
+  output i content integer
+
+scope A under conditioné:
+  definition i of A equals 0
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[ERROR]─ 1/2 ─
+│
+│  Parsing error after token " ": what comes after could not be recognised
+│
+├─➤ tests/parsing/bad/multiline_keyword_space_unicode.catala_en:11.8-9:
+│    │
+│ 11 │ scope A under conditioné:
+│    │        ‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  Unclosed block or missing newline at the end of file.
+│  Did you forget a ``` delimiter ?
+│
+├─➤ tests/parsing/bad/multiline_keyword_space_unicode.catala_en:7-8:
+│   │
+│ 7 │ ```catala
+│   │ ‾‾‾‾‾‾‾‾‾
+│ 8 │ declaration scope A:
+│   │ 
+└─
+#return code 123#
+```
