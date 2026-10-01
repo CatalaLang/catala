@@ -291,9 +291,10 @@ module Tree : sig
       correct case if so *)
 
   val index : t -> path -> path option
-  (** [index t] behaves like [lookup t], but indexes the names at the root of
-      [t] on first use: for many lookups in the same tree, apply it once and
-      reuse the result. *)
+  (** [index t] looks up bare file names at the root of [t], matching like
+      {!lookup}; the names are indexed on first use, so apply it once and reuse
+      the result for many lookups. Raises [Invalid_argument] on a name with a
+      folder part: use {!lookup} for those. *)
 
   val union : t -> t -> t
   (** Merges two trees. In case of conflict, lhs entry wins *)

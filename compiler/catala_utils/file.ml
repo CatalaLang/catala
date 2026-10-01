@@ -506,14 +506,14 @@ module Tree = struct
              | _, D _ -> acc)
            (Lazy.force t) String.Map.empty)
     in
-    fun path ->
-      if Filename.basename path <> path then lookup t path
-      else
-        String.Map.find_opt
-          (String.lowercase_ascii (String.to_id path))
-          (Lazy.force files_by_id)
-        |> Option.value ~default:[]
-        |> unambiguous
+    fun name ->
+      if Filename.basename name <> name then
+        invalid_arg ("File.Tree.index: not a bare file name: " ^ name);
+      String.Map.find_opt
+        (String.lowercase_ascii (String.to_id name))
+        (Lazy.force files_by_id)
+      |> Option.value ~default:[]
+      |> unambiguous
 
   let union t1 t2 =
     lazy (Map.union (fun _ x _ -> Some x) (Lazy.force t1) (Lazy.force t2))

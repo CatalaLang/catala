@@ -272,7 +272,12 @@ let test_tree_index_matches_lookup () =
   check "accented file found from its ASCII name" "Bär_baz.catala_fr"
     (pp (result lookup "Bar_baz.catala_fr"));
   check "two files simplifying to the same name are an error" "ambiguous"
-    (pp (result lookup "Dup.catala_en"))
+    (pp (result lookup "Dup.catala_en"));
+  Alcotest.check_raises "a name with a folder part is refused"
+    (Invalid_argument
+       ("File.Tree.index: not a bare file name: "
+       ^ Filename.concat "sub" "Inner.catala_en"))
+    (fun () -> ignore (lookup (Filename.concat "sub" "Inner.catala_en")))
 
 let () =
   let open Alcotest in
