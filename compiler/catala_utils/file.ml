@@ -441,27 +441,52 @@ module Tree = struct
   type path = t
 
   type item = F | D of t
-  and t = (path * item) Map.t Lazy.t
 
-  let empty = lazy Map.empty
+  and node = {
+    entries : (path * item) Map.t;
+    by_id : (path * path) list String.Map.t Lazy.t;
+        (* plain files by [lowercase (to_id name)], as (name, path): what
+           [lookup] matches on *)
+  }
+
+  and t = node Lazy.t
+
+  let node entries =
+    let by_id =
+      lazy
+        (Map.fold
+           (fun s m acc ->
+             match m with
+             | path, F ->
+               String.Map.update
+                 (String.lowercase_ascii (String.to_id s))
+                 (fun l -> Some ((s, path) :: Option.value ~default:[] l))
+                 acc
+             | _, D _ -> acc)
+           entries String.Map.empty)
+    in
+    { entries; by_id }
+
+  let empty = lazy (node Map.empty)
 
   let rec build path =
     lazy
       (let entries = try Sys.readdir path with Sys_error _ -> [||] in
-       Array.fold_left
-         (fun m f ->
-           let path = path / f in
-           match Sys.is_directory path with
-           | true -> Map.add f (path, D (build path)) m
-           | false -> Map.add f (path, F) m
-           | exception Sys_error _ -> m)
-         Map.empty entries)
+       node
+         (Array.fold_left
+            (fun m f ->
+              let path = path / f in
+              match Sys.is_directory path with
+              | true -> Map.add f (path, D (build path)) m
+              | false -> Map.add f (path, F) m
+              | exception Sys_error _ -> m)
+            Map.empty entries))
 
   let subtree t path =
     let rec aux t = function
       | [] -> t
       | dir :: path -> (
-        match Map.find_opt dir (Lazy.force t) with
+        match Map.find_opt dir (Lazy.force t).entries with
         | Some (_, D sub) -> aux sub path
         | Some (_, F) | None -> raise Not_found)
     in
@@ -470,27 +495,23 @@ module Tree = struct
   let lookup t path =
     try
       let t = subtree t (dirname path) in
-      let fname = String.to_id (Filename.basename path) in
-      let matches =
-        Map.filter_map
-          (fun s m ->
-            match equal (String.to_id s) fname, m with
-            | true, (path, F) -> Some path
-            | _ -> None)
-          (Lazy.force t)
-      in
-      match Map.cardinal matches with
-      | 0 -> None
-      | 1 -> Some (snd (Map.choose matches))
-      | _ ->
+      let id = String.lowercase_ascii (String.to_id (Filename.basename path)) in
+      match String.Map.find_opt id (Lazy.force (Lazy.force t).by_id) with
+      | None | Some [] -> None
+      | Some [(_, path)] -> Some path
+      | Some matches ->
         Message.error
           "Multiple files match the same module name:@ @[<v>%a@]@,\
            @{<bold>Hint:@} Rename your modules to avoid conflicts. You may \
            need to run `clerk clean`"
           (Format.pp_print_list format)
-          (List.map fst (Map.bindings matches))
+          (List.sort compare (List.map fst matches))
     with Not_found -> None
 
   let union t1 t2 =
-    lazy (Map.union (fun _ x _ -> Some x) (Lazy.force t1) (Lazy.force t2))
+    lazy
+      (node
+         (Map.union
+            (fun _ x _ -> Some x)
+            (Lazy.force t1).entries (Lazy.force t2).entries))
 end
