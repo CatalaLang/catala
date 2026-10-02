@@ -19,6 +19,7 @@ let dev_mode_env_varname = "CATALA_DEVELOPER"
 
 let is_dev =
   Sys.argv.(0) = "clerk"
+  && (not Catala_utils.Cli.autocomplete_mode)
   &&
   match Sys.getenv_opt dev_mode_env_varname with
   | None | Some ("" | "0" | "no" | "reentrant") -> false

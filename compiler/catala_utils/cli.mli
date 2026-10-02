@@ -120,3 +120,7 @@ exception Exit_with of int
 
 val exec_dir : file
 (** Returns the directory of the currently running executable *)
+
+val autocomplete_mode : bool
+(** [true] when the program was called from cmdliner special completion scripts,
+    and should limit operations to the completion handled by cmdliner *)
