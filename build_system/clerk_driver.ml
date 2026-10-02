@@ -1019,10 +1019,9 @@ let raw_cmd : int Cmd.t =
 
 let build_cmd : int Cmd.t =
   let run
-      config
+      (config, target_args)
       autotest
       code_coverage
-      (target_args : string list)
       backends
       build_objects
       (ninja_flags : string list) =
@@ -1090,10 +1089,9 @@ let build_cmd : int Cmd.t =
     (Cmd.info ~doc ~man "build")
     Term.(
       const run
-      $ Cli.init_term ()
+      $ Cli.init_term_with_target ()
       $ Cli.autotest
       $ Cli.code_coverage
-      $ Cli.clerk_targets_or_files_or_folders
       $ Cli.backends
       $ Cli.objects
       $ Cli.ninja_flags
@@ -1102,8 +1100,7 @@ let build_cmd : int Cmd.t =
 
 let run_cmd =
   let run
-      config
-      (target_args : string list)
+      (config, target_args)
       backends
       cmd
       (scope : string option)
@@ -1172,8 +1169,7 @@ let run_cmd =
   Cmd.v (Cmd.info ~doc "run")
     Term.(
       const run
-      $ Cli.init_term ()
-      $ Cli.files_or_folders
+      $ Cli.init_term_with_target ()
       $ Cli.backends
       $ Cli.run_command
       $ Cli.scope_opt
@@ -1185,7 +1181,7 @@ let run_cmd =
       $ Catala_utils.Cli.Flags.trace_format)
 
 let typecheck_cmd =
-  let run config (target_args : File.t list) disable_warnings =
+  let run (config, target_args) disable_warnings =
     let items, info = Clerk_rules.scan_project ~config in
     let targets =
       if target_args = [] then project_dir_targets ~config info items
@@ -1236,8 +1232,7 @@ let typecheck_cmd =
   let doc = "Runs the Catala type-checker on the given files." in
   Cmd.v
     (Cmd.info ~doc "typecheck")
-    Term.(
-      const run $ Cli.init_term () $ Cli.files_or_folders $ Cli.disable_warnings)
+    Term.(const run $ Cli.init_term_with_target () $ Cli.disable_warnings)
 
 let clean_cmd =
   let run (config : Cli.config) =
@@ -1252,8 +1247,7 @@ let clean_cmd =
 
 let test_cmd =
   let run
-      config
-      (target_args : string list)
+      (config, target_args)
       (backends : [ `Interpret | `OCaml | `C | `Python | `Java ] list)
       (reset_test_outputs : bool)
       verbosity
@@ -1426,8 +1420,7 @@ let test_cmd =
   Cmd.v (Cmd.info ~doc "test")
     Term.(
       const run
-      $ Cli.init_term ~allow_test_flags:true ()
-      $ Cli.clerk_targets_or_files_or_folders
+      $ Cli.init_term_with_target ~allow_test_flags:true ()
       $ Cli.backends
       $ Cli.reset_test_outputs
       $ Cli.report_verbosity
@@ -1464,7 +1457,8 @@ let runtest_cmd =
     "Mainly for internal purposes. Runs cli tests and annotated test scopes \
      from a Catala file, and outputs their results to stdout"
   in
-  Cmd.v (Cmd.info ~doc "runtest")
+  Cmd.v
+    (Cmd.info ~docs:Manpage.s_none ~doc "runtest")
     Term.(
       const run
       $ Cli.catala_exe
@@ -1519,8 +1513,7 @@ let start_cmd =
 
 let ci_cmd =
   let run
-      config
-      (target_args : string list)
+      (config, target_args)
       backends
       build_objects
       verbosity
@@ -1624,8 +1617,7 @@ let ci_cmd =
   Cmd.v (Cmd.info ~doc "ci")
     Term.(
       const run
-      $ Cli.init_term ~allow_test_flags:false ()
-      $ Cli.clerk_targets_or_files_or_folders
+      $ Cli.init_term_with_target ~allow_test_flags:false ()
       $ Cli.backends
       $ Cli.objects
       $ Cli.report_verbosity
