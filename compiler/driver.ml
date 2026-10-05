@@ -428,32 +428,6 @@ module Commands = struct
         (Option.value ~default:"stdout" output_file);
       with_output (fun ppf -> f output_file ppf)
 
-  let makefile options output =
-    let prg = Passes.surface options in
-    let backend_extensions_list = [".tex"] in
-    let source_file = Global.input_src_file options.Global.input_src in
-    let output_file, with_output = get_output options ~ext:"d" output in
-    Message.debug "Writing list of dependencies to %a..." File.format
-      (Option.value ~default:"stdout" output_file);
-    with_output
-    @@ fun oc ->
-    Printf.fprintf oc "%s:\\\n%s\n%s:"
-      (String.concat "\\\n"
-         (Option.value ~default:"stdout" output_file
-         :: List.map
-              (fun ext -> File.remove_extension source_file ^ ext)
-              backend_extensions_list))
-      (String.concat "\\\n" prg.Surface.Ast.program_source_files)
-      (String.concat "\\\n" prg.Surface.Ast.program_source_files)
-
-  let makefile_cmd =
-    Cmd.v
-      (Cmd.info "makefile" ~man:Cli.man_base
-         ~doc:
-           "Generates a Makefile-compatible list of the file dependencies of a \
-            Catala program.")
-      Term.(const makefile $ global_options $ Cli.Flags.output)
-
   let html options output print_only_law wrap_weaved_output =
     let prg = Passes.surface options in
     Message.debug "Weaving literate program into HTML";
@@ -1434,7 +1408,6 @@ module Commands = struct
       c_cmd;
       latex_cmd;
       html_cmd;
-      makefile_cmd;
       scopelang_cmd;
       dcalc_cmd;
       lcalc_cmd;
@@ -1490,6 +1463,8 @@ let main () =
   (* Peek to load plugins before the command-line is parsed proper (plugins add
      their own commands) *)
   let plugins =
+    if Cli.autocomplete_mode then
+      ignore (Global.enforce_options ~debug:false ());
     let plugins_dirs =
       match
         Cmdliner.Cmd.eval_peek_opts ~argv Cli.Flags.Global.flags
@@ -1519,8 +1494,10 @@ let main () =
        Catala internal mutable state. *)
     Plugin.list ()
   in
-  let command = catala_t plugins in
   let open Cmdliner in
+  if Cli.autocomplete_mode then
+    exit (Cmd.eval (Cmd.group Cli.info Commands.commands));
+  let command = catala_t plugins in
   let[@inline] exit_with_error excode fcontent =
     let bt = Printexc.get_raw_backtrace () in
     Message.Content.emit (fcontent ()) Error;

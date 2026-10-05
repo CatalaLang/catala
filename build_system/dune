@@ -42,21 +42,30 @@
  (name clerk)
  (deps %{bin:clerk} %{bin:catala}))
 
-(include manpages.sexp)
-
 (rule
- (mode promote)
+ (targets
+  (dir cmdliner-support))
+ (deps clerk.exe ../compiler/catala.exe)
  (action
-  (with-stdout-to
-   manpages.sexp
-   (run
-    sh
-    -c
-    "for page in '' $(A=$(%{bin:clerk} 2>/dev/null --__complete --__complete=); if [ $? -eq 0 ]; then echo \"$A\" | awk \"/^item$/ { getline; if (!/^--/) print }\" | sort; else %{bin:clerk} 2>&1 | sed -n \"s/\\(^\\|'\\)[^']*\\('\\|$\\)/ /gp;q\"; fi); do\necho '(rule (alias man) (action (with-stdout-to clerk'${page:+-$page}'.1 (run \%{bin:clerk} '$page' --help=groff))))'\n      done"))))
+  (ignore-stdout
+   (progn
+    (run
+     cmdliner
+     install
+     tool-support
+     ../compiler/catala.exe:catala
+     cmdliner-support)
+    (run cmdliner install tool-support ./clerk.exe:clerk cmdliner-support)))))
+
+;; Installing the whole share dir at once would break because the package
+;; catala-js independently uses (section share)
+;; We also need to install this for both catala and clerk at once or dune
+;; crashes horribly
 
 (install
- (section man)
+ (section share_root)
  (package catala)
- (files
-  (glob_files
-   (*.1 with_prefix man1/))))
+ (dirs
+  cmdliner-support/share/man
+  cmdliner-support/share/zsh
+  cmdliner-support/share/bash-completion))
