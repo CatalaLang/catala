@@ -324,12 +324,14 @@ end
 module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 module Parser_Pl = ParserAux (Lexer_pl)
+module Parser_Es = ParserAux (Lexer_es)
 
 let localised_parser : Global.backend_lang -> lexbuf -> Ast.source_file =
   function
   | `En -> Parser_En.commands_or_includes
   | `Fr -> Parser_Fr.commands_or_includes
   | `Pl -> Parser_Pl.commands_or_includes
+  | `Es -> Parser_Es.commands_or_includes
 
 (** Lightweight lexer for dependency *)
 
@@ -339,6 +341,7 @@ let lines (file : File.t) (language : Global.backend_lang) =
     | `En -> Lexer_en.lex_line
     | `Fr -> Lexer_fr.lex_line
     | `Pl -> Lexer_pl.lex_line
+    | `Es -> Lexer_es.lex_line
   in
   let input = open_in file in
   try
@@ -638,6 +641,8 @@ let extensions =
     ".catala_en.md", "en";
     ".catala_pl", "pl";
     ".catala_pl.md", "pl";
+    ".catala_es", "es";
+    ".catala_es.md", "es";
   ]
 
 type module_loading =
