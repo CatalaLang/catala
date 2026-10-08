@@ -146,7 +146,7 @@ let format_project_pom_xml ~(config : Clerk_cli.config) ppf targets =
         ( Scan.libcatala,
           "catala-runtime",
           Version.v,
-          "catala-runtime" ^ Version.v )
+          "catala-runtime-" ^ Version.v )
       else
         let dir_name = String.to_snake_case target.tname in
         project_name, dir_name, "${project.version}", dir_name

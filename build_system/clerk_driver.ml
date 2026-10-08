@@ -1263,6 +1263,10 @@ let test_cmd =
       (ninja_flags : string list) : int =
     let enable_backend_tests = List.exists (( <> ) `Interpret) backends in
     let backends = if backends = [] then [`Interpret] else backends in
+    let autotest =
+      (* Disable autotest in interpret only mode *)
+      backends <> [`Interpret]
+    in
     let build_dir = config.Cli.file.global.build_dir in
     setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
       code_coverage;
@@ -1302,8 +1306,8 @@ let test_cmd =
     in
     let exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~code_coverage ~config ~keep_going:false
-        ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest:true
-        ~tests:true ~trace:false
+        ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest ~tests:true
+        ~trace:false
         ~default:([], [], Module_graph.empty_info, [])
       @@ fun nin_ppf items info ->
       (* TODO: keep_going:true, to be able to still show a test report.
@@ -1313,7 +1317,7 @@ let test_cmd =
       let targets =
         if target_args = [] then project_dir_targets ~config info items
         else
-          sort_user_target_args config ~autotest:true ~backends items info
+          sort_user_target_args config ~autotest ~backends items info
             target_args
       in
       target_debug_message targets;
@@ -1766,6 +1770,31 @@ let exceptions_cmd =
     Term.(
       const run $ Cli.init_term () $ Cli.single_file $ Cli.scope $ Cli.variable)
 
+let cat_list_cmd =
+  let run list_file out =
+    let files =
+      In_channel.with_open_bin list_file In_channel.input_all
+      |> Var.file_list_of_string
+    in
+    Out_channel.with_open_bin out (fun oc ->
+        List.iter
+          (fun f ->
+            In_channel.with_open_bin f In_channel.input_all
+            |> Out_channel.output_string oc)
+          files);
+    0
+  in
+  let doc =
+    "Internal (Windows): concatenates the files listed in $(i,LIST) into \
+     $(i,OUT), in place of [cat]."
+  in
+  Cmd.v
+    (Cmd.info ~docs:Manpage.s_none ~doc "cat-list")
+    Term.(
+      const run
+      $ Arg.(required & pos 0 (some string) None & info [] ~docv:"LIST")
+      $ Arg.(required & pos 1 (some string) None & info [] ~docv:"OUT"))
+
 let main_cmd =
   Cmd.group Cli.info
     [
@@ -1777,6 +1806,7 @@ let main_cmd =
       clean_cmd;
       ci_cmd;
       runtest_cmd;
+      cat_list_cmd;
       report_cmd;
       raw_cmd;
       list_vars_cmd;

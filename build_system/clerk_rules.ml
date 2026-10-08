@@ -67,17 +67,18 @@ let static_base_rules ~tests enabled_backends =
             ]
           ~description:[Word "<catala>"; Word "tests"; Word "⇐"; !!input];
         Nj.rule "dir-tests"
+          ?vars:
+            (if Sys.win32 then
+               (* the file list can exceed cmd's command-line limit *)
+               Some
+                 [
+                   Nj.Binding.make rspfile "$out.rsp";
+                   Nj.Binding.make rspfile_content "$test_files";
+                 ]
+             else None)
           ~command:
             (if Sys.win32 then
-               [
-                 Raw "cmd";
-                 Raw "/c";
-                 Raw "copy";
-                 Raw "/by";
-                 Raw ">nul";
-                 !!cat_files;
-                 !!output;
-               ]
+               [!!clerk_exe; Word "cat-list"; Raw "$out.rsp"; !!output]
              else [Word "cat"; !!input; Raw ">"; !!output])
           ~description:[Word "<test>"; !!test_id];
       ]
@@ -319,7 +320,7 @@ let dir_test_rules dir subdirs items =
           (Nj.Binding.make Var.test_id dir
           ::
           (if Sys.win32 then
-             [Nj.Binding.make Var.cat_files (Var.cmd_concat_operand inputs)]
+             [Nj.Binding.make Var.test_files (Var.file_list_to_string inputs)]
            else []));
     ]
 
@@ -493,13 +494,14 @@ let with_ninja_process
       | "ninja: no work to do." -> readwait ()
       | line ->
         (if Global.options.debug then print_endline line
-         else if isatty then
+         else
            match Re.exec_opt ninja_count_re line with
-           | None -> print_endline line
+           | None -> if isatty then print_endline line else prerr_endline line
            | Some gs ->
-             let count = int_of_string (Re.Group.get gs 1) in
-             let total = int_of_string (Re.Group.get gs 2) in
-             Message.print_percent "Compiling..." count total);
+             if isatty then
+               let count = int_of_string (Re.Group.get gs 1) in
+               let total = int_of_string (Re.Group.get gs 2) in
+               Message.print_percent "Compiling..." count total);
         readwait ()
     in
     ( npid,
@@ -745,23 +747,27 @@ let run_ninja
               let supported =
                 Module_graph.module_backends callback_info mname
               in
-              let missing =
+              let missing_bk, missing =
                 List.fold_left
-                  (fun missing (module Bk : Clerk_backend.S) ->
+                  (fun (missing_bk, missing) (module Bk : Clerk_backend.S) ->
                     if List.mem Bk.T supported then
                       List.fold_right
-                        (fun ext missing ->
-                          let _, missing =
+                        (fun ext (missing_bk, missing) ->
+                          let _, missing1 =
                             Clerk_backend.extern_src
                               ~filename:m.item.Scan.file_name ~name:Bk.name ~ext
                               ~missing
                           in
-                          missing)
-                        Bk.src_extensions missing
-                    else missing)
-                  [] enabled_backends
+                          ( (if missing = missing1 then missing_bk
+                             else Some Bk.name),
+                            missing1 ))
+                        Bk.src_extensions (missing_bk, missing)
+                    else missing_bk, missing)
+                  (None, []) enabled_backends
               in
-              if missing <> [] then
+              match missing_bk with
+              | None -> ()
+              | Some bk ->
                 let modname, pos = Option.get m.item.Scan.module_def in
                 Message.error ~pos
                   "@[<v>@[<hov>Module @{<blue>%s@} is marked as external,@ \
@@ -773,7 +779,7 @@ let run_ninja
                   (Format.pp_print_list
                      ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
                      File.format)
-                  missing mname m.item.Scan.file_name)
+                  missing bk m.item.Scan.file_name)
           callback_info.modules_map
       in
       let ret = callback nin_ppf items_list callback_info in
