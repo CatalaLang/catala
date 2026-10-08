@@ -162,10 +162,12 @@ let op_needs_pos (type a) (op : a Op.t) ty =
     | _ -> true)
   | _ -> false
 
-let renaming =
-  Renaming.program () ~reserved:java_keywords ~skip_constant_binders:false
-    ~constant_binder_name:None ~namespaced_fields:true ~namespaced_constrs:true
-    ~prefix_module:false ~modnames_conflict:true
+let renaming ~class_name =
+  Renaming.program ()
+    ~reserved:(class_name :: java_keywords)
+    ~skip_constant_binders:false ~constant_binder_name:None
+    ~namespaced_fields:true ~namespaced_constrs:true ~prefix_module:false
+    ~modnames_conflict:true
     ~f_var:(String.to_camel_case ~capitalize:false)
     ~f_struct:String.to_camel_case ~f_enum:String.to_camel_case
     ~f_abstract_type:String.to_camel_case

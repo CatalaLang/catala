@@ -23,7 +23,7 @@ val op_needs_pos : 'a operator -> naked_typ -> bool
 
 (* Exposed for testing. Filename escaped so Windows backslashes survive the Java string literal. *)
 val format_pos : Format.formatter -> Pos.t -> unit
-val renaming : Renaming.t
+val renaming : class_name:string -> Renaming.t
 
 val format_program :
   is_stdlib:bool ->
