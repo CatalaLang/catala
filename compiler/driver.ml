@@ -1192,16 +1192,6 @@ module Commands = struct
          depending on the program shape. *)
       Option.(some (value split_threshold ~default:10_000))
     in
-    let prg, _type_ordering, _ren_ctx =
-      Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
-        ~autotest ~closure_conversion ~keep_special_ops:false
-        ~dead_value_assignment:true ~no_struct_literals:false
-        ~keep_module_names:true ~monomorphize_types:false
-        ~renaming:(Some Scalc.To_java.renaming)
-        ~lift_pos:(Some Scalc.To_java.op_needs_pos) ~split_threshold
-        ~split_scope_var_defs:true
-    in
-    Message.debug "Compiling program into Java...";
     get_output_format options output
       ~ext:(if Global.options.gen_external then "template.java" else "java")
     @@ fun output_file ppf ->
@@ -1214,6 +1204,16 @@ module Commands = struct
           String.capitalize_ascii (File.remove_extension name)
         else name
       | None, Stdin _ -> "AnonymousClass"
+    in
+    let renaming = Some (Scalc.To_java.renaming ~class_name) in
+    Message.debug "Compiling program into Java...";
+    let prg, _type_ordering, _ren_ctx =
+      Passes.scalc options ~includes ~stdlib ~optimize ~check_invariants
+        ~autotest ~closure_conversion ~keep_special_ops:false
+        ~dead_value_assignment:true ~no_struct_literals:false
+        ~keep_module_names:true ~monomorphize_types:false ~renaming
+        ~lift_pos:(Some Scalc.To_java.op_needs_pos) ~split_threshold
+        ~split_scope_var_defs:true
     in
     let is_stdlib = stdlib = None in
     Scalc.To_java.format_program ~is_stdlib ~class_name output_file ppf prg
