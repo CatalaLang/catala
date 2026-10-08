@@ -828,6 +828,7 @@ let format_program
         "from sys import stderr";
         "";
         "import libcatala.catala_runtime as catala";
+        "";
       ]
   in
   Format.pp_print_list Format.pp_print_string fmt header;

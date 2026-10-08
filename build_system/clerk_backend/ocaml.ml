@@ -258,15 +258,7 @@ module Spec : Sig.Spec = struct
       Nj.build "ocaml-natobject"
         ~inputs:[Word (dates_base -.- "ml"); Word (ocaml_base -.- "ml")]
         ~implicit_in:[Word (dates_base -.- "cmi"); Word (ocaml_base -.- "cmi")]
-        ~outputs:[Word (ocaml_base -.- "cmx"); Word (ocaml_base -.- "o")]
-        ~vars:
-          [
-            Nj.Binding.make ocaml_include
-              (!!ocaml_include
-              :: List.map
-                   (fun w -> Ninja_utils.Expr.Word w)
-                   ["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]);
-          ];
+        ~outputs:[Word (ocaml_base -.- "cmx"); Word (ocaml_base -.- "o")];
     ]
 
   let catala ?vars ~is_stdlib:_ ~inputs ~implicit_in ~has_scope_tests =
