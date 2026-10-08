@@ -62,6 +62,7 @@ let format_doc
       (List.filter_map (fun (n, p) ->
            get_doc_attrs p |> Option.map (fun d -> param_to_text (n, d))))
       params
+    |> function Some [] -> None | o -> o
   in
   match doc_opt, params_with_doc with
   | None, None -> ()
