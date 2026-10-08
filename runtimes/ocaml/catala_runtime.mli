@@ -227,9 +227,12 @@ type trace_kind =
   | ScopeVarDef of { var : trace_ident_decl; io : io_log }
       (** Scope variable definition with its declaration information and its i/o
           kind *)
-  | LocalVarDef of string  (** Let-binding of a local variable with its name *)
-  | LocalTupDef of string list
-      (** Let-binding of a local tuple with the name of each binded variable *)
+  | LocalVarDef of trace_ident_decl
+      (** Let-binding of a local variable, with the position of the bound name
+      *)
+  | LocalTupDef of trace_ident_decl list
+      (** Let-binding of a local tuple, with the name and position of each
+          binded variable *)
   | FunCall of trace_ident_decl
       (** Function call with its declaration information *)
   | BranchingCondition

@@ -334,8 +334,8 @@ type duration = Catala_runtime.duration
 type tag =
   | ScopeCall of ScopeName.t
   | ScopeVarDef of { var : ScopeVar.t; io : Catala_runtime.io_log }
-  | LocalVarDef of { name : Ident.t }
-  | LocalTupDef of { names : Ident.t list }
+  | LocalVarDef of { name : Ident.t; decl_pos : Pos.t }
+  | LocalTupDef of { names : Ident.t Mark.pos list }
   | FunCall of TopdefName.t
   | BranchingCondition
   | Branching of Ident.t option

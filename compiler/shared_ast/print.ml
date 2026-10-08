@@ -214,11 +214,13 @@ let lit (fmt : Format.formatter) (l : lit) : unit =
 
 let tag (fmt : Format.formatter) (entry : tag) : unit =
   match entry with
-  | LocalVarDef { name } -> Format.fprintf fmt "LocalVarDef(%s)" name
+  | LocalVarDef { name; _ } -> Format.fprintf fmt "LocalVarDef(%s)" name
   | LocalTupDef { names } ->
     Format.fprintf fmt "LocalTupDef(%a)"
       Format.(
-        pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ",") pp_print_string)
+        pp_print_list
+          ~pp_sep:(fun ppf () -> fprintf ppf ",")
+          (fun ppf n -> pp_print_string ppf (Mark.remove n)))
       names
   | ScopeVarDef { var; _ } ->
     Format.fprintf fmt "ScopeVarDef(%s)" (ScopeVar.to_string var)
@@ -1377,15 +1379,18 @@ and trace_element =
          else "")
         lit_style var.name pp_value value;
       fprintf ppf "@[<v 2>%a%t@]" pp_pos var.decl_pos pp_sub_trace
-    | LocalVarDef var_name ->
+    | LocalVarDef var ->
       fprintf ppf "@[<hov 2>@<1>%s Local variable %a definition:@ @[%a@]@]@ "
-        "≔" lit_style var_name pp_value value;
+        "≔" lit_style var.name pp_value value;
       fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
-    | LocalTupDef names ->
+    | LocalTupDef vars ->
       fprintf ppf "@[<hov 2>@<1>%s Local variables (%a) definition:@ @[%a@]@]@ "
         "≔"
-        (pp_print_list ~pp_sep:(fun ppf () -> fprintf ppf ",") lit_style)
-        names pp_value value;
+        (pp_print_list
+           ~pp_sep:(fun ppf () -> fprintf ppf ",")
+           (fun ppf (v : Catala_runtime.trace_ident_decl) ->
+             lit_style ppf v.name))
+        vars pp_value value;
       fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
     | FunCall { name = func_name; decl_pos } ->
       fprintf ppf "@<1>%s Applying function %a@ " "→" lit_style func_name;

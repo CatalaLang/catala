@@ -582,12 +582,18 @@ and format_trace_tag fmt tag =
     in
     Format.fprintf fmt "(%s@ {var=%a;@ io=%t})" tag_s format_trace_var_def
       (ScopeVar.get_info var) format_io
-  | LocalVarDef { name } -> Format.fprintf fmt "(%s@ %S)" tag_s name
+  | LocalVarDef { name; decl_pos } ->
+    Format.fprintf fmt "(%s@ {name=%S;@ decl_pos=%a})" tag_s name
+      format_code_location decl_pos
   | FunCall topdef ->
     Format.fprintf fmt "(%s@ %a)" tag_s format_trace_var_def
       (TopdefName.get_info topdef)
   | LocalTupDef { names } ->
-    Format.fprintf fmt "(%s@ %a)" tag_s format_string_list names
+    Format.fprintf fmt "(%s@ [%a])" tag_s
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+         (fun fmt n -> format_trace_var_def fmt n))
+      names
   | BranchingCondition | Branching None | Assertion ->
     Format.fprintf fmt "%s" tag_s
   | Branching (Some c) ->

@@ -705,8 +705,8 @@ end
 type trace_kind =
   | ScopeCall of trace_ident_decl
   | ScopeVarDef of { var : trace_ident_decl; io : io_log }
-  | LocalVarDef of string
-  | LocalTupDef of string list
+  | LocalVarDef of trace_ident_decl
+  | LocalTupDef of trace_ident_decl list
   | FunCall of trace_ident_decl
   | BranchingCondition
   | IfBranching
@@ -950,11 +950,15 @@ module BufferedJson = struct
     | ScopeVarDef { var = idecl; io } ->
       Printf.bprintf buf {|{"kind":"scope_var"%a%a}|} append_ident_decl idecl
         append_svar_io io
-    | LocalVarDef name ->
-      Printf.bprintf buf {|{"kind":"local_var","name":%a}|} quote name
-    | LocalTupDef names ->
-      Printf.bprintf buf {|{"kind":"local_tup","names":[%a]}|} (list quote)
-        names
+    | LocalVarDef idecl ->
+      Printf.bprintf buf {|{"kind":"local_var"%a}|} append_ident_decl idecl
+    | LocalTupDef idecls ->
+      let ident_decl buf { name; decl_pos } =
+        Printf.bprintf buf {|{"name":%a,"decl_pos":%a}|} quote name
+          code_location decl_pos
+      in
+      Printf.bprintf buf {|{"kind":"local_tup","names":[%a]}|} (list ident_decl)
+        idecls
     | FunCall idecl ->
       Printf.bprintf buf {|{"kind":"function_call"%a}|} append_ident_decl idecl
     | BranchingCondition -> Printf.bprintf buf {|{"kind":"branch_condition"}|}

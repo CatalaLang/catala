@@ -885,18 +885,22 @@ and format_begin_trace ctx ppf (tag, pos) =
         | OnlyInput -> "OnlyInput"
         | Reentrant -> "Reentrant")
         io.io_output
-    | LocalVarDef { name } ->
-      fprintf ppf "new CatalaTrace.LocalVarDef(%s)" (java_string name)
+    | LocalVarDef { name; decl_pos } ->
+      fprintf ppf "new CatalaTrace.LocalVarDef(%s,@ %a)" (java_string name)
+        format_pos decl_pos
     | FunCall topdef ->
       let _, decl_pos = TopdefName.get_info topdef in
       fprintf ppf "new CatalaTrace.FunCall(%s,@ %a)"
         (java_string (TopdefName.original_base topdef))
         format_pos decl_pos
     | LocalTupDef { names } ->
-      fprintf ppf "new CatalaTrace.LocalTupDef(@[<hov 2>new String[]{%a}@])"
+      fprintf ppf
+        "new CatalaTrace.LocalTupDef(@[<hov 2>new CatalaTrace.VarDef[]{%a}@])"
         (pp_print_list
-           ~pp_sep:(fun ppf () -> fprintf ppf ",")
-           (fun fmt name -> pp_print_string fmt (java_string name)))
+           ~pp_sep:(fun ppf () -> fprintf ppf ",@ ")
+           (fun fmt (name, decl_pos) ->
+             fprintf fmt "new CatalaTrace.VarDef(%s,@ %a)" (java_string name)
+               format_pos decl_pos))
         names
     | BranchingCondition -> fprintf ppf "new CatalaTrace.BranchingCondition()"
     | Assertion -> fprintf ppf "new CatalaTrace.Assertion()"
