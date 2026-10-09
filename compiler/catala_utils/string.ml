@@ -162,12 +162,13 @@ let split_on_spaces s =
     else
       let rec find_endquote c i =
         if i >= length s then length s
-        else if get s i = c then i
         else
-          match get s i with
-          | '\\' -> find_endquote c (i + 2)
-          | ('"' | '\'') as c1 -> find_endquote c (find_endquote c1 (i + 1) + 1)
-          | _ -> find_endquote c (i + 1)
+          let c1 = get s i in
+          if c1 = c then i
+          else
+            match c1 with
+            | '\\' -> find_endquote c (i + 2)
+            | _ -> find_endquote c (i + 1)
       in
       match get s i with
       | ' ' -> sub s wstart (i - wstart) :: aux s (i + 1) (i + 1)
