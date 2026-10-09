@@ -923,7 +923,8 @@ let run_targets
         if trace <> None then List.filter (( <> ) "--trace") bdgs else bdgs
       in
       let catala_flags =
-        catala_flags
+        Var.get info.Module_graph.var_bindings Var.catala_includes
+        @ catala_flags
         @ (match scope with
           | None -> []
           | Some scope -> [Printf.sprintf "--scope=%s" scope])

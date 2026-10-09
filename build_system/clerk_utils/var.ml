@@ -29,6 +29,7 @@ let clerk_exe = make_scalar "CLERK_EXE"
 let clerk_flags = make_vector "CLERK_FLAGS"
 let catala_exe = make_scalar "CATALA_EXE"
 let catala_flags = make_vector "CATALA_FLAGS"
+let catala_includes = make_vector "CATALA_INCLUDES"
 let runtime = make_scalar "CATALA_RUNTIME"
 
 (* Definition spreading different rules *)

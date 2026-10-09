@@ -700,13 +700,7 @@ let load_modules
     List.map (fun mpos -> "Module required from", mpos) chain
   in
   let find_module in_stdlib req_chain (mname, mpos) =
-    let required_from_file = Pos.get_file mpos in
-    let includes =
-      if in_stdlib then stdlib_includes
-      else
-        File.Tree.union includes
-          (File.Tree.build (File.dirname required_from_file))
-    in
+    let includes = if in_stdlib then stdlib_includes else includes in
     match
       List.filter_map
         (fun (ext, _) -> File.Tree.lookup includes (mname ^ ext))
