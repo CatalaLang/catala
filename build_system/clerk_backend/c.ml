@@ -69,6 +69,7 @@ module Spec : Sig.Spec = struct
   [
     Nj.rule "catala-c"
       ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_c;
+                !!catala_includes;
                 Word "-o"; !!output; Word "--"; !!input]
       ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];
     Nj.rule "c-object"
