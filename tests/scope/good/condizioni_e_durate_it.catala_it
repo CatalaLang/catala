@@ -1,0 +1,26 @@
+## Articolo
+
+```catala
+#[test]
+dichiarazione campo di applicazione A:
+  risultato idoneo condizione
+  risultato escluso condizione
+  risultato attesa contenuto durata
+  risultato scadenza contenuto data
+
+campo di applicazione A:
+  regola idoneo sotto condizione 18 anni > 1 anno conseguenza soddisfatta
+  regola escluso sotto condizione vero conseguenza non soddisfatta
+  definizione attesa vale 2 anni + 3 mesi + 10 giorni
+  definizione scadenza vale |2024-01-15| + 1 mese + 2 giorni
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[RESULT]─ A ─
+│ idoneo = vero
+│ escluso = falso
+│ attesa = [2 anni, 3 mesi, 10 giorni]
+│ scadenza = |2024-02-17|
+└─
+```

@@ -1,0 +1,33 @@
+## Articolo
+
+```catala
+dichiarazione struttura Pagamento:
+  dato importo contenuto somma_di_denaro
+  dato data_pagamento contenuto data
+
+#[test]
+dichiarazione campo di applicazione A:
+  interno importo contenuto somma_di_denaro
+  interno pagamenti contenuto lista di Pagamento
+  risultato totale contenuto somma_di_denaro
+  risultato imposta contenuto somma_di_denaro
+
+campo di applicazione A:
+  definizione importo vale 1.000 €
+  definizione pagamenti vale [
+    Pagamento { -- importo: 250,50 € -- data_pagamento: |2024-03-01| };
+    Pagamento { -- importo: 749,50 € -- data_pagamento: |2024-06-01| }
+  ]
+  definizione totale vale
+    Denaro.somma di (trasforma ogni p contenuto in pagamenti diventa p.importo)
+  definizione imposta vale importo * 23%
+  asserzione totale = importo
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[RESULT]─ A ─
+│ totale = 1.000,00 €
+│ imposta = 230,00 €
+└─
+```
