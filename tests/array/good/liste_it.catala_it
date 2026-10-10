@@ -1,0 +1,65 @@
+## Articolo
+
+```catala
+#[test]
+dichiarazione campo di applicazione A:
+  interno l contenuto lista di intero
+  risultato quadrati contenuto lista di intero
+  risultato positivi_doppi contenuto lista di intero
+  risultato esiste_quattro contenuto booleano
+  risultato tutti_positivi contenuto booleano
+  risultato totale contenuto intero
+  risultato ordinata contenuto lista di intero
+  risultato a_capo contenuto lista di intero
+
+campo di applicazione A:
+  definizione l vale [3; -1; 4; -1; 5]
+  definizione quadrati vale trasforma ogni x contenuto in l diventa x * x
+  definizione positivi_doppi vale
+    trasforma ogni x contenuto in l tale che x > 0 diventa x * 2
+  definizione esiste_quattro vale esiste x contenuto in l tale che x = 4
+  definizione tutti_positivi vale per ogni x contenuto in l abbiamo x > 0
+  definizione totale vale
+    combina ogni x contenuto in l in acc inizialmente 0 con acc + x
+  definizione ordinata vale
+    ordina ogni x contenuto in l in ordine crescente di x
+  definizione a_capo vale
+    trasforma ogni x contenuto in
+      l
+    diventa x + 1
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[RESULT]─ A ─
+│ quadrati = [
+│              9;
+│              1;
+│              16;
+│              1;
+│              25;
+│            ]
+│ positivi_doppi = [
+│                    6;
+│                    8;
+│                    10;
+│                  ]
+│ esiste_quattro = vero
+│ tutti_positivi = falso
+│ totale = 10
+│ ordinata = [
+│              -1;
+│              -1;
+│              3;
+│              4;
+│              5;
+│            ]
+│ a_capo = [
+│            4;
+│            0;
+│            5;
+│            0;
+│            6;
+│          ]
+└─
+```

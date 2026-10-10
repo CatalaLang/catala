@@ -1,0 +1,22 @@
+```catala
+dichiarazione enumerazione TipoPensioneRendita:
+  -- PensioniRendite
+
+dichiarazione campo di applicazione TrattamentiSalariDichiarante:
+  interno abbattimento_secondo_158_5_a contenuto booleano
+    dipende da tipo_pensione contenuto TipoPensioneRendita
+
+campo di applicazione TrattamentiSalariDichiarante:
+  definizione abbattimento_secondo_158_5_a di tipo_pensione vale vero
+```
+
+An earlier version was lexing `di tipo` as a single keyword; that would lead to
+an error here where `di tipo` was lexed as the keyword. (see also related
+issue \#830)
+
+```catala-test-cli
+$ catala typecheck --disable-warnings
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
