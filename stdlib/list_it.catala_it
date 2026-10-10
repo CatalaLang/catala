@@ -1,0 +1,83 @@
+# Liste
+
+> Modulo List_it
+> Uso di List_internal
+
+## Funzioni di utilità
+
+```catala-metadata
+## Restituisce la lista degli interi consecutivi da `inizio` a `fine`.
+## Se `fine <= inizio`, il risultato è una lista vuota.
+## **Esempio**: `sequenza di 3, 6` dà la lista `[ 3; 4; 5; 6 ]`
+dichiarazione sequenza
+  contenuto lista di intero
+  dipende da
+    inizio contenuto intero,
+    fine contenuto intero
+  vale
+    List_internal.sequence di inizio, fine
+
+## Restituisce l'elemento all'`indice` dato nella lista, incapsulato nel
+## costruttore `Presente`.
+## Se l'indice è minore di 1, o fuori dalla lista, viene restituito `Assente`.
+## **Esempio**: `n_esimo_elemento di [101 €; 102 €; 103 €], 2 = Presente contenuto 102 €`
+dichiarazione n_esimo_elemento
+  contenuto opzionale di qualsiasi di tipo t
+  dipende da
+    l contenuto lista di qualsiasi di tipo t,
+    indice contenuto intero
+  vale
+    List_internal.nth_element di l, indice
+
+## Restituisce il primo elemento della lista incapsulato nel costruttore
+## `Presente`.
+## Se la lista è vuota, restituisce `Assente`.
+dichiarazione primo_elemento
+  contenuto opzionale di qualsiasi di tipo t
+  dipende da l contenuto lista di qualsiasi di tipo t
+  vale
+    n_esimo_elemento di l, 1
+
+## Restituisce l'ultimo elemento della lista incapsulato nel costruttore
+## `Presente`.
+## Se la lista è vuota, restituisce `Assente`.
+dichiarazione ultimo_elemento
+  contenuto opzionale di qualsiasi di tipo t
+  dipende da l contenuto lista di qualsiasi di tipo t
+  vale
+    n_esimo_elemento di l, (numero di l)
+
+## Rimuove l'elemento all'`indice` dato dalla lista. Gli indici degli elementi
+## successivi vengono scalati.
+## Se l'indice dato non è valido, restituisce la lista invariata.
+dichiarazione rimuovi_n_esimo_elemento
+  contenuto lista di qualsiasi di tipo t
+  dipende da
+    l contenuto lista di qualsiasi di tipo t,
+    indice contenuto intero
+  vale
+    List_internal.remove_nth_element di l, indice
+
+## Restituisce la lista senza il suo primo elemento.
+## La lista vuota viene restituita invariata.
+dichiarazione rimuovi_primo_elemento
+  contenuto lista di qualsiasi di tipo t
+  dipende da l contenuto lista di qualsiasi di tipo t
+  vale
+    List_internal.remove_nth_element di l, 1
+
+## Restituisce la lista senza il suo ultimo elemento.
+## La lista vuota viene restituita invariata.
+dichiarazione rimuovi_ultimo_elemento
+  contenuto lista di qualsiasi di tipo t
+  dipende da l contenuto lista di qualsiasi di tipo t
+  vale
+    List_internal.remove_nth_element di l, (numero di l)
+
+## Inverte l'ordine degli elementi nella lista data.
+dichiarazione inversa
+  contenuto lista di qualsiasi di tipo t
+  dipende da l contenuto lista di qualsiasi di tipo t
+  vale
+    List_internal.reverse di l
+```
