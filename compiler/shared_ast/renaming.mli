@@ -87,6 +87,7 @@ val program :
   namespaced_constrs:bool ->
   prefix_module:bool ->
   modnames_conflict:bool ->
+  ?forced_module_name:string ->
   ?f_var:(string -> string) ->
   ?f_struct:(string -> string) ->
   ?f_field:(string -> string) ->

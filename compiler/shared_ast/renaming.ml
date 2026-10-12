@@ -562,6 +562,7 @@ let program
     ~namespaced_constrs
     ~prefix_module
     ~modnames_conflict
+    ?forced_module_name
     ?(f_var = String.to_snake_case)
     ?(f_struct = cap)
     ?(f_field = uncap)
@@ -576,6 +577,24 @@ let program
       skip_constant_binders;
       constant_binder_name;
     }
+  in
+  let p =
+    (* Java requires a class name: we use its filename which is almost
+       equivalent to its module name (if any). If there are no module
+       name, we enforce it here. It allows to reserve the name to
+       avoid clashes with local name declarations. *)
+    match forced_module_name with
+    | None -> p
+    | Some name ->
+      let module_name =
+        Some
+          ( ModuleName.fresh (name, Pos.void),
+            match p.module_name with
+            | None ->
+              { hash = Hash.raw name; is_stdlib = false; is_external = false }
+            | Some (_, itf_id) -> itf_id )
+      in
+      { p with module_name }
   in
   let ctx = get_ctx cfg in
   (* Each module needs its separate ctx since resolution is qualified ; and name
@@ -793,6 +812,7 @@ let program
     ~namespaced_constrs
     ~prefix_module
     ~modnames_conflict
+    ?forced_module_name
     ?f_var
     ?f_struct
     ?f_field
@@ -804,7 +824,8 @@ let program
     let apply p =
       program ~reserved ~skip_constant_binders ~constant_binder_name
         ~namespaced_fields ~namespaced_constrs ~prefix_module ~modnames_conflict
-        ?f_var ?f_struct ?f_field ?f_enum ?f_constr ?f_abstract_type p
+        ?forced_module_name ?f_var ?f_struct ?f_field ?f_enum ?f_constr
+        ?f_abstract_type p
   end in
   (module M : Renaming)
 
