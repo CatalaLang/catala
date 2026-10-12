@@ -81,10 +81,10 @@
 (provide 'catala-mode)
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.catala_\\(fr\\|en\\|pl\\)" . catala-mode))
+(add-to-list 'auto-mode-alist '("\\.catala_\\(fr\\|en\\|pl\\|it\\)" . catala-mode))
 
 ;; To use, add the following lines to ~/.emacs (without the leading ';') :
 ; (autoload 'catala-mode "catala-mode" "Catala major mode based on markdown-mode." t)
-; (add-to-list 'auto-mode-alist '("\\.catala_\\(fr\\|en\\|pl\\)" . catala-mode))
+; (add-to-list 'auto-mode-alist '("\\.catala_\\(fr\\|en\\|pl\\|it\\)" . catala-mode))
 ;; You may additionally need the following if you don't already have any emacs setup in opam:
 ; (add-to-list 'load-path (concat (string-trim (shell-command-to-string "opam var prefix")) "/share/emacs/site-lisp"))

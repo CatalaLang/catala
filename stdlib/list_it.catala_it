@@ -8,7 +8,7 @@
 ```catala-metadata
 ## Restituisce la lista degli interi consecutivi da `inizio` a `fine`.
 ## Se `fine <= inizio`, il risultato è una lista vuota.
-## **Esempio**: `sequenza di 3, 6` dà la lista `[ 3; 4; 5; 6 ]`
+## **Esempio**: `sequenza di 3, 6` dà la lista `[ 3; 4; 5 ]`
 dichiarazione sequenza
   contenuto lista di intero
   dipende da
