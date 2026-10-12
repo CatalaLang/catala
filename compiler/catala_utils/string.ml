@@ -155,29 +155,6 @@ let re_split_delim ?pos ?len re s =
   in
   filter ~delim:true seq |> List.of_seq
 
-let split_on_spaces s =
-  let rec aux s wstart i =
-    if i >= length s then
-      if wstart > i then [] else [sub s wstart (length s - wstart)]
-    else
-      let rec find_endquote c i =
-        if i >= length s then length s
-        else
-          let c1 = get s i in
-          if c1 = c then i
-          else
-            match c1 with
-            | '\\' -> find_endquote c (i + 2)
-            | _ -> find_endquote c (i + 1)
-      in
-      match get s i with
-      | ' ' -> sub s wstart (i - wstart) :: aux s (i + 1) (i + 1)
-      | ('"' | '\'') as c -> aux s wstart (find_endquote c (i + 1) + 1)
-      | '\\' -> aux s wstart (i + 2)
-      | _ -> aux s wstart (i + 1)
-  in
-  if s = "" then [] else aux s 0 0
-
 module Arg = struct
   include Stdlib.String
 
