@@ -35,12 +35,13 @@ let catala_backend_flags
     ~autotest
     ~use_default_flags
     ~test_flags
-    ~accepts_closure_conversion =
+    ~accepts_closure_conversion
+    ~trace =
   lazy
     (List.map (fun w -> Expr.Word w)
     @@ (if autotest then ["--autotest"] else [])
     @
-    if use_default_flags then ["-O"]
+    if use_default_flags then if trace then [] else ["-O"]
     else
       List.filter
         (function
