@@ -56,12 +56,17 @@ module OCaml_Flags = struct
   let ocaml_include_value : string list Lazy.t =
     lazy (fst (Lazy.force ocaml_include_and_lib))
 
-  let default ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
-      =
+  let default
+      ~variables
+      ~autotest
+      ~use_default_flags
+      ~test_flags
+      ~include_dirs
+      ~trace =
     let open Flags in
     let catala_flags =
       catala_backend_flags ~autotest ~use_default_flags ~test_flags
-        ~accepts_closure_conversion:true
+        ~accepts_closure_conversion:true ~trace
     in
     let def = def ~variables in
     [
