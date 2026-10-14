@@ -418,7 +418,13 @@ module Commands = struct
       ?ext ()
 
   let get_output_format options output_file =
-    let output_file = Option.map options.Global.path_rewrite output_file in
+    let output_file =
+      Option.map
+        (fun (f : Global.raw_file) ->
+          let is_absolute = not (Filename.is_relative (f :> string)) in
+          if is_absolute then (f :> string) else options.Global.path_rewrite f)
+        output_file
+    in
     fun ?ext f ->
       let output_file, with_output =
         File.get_main_out_formatter ~source_file:options.Global.input_src
