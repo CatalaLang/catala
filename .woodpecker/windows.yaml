@@ -28,15 +28,18 @@ steps:
   #   commands:
   #     - winget install Git.Git OCaml.opam
 
+  # PowerShell doesn't stop on a failing native command: without the check
+  # after each one, a step's status is its last command's.
+
   # This takes 20 minutes; maybe try to reuse a shared opam root from the host ?
   - name: ocaml
     image: powershell
     environment: *env
     commands:
       - mkdir $env:HOME/.opam # Workaround a bug in opam
-      - opam init --bare --debug
-      - opam switch create 5.3.0
-      - opam install conf-pkg-config
+      - opam init --bare --debug; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
+      - opam switch create 5.3.0; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
+      - opam install conf-pkg-config; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
 
   - name: install
     image: powershell
@@ -44,20 +47,32 @@ steps:
     commands:
       # - mkdir $env:HOME/.opam # Workaround a bug in opam
       # - opam switch create . --empty
-      - opam install ./catala.opam
+      - opam install ./catala.opam; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
 
   - name: test
     image: powershell
     environment: *env
-    # PowerShell doesn't stop on a failing native command: without the check,
-    # the step's status is the last command's.
     commands:
       - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
       - dune exec -- clerk test tests doc; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
       - dune exec -- clerk test tests --backend ocaml -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
+
+  # Passes on Windows given a JDK (208/208); the host has none yet
+  # (winget install EclipseAdoptium.Temurin.17.JDK), then drop the failure line
+  - name: test-java
+    image: powershell
+    environment: *env
+    commands:
+      - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
       - dune exec -- clerk test tests --backend java -c--disable-warnings; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
+    failure: ignore
+
+  - name: test-c
+    image: powershell
+    environment: *env
+    commands:
+      - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
       - dune exec -- clerk test tests --backend c -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
-    # FIXME: we should repair this post 1.3.0
     failure: ignore
 
   - name: examples
@@ -65,6 +80,6 @@ steps:
     environment: *env
     commands:
       - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
-      - git clone https://github.com/CatalaLang/catala-examples --depth 1
+      - git clone https://github.com/CatalaLang/catala-examples --depth 1; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
       - cd catala-examples
-      - clerk test
+      - clerk test; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
