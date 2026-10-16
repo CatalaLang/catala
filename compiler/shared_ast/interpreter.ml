@@ -1397,7 +1397,7 @@ let load_runtime_modules ~hashf prg =
               ModuleName.Map.union
                 (fun _ m _ -> Some m)
                 acc (extern_only mn.deps))
-          ModuleName.Map.empty module_tree
+          module_tree ModuleName.Map.empty
       in
       extern_only prg.decl_ctx.ctx_modules
     else prg.decl_ctx.ctx_modules
