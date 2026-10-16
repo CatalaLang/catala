@@ -48,6 +48,7 @@ module type Spec = sig
     use_default_flags:bool ->
     test_flags:string list ->
     include_dirs:string list ->
+    trace:bool ->
     Var.bindings
   (** Returns a list of variables assigned for the Ninja file generated. Those
       variables can be the compiler exec of your backends, flags for a specific
@@ -61,8 +62,10 @@ module type Spec = sig
         optimize
       - [~test_flags] is a list of tests that will be passed to the catala
         interpreter tests if called
-      - [~include_dirs] the list of the different direcory to include each time,
-        usually this comes from the config in the clerk.toml file. *)
+      - [~include_dirs] the list of the different directory to include each
+        time, usually this comes from the config in the clerk.toml file
+      - [~trace] if the flag is specified, activate traces to the compilation
+        and disable optimizations. *)
 
   val rules : Nj.def list
   (** List of base Ninja rules needed by the backend *)
