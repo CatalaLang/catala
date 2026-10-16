@@ -62,6 +62,7 @@ let format_doc
       (List.filter_map (fun (n, p) ->
            get_doc_attrs p |> Option.map (fun d -> param_to_text (n, d))))
       params
+    |> function Some [] -> None | o -> o
   in
   match doc_opt, params_with_doc with
   | None, None -> ()
@@ -162,10 +163,10 @@ let op_needs_pos (type a) (op : a Op.t) ty =
     | _ -> true)
   | _ -> false
 
-let renaming =
+let renaming ~class_name =
   Renaming.program () ~reserved:java_keywords ~skip_constant_binders:false
     ~constant_binder_name:None ~namespaced_fields:true ~namespaced_constrs:true
-    ~prefix_module:false ~modnames_conflict:true
+    ~prefix_module:false ~modnames_conflict:true ~forced_module_name:class_name
     ~f_var:(String.to_camel_case ~capitalize:false)
     ~f_struct:String.to_camel_case ~f_enum:String.to_camel_case
     ~f_abstract_type:String.to_camel_case
