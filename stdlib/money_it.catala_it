@@ -1,0 +1,142 @@
+# Importi
+
+> Modulo Money_it
+
+> Uso di Money_internal come M
+
+## Funzioni di utilità
+
+```catala-metadata
+## Restituisce il minore dei due argomenti.
+dichiarazione min
+  contenuto somma_di_denaro
+  dipende da
+    m1 contenuto somma_di_denaro,
+    m2 contenuto somma_di_denaro
+  vale
+    se m1 > m2 allora m2 altrimenti m1
+
+## Restituisce il maggiore dei due argomenti.
+dichiarazione max
+  contenuto somma_di_denaro
+  dipende da
+    m1 contenuto somma_di_denaro,
+    m2 contenuto somma_di_denaro
+  vale
+    se m1 > m2 allora m1 altrimenti m2
+
+## Applica un limite superiore a `importo`, restituendo un valore che non è
+## mai più grande di `valore_massimo`.
+dichiarazione limite_superiore
+  contenuto somma_di_denaro
+  dipende da
+    importo contenuto somma_di_denaro,
+    valore_massimo contenuto somma_di_denaro
+  vale
+    min di importo, valore_massimo
+
+## Applica un limite inferiore a `importo`, restituendo un valore che non è
+## mai più piccolo di `valore_minimo`.
+dichiarazione limite_inferiore
+  contenuto somma_di_denaro
+  dipende da
+    importo contenuto somma_di_denaro,
+    valore_minimo contenuto somma_di_denaro
+  vale
+    max di importo, valore_minimo
+
+## Restituisce l'argomento se è positivo, 0 € altrimenti.
+dichiarazione positivo
+  contenuto somma_di_denaro
+  dipende da importo contenuto somma_di_denaro
+  vale
+    limite_inferiore di importo, 0 €
+
+## Rimuove da un importo le cifre dopo la virgola.
+## **Esempi:**
+## - `troncatura di 7,61 € = 7 €`
+## - `troncatura di -7,61 € = -7 €`
+dichiarazione troncatura
+  contenuto somma_di_denaro
+  dipende da importo contenuto somma_di_denaro
+  vale
+    se importo = 0 € allora 0 €
+    altrimenti se importo > 0 € allora
+      arrotondato di (importo - 0,5 €)
+    altrimenti
+      arrotondato di (importo + 0,5 €)
+
+## Arrotonda un importo all'euro superiore.
+## **Esempi:**
+## - `arrotondato_per_eccesso di 4,34 € = 5 €`
+## - `arrotondato_per_eccesso di -4,34 € = -4 €`
+dichiarazione arrotondato_per_eccesso
+  contenuto somma_di_denaro
+  dipende da importo contenuto somma_di_denaro
+  vale
+    se importo >= 0 € allora
+      arrotondato di (importo + 0,49 €)
+    altrimenti
+      arrotondato di (importo + 0,5 €)
+
+## Arrotonda un importo all'euro inferiore.
+## **Esempi:**
+## - `arrotondato_per_difetto di 3,78 € = 3 €`
+## - `arrotondato_per_difetto di -3,78 € = -4 €`
+dichiarazione arrotondato_per_difetto
+  contenuto somma_di_denaro
+  dipende da importo contenuto somma_di_denaro
+  vale
+    se importo > 0 € allora
+      arrotondato di (importo - 0,5 €)
+    altrimenti
+      arrotondato di (importo - 0,49 €)
+
+## Arrotonda un importo al `n_esimo_decimale` specificato.
+## `n_esimo_decimale` può essere un valore negativo.
+## **Esempi:**
+## - `arrotondato_al_decimale di 123,45 €, 1 = 123,5 €`
+## - `arrotondato_al_decimale di 123,45 €, -2 = 100 €`
+dichiarazione arrotondato_al_decimale
+  contenuto somma_di_denaro
+  dipende da
+    importo contenuto somma_di_denaro,
+    n_esimo_decimale contenuto intero
+  vale
+    M.round_to_decimal di importo, n_esimo_decimale
+
+## Calcola la somma degli elementi di una lista di importi. Restituisce `0 €` per una lista vuota.
+## **Esempi:**
+## - `Denaro.somma di [10 €; 25 €; 5 €] = 40 €`
+## - `Denaro.somma di [] = 0 €`
+dichiarazione somma
+  contenuto somma_di_denaro
+  dipende da l contenuto lista di somma_di_denaro
+  vale
+    combina ogni x contenuto in l in totale inizialmente 0 € con totale + x
+
+```
+
+## Operazioni finanziarie
+
+```catala-metadata
+## Restituisce l'importo positivo di cui `importo` supera `riferimento`
+## (altrimenti 0 €).
+dichiarazione in_eccesso
+  contenuto somma_di_denaro
+  dipende da
+    importo contenuto somma_di_denaro,
+    riferimento contenuto somma_di_denaro
+  vale
+    max di (0 €, importo - riferimento)
+
+## Restituisce l'importo positivo di cui `importo` è al di sotto di `riferimento`
+## (altrimenti 0 €).
+dichiarazione in_difetto
+  contenuto somma_di_denaro
+  dipende da
+    importo contenuto somma_di_denaro,
+    riferimento contenuto somma_di_denaro
+  vale
+    max di (0 €, riferimento - importo)
+```
