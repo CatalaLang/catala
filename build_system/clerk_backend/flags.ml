@@ -114,14 +114,15 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
     def Var.catala_includes includes;
     def Var.clerk_flags
       (lazy
-        ("-e"
-         :: Var.(!catala_exe)
-         :: ("--test-flags=" ^ String.concat "," test_flags)
-         :: Lazy.force includes
+        ([
+           "-e";
+           Var.(!catala_exe);
+           "--test-flags=" ^ String.concat "," test_flags;
+         ]
         @ (if code_coverage then ["--code-coverage"] else [])
         @ List.map
             (fun f -> "--catala-opts=" ^ f)
-            (Lazy.force catala_flags @
-             Lazy.force includes @
-             if code_coverage then ["--whole-program"] else [])));
+            (Lazy.force catala_flags
+            @ if code_coverage then ["--whole-program"] else [])
+        @ Lazy.force includes));
   ]
