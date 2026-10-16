@@ -146,6 +146,8 @@ let gen_build_statements
             [
               Nj.Binding.make Var.catala_flags
                 [!!Var.catala_flags; Word "--no-stdlib"];
+              Nj.Binding.make Var.catala_includes
+                [Word "-I"; Word (!Var.builddir / Scan.libcatala)];
             ]
         else None
       in

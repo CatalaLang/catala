@@ -20,8 +20,8 @@ open Catala_utils
 
 let name = "ocaml"
 let catala_flags_ocaml = Var.make_vector "CATALA_FLAGS_OCAML"
-let ocamlc_exe = Var.make_vector "OCAMLC_EXE"
-let ocamlopt_exe = Var.make_vector "OCAMLOPT_EXE"
+let ocamlc_exe = Var.make_scalar "OCAMLC"
+let ocamlopt_exe = Var.make_scalar "OCAMLOPT"
 let ocaml_flags = Var.make_vector "OCAML_FLAGS"
 let ocaml_include = Var.make_vector "OCAML_INCLUDE"
 
@@ -63,17 +63,19 @@ module OCaml_Flags = struct
       catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true
     in
-    let def = def ~variables in
+    let def v x = Var.def ~overrides:variables v x in
+    let word w = Ninja_utils.Expr.Word w in
     [
-      def catala_flags_ocaml (lazy catala_flags);
-      def ocamlc_exe (lazy ["ocamlc"]);
-      def ocamlopt_exe (lazy ["ocamlopt"]);
-      def ocaml_flags (lazy ["-w"; "-24"]);
+      def catala_flags_ocaml catala_flags;
+      def ocamlc_exe (lazy "ocamlc");
+      def ocamlopt_exe (lazy "ocamlopt");
+      def ocaml_flags (lazy [word "-w"; word "-24"]);
       def ocaml_include
         (lazy
-          (Lazy.force ocaml_include_value
-          @ Flags.includes ~name include_dirs
-          @ ["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]));
+          (List.map word
+             (Lazy.force ocaml_include_value
+             @ Flags.includes ~name include_dirs
+             @ ["-I"; File.(Var.(!builddir) / Scan.libcatala / name)])));
     ]
 end
 
@@ -103,7 +105,8 @@ module Spec : Sig.Spec = struct
     in
     [
       Nj.rule "catala-ocaml" ~description:[Nj.Expr.Word "<catala>"; Nj.Expr.Word name; Nj.Expr.Word "⇒"; !!Var.output]
-        ~command:[!!Var.catala_exe; Nj.Expr.Word name; !!Var.catala_flags; !!catala_flags_ocaml;
+        ~command:[!!Var.catala_exe; Nj.Expr.Word name;
+                  !!Var.catala_flags; !!catala_flags_ocaml; !!Var.catala_includes;
                   Nj.Expr.Word "-o"; !!Var.output; Nj.Expr.Word "--"; !!Var.input];
 
       Nj.rule "ocaml-bytobject" ~description

@@ -38,6 +38,7 @@ val clerk_exe : string t
 val clerk_flags : Expr.t t
 val catala_exe : string t
 val catala_flags : Expr.t t
+val catala_includes : Expr.t t
 val runtime : string t
 
 (** {2 Definition spreading different rules} *)
@@ -59,17 +60,10 @@ val test_id : string t
 
 type bindings = Ninja_utils.Binding.any list
 
-val binding_of_words : 'a t -> string list -> Ninja_utils.Binding.any
-(** Packs flat words into a typed payload; errors if a scalar var receives
-    several words *)
-
-val binding_of_words_override : 'a t -> string list -> Ninja_utils.Binding.any
-(** {!binding_of_words} plus the border guards (no refs, no quote characters) —
-    for user-supplied override values only *)
-
 val binding_to_words : Ninja_utils.Binding.any -> string list
 (** Projection to the string-level env consumed by {!get_var}/direct exec *)
 
+val expr_of_list : string list -> Expr.t
 val env_of_bindings : bindings -> (string * string list) list
 
 val file_list_to_string : string list -> string
@@ -93,6 +87,15 @@ val expr_elt_to_string : ?var_bindings:bindings -> Expr.elt -> string
 
 val expr_to_list : ?var_bindings:bindings -> Expr.t -> string list
 (** Resolves an expression in-depth *)
+
+val def :
+  overrides:(string * string list) list ->
+  'a t ->
+  'a Lazy.t ->
+  Ninja_utils.Binding.any
+(** Applies overrides to a variable definition and its default value.
+    Self-references in the override are expanded recursively when their scope
+    matches the variable kind. Other references are left untouched. *)
 
 module Op : sig
   val ( ! ) : string t -> string
