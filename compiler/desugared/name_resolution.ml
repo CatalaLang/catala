@@ -930,7 +930,7 @@ let process_struct_decl
         StructName.Map.update s_uid
           (function
             | None -> Some (StructField.Map.singleton f_uid typ, visibility)
-            | Some (fields, _) ->
+            | Some (fields, visibility) ->
               Some (StructField.Map.add f_uid typ fields, visibility))
           ctxt.structs
       in

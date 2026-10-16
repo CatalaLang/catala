@@ -88,3 +88,12 @@ val run_command_line :
   ?forward_stderr:bool ->
   string list ->
   int * string list
+
+(** {2 Auxiliary functions} *)
+
+val split_on_spaces : string -> string list
+(** Splits the given string on spaces, handling quoting and escaping in a way
+    that loosely mimics the argument parsing of the shell: escaped spaces are
+    unescaped and do not separate arguments, top-level pairs of single or double
+    quotes delimit arguments and are removed, with handling of escaped quotes
+    within the argument, etc. *)

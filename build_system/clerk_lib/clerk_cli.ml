@@ -208,13 +208,9 @@ let vars_override =
     & info ["vars"] ~docv:"VAR=VALUE"
         ~doc:
           "Override the given build variable with the given value. Use \
-           $(i,clerk list-vars) to list the available variables.")
-
-(* Command-line overrides shadow the [variables] table, they don't replace it:
-   both are read with [List.assoc_opt], which takes the first match. *)
-let variable_overrides ~config_vars cli_vars =
-  List.map (fun (var, value) -> var, String.split_on_char ' ' value) cli_vars
-  @ config_vars
+           $(i,clerk list-vars) to list the available variables. The special \
+           value $(b,\\${VAR}) (matching the variable name) can be used to \
+           expand to the previous value of the variable being defined.")
 
 let config_file =
   Arg.(
@@ -515,6 +511,39 @@ let project_info =
   in
   Term.(const term $ config_file)
 
+let split_on_spaces s =
+  let open String in
+  let buf = Buffer.create 20 in
+  let len = length s in
+  let valid_escape i =
+    i < len && match get s i with '\\' | ' ' | '"' | '\'' -> true | _ -> false
+  in
+  let rec str i =
+    if i >= len then [Buffer.contents buf]
+    else
+      match get s i with
+      | ' ' -> end_word i
+      | ('"' | '\'') as c -> quote c (i + 1)
+      | c ->
+        let i = if c = '\\' && valid_escape (i + 1) then i + 1 else i in
+        Buffer.add_char buf (get s i);
+        str (i + 1)
+  and quote q i =
+    if i >= len then end_word i
+    else
+      let c = get s i in
+      if c = q then str (i + 1)
+      else
+        let i = if c = '\\' && valid_escape (i + 1) then i + 1 else i in
+        Buffer.add_char buf (get s i);
+        quote q (i + 1)
+  and end_word i =
+    let word = Buffer.contents buf in
+    Buffer.clear buf;
+    word :: (if i + 1 >= len then [] else str (i + 1))
+  in
+  if s = "" then [] else str 0
+
 let init
     test_flags
     ninja_file
@@ -580,7 +609,8 @@ let init
         bad_dir)
     bad_dirs;
   let variables =
-    variable_overrides ~config_vars:config.Clerk_config.variables vars_override
+    List.map (fun (v, x) -> v, split_on_spaces x) vars_override
+    @ config.Clerk_config.variables
   in
   let test_flags =
     if whole_program then "--whole-program" :: test_flags else test_flags

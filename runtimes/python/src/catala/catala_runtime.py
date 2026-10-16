@@ -8,17 +8,16 @@
 """
 from __future__ import annotations # 'ClsType' ~> ClsType annotations
 
-# This file should be in sync with compiler/runtime.{ml, mli} !
-
 import math
 from fractions import Fraction
-import dates
 from typing import NewType, List, Generic, Callable, Tuple, TypeVar, Iterable, Union, Any, overload, override, ClassVar
 from functools import reduce
 from enum import Enum, StrEnum, nonmember, auto
 import copy
 import json
 import functools
+
+import libcatala.dates as dates
 
 Alpha = TypeVar('Alpha', bound='Value')
 Beta = TypeVar('Beta', bound='Value')

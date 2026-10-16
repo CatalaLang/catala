@@ -247,7 +247,7 @@ let organise_modules ~config ~var_bindings items =
         G.fold_vertex
           (fun v g ->
             (* Uncomment this instead to make the stdlib root modules appear *)
-            (* if List.exists (fun v -> (String.Map.find v modmap).item.is_stdlib) (G.pred module_g v) *)
+            (* if List.exists (fun v -> (String.Map.find v modmap).item.is_stdlib) (G.pred module_g v) then *)
             if (String.Map.find v modmap).item.is_stdlib then
               G.remove_vertex g v
             else g)

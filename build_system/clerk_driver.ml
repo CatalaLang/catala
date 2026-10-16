@@ -28,26 +28,33 @@ let lastdirname f = File.(basename (dirname f))
 
 let backend_src_extensions () =
   List.map
-    (fun (module B : Clerk_backend.S) -> B.config_backend, B.src_extensions)
+    (fun (module B : Clerk_backend.S) ->
+      B.config_backend, String.Set.of_list B.src_extensions)
     (Clerk_backend.all ())
 
 let backend_obj_extensions () =
   List.map
-    (fun (module B : Clerk_backend.S) -> B.config_backend, B.all_obj_extensions)
+    (fun (module B : Clerk_backend.S) ->
+      B.config_backend, String.Set.of_list B.all_obj_extensions)
     (Clerk_backend.all ())
 
 let backend_extensions () =
   let bk_exts = backend_obj_extensions () in
   List.map
-    (fun (bk, exts) -> bk, exts @ List.assoc bk bk_exts)
+    (fun (bk, exts) -> bk, String.Set.union exts (List.assoc bk bk_exts))
     (backend_src_extensions ())
 
 let extensions_backend () =
-  ("cmxa", Clerk_backend.OCaml.T)
-  :: List.flatten
-       (List.map
-          (fun (bk, exts) -> List.map (fun e -> e, bk) exts)
-          (backend_extensions ()))
+  List.fold_left
+    (fun acc (bk, exts) ->
+      String.Set.fold
+        (fun ext acc ->
+          String.Map.update ext
+            (fun o -> Some (bk :: Option.value ~default:[] o))
+            acc)
+        exts acc)
+    String.Map.empty (backend_extensions ())
+  |> String.Map.add "cmxa" [Clerk_backend.OCaml.T]
 
 let backend_subdir_list () =
   List.map
@@ -89,31 +96,29 @@ let linking_command ~build_dir ~backend ~info item target =
   in
   match backend with
   | `Custom rule ->
+    let srcvar = Var.make_vector "src" in
+    let dstvar = Var.make_vector "dst" in
     let var_bindings =
-      Var.binding_of_words Var.src
+      Nj.Binding.make srcvar
         (List.flatten
            (List.map
               (fun it ->
                 let f = Scan.target_file_name it in
                 let f = dirname f / rule_subdir rule / basename f in
                 List.map
-                  (fun ext -> (build_dir / f) -.- ext)
+                  (fun ext -> Nj.Expr.Word ((build_dir / f) -.- ext))
                   rule.Config.in_exts)
               (link_deps item @ [item])))
-      :: Var.binding_of_words Var.dst
+      :: Nj.Binding.make dstvar
            (let f = Scan.target_file_name item in
             let f = dirname f / rule_subdir rule / basename f in
-            List.map (fun ext -> (build_dir / f) -.- ext) rule.Config.out_exts)
+            List.map
+              (fun ext -> Nj.Expr.Word ((build_dir / f) -.- ext))
+              rule.Config.out_exts)
       :: var_bindings
     in
-    List.flatten
-    @@ List.map
-         (fun s ->
-           if String.length s > 1 && s.[0] = '$' && s.[1] <> '{' then
-             Var.get var_bindings
-               (Var.Vector (String.sub s 1 (String.length s - 1)))
-           else [Var.expand var_bindings s])
-         rule.Config.commandline
+    Var.expr_to_list ~var_bindings
+      (List.map (fun w -> Nj.Expr.Word w) rule.Config.commandline)
   | (`OCaml | `Python | `C | `Java) as bk ->
     let module B = (val Clerk_backend.get (backend_to_config bk)) in
     B.linking_command ~build_dir ~var_bindings link_deps item target
@@ -132,8 +137,9 @@ let backend_from_arg config ~enabled_backends t =
           ext t)
   in
   let aux ext =
-    match List.filter (fun (e, _) -> e = ext) (extensions_backend ()) with
-    | [(_, bk)] -> bk
+    let backends = String.Map.find ext (extensions_backend ()) in
+    match List.filter (fun bk -> List.mem bk enabled_backends) backends with
+    | [bk] -> bk
     | [] -> (
       let errmsg () =
         Message.error
@@ -151,12 +157,6 @@ let backend_from_arg config ~enabled_backends t =
         with
         | Some rule -> rule.Config.backend
         | None -> (
-          let backends =
-            List.filter_map
-              (fun (e, bk) ->
-                if e = ext then Some Clerk_backend.(name (get bk)) else None)
-              (extensions_backend ())
-          in
           match backends with
           | [] -> errmsg ()
           | bks ->
@@ -164,10 +164,12 @@ let backend_from_arg config ~enabled_backends t =
               "Extension @{<red;bold>%s@} of target@ @{<red>%S@}@ is@ only@ \
                supported@ by@ backend@ %s,@ which@ is@ not@ currently@ \
                enabled."
-              ext t (String.concat " or " bks)))
+              ext t
+              (String.concat " or "
+                 (List.map (fun bk -> Clerk_backend.(name (get bk))) bks))))
     | conflict ->
       (* Both C and OCaml can generate .o files, for example *)
-      disambiguate_using_subdir t (List.map snd conflict) ext
+      disambiguate_using_subdir t conflict ext
   in
   let bk =
     match File.extension t with
@@ -923,7 +925,8 @@ let run_targets
         if trace <> None then List.filter (( <> ) "--trace") bdgs else bdgs
       in
       let catala_flags =
-        catala_flags
+        Var.get info.Module_graph.var_bindings Var.catala_includes
+        @ catala_flags
         @ (match scope with
           | None -> []
           | Some scope -> [Printf.sprintf "--scope=%s" scope])
