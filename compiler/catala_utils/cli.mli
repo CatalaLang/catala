@@ -26,6 +26,10 @@ val file_lang : file -> backend_lang
 (** Associates a file extension with its corresponding
     {!type: Global.backend_lang} string representation. *)
 
+val extensions : (string * backend_lang) list
+(** Returns the association list of the supported file extensions to their
+    language. *)
+
 (** {2 CLI flags and options} *)
 
 val when_opt : when_enum Cmdliner.Arg.conv

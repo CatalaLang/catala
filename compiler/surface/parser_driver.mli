@@ -18,6 +18,7 @@
     [Surface.Parser_driver.parse_source_file] API. *)
 
 open Catala_utils
+open Shared_ast
 
 val lines :
   File.t ->
@@ -60,18 +61,42 @@ type module_loading =
 val load_module : module_loading
 (** Load a single module content *)
 
+type module_candidates =
+  (ModuleName.t * Ast.module_content) Lazy.t File.Map.t Ident.Map.t
+
+val load_included_modules :
+  Global.options ->
+  includes:Global.raw_file list ->
+  stdlib:Global.raw_file option ->
+  ?more_includes:string list ->
+  ?allow_notmodules:bool ->
+  ?load_module:module_loading ->
+  unit ->
+  module_candidates
+(** Computes the lazy module candidate map that are used in the resolution of a
+    module usage to an included file. This map may be re-used with
+    [load_modules_with_candidates]. *)
+
 val load_modules :
   Global.options ->
   Global.raw_file list ->
   stdlib:Global.raw_file option ->
   ?more_includes:string list ->
   ?allow_notmodules:bool ->
-  ?load_module:module_loading ->
   Ast.program ->
   Shared_ast.ModuleName.t Shared_ast.Ident.Map.t
   * (Ast.module_content * Shared_ast.ModuleName.t Shared_ast.Ident.Map.t)
     Shared_ast.ModuleName.Map.t
 (** Retrieve and load modules contents necessary to compile the given program *)
+
+val load_modules_with_candidates :
+  Global.options ->
+  stdlib:Global.raw_file option ->
+  module_candidates ->
+  Ast.program ->
+  ModuleName.t Ident.Map.t
+  * (Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t
+(** Same as [load_modules] but with an existing [module_candidates]. *)
 
 val parse_top_level_file :
   ?resolve_included_file:(string -> string Global.input_src) ->
