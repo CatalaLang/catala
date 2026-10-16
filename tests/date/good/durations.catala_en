@@ -9,6 +9,7 @@
   output z3 content duration
   output m content duration
   output m2 content duration
+  output d content decimal
 
 scope A:
   definition x equals |2019-01-01|
@@ -21,9 +22,9 @@ scope A:
   definition m equals z3 * 2
 
   definition m2 equals (2 month) * 3
+
+  definition d equals z3 / 1000 day
 ```
-
-
 
 ```catala-test-cli
 $ catala Typecheck --check-invariants
@@ -45,5 +46,6 @@ $ catala test-scope A
 │ z3 = [5937 days]
 │ m = [11874 days]
 │ m2 = [6 months]
+│ d = 5.937
 └─
 ```
