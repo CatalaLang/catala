@@ -103,7 +103,8 @@ module Spec : Sig.Spec = struct
     in
     [
       Nj.rule "catala-ocaml" ~description:[Nj.Expr.Word "<catala>"; Nj.Expr.Word name; Nj.Expr.Word "⇒"; !!Var.output]
-        ~command:[!!Var.catala_exe; Nj.Expr.Word name; !!Var.catala_flags; !!catala_flags_ocaml;
+        ~command:[!!Var.catala_exe; Nj.Expr.Word name;
+                  !!Var.catala_flags; !!catala_flags_ocaml; !!Var.catala_includes;
                   Nj.Expr.Word "-o"; !!Var.output; Nj.Expr.Word "--"; !!Var.input];
 
       Nj.rule "ocaml-bytobject" ~description

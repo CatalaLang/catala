@@ -87,13 +87,14 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
     else options
   in
   let catala_flags =
-    (if inplace then "--stdlib=" ^ Lazy.force Poll.stdlib_dir
-     else "--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
-    :: ("--directory=" ^ Var.(!builddir))
-    :: (if trace then ["--trace"] else [])
-    @ options.global.catala_opts
+    lazy
+      ((if inplace then "--stdlib=" ^ Lazy.force Poll.stdlib_dir
+        else "--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala))
+       :: ("--directory=" ^ Var.(!builddir))
+       :: (if trace then ["--trace"] else [])
+      @ options.global.catala_opts)
   in
-  let includes = includes include_dirs in
+  let includes = lazy (includes include_dirs) in
   let test_flags = config.Clerk_cli.test_flags in
   let def v x = def ~variables:options.variables v x in
   [
@@ -109,15 +110,19 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
           | Some e -> File.check_exec e
           | None -> Lazy.force Poll.catala_exe);
         ]);
-    def Var.catala_flags (lazy (catala_flags @ includes));
+    def Var.catala_flags catala_flags;
+    def Var.catala_includes includes;
     def Var.clerk_flags
       (lazy
-        ("-e"
-         :: Var.(!catala_exe)
-         :: ("--test-flags=" ^ String.concat "," test_flags)
-         :: includes
+        ([
+           "-e";
+           Var.(!catala_exe);
+           "--test-flags=" ^ String.concat "," test_flags;
+         ]
         @ (if code_coverage then ["--code-coverage"] else [])
         @ List.map
             (fun f -> "--catala-opts=" ^ f)
-            (catala_flags @ if code_coverage then ["--whole-program"] else [])));
+            (Lazy.force catala_flags
+            @ if code_coverage then ["--whole-program"] else [])
+        @ Lazy.force includes));
   ]

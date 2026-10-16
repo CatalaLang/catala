@@ -38,6 +38,7 @@ val clerk_exe : string t
 val clerk_flags : Expr.t t
 val catala_exe : string t
 val catala_flags : Expr.t t
+val catala_includes : Expr.t t
 val runtime : string t
 
 (** {2 Definition spreading different rules} *)
