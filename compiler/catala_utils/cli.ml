@@ -76,6 +76,14 @@ let exec_dir =
   else (* searched in PATH *)
     Filename.dirname Sys.executable_name
 
+(* See https://erratique.ch/software/cmdliner/doc/cli.html#completion_protocol *)
+let autocomplete_mode =
+  Array.length Sys.argv >= 2
+  && Sys.argv.(1) = "--__complete"
+  &&
+  (Unix.putenv "CMDLINER_LEGACY_PREFIXES" "false";
+   true)
+
 (** CLI flags and options *)
 
 let s_plugins = "INSTALLED PLUGINS"
@@ -89,23 +97,17 @@ module Flags = struct
     let info = info ~docs:Manpage.s_common_options
 
     let input_src =
-      let converter =
-        conv ~docv:"FILE"
-          ( (fun s ->
-              if s = "-" then Ok (Stdin (Global.raw_file "-stdin-"))
-              else
-                Result.map
-                  (fun f -> FileName (Global.raw_file f))
-                  (conv_parser non_dir_file s)),
-            fun ppf -> function
-              | Stdin _ -> Format.pp_print_string ppf "-"
-              | FileName f -> conv_printer non_dir_file ppf (f :> file)
-              | _ -> assert false )
+      let arg =
+        required
+        & pos 0 (some non_dir_file) None
+        & Arg.info [] ~docv:"FILE" ~docs:Manpage.s_arguments
+            ~doc:"Catala master file to be compiled ($(b,-) for stdin)."
       in
-      required
-      & pos 0 (some converter) None
-      & Arg.info [] ~docv:"FILE" ~docs:Manpage.s_arguments
-          ~doc:"Catala master file to be compiled ($(b,-) for stdin)."
+      let conv s =
+        if s = "-" then Stdin (Global.raw_file "-stdin-")
+        else FileName (Global.raw_file s)
+      in
+      Term.(const conv $ arg)
 
     let language =
       value
