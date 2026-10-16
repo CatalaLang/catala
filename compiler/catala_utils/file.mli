@@ -269,12 +269,8 @@ module Tree : sig
   type path = t
   (** Alias for [File.t] *)
 
-  type item = F  (** Plain file *) | D of t  (** Directory with subtree *)
-
-  and t = (path * item) Map.t Lazy.t
-  (** Contents of a directory, lazily loaded. The map keys are the basenames of
-      the files and subdirectories, while the values contain the original path
-      (with correct capitalisation) *)
+  type t
+  (** Contents of a directory, lazily loaded *)
 
   val empty : t
 
@@ -288,7 +284,8 @@ module Tree : sig
   val lookup : t -> path -> path option
   (** Checks if there is a matching plain file (after projection to ASCII using
       `String.to_id`, and case-insensitively) ; and returns its path with the
-      correct case if so *)
+      correct case if so. Names are indexed on the first lookup: reuse the tree
+      for repeated lookups. *)
 
   val union : t -> t -> t
   (** Merges two trees. In case of conflict, lhs entry wins *)
