@@ -117,6 +117,5 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
               | Expr.Word s -> word ("--catala-opts=" ^ s)
               | _ -> Message.error "Unallowed variable reference in Catala args")
             (Lazy.force catala_flags
-            @ Lazy.force includes
             @ if code_coverage then [word "--whole-program"] else [])));
   ]
