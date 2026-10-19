@@ -839,6 +839,11 @@ let advertise_installed ~config ~backends info targets =
             -.- File.extension name)))
       targets.direct_targets
 
+(* CATALA_INCLUDES is separate so the stdlib build can replace it; calling
+   catala outside ninja needs both. *)
+let catala_args bindings =
+  Var.get bindings Var.catala_includes @ Var.get bindings Var.catala_flags
+
 (* Runs the artifacts generated from the given targets (after linking them using
    the appropriate backend compiler when needed) *)
 let run_targets
@@ -917,12 +922,11 @@ let run_targets
              single target."
       in
       let catala_flags =
-        let bdgs = Var.get info.Module_graph.var_bindings Var.catala_flags in
+        let bdgs = catala_args info.Module_graph.var_bindings in
         if trace <> None then List.filter (( <> ) "--trace") bdgs else bdgs
       in
       let catala_flags =
-        Var.get info.Module_graph.var_bindings Var.catala_includes
-        @ catala_flags
+        catala_flags
         @ (match scope with
           | None -> []
           | Some scope -> [Printf.sprintf "--scope=%s" scope])
@@ -1208,7 +1212,7 @@ let typecheck_cmd =
     in
     if check_items = [] then Message.error "Nothing to typecheck."
     else
-      let catala_flags = Var.get info.var_bindings Var.catala_flags in
+      let catala_flags = catala_args info.var_bindings in
       let exec = Var.get info.var_bindings Var.catala_exe in
       let ret =
         List.map
@@ -1713,7 +1717,7 @@ let json_schema_cmd =
         ~trace:false ~enabled_backends:[] ~config ~inplace:true
     in
     let catala_exe = Var.get var_bindings Var.catala_exe in
-    let catala_flags = Var.get var_bindings Var.catala_flags in
+    let catala_flags = catala_args var_bindings in
     let cmd =
       catala_exe @ ["json-schema"; file; "--scope"; scope] @ catala_flags
     in
@@ -1741,7 +1745,7 @@ let exceptions_cmd =
         ~trace:false ~enabled_backends:[] ~config ~inplace:true
     in
     let catala_exe = Var.get var_bindings Var.catala_exe in
-    let catala_flags = Var.get var_bindings Var.catala_flags in
+    let catala_flags = catala_args var_bindings in
     let cmd =
       catala_exe
       @ ["exceptions"; file; "--scope"; scope; "--variable"; variable]
