@@ -23,7 +23,7 @@ let format_dependency ~project_name ppf (dep_name : string) =
   let groupId, artifactId, version =
     if dep_name = Scan.libcatala then
       Scan.libcatala, "catala-runtime", Catala_utils.Version.v
-    else project_name, String.to_snake_case dep_name, "1.0.0"
+    else String.to_id project_name, String.to_snake_case dep_name, "1.0.0"
   in
   Format.fprintf ppf
     "    <dependency>\n\
@@ -45,6 +45,7 @@ let format_target_pom_xml ~project_name ppf (target : Clerk_config.target) =
         "**/*.java" )
     else
       let dir_name = String.to_snake_case target.tname in
+      let project_name = String.to_id project_name in
       ( project_name,
         dir_name,
         "1.0.0",
@@ -149,7 +150,7 @@ let format_project_pom_xml ~(config : Clerk_cli.config) ppf targets =
           "catala-runtime-" ^ Version.v )
       else
         let dir_name = String.to_snake_case target.tname in
-        project_name, dir_name, "${project.version}", dir_name
+        String.to_id project_name, dir_name, "${project.version}", dir_name
     in
     Format.fprintf ppf
       {|                  <artifactItem>
@@ -161,7 +162,9 @@ let format_project_pom_xml ~(config : Clerk_cli.config) ppf targets =
                   </artifactItem>|}
       groupId artifactId version destName
   in
-  let groupId, artifactId, version = project_name, "clerk-project", "1.0.0" in
+  let groupId, artifactId, version =
+    String.to_id project_name, "clerk-project", "1.0.0"
+  in
   fprintf ppf
     {|<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"

@@ -1,0 +1,33 @@
+```catala
+declaration scope A:
+  output x content boolean
+
+scope A:
+  definition x equals false
+  assertion x
+  #[error.message = "x should hold"]
+  assertion x
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[ERROR]─ 1/2 ─
+│
+│  Assertion failed.
+│
+├─➤ tests/assertions/bad/boolean.catala_en:7.3-14:
+│   │
+│ 7 │   assertion x
+│   │   ‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  Assertion failed: x should hold.
+│
+├─➤ tests/assertions/bad/boolean.catala_en:9.3-14:
+│   │
+│ 9 │   assertion x
+│   │   ‾‾‾‾‾‾‾‾‾‾‾
+└─
+#return code 123#
+```

@@ -70,16 +70,19 @@ public final class CatalaDuration extends CatalaValue<CatalaDuration> {
         return new CatalaDuration(this.period.mul(other.asBigInteger().intValue()));
     }
 
-    public final CatalaDecimal divide(CatalaDuration other) {
+    public final CatalaDecimal divide(CatalaPosition p, CatalaDuration other) {
         if (this.getYears() != 0 || this.getMonths() != 0
                 || other.getYears() != 0 || other.getMonths() != 0) {
-            throw new IllegalArgumentException("Can only divide durations expressed in days");
+            throw CatalaError.error(CatalaError.Error.DateError, p, "Can only divide durations expressed in days");
         }
         if (other.getDays() == 0) {
-            throw new IllegalArgumentException("Duration: divide by zero");
+            throw CatalaError.error(CatalaError.Error.DivisionByZero, p, "Divide duration by zero");
         }
         return new CatalaDecimal(this.getDays(), other.getDays());
+    }
 
+    public final CatalaDecimal divide(CatalaDuration other) {
+        return this.divide(CatalaPosition.empty, other);
     }
 
     @Override

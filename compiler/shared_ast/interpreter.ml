@@ -646,12 +646,11 @@ let rec handle_assert : type d r.
           Format.pp_print_text note
       | None -> Format.fprintf ppf "Assertion failed"
     in
-    let partially_evaluated_assertion_failure_expr =
+    let partially_evaluated_pred =
       partially_evaluate_expr_for_assertion_failure_message ~eval_expr
         (Expr.skip_wrappers pred)
-      |> Expr.distribute_negation pos
     in
-    (match Mark.remove partially_evaluated_assertion_failure_expr with
+    (match Mark.remove partially_evaluated_pred with
     | ELit (LBool false) ->
       let bt = Printexc.get_raw_backtrace () in
       if Global.options.no_fail_on_assert then Message.warning ~pos "%t." msg
@@ -676,7 +675,7 @@ let rec handle_assert : type d r.
            bt
        else Message.delayed_error ~kind:AssertFailure ())
         ~pos "@[<hv>%t:@ @[<hv 4>%a@]@]" msg Print.UserFacing.expr
-        partially_evaluated_assertion_failure_expr);
+        (Expr.distribute_negation pos partially_evaluated_pred));
     Mark.add m (ELit LUnit)
   | _ ->
     Message.error ~internal:true ~pos:(Expr.pos pred) "%a" Format.pp_print_text
@@ -1398,7 +1397,7 @@ let load_runtime_modules ~hashf prg =
               ModuleName.Map.union
                 (fun _ m _ -> Some m)
                 acc (extern_only mn.deps))
-          ModuleName.Map.empty module_tree
+          module_tree ModuleName.Map.empty
       in
       extern_only prg.decl_ctx.ctx_modules
     else prg.decl_ctx.ctx_modules
