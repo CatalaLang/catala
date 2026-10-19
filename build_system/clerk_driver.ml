@@ -1212,11 +1212,17 @@ let typecheck_cmd =
     in
     if check_items = [] then Message.error "Nothing to typecheck."
     else
-      let catala_flags = catala_args info.var_bindings in
       let exec = Var.get info.var_bindings Var.catala_exe in
       let ret =
         List.map
           (fun it ->
+            (* As in the ninja rules: the stdlib only sees its own directory. *)
+            let catala_flags =
+              if it.Scan.is_stdlib then
+                Var.get info.var_bindings Var.catala_flags
+                @ ["-I"; File.dirname it.Scan.file_name]
+              else catala_args info.var_bindings
+            in
             let cmd =
               exec
               @ ["typecheck"; "--quiet"]
