@@ -115,6 +115,7 @@ let warn_missing_check_trace_assertion (item : Scan.item) =
 
 let gen_build_statements
     ~(tests : bool)
+    ~(check_trace_assertion : bool option)
     (enabled_backends : (module Clerk_backend.S) list)
     (autotest : bool)
     ~is_stdlib
@@ -123,7 +124,8 @@ let gen_build_statements
   let open Var.Op in
   (* Checked here rather than from the test rules below, which are only generated
      for files that also carry tests. *)
-  if item.has_trace_assertions then warn_missing_check_trace_assertion item;
+  if item.has_trace_assertions && check_trace_assertion = None then
+    warn_missing_check_trace_assertion item;
 
   let src = item.file_name in
   let dir = dirname src in
@@ -258,7 +260,7 @@ let gen_build_statements
       []
     else
       let vars =
-        if item.has_trace_assertions then
+        if item.has_trace_assertions && check_trace_assertion = Some true then
           Some
             [
               Nj.Binding.make Var.trace
@@ -299,6 +301,7 @@ let gen_build_statements_dir
     ~is_stdlib
     (dir : string)
     ~(tests : bool)
+    ~(check_trace_assertion : bool option)
     (enabled_backends : (module Clerk_backend.S) list)
     (autotest : bool)
     (items : Scan.item list) : Nj.ninja =
@@ -326,7 +329,8 @@ let gen_build_statements_dir
   @@ Seq.cons (Nj.comment "")
   @@ Seq.cons (Nj.binding (Nj.Binding.make Var.tdir (!Var.builddir / dir)))
   @@ Seq.flat_map
-       (gen_build_statements ~tests ~is_stdlib enabled_backends autotest)
+       (gen_build_statements ~check_trace_assertion ~tests ~is_stdlib
+          enabled_backends autotest)
        (List.to_seq items)
 
 let dir_test_rules dir subdirs items =
@@ -386,6 +390,7 @@ let output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings =
 
 let output_ninja_file_item_statements
     nin_ppf
+    ~config
     ~tests
     ~enabled_backends
     ~autotest
@@ -396,7 +401,9 @@ let output_ninja_file_item_statements
     match seq () with
     | Seq.Cons ((dir, subdirs, items), seq) ->
       Nj.format nin_ppf
-      @@ gen_build_statements_dir dir ~is_stdlib enabled_backends ~tests
+      @@ gen_build_statements_dir dir ~is_stdlib ~tests
+           ~check_trace_assertion:
+             config.Clerk_cli.file.global.check_trace_assertion enabled_backends
            autotest items;
       if (not is_stdlib) && tests then
         Nj.format nin_ppf @@ dir_test_rules dir subdirs items;
@@ -421,12 +428,12 @@ let output_ninja_file
   output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings;
   pp (Nj.comment "\n- Standard library build statements - #");
   Seq.memoize
-  @@ output_ninja_file_item_statements nin_ppf ~tests ~enabled_backends
+  @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~enabled_backends
        ~autotest ~is_stdlib:true stdlib_tree
   @@ Seq.append (fun () ->
       pp (Nj.comment "\n- Project-specific build statements - #");
       Seq.Nil)
-  @@ output_ninja_file_item_statements nin_ppf ~tests ~enabled_backends
+  @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~enabled_backends
        ~autotest ~is_stdlib:false project_tree
   @@ Seq.empty
 
