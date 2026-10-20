@@ -647,20 +647,6 @@ let run_ninja
     base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
       ~inplace:false ~includes ()
   in
-  let known =
-    let var_bindings = Var.env_of_bindings var_bindings in
-    List.fold_left
-      (fun acc (n, _) -> String.Set.add n acc)
-      String.Set.empty var_bindings
-  in
-  List.iter
-    (fun (n, _) ->
-      if not (String.Set.mem n known) then
-        Message.warning
-          "Variable @{<blue;bold>$%s@} from the configuration is not used by \
-           this invocation"
-          n)
-    config.Clerk_cli.file.variables;
   let enabled_backends =
     List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
   in
