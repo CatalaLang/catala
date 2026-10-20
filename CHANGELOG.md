@@ -14,6 +14,13 @@ in behavior visible for the end-users of the tooling.
   situations, maven groupId was based on verbatim clerk project's name
   which could be syntactically invalid.
 
+* [#1129](https://github.com/CatalaLang/catala/pull/1129) Auto-completion is now
+  [available](https://book.catala-lang.org/en/1-1-1-linux-mac-wsl.html?highlight=complet#setting-up-shell-completion)
+  in the CLI.
+
+* [#1118](https://github.com/CatalaLang/catala/pull/1118) Clerk variable
+  overrides can now refer to the original value of the variable.
+
 * [#1113](https://github.com/CatalaLang/catala/pull/1113) Add the
   `use_libraries` field to `clerk.toml`, allowing external modules to rely on
   external backend-specific libraries.
