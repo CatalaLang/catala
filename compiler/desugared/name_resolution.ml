@@ -155,6 +155,56 @@ let handle_extra_attributes context plugin path value pos =
 let translate_attr ~context = function
   | Src ((p1 :: ps, ppos), v, pos) -> (
     match p1 with
+    | "trace" -> (
+      match ps with
+      | ["assert"] -> (
+        match context with
+        | ScopeDecl -> (
+          let open Surface in
+          match v with
+          | Ast.Expression
+              (Tuple [((Ident _, _ | Dotted _, _) as ident); expr], _) ->
+            let path = Format.asprintf "%a" Print.format_expr ident in
+            Some (TraceAssert (path, Expr_value.value_of_expression expr))
+          | _ ->
+            Message.warning ~pos
+              "Attribute @{<magenta>#[trace.assert]@} is not well formed";
+            None)
+        | _ ->
+          Message.warning ~pos
+            "Attribute @{<magenta>#[trace.assert]@} is not allowed in this \
+             context";
+          None)
+      | ["assert_state"] -> (
+        match context with
+        | ScopeDecl -> (
+          let open Surface in
+          match v with
+          | Ast.Expression
+              ( Tuple
+                  [
+                    ((Ident _, _ | Dotted _, _) as ident);
+                    (Ident ([], (state, _), None), _);
+                    expr;
+                  ],
+                _ ) ->
+            (* In the trace, the states of a variable are named [var#state]
+               (see [Scopelang.From_desugared]) *)
+            let path = Format.asprintf "%a#%s" Print.format_expr ident state in
+            Some (TraceAssert (path, Expr_value.value_of_expression expr))
+          | _ ->
+            Message.warning ~pos
+              "Attribute @{<magenta>#[trace.assert_state]@} is not well formed";
+            None)
+        | _ ->
+          Message.warning ~pos
+            "Attribute @{<magenta>#[trace.assert_state]@} is not allowed in \
+             this context";
+          None)
+      | ps ->
+        Message.warning ~pos:ppos ~suggestion:["assert"; "assert_state"]
+          "Unknown debug attribute \"%s\"" (String.concat "." ps);
+        None)
     | "debug" -> (
       match ps with
       | ["print"] -> (

@@ -1020,6 +1020,11 @@ let lex_line ~context (lexbuf : lexbuf) : (string * L.line_token) option =
        context := `Law;
        Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
      | Star (Sub (any_but_eol, "#") | "#[", Star (Sub (any_but_eol, ']'), ']')),
+       "#[", Star hspace, "trace.assert", Opt "_state", Star hspace, "=", Star hspace, Star (Sub (any_but_eol, ']')), Chars " \t\n]", Star any_but_eol, (eol | eof) ->
+       (* test directives can be anywhere on the line, but must not be in a comment. Fixme: we don't handle the case where it would be within another multi-line attribute or a string *)
+       let str = Utf8.lexeme lexbuf in
+       Some(str, LINE_TEST_TRACE_ASSERT)
+     | Star (Sub (any_but_eol, "#") | "#[", Star (Sub (any_but_eol, ']'), ']')),
        "#[", Star hspace, "test", Chars " \t\n]", Star any_but_eol, (eol | eof) ->
        (* test directives can be anywhere on the line, but must not be in a comment. Fixme: we don't handle the case where it would be within another multi-line attribute or a string *)
        Some (Utf8.lexeme lexbuf, LINE_TEST_ATTRIBUTE)
