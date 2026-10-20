@@ -65,5 +65,5 @@ $ catala test-scope Titi
 
 ```catala-test-cli
 $ catala dependency-graph --disable-warnings
-{"intra_scopes":{"Toto":{"nodes":{"2":"foo","1":"bar"},"edges":[{"from":1,"to":2}]},"Titi":{"nodes":{"5":"toto","4":"fuzz","3":"fizz"},"edges":[]}},"inter_scopes":{"nodes":{"2":"Titi","1":"Toto"},"edges":[{"from":1,"to":2},{"from":1,"to":2},{"from":1,"to":2}]},"types":{"nodes":{"8":"Titi","6":"Toto","4":"Period_en.Period","3":"MonthYear_en.MonthYear","980147805":"Date_en.Day_of_week","809014657":"Date_en.Month","9647113":"Optional"},"edges":[{"from":6,"to":8},{"from":6,"to":8},{"from":809014657,"to":3}]}}
+{"intra_scopes":{"Toto":{"nodes":{"1":"foo","0":"bar"},"edges":[{"from":0,"to":1}]},"Titi":{"nodes":{"2":"toto","1":"fuzz","0":"fizz"},"edges":[]}},"inter_scopes":{"nodes":{"1":"Titi","0":"Toto"},"edges":[{"from":0,"to":1}]},"types":{"nodes":{"6":"Titi","5":"Toto","4":"Period_en.Period","3":"MonthYear_en.MonthYear","2":"Date_en.Day_of_week","1":"Date_en.Month","0":"Optional"},"edges":[{"from":1,"to":3},{"from":5,"to":6}]}}
 ```
