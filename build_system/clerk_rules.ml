@@ -60,6 +60,11 @@ let static_base_rules ~tests enabled_backends =
             [
               !!clerk_exe;
               Word "runtest";
+              (* [!trace] must be referenced here rather than from within
+                 [!clerk_flags]: ninja expands the right-hand side of a variable
+                 declaration immediately, so a nested reference could not be
+                 overridden per-edge. *)
+              !!trace;
               !!clerk_flags;
               !!input;
               Word "--report";
@@ -91,6 +96,23 @@ let static_base_rules ~tests enabled_backends =
   in
   Clerk_backend.static_base_rules @ backend_static_rules @ test_rules
 
+(* Reported once per run: a file declaring asserted trace variables while the
+   project never says whether they should be checked is most likely an
+   oversight. An explicit "check_trace_assertion = false" is a deliberate
+   choice and stays silent. *)
+let warned_missing_check_trace_assertion = ref false
+
+let warn_missing_check_trace_assertion (item : Scan.item) =
+  if not !warned_missing_check_trace_assertion then (
+    warned_missing_check_trace_assertion := true;
+    Message.warning
+      "@[<hov>%a declares @{<bold>#[trace.assert]@} attributes, but \
+       @{<bold>check_trace_assertion@} is not set in the @{<bold>[project]@} \
+       section of @{<bold>clerk.toml@}:@ the asserted trace variables are \
+       verified.@ Set it to @{<bold>true@} to check them, or to \
+       @{<bold>false@} to silence this warning.@]"
+      File.format item.Scan.file_name)
+
 let gen_build_statements
     ~(tests : bool)
     (enabled_backends : (module Clerk_backend.S) list)
@@ -99,6 +121,10 @@ let gen_build_statements
     (item : Scan.item) : Nj.ninja =
   let open File in
   let open Var.Op in
+  (* Checked here rather than from the test rules below, which are only generated
+     for files that also carry tests. *)
+  if item.has_trace_assertions then warn_missing_check_trace_assertion item;
+
   let src = item.file_name in
   let dir = dirname src in
   let def_vars =
@@ -231,8 +257,21 @@ let gen_build_statements
     if not (item.has_inline_tests || Lazy.force item.has_scope_tests > 0) then
       []
     else
+      let vars =
+        if item.has_trace_assertions then
+          Some
+            [
+              Nj.Binding.make Var.trace
+                [
+                  Word (Format.sprintf "--catala-opts=--trace");
+                  Word "--catala-opts=--check-trace-assertion";
+                  Word "--check-trace-assertion";
+                ];
+            ]
+        else None
+      in
       [
-        Nj.build "tests" ~inputs:[catala_src]
+        Nj.build "tests" ~inputs:[catala_src] ?vars
           ~implicit_in:
             (!!Var.clerk_exe :: List.map Clerk_backend.catala_obj_target modules)
           ~outputs:
@@ -347,7 +386,6 @@ let output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings =
 
 let output_ninja_file_item_statements
     nin_ppf
-    ~config:_
     ~tests
     ~enabled_backends
     ~autotest
@@ -358,7 +396,7 @@ let output_ninja_file_item_statements
     match seq () with
     | Seq.Cons ((dir, subdirs, items), seq) ->
       Nj.format nin_ppf
-      @@ gen_build_statements_dir dir ~is_stdlib ~tests enabled_backends
+      @@ gen_build_statements_dir dir ~is_stdlib enabled_backends ~tests
            autotest items;
       if (not is_stdlib) && tests then
         Nj.format nin_ppf @@ dir_test_rules dir subdirs items;
@@ -383,12 +421,12 @@ let output_ninja_file
   output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings;
   pp (Nj.comment "\n- Standard library build statements - #");
   Seq.memoize
-  @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~enabled_backends
+  @@ output_ninja_file_item_statements nin_ppf ~tests ~enabled_backends
        ~autotest ~is_stdlib:true stdlib_tree
   @@ Seq.append (fun () ->
       pp (Nj.comment "\n- Project-specific build statements - #");
       Seq.Nil)
-  @@ output_ninja_file_item_statements nin_ppf ~config ~tests ~enabled_backends
+  @@ output_ninja_file_item_statements nin_ppf ~tests ~enabled_backends
        ~autotest ~is_stdlib:false project_tree
   @@ Seq.empty
 
