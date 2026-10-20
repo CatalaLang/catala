@@ -56,8 +56,7 @@ module Spec : Sig.Spec = struct
       def javac (lazy "javac");
       def jar (lazy "jar");
       def javac_flags (lazy [word "-implicit:none"]);
-      Nj.Binding.make class_path
-        (Backend_paths.classpath ~backend:name include_dirs);
+      def class_path (lazy (Backend_paths.classpath ~backend:name include_dirs));
     ]
 
   let[@ocamlformat "disable"] rules =
