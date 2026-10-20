@@ -280,6 +280,17 @@ module Flags = struct
             "Instead of reporting an error on assertion failure, reports a \
              warning and carry on with the interpretation as usual."
 
+    let check_trace_assertion =
+      let open Arg in
+      value
+      & flag
+      & info ["check-trace-assertion"]
+          ~doc:
+            "Check the values asserted by the $(i,#[trace.assert]) attributes \
+             against the execution trace, and fail if they don't match. \
+             Requires a trace file in JSON format (see $(b,--trace) and \
+             $(b,--trace-format))."
+
     let whole_program =
       value
       & flag
@@ -334,6 +345,7 @@ module Flags = struct
           directory
           stop_on_error
           no_fail_on_assert
+          check_trace_assertion
           whole_program
           bin_dir
           gen_external
@@ -380,7 +392,8 @@ module Flags = struct
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
           ~trace_format ~output_format ~plugins_dirs ~disable_warnings
           ~max_prec_digits ~path_rewrite ~stop_on_error ~no_fail_on_assert
-          ~whole_program ~bin_dir ~gen_external ~dynlink ()
+          ~check_trace_assertion ~whole_program ~bin_dir ~gen_external ~dynlink
+          ()
       in
       Term.(
         const make
@@ -397,6 +410,7 @@ module Flags = struct
         $ directory
         $ stop_on_error
         $ no_fail_on_assert
+        $ check_trace_assertion
         $ whole_program
         $ bin_dir
         $ gen_external
