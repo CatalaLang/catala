@@ -42,6 +42,7 @@ type options = {
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
   mutable no_fail_on_assert : bool;
+  mutable check_trace_assertion : bool;
   mutable whole_program : bool;
   mutable bin_dir : string;
   mutable gen_external : bool;
@@ -70,6 +71,7 @@ let options =
     path_rewrite = (fun _ -> assert false);
     stop_on_error = false;
     no_fail_on_assert = false;
+    check_trace_assertion = false;
     whole_program = false;
     bin_dir = Filename.current_dir_name;
     gen_external = false;
@@ -92,6 +94,7 @@ let enforce_options
     ?path_rewrite
     ?stop_on_error
     ?no_fail_on_assert
+    ?check_trace_assertion
     ?whole_program
     ?bin_dir
     ?gen_external
@@ -112,6 +115,9 @@ let enforce_options
   Option.iter (fun x -> options.path_rewrite <- x) path_rewrite;
   Option.iter (fun x -> options.stop_on_error <- x) stop_on_error;
   Option.iter (fun x -> options.no_fail_on_assert <- x) no_fail_on_assert;
+  Option.iter
+    (fun x -> options.check_trace_assertion <- x)
+    check_trace_assertion;
   Option.iter (fun x -> options.whole_program <- x) whole_program;
   Option.iter (fun x -> options.bin_dir <- x) bin_dir;
   Option.iter (fun x -> options.gen_external <- x) gen_external;
