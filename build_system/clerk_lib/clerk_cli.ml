@@ -515,32 +515,51 @@ let split_on_spaces s =
   let open String in
   let buf = Buffer.create 20 in
   let len = length s in
-  let valid_escape i =
-    i < len && match get s i with '\\' | ' ' | '"' | '\'' -> true | _ -> false
+  (* This follows TOML/JSON escape sequences (https://toml.io/en/v0.3.0#string),
+     except unicode escapes, and with space added *)
+  let escaped i =
+    match get_opt s i with
+    | None -> failwith "trailing \\-escape"
+    | Some (('\\' | ' ' | '"' | '/') as c) -> Buffer.add_char buf c
+    | Some 'b' -> Buffer.add_char buf '\b'
+    | Some 't' -> Buffer.add_char buf '\t'
+    | Some 'n' -> Buffer.add_char buf '\n'
+    | Some 'f' -> Buffer.add_char buf '\x0c'
+    | Some 'r' -> Buffer.add_char buf '\r'
+    | Some c -> Printf.ksprintf failwith "invalid escape '\\%c'" c
   in
   let rec str i =
-    if i >= len then [Buffer.contents buf]
-    else
-      match get s i with
-      | ' ' -> end_word i
-      | ('"' | '\'') as c -> quote c (i + 1)
-      | c ->
-        let i = if c = '\\' && valid_escape (i + 1) then i + 1 else i in
-        Buffer.add_char buf (get s i);
-        str (i + 1)
-  and quote q i =
-    if i >= len then end_word i
-    else
-      let c = get s i in
-      if c = q then str (i + 1)
-      else
-        let i = if c = '\\' && valid_escape (i + 1) then i + 1 else i in
-        Buffer.add_char buf (get s i);
-        quote q (i + 1)
-  and end_word i =
-    let word = Buffer.contents buf in
-    Buffer.clear buf;
-    word :: (if i + 1 >= len then [] else str (i + 1))
+    match get_opt s i with
+    | None -> [Buffer.contents buf]
+    | Some ' ' ->
+      let word = Buffer.contents buf in
+      Buffer.clear buf;
+      word :: (if i + 1 >= len then [] else str (i + 1))
+    | Some '\'' -> sngquote (i + 1)
+    | Some '"' -> dblquote (i + 1)
+    | Some '\\' ->
+      escaped (i + 1);
+      str (i + 2)
+    | Some c ->
+      Buffer.add_char buf c;
+      str (i + 1)
+  and sngquote i =
+    match get_opt s i with
+    | None -> failwith "untermimated single-quoted string"
+    | Some '\'' -> str (i + 1)
+    | Some c ->
+      Buffer.add_char buf c;
+      sngquote (i + 1)
+  and dblquote i =
+    match get_opt s i with
+    | None -> failwith "unterminated double-quoted string"
+    | Some '"' -> str (i + 1)
+    | Some '\\' ->
+      escaped (i + 1);
+      dblquote (i + 2)
+    | Some c ->
+      Buffer.add_char buf c;
+      dblquote (i + 1)
   in
   if s = "" then [] else str 0
 
@@ -609,7 +628,12 @@ let init
         bad_dir)
     bad_dirs;
   let variables =
-    List.map (fun (v, x) -> v, split_on_spaces x) vars_override
+    List.map
+      (fun (v, x) ->
+        try v, split_on_spaces x
+        with Failure msg ->
+          Message.error "In definition of variable @{<cyan>%s@}:@ %s" v msg)
+      vars_override
     @ config.Clerk_config.variables
   in
   let test_flags =
