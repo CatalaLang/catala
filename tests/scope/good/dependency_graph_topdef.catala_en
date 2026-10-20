@@ -1,0 +1,22 @@
+```catala
+declaration double content integer
+  depends on x content integer
+  equals x * 2
+
+#[test] declaration scope A:
+  output a content integer
+
+scope A:
+  definition a equals double of 21
+
+#[test] declaration scope B:
+  output b content integer
+
+scope B:
+  definition b equals (output of A).a + 1
+```
+
+```catala-test-cli
+$ catala dependency-graph --no-stdlib --disable-warnings
+{"intra_scopes":{"A":{"nodes":{"1":"a"},"edges":[]},"B":{"nodes":{"2":"b"},"edges":[]}},"inter_scopes":{"nodes":{"3":"double","4":"B","2":"A"},"edges":[{"from":3,"to":2},{"from":2,"to":4}]},"types":{"nodes":{"6":"B","4":"A","9647113":"Optional"},"edges":[]}}
+```

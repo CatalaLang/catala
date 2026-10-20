@@ -3,6 +3,9 @@
 One line per change, be concise and explicit. Document only external changes
 in behavior visible for the end-users of the tooling.
 
+* [#1150](https://github.com/CatalaLang/catala/pull/1150) Fix id collision
+  between scopes and topdefs in dependency graphs
+
 * [#1142](https://github.com/CatalaLang/catala/pull/1142) Traces now report
   the declaration position of local variables and tuples
 
