@@ -150,11 +150,22 @@ let def (type a) ~overrides (var : a t) (default_value : a Lazy.t) :
       match findq vname overrides with
       | None -> Lazy.force default_value
       | Some (words, overrides) ->
+        let s =
+          match words with
+          | [s] -> s
+          | _ ->
+            Message.warning
+              "Multiple items given in the definition of the build variable@ \
+               @{<cyan>%s@}:@ they will be concatenated into a single string \
+               because this variable is atomic."
+              vname;
+            String.concat " " words
+        in
         raw_replace
           (fun v ->
             if v = vname then value overrides
             else var_ref v (* leave unchanged *))
-          (String.concat " " words)
+          s
     in
     Nj.Binding.make var (value overrides)
   | Vector vname ->
@@ -163,10 +174,19 @@ let def (type a) ~overrides (var : a t) (default_value : a Lazy.t) :
       | None -> Lazy.force default_value
       | Some (words, overrides) ->
         let vref = var_ref vname in
+        let vref_re = Re.(compile (str vref)) in
         List.concat_map
           (fun w ->
             if w = "" then []
-            else if w = vref then value overrides
+            else if Re.execp vref_re w then
+              if String.length w = String.length vref then value overrides
+              else (
+                Message.warning
+                  "In build variable@ @{<cyan>%s@},@ the@ self-reference in@ \
+                   @{<cyan>%S@}@ will@ be@ ignored:@ this is a vector-kind \
+                   variable and the reference is within a string."
+                  vname w;
+                [Nj.Expr.Word w])
             else [Nj.Expr.Word w])
           words
     in
