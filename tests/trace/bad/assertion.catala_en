@@ -11,7 +11,7 @@ scope T:
 ```
 
 ```catala-test-cli
-$ catala interpret -s T --trace
+$ catala interpret -s T --trace --trace-format=human
 → Entering scope T
 ─➤ tests/trace/bad/assertion.catala_en:2.19-20:
   │

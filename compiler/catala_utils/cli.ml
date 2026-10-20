@@ -183,9 +183,11 @@ module Flags = struct
           ~env:(Cmd.Env.info "CATALA_TRACE")
           ~doc:
             "Displays a trace of the interpreter's computation or generates \
-             trace instructions in translated programs. If set as a flag, \
-             outputs trace to stdout. If $(docv) is defined, outputs the trace \
-             to a file while interpreting.\n\
+             trace instructions in translated programs. If set as a flag, the \
+             trace is collected but only output to stdout if \
+             $(b,--trace-format) is given. If $(docv) is defined, outputs the \
+             trace to a file while interpreting, in JSON if $(docv) has a \
+             $(i,.json) extension and in human-readable form otherwise.\n\
              Defining a filename does not affect code generation. Cannot use \
              .catala extension."
 
@@ -363,7 +365,13 @@ module Flags = struct
         let trace, trace_format =
           match trace, trace_format with
           | None, _ -> None, trace_format
-          | Some `Stdout, _ -> Some (lazy (Message.std_ppf ())), trace_format
+          | Some `Stdout, None ->
+            (* Without a format, the trace is collected (e.g. for
+               [--check-trace-assertion]) but not output *)
+            ( Some (lazy (Format.make_formatter (fun _ _ _ -> ()) ignore)),
+              trace_format )
+          | Some `Stdout, Some _ ->
+            Some (lazy (Message.std_ppf ())), trace_format
           | Some (`FileName (f : Global.raw_file)), Some _ ->
             ( Some
                 (lazy

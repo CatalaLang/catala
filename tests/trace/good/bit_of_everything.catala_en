@@ -54,7 +54,7 @@ scope T:
 ```
 
 ```catala-test-cli
-$ catala interpret -s T --trace
+$ catala interpret -s T --trace --trace-format=human
 ┌─[WARNING]─
 │
 │  The local variable "zzz" is never used; maybe it's unnecessary?

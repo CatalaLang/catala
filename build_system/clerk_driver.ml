@@ -1315,13 +1315,10 @@ let test_cmd =
       backends_to_config (`Interpret :: backends)
       (* Autotests always require the interpret (OCaml) objects *)
     in
-    let check_trace_assertion =
-      config.Clerk_cli.file.global.check_trace_assertion = Some true
-    in
     let exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~code_coverage ~config ~keep_going:false
         ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest ~tests:true
-        ~trace:check_trace_assertion
+        ~trace:false
         ~default:([], [], Module_graph.empty_info, [])
       @@ fun nin_ppf items info ->
       (* TODO: keep_going:true, to be able to still show a test report.
