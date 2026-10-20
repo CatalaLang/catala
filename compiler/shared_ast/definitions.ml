@@ -456,6 +456,7 @@ type attr_value += String of string Mark.pos | Unit
 type Pos.attr +=
   | Src of attr_path * attr_value * Pos.t
   | DebugPrint of { label : string option }
+  | TraceAssert of string * Catala_runtime.Value.t option
   | Test
   | Doc of string * Pos.t
   | ImplicitPosArg
