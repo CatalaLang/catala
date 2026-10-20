@@ -27,7 +27,7 @@ scope T:
 
 
 ```catala-test-cli
-$ catala interpret -s T --trace
+$ catala interpret -s T --trace --trace-format=human
 → Entering scope T
 ─➤ tests/trace/good/exceptions.catala_en:8.19-20:
   │
