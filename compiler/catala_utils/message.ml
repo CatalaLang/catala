@@ -118,8 +118,8 @@ let formatter_of_out_channel
   let ppf =
     lazy
       (if
-         Option.value force_tty
-           ~default:(Lazy.force tty && Sys.getenv_opt "TERM" <> Some "dumb")
+         Option.value force_tty ~default:(Lazy.force tty)
+         && Sys.getenv_opt "TERM" <> Some "dumb"
        then add_custom_tags (Lazy.force ppf)
        else Lazy.force ppf)
   in

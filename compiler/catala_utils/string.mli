@@ -20,6 +20,8 @@ module Map : Map.S with type key = string
 
 (** Helper functions used for string manipulation. *)
 
+val get_opt : string -> int -> char option
+
 val compare : string -> string -> int
 (** String comparison with natural ordering of numbers within strings *)
 

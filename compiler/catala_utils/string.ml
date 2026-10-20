@@ -16,6 +16,7 @@
 
 include Stdlib.String
 
+let get_opt s i = try Some (get s i) with Invalid_argument _ -> None
 let to_ascii : string -> string = Ubase.from_utf8
 
 let utf8_seq s =

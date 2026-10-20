@@ -208,13 +208,9 @@ let vars_override =
     & info ["vars"] ~docv:"VAR=VALUE"
         ~doc:
           "Override the given build variable with the given value. Use \
-           $(i,clerk list-vars) to list the available variables.")
-
-(* Command-line overrides shadow the [variables] table, they don't replace it:
-   both are read with [List.assoc_opt], which takes the first match. *)
-let variable_overrides ~config_vars cli_vars =
-  List.map (fun (var, value) -> var, String.split_on_char ' ' value) cli_vars
-  @ config_vars
+           $(i,clerk list-vars) to list the available variables. The special \
+           value $(b,\\${VAR}) (matching the variable name) can be used to \
+           expand to the previous value of the variable being defined.")
 
 let config_file =
   Arg.(
@@ -515,6 +511,58 @@ let project_info =
   in
   Term.(const term $ config_file)
 
+let split_on_spaces s =
+  let open String in
+  let buf = Buffer.create 20 in
+  let len = length s in
+  (* This follows TOML/JSON escape sequences (https://toml.io/en/v0.3.0#string),
+     except unicode escapes, and with space added *)
+  let escaped i =
+    match get_opt s i with
+    | None -> failwith "trailing \\-escape"
+    | Some (('\\' | ' ' | '"' | '/') as c) -> Buffer.add_char buf c
+    | Some 'b' -> Buffer.add_char buf '\b'
+    | Some 't' -> Buffer.add_char buf '\t'
+    | Some 'n' -> Buffer.add_char buf '\n'
+    | Some 'f' -> Buffer.add_char buf '\x0c'
+    | Some 'r' -> Buffer.add_char buf '\r'
+    | Some c -> Printf.ksprintf failwith "invalid escape '\\%c'" c
+  in
+  let rec str i =
+    match get_opt s i with
+    | None -> [Buffer.contents buf]
+    | Some ' ' ->
+      let word = Buffer.contents buf in
+      Buffer.clear buf;
+      word :: (if i + 1 >= len then [] else str (i + 1))
+    | Some '\'' -> sngquote (i + 1)
+    | Some '"' -> dblquote (i + 1)
+    | Some '\\' ->
+      escaped (i + 1);
+      str (i + 2)
+    | Some c ->
+      Buffer.add_char buf c;
+      str (i + 1)
+  and sngquote i =
+    match get_opt s i with
+    | None -> failwith "untermimated single-quoted string"
+    | Some '\'' -> str (i + 1)
+    | Some c ->
+      Buffer.add_char buf c;
+      sngquote (i + 1)
+  and dblquote i =
+    match get_opt s i with
+    | None -> failwith "unterminated double-quoted string"
+    | Some '"' -> str (i + 1)
+    | Some '\\' ->
+      escaped (i + 1);
+      dblquote (i + 2)
+    | Some c ->
+      Buffer.add_char buf c;
+      dblquote (i + 1)
+  in
+  if s = "" then [] else str 0
+
 let init
     test_flags
     ninja_file
@@ -580,7 +628,13 @@ let init
         bad_dir)
     bad_dirs;
   let variables =
-    variable_overrides ~config_vars:config.Clerk_config.variables vars_override
+    List.map
+      (fun (v, x) ->
+        try v, split_on_spaces x
+        with Failure msg ->
+          Message.error "In definition of variable @{<cyan>%s@}:@ %s" v msg)
+      vars_override
+    @ config.Clerk_config.variables
   in
   let test_flags =
     if whole_program then "--whole-program" :: test_flags else test_flags

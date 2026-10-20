@@ -19,7 +19,7 @@ open Clerk_utils
 open Catala_utils
 
 let catala_flags_python = Var.make_vector "CATALA_FLAGS_PYTHON"
-let python = Var.make_vector "PYTHON"
+let python = Var.make_scalar "PYTHON"
 
 module Spec : Sig.Spec = struct
   open Var
@@ -43,13 +43,14 @@ module Spec : Sig.Spec = struct
       Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true
     in
-    let def = Flags.def ~variables in
-    [def catala_flags_python (lazy catala_flags); def python (lazy ["python3"])]
+    let def v x = Var.def ~overrides:variables v x in
+    [def catala_flags_python catala_flags; def python (lazy "python3")]
 
   let[@ocamlformat "disable"] rules =
     [
       Nj.rule "catala-python"
         ~command:[!!catala_exe; Nj.Expr.Word name; !!catala_flags; !!catala_flags_python;
+                  !!catala_includes;
                   Nj.Expr.Word "-o"; !!output; Nj.Expr.Word "--"; !!input]
         ~description:[Nj.Expr.Word "<catala>"; Nj.Expr.Word name; Nj.Expr.Word "⇒"; !!output];
     ]
