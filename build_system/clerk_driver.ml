@@ -861,6 +861,9 @@ let run_targets
     scope_input
     (test_targets, info) =
   let build_dir = config.Cli.file.global.build_dir in
+  let check_trace_assertion =
+    Option.value ~default:false config.Cli.file.global.check_trace_assertion
+  in
   let show_progress = (not Global.options.debug) && Unix.isatty Unix.stdout in
   let progress_pfx =
     if test then "Running backend tests..." else "Running compiled targets..."
@@ -938,6 +941,7 @@ let run_targets
           | None -> []
           | Some input -> [Printf.sprintf "--input=%s" input])
         @ (if whole_program then ["--whole-program"] else [])
+        @ (if check_trace_assertion then ["--check-trace-assertion"] else [])
         @ (match trace with
           | None -> []
           | Some `Stdout -> ["--trace"]
@@ -1311,10 +1315,13 @@ let test_cmd =
       backends_to_config (`Interpret :: backends)
       (* Autotests always require the interpret (OCaml) objects *)
     in
+    let check_trace_assertion =
+      config.Clerk_cli.file.global.check_trace_assertion = Some true
+    in
     let exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~code_coverage ~config ~keep_going:false
         ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest ~tests:true
-        ~trace:false
+        ~trace:check_trace_assertion
         ~default:([], [], Module_graph.empty_info, [])
       @@ fun nin_ppf items info ->
       (* TODO: keep_going:true, to be able to still show a test report.
@@ -1452,7 +1459,8 @@ let runtest_cmd =
       code_coverage
       out
       file
-      whole_program =
+      whole_program
+      check_trace_assertion =
     let catala_opts =
       catala_opts
       @ List.fold_right (fun dir opts -> "-I" :: dir :: opts) include_dirs []
@@ -1461,7 +1469,7 @@ let runtest_cmd =
     let catala_opts =
       if whole_program then "--whole-program" :: catala_opts else catala_opts
     in
-    Clerk_runtest.run_tests
+    Clerk_runtest.run_tests ~check_trace_assertion
       ~catala_exe:(Option.value ~default:"catala" catala_exe)
       ~catala_opts ~code_coverage ~test_flags ~report ~out file;
     0
@@ -1482,7 +1490,8 @@ let runtest_cmd =
       $ Cli.code_coverage
       $ Cli.runtest_out
       $ Cli.single_file
-      $ Cli.whole_program)
+      $ Cli.whole_program
+      $ Cli.check_trace_assertion)
 
 let run_ninja_start ~config ~ninja_flags ~enabled_backends cont =
   let enabled_backends =

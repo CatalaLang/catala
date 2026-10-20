@@ -57,7 +57,7 @@ let is_var ?name (trace_element : Runtime.trace_element) =
       ~some:(fun scope_var -> def.var.name = scope_var)
       name
   | Runtime.LocalVarDef ident ->
-    Option.fold ~none:true ~some:(fun scope_var -> ident = scope_var) name
+    Option.fold ~none:true ~some:(fun scope_var -> ident.name = scope_var) name
   | _ -> false
 
 (** [find_scope_obj] descends into the sub-trace of the elements that do not

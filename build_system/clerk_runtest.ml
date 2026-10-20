@@ -350,7 +350,7 @@ let run_catala_test_scopes
       :: scopes_results
     else scopes_results
   in
-  List.rev scopes_results
+  scopes_results
 
 (** Directly runs the test (not using ninja, this will be called by ninja rules
     through the "clerk runtest" command) *)
@@ -361,6 +361,7 @@ let run_tests
     ~test_flags
     ~report
     ~out
+    ~check_trace_assertion:_
     filename =
   let module L = Surface.Lexer_common in
   let lang =
