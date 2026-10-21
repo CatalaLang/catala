@@ -1004,12 +1004,13 @@ let raw_cmd : int Cmd.t =
             else f)
           targets
       in
-      Clerk_rules.run_ninja ~trace:false ~code_coverage ~config ~autotest
-        ~default:0 ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ -> 0)
+      Clerk_rules.run_ninja ~check_trace_assertion:false ~code_coverage ~config
+        ~autotest ~default:0 ~ninja_flags:(ninja_flags @ targets) (fun _ _ _ ->
+          0)
     else (
       Format.eprintf "Available targets:@.";
-      Clerk_rules.run_ninja ~trace:false ~code_coverage ~config ~autotest
-        ~default:0
+      Clerk_rules.run_ninja ~check_trace_assertion:false ~code_coverage ~config
+        ~autotest ~default:0
         ~ninja_flags:(ninja_flags @ ["-t"; "targets"])
         (fun _ _ _ -> 0))
   in
@@ -1046,7 +1047,7 @@ let build_cmd : int Cmd.t =
     let enabled_backends = backends_to_config backends in
     let targets, info =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
-        ~trace:false
+        ~check_trace_assertion:false
         ~default:(empty_targets, Module_graph.empty_info)
         ~ninja_flags ~autotest:false ~clean_up_env:false
       @@ fun nin_ppf items info ->
@@ -1140,7 +1141,8 @@ let run_cmd =
     let exec_targets, _items, info =
       Clerk_rules.run_ninja ~code_coverage:false ~config ~enabled_backends
         ~default:([], [], Module_graph.empty_info)
-        ~trace:(trace <> None) ~ninja_flags ~autotest:false ~clean_up_env:false
+        ~check_trace_assertion:(trace <> None) ~ninja_flags ~autotest:false
+        ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
         if target_args = [] then default_targets ~config info items
@@ -1315,10 +1317,16 @@ let test_cmd =
       backends_to_config (`Interpret :: backends)
       (* Autotests always require the interpret (OCaml) objects *)
     in
+    let check_trace_assertion =
+      config.Clerk_cli.file.global.check_trace_assertion = Some true
+    in
     let exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~code_coverage ~config ~keep_going:false
-        ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest ~tests:true
-        ~trace:false
+        ~enabled_backends ~ninja_flags ~clean_up_env:true ~autotest
+        ~tests:true
+          (* Compiles the modules with trace instrumentation, for the
+           #[trace.assert] attributes to look into them *)
+        ~check_trace_assertion
         ~default:([], [], Module_graph.empty_info, [])
       @@ fun nin_ppf items info ->
       (* TODO: keep_going:true, to be able to still show a test report.
@@ -1509,7 +1517,7 @@ let run_ninja_start ~config ~ninja_flags ~enabled_backends cont =
       ]
       enabled_backends
   in
-  Clerk_rules.run_ninja ~trace:false ~skip_project_scan:true
+  Clerk_rules.run_ninja ~check_trace_assertion:false ~skip_project_scan:true
     ~code_coverage:false ~default:0 ~config
     ~enabled_backends:(List.map Clerk_backend.id enabled_backends)
     ~autotest:false ~ninja_flags (fun nin_ppf _ _ ->
@@ -1555,9 +1563,14 @@ let ci_cmd =
     setup_report_format ~fix_path:config.Cli.fix_path verbosity diff_command
       code_coverage;
     let enabled_backends = backends_to_config backends in
+    let check_trace_assertion =
+      config.Cli.file.global.check_trace_assertion = Some true
+    in
     let targets, exec_targets, _items, info, test_targets =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
-        ~ninja_flags ~clean_up_env:true ~autotest:true ~tests:true ~trace:false
+        ~ninja_flags ~clean_up_env:true ~autotest:true
+        ~tests:true (* As in [test_cmd] *)
+        ~check_trace_assertion
         ~default:(empty_targets, [], [], Module_graph.empty_info, [])
       @@ fun nin_ppf items info ->
       let targets_build, targets_test =

@@ -674,6 +674,13 @@ let scan_project_items ~cleanup ~config ~includes =
   in
   Seq.memoize item_tree
 
+let has_trace_assertions
+    (item_tree : (string * string list * Scan.item list) Seq.t) =
+  Seq.exists
+    (fun (_, _, items) ->
+      List.exists (fun item -> item.Scan.has_trace_assertions) items)
+    item_tree
+
 let run_ninja
     ?(skip_project_scan = false)
     ~config
@@ -682,19 +689,12 @@ let run_ninja
     ~default
     ?keep_going
     ~code_coverage
-    ~trace
+    ~check_trace_assertion
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
   let includes = Scan.include_dirs ~config in
-  let var_bindings =
-    base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
-      ~inplace:false ~includes ()
-  in
-  let enabled_backends =
-    List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
-  in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~default ?keep_going
     (fun nin_ppf ->
       (* Design note: the idea here is to write the ninja file as a stream while
@@ -705,6 +705,15 @@ let run_ninja
       let item_tree =
         if skip_project_scan then Seq.empty
         else scan_project_items ~cleanup:true ~config ~includes
+      in
+      let var_bindings =
+        let need_trace = has_trace_assertions item_tree in
+        base_bindings ~code_coverage
+          ~trace:(check_trace_assertion && need_trace)
+          ~config ~enabled_backends ~autotest ~inplace:false ~includes ()
+      in
+      let enabled_backends =
+        List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
       in
       let items =
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
