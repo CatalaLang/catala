@@ -307,7 +307,7 @@ let rec needs_parens ?context (e : 'm expr) : bool =
   match Mark.remove e with
   | EApp { f = EAbs { binder; _ }, _; _ } -> (
     match context with
-    | Some ((EInj _ | EArray _ | EApp _ | EAppOp _), _) -> true
+    | Some ((EInj _ | EArray _ | EApp _ | EAppOp _ | EStruct _), _) -> true
     | _ ->
       let _, body = Bindlib.unmbind binder in
       needs_parens ?context body)
