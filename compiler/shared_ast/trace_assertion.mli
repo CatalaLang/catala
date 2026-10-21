@@ -44,6 +44,10 @@ type failed_trace_assertions = {
       (** Where the value comes from: the position embedded in an unwrapped
           default value, else the trace element's own; [None] when the path
           leads nowhere *)
+  error : string option;
+      (** Why the values could not be compared, e.g. durations in different
+          units: the runtime error is turned into a failed assertion rather than
+          aborting the interpretation *)
 }
 
 val check :
