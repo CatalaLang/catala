@@ -24,7 +24,42 @@ let asserted_trace_variable_to_string = Fun.id
 
 type value = Runtime.Value.t
 
-let value_to_string = Format.asprintf "%a" Runtime.Value.format
+(* [Runtime.Value.format] lays compound values out over several lines, but a
+   failure is reported as a single GNU-formatted line: 'clerk runtest' would
+   drop the rest. Compound values are printed here on one line, in the syntax
+   of the #[trace.assert] attributes; leaves are delegated to
+   [Runtime.Value.format]. *)
+let rec format_value ppf (value : Runtime.Value.t) =
+  let open Runtime.Value in
+  let list ~sep ppf l =
+    Format.pp_print_list
+      ~pp_sep:(fun ppf () -> Format.pp_print_string ppf sep)
+      format_value ppf l
+  in
+  match value with
+  | V (Enum en, v) -> (
+    match en.constr v with
+    | _, name, None -> Format.pp_print_string ppf name
+    | _, name, Some payload ->
+      let content =
+        match Runtime.Print.get_lang () with
+        | `En -> "content"
+        | `Fr -> "contenu"
+        | `Pl -> "typu"
+      in
+      Format.fprintf ppf "%s %s %a" name content format_value payload)
+  | V (Struct st, v) ->
+    Format.fprintf ppf "%s {" st.name;
+    List.iter
+      (fun (field, v) -> Format.fprintf ppf " -- %s: %a" field format_value v)
+      (st.fields v);
+    Format.pp_print_string ppf " }"
+  | V (Array t, v) ->
+    Format.fprintf ppf "[%a]" (list ~sep:"; ") (Array.to_list (Array.map t v))
+  | V (Tuple destr, v) -> Format.fprintf ppf "(%a)" (list ~sep:", ") (destr v)
+  | _ -> Runtime.Value.format ppf value
+
+let value_to_string = Format.asprintf "%a" format_value
 
 type trace_assertions = value option M.t
 
