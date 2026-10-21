@@ -7,7 +7,11 @@ let v =
   match Sys.getenv_opt "CATALA_VERSION" with
   | None | Some "" -> (
     try
-      let ic = Unix.open_process_in "git describe --tags --dirty 2>/dev/null" in
+      let cmd =
+        if Sys.win32 then "git.exe describe --tags --dirty 2>NUL"
+        else "git describe --tags --dirty 2>/dev/null"
+      in
+      let ic = Unix.open_process_in cmd in
       let v = input_line ic in
       match Unix.close_process_in ic with Unix.WEXITED 0 -> v | _ -> "dev"
     with _ -> "dev")
