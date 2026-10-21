@@ -81,13 +81,21 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
     else options
   in
   let word s = Expr.Word s in
-  let catala_flags =
+  let base_catala_flags =
     lazy
       ((if inplace then Expr.Word ("--stdlib=" ^ Lazy.force Poll.stdlib_dir)
         else Expr.Word ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala)))
-       :: Expr.Word ("--directory=" ^ Var.(!builddir))
-       :: (if trace then [Expr.Word "--trace"] else [])
-      @ List.map word options.global.catala_opts)
+      :: Expr.Word ("--directory=" ^ Var.(!builddir))
+      :: List.map word options.global.catala_opts)
+  in
+  (* [--trace] is needed to compile the modules with trace instrumentation, but
+     is kept out of the flags forwarded to 'clerk runtest': every test would
+     otherwise be interpreted with it, while only the files with
+     #[trace.assert] attributes get it (see [Clerk_rules]) *)
+  let catala_flags =
+    lazy
+      (Lazy.force base_catala_flags
+      @ if trace then [Expr.Word "--trace"] else [])
   in
   let includes = lazy (List.map word (includes include_dirs)) in
   let test_flags = config.Clerk_cli.test_flags in
@@ -116,6 +124,6 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
             (function
               | Expr.Word s -> word ("--catala-opts=" ^ s)
               | _ -> Message.error "Unallowed variable reference in Catala args")
-            (Lazy.force catala_flags
+            (Lazy.force base_catala_flags
             @ if code_coverage then [word "--whole-program"] else [])));
   ]

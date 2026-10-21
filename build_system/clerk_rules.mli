@@ -43,7 +43,7 @@ val run_ninja :
   default:'a ->
   ?keep_going:bool ->
   code_coverage:bool ->
-  trace:bool ->
+  check_trace_assertion:bool ->
   autotest:bool ->
   ?clean_up_env:bool ->
   ?ninja_flags:string list ->
