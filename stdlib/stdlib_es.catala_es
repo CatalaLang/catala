@@ -1,0 +1,14 @@
+> Modulo Stdlib_es
+
+```catala-metadata
+# Spanish surface wrappers for the canonical standard-library modules.
+```
+
+> Uso de Date_en como Date
+> Uso de Duration_en como Duration
+> Uso de MonthYear_en como MonthYear
+> Uso de Period_en como Period
+> Uso de Money_en como Money
+> Uso de Integer_en como Integer
+> Uso de Decimal_en como Decimal
+> Uso de List_en como List

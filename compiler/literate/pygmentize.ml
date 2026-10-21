@@ -23,6 +23,7 @@ let lang_of_ext s =
     | "catala_en" -> Some `En
     | "catala_fr" -> Some `Fr
     | "catala_pl" -> Some `Pl
+    | "catala_es" -> Some `Es
     | _ -> failwith "Unknown Catala dialect"
   else None
 

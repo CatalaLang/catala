@@ -44,7 +44,8 @@ $(PY_VENV_DIR)/stamp: \
     runtimes/python/pyproject.toml \
     syntax_highlighting/en/pygments/pyproject.toml \
     syntax_highlighting/fr/pygments/pyproject.toml \
-    syntax_highlighting/pl/pygments/pyproject.toml
+    syntax_highlighting/pl/pygments/pyproject.toml \
+    syntax_highlighting/es/pygments/pyproject.toml
 	test -d $(PY_VENV_DIR) || python3 -m venv $(PY_VENV_DIR)
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U pip
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U \
@@ -52,7 +53,8 @@ $(PY_VENV_DIR)/stamp: \
 	  -e runtimes/python \
 	  -e syntax_highlighting/en/pygments \
 	  -e syntax_highlighting/fr/pygments \
-	  -e syntax_highlighting/pl/pygments
+	  -e syntax_highlighting/pl/pygments \
+	  -e syntax_highlighting/es/pygments
 	touch $@
 
 dependencies-python: $(PY_VENV_DIR)
@@ -186,7 +188,7 @@ pygmentize_%: $(PY_VENV_DIR)
 	$(PY_VENV_ACTIVATE) python3 -m pip install syntax_highlighting/$*/pygments
 
 #> pygments				: Extends your pygmentize executable with Catala lexers
-pygments: pygmentize_fr pygmentize_en pygmentize_pl
+pygments: pygmentize_fr pygmentize_en pygmentize_pl pygmentize_es
 
 atom_fr: ${CURDIR}/syntax_highlighting/fr/setup_atom.sh
 	chmod +x $<

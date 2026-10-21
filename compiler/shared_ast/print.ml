@@ -1080,17 +1080,19 @@ module UserFacing = struct
       | `En -> "Optional"
       | `Fr -> "Optionnel"
       | `Pl -> "Opcjonalny"
+      | `Es -> "Opcional"
     in
     let constr =
      fun (index, cons, payload) ->
       let cons =
         if EnumConstructor.equal cons ConstantNames.none_constr then
-          match lang with `En | `Fr -> "Absent" | `Pl -> "Nieobecny"
+          match lang with `En | `Fr -> "Absent" | `Pl -> "Nieobecny" | `Es -> "Ausente"
         else if EnumConstructor.equal cons ConstantNames.some_constr then
           match lang with
           | `En -> "Present"
           | `Fr -> "Présent"
           | `Pl -> "Obecny"
+          | `Es -> "Presente"
         else assert false
       in
       ( index,

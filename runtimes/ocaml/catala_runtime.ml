@@ -253,7 +253,7 @@ let equal_periods pos p1 p2 =
 (* -- Printing helpers -- *)
 
 module Print = struct
-  type lang = [ `En | `Fr | `Pl ]
+  type lang = [ `En | `Fr | `Pl | `Es ]
 
   let lang = ref `En
   let max_decimals = ref 6
@@ -266,9 +266,9 @@ module Print = struct
      https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Grouping_of_digits
      https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Conventions_concernant_les_nombres#Pour_un_comptage_ou_une_mesure *)
   let bigsep () =
-    match !lang with `En -> ",", 3 | `Fr -> " ", 3 | `Pl -> ",", 3
+    match !lang with `En -> ",", 3 | `Fr | `Es -> " ", 3 | `Pl -> ",", 3
 
-  let decsep () = match !lang with `En -> "." | `Fr -> "," | `Pl -> "."
+  let decsep () = match !lang with `En -> "." | `Fr | `Es -> "," | `Pl -> "."
   let unit ppf () = Format.pp_print_string ppf "()"
 
   let bool ppf b =
@@ -280,6 +280,8 @@ module Print = struct
       | `Fr, false -> "faux"
       | `Pl, true -> "prawda"
       | `Pl, false -> "falsz"
+      | `Es, true -> "verdadero"
+      | `Es, false -> "falso"
     in
     Format.pp_print_string ppf s
 
@@ -300,7 +302,7 @@ module Print = struct
     let num = Z.abs n in
     let units, cents = Z.div_rem num z100 in
     if Z.sign n < 0 then Format.pp_print_char ppf '-';
-    (match !lang with `En -> Format.pp_print_string ppf "$" | `Fr | `Pl -> ());
+    (match !lang with `En -> Format.pp_print_string ppf "$" | `Fr | `Pl | `Es -> ());
     integer ppf units;
     Format.pp_print_string ppf (decsep ());
     Format.fprintf ppf "%02d" (Z.to_int (Z.abs cents));
@@ -308,6 +310,7 @@ module Print = struct
     | `En -> ()
     | `Fr -> Format.fprintf ppf " @<1>%s" "€"
     | `Pl -> Format.pp_print_string ppf " PLN"
+    | `Es -> Format.fprintf ppf " @<1>%s" "€"
 
   let decimal ppf r =
     let den = Q.den r in
@@ -345,11 +348,16 @@ module Print = struct
       | [] -> []
     in
     let splur n s = if abs n > 1 then n, s ^ "s" else n, s in
+    let splur_es n = function
+      | "mes" when abs n > 1 -> n, "meses"
+      | s -> splur n s
+    in
     Format.pp_print_char ppf '[';
     (match !lang with
       | `En -> [splur y "year"; splur m "month"; splur d "day"]
       | `Fr -> [splur y "an"; m, "mois"; splur d "jour"]
-      | `Pl -> [y, "rok"; m, "miesiac"; d, "dzien"])
+      | `Pl -> [y, "rok"; m, "miesiac"; d, "dzien"]
+      | `Es -> [splur_es y "año"; splur_es m "mes"; splur_es d "día"])
     |> filter0
     |> Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.pp_print_string ppf ", ")
@@ -581,7 +589,8 @@ module Value = struct
             (match !Print.lang with
             | `En -> "content"
             | `Fr -> "contenu"
-            | `Pl -> "typu")
+            | `Pl -> "typu"
+            | `Es -> "contenido")
             (aux (indent + 2))
             v)
       | V (Struct str, v) ->
@@ -643,21 +652,24 @@ module Optional = struct
           (match Print.get_lang () with
           | `En -> "Optional"
           | `Fr -> "Optionnel"
-          | `Pl -> "Opcjonalny");
+          | `Pl -> "Opcjonalny"
+          | `Es -> "Opcional");
         constr =
           (function
           | Absent ->
             ( 0,
               (match Print.get_lang () with
               | `En | `Fr -> "Absent"
-              | `Pl -> "Nieobecny"),
+              | `Pl -> "Nieobecny"
+              | `Es -> "Ausente"),
               None )
           | Present v ->
             ( 1,
               (match Print.get_lang () with
               | `En -> "Present"
               | `Fr -> "Présent"
-              | `Pl -> "Obecny"),
+              | `Pl -> "Obecny"
+              | `Es -> "Presente"),
               Some (Value.embed t v) ));
       }
 

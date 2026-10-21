@@ -243,6 +243,7 @@ let ast_to_html
     | `Fr -> "Sommaire"
     | `En -> "Table of contents"
     | `Pl -> "Spis treści."
+    | `Es -> "Índice"
   in
 
   Format.fprintf fmt
