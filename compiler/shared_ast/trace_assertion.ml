@@ -68,6 +68,7 @@ type failed_trace_assertions = {
   expected : value;
   current_value : value option;
   pos : Runtime.code_location option;
+  error : string option;
 }
 
 let empty = M.empty
@@ -152,6 +153,9 @@ let unwrap_optional (value : Runtime.Value.t) :
   in
   unwrap None value
 
+(* Raised by [matches] when the runtime can't compare two leaves *)
+exception Uncomparable of string
+
 (* [expected] comes from a #[trace.assert] attribute, parsed without type
    information (see [Surface.Expr_value]): enums may have an empty name and
    constructor indices are meaningless, so they are matched by constructor
@@ -182,7 +186,14 @@ let rec matches pos ~expected actual =
     &&
     let _, ce, xe = ee.constr ve and _, ca, xa = ea.constr va in
     ce = ca && Option.equal (fun e a -> matches pos ~expected:e a) xe xa
-  | _ -> Runtime.Value.equal pos expected actual
+  | _ -> (
+    try Runtime.Value.equal pos expected actual
+    with Runtime.Error (err, _, note) ->
+      raise
+        (Uncomparable
+           (match note with
+           | Some note -> Runtime.error_message err ^ ": " ^ note
+           | None -> Runtime.error_message err)))
 
 let check ~asserted_trace_variables ~tested_scope (trace : Runtime.trace) =
   if M.is_empty asserted_trace_variables || List.length trace = 0 then (
@@ -215,7 +226,13 @@ let check ~asserted_trace_variables ~tested_scope (trace : Runtime.trace) =
           let trace_element = inspect_trace trace items in
           match trace_element with
           | None ->
-            { name = path; expected; current_value = None; pos = None }
+            {
+              name = path;
+              expected;
+              current_value = None;
+              pos = None;
+              error = None;
+            }
             :: failures
           | Some trace_element -> (
             let current_value, pos =
@@ -226,11 +243,16 @@ let check ~asserted_trace_variables ~tested_scope (trace : Runtime.trace) =
               | None -> None, None
             in
             let pos = Some (Option.value pos ~default:trace_element.pos) in
-            let fail = { name = path; expected; current_value; pos } in
+            let fail =
+              { name = path; expected; current_value; pos; error = None }
+            in
             match current_value with
-            | Some value ->
-              if matches trace_element.pos ~expected value then failures
-              else fail :: failures
+            | Some value -> (
+              match matches trace_element.pos ~expected value with
+              | true -> failures
+              | false -> fail :: failures
+              | exception Uncomparable error ->
+                { fail with error = Some error } :: failures)
             | None -> fail :: failures)))
       asserted_trace_variables []
 
@@ -242,7 +264,9 @@ let trace_assertion_to_json (assertion : failed_trace_assertions) : Yojson.t =
      ]
     @ Option.fold ~none:[]
         ~some:(fun a -> ["value", `String (value_to_string a)])
-        assertion.current_value)
+        assertion.current_value
+    @ Option.fold ~none:[] ~some:(fun e -> ["error", `String e]) assertion.error
+    )
 
 let report_display ppf (assertion : failed_trace_assertions) =
   let f =
@@ -251,12 +275,14 @@ let report_display ppf (assertion : failed_trace_assertions) =
       assertion.name
       (value_to_string assertion.expected)
   in
-  match assertion.current_value with
+  (match assertion.current_value with
   | None -> f "Missing"
-  | Some l -> f (value_to_string l)
+  | Some l -> f (value_to_string l));
+  Option.iter (Format.fprintf ppf "@,    Error: %s") assertion.error
 
 let display ppf (assertion : failed_trace_assertions) =
   (* Just trying to understand what is wrong with enumeration verification *)
-  Format.fprintf ppf "Trace Assertion Failed: %s ≠ %s (%s) @]" assertion.name
+  Format.fprintf ppf "Trace Assertion Failed: %s ≠ %s (%s)" assertion.name
     (value_to_string assertion.expected)
-    (Option.fold ~none:"Missing" ~some:value_to_string assertion.current_value)
+    (Option.fold ~none:"Missing" ~some:value_to_string assertion.current_value);
+  Option.iter (Format.fprintf ppf " [%s]") assertion.error
