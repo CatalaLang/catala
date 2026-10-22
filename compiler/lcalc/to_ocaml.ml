@@ -598,15 +598,14 @@ and format_trace_tag fmt tag =
     Format.fprintf fmt "%s" tag_s
   | Branching (Some c) ->
     Format.fprintf fmt "(%s {constructor_name=%S})" tag_s c
-  | Exception { label; cons_pos } ->
-    let pp_label fmt =
-      match label with
+  | Exception { label; cons_pos; var } ->
+    let pp_opt fmt = function
       | None -> Format.fprintf fmt "None"
-      | Some (lbl, pos) ->
-        Format.fprintf fmt "Some (%S,%a)" lbl format_code_location pos
+      | Some (name, pos) ->
+        Format.fprintf fmt "Some (%S,%a)" name format_code_location pos
     in
-    Format.fprintf fmt "(%s {label=%t;cons_pos=%a})" tag_s pp_label
-      format_code_location cons_pos
+    Format.fprintf fmt "(%s {label=%a;cons_pos=%a;var=%a})" tag_s pp_opt label
+      format_code_location cons_pos pp_opt var
 
 let format_ctx
     (type_ordering : TypeIdent.t list)

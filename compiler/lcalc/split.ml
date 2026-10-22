@@ -43,8 +43,9 @@ let add_size (type a) : (a, typed) gexpr -> (a, size_mark) boxed_gexpr =
     | Tag (Branching None) -> 2 + location_size + 2
     | Tag (Branching (Some _)) -> 3 + location_size + 2
     | Tag Assertion -> 2 + location_size + 2
-    | Tag (Exception { label = None; _ }) -> 3 + location_size + 2
-    | Tag (Exception { label = Some _; _ }) -> 4 + location_size + 2
+    | Tag (Exception { label; cons_pos = _; var }) ->
+      let opt = function None -> 0 | Some _ -> 1 in
+      3 + opt label + opt var + location_size + 2
     | DebugPrint _ | Sort _ | Add_dat_dur _ | Sub_dat_dur _ -> 2
     | _ -> 1
   in
