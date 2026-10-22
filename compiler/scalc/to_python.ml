@@ -483,11 +483,14 @@ let format_begin_trace ctx ppf (tag, pos) =
     | Branching None -> fprintf ppf "IfBranching()"
     | Branching (Some cstr) ->
       fprintf ppf "MatchBranching(%s)" (String.quote cstr)
-    | Exception { label = None; cons_pos } ->
-      fprintf ppf "ExceptionTrace(%a)" format_pos cons_pos
-    | Exception { label = Some (lbl, pos); cons_pos } ->
-      fprintf ppf "ExceptionTrace(%s,@ %a,@ %a)" (String.quote lbl) format_pos
-        pos format_pos cons_pos
+    | Exception { label; cons_pos; var } ->
+      let format_opt ppf = function
+        | None -> fprintf ppf "None,@ None"
+        | Some (name, pos) ->
+          fprintf ppf "%s,@ %a" (String.quote name) format_pos pos
+      in
+      fprintf ppf "ExceptionTrace(%a,@ %a,@ %a)" format_opt label format_pos
+        cons_pos format_opt var
   in
   fprintf ppf "@[<hov 2>begin_trace(%t,@ %a)@]" format_kind format_pos pos
 
