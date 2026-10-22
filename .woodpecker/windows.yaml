@@ -39,6 +39,9 @@ steps:
       - mkdir $env:HOME/.opam # Workaround a bug in opam
       - opam init --bare --debug; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
       - opam switch create 5.3.0; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
+      - opam pin -n dune "git+https://github.com/ocaml/dune#32130264771f677e0b7f65d55daf5230e0737d51";
+        if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
+        # Temporary fix: https://github.com/ocaml/dune/pull/16434 is needed but unreleased yet
       - opam install conf-pkg-config; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
 
   - name: install
