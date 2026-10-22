@@ -145,20 +145,11 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
   { item with has_scope_tests }
 
 let dir d : item list =
-  Sys.readdir d
-  |> Array.to_list
-  |> List.sort File.compare
-  |> List.filter_map
-       File.(
-         fun f ->
-           match get_lang f with
-           | None -> None
-           | Some lang ->
-             if
-               not_hidden f
-               && try not (Sys.is_directory (d / f)) with Sys_error _ -> false
-             then Some (catala_file File.(d / f) lang)
-             else None)
+  File.scan_dir d
+  |> List.filter_map (fun f ->
+      match get_lang f with
+      | None -> None
+      | Some lang -> Some (catala_file f lang))
 
 let tree (root : File.t) ?(includes : File.Set.t option) :
     (File.t * File.t list * item list) Seq.t =

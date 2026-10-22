@@ -248,6 +248,11 @@ val not_hidden : t -> bool
 (** Directories or files starting with a "." or "_" character are considered
     hidden, at the exception of the current and parent dir shortcuts. *)
 
+val scan_dir : t -> t list
+(** Non-recursively scans a single directory and returns non-directory files
+    path prefixed by the given directory. Returns an empty list if the directory
+    does not exist. *)
+
 val scan_tree :
   (t -> 'a option) ->
   ?filter_dirs:(t -> bool) ->
