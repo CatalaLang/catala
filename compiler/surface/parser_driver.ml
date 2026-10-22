@@ -628,18 +628,6 @@ let resolution_tbl = Hashtbl.create 13
 let register_included_file_resolver ~filename:s ~new_content =
   Hashtbl.replace resolution_tbl s new_content
 
-(** Associates a file extension with its corresponding
-    {!type: Global.backend_lang} string representation. *)
-let extensions =
-  [
-    ".catala_fr", "fr";
-    ".catala_fr.md", "fr";
-    ".catala_en", "en";
-    ".catala_en.md", "en";
-    ".catala_pl", "pl";
-    ".catala_pl.md", "pl";
-  ]
-
 type module_loading =
   allow_notmodules:bool ->
   is_stdlib:bool ->
@@ -660,28 +648,112 @@ let load_module ~allow_notmodules ~is_stdlib options f =
     load_interface_and_code ?default_module_name ~is_stdlib (Global.FileName f)
   else load_interface ?default_module_name ~is_stdlib (Global.FileName f)
 
-let load_modules
+type module_candidates =
+  (ModuleName.t * Ast.module_content) Lazy.t File.Map.t Ident.Map.t
+
+let check_and_chop_catala_ext =
+  let exts = String.Set.of_list (List.map fst Catala_utils.Cli.extensions) in
+  fun s ->
+    let full_ext = File.extension s in
+    if String.Set.mem full_ext exts then Some File.(s -.- "") else None
+
+let load_modules_candidates
+    (includes : File.Set.t)
+    ~(load_module : module_loading)
+    ~is_stdlib
+    ~allow_notmodules
+    options : module_candidates =
+  let add_item (id, path) (lv : (ModuleName.t * Ast.module_content) Lazy.t) m =
+    Ident.Map.update id
+      (function
+        | None -> Some (File.Map.singleton path lv)
+        | Some fmap ->
+          Some
+            (File.Map.update path
+               (function
+                 | None -> Some lv | Some prev_v -> (* same file *) Some prev_v)
+               fmap))
+      m
+  in
+  let all_files fset =
+    (* Union of folders may overlap, we normalize all files based on
+       their (hopefully) rewritten path and filter out non-catala
+       files *)
+    File.Set.fold
+      (fun path acc ->
+        let basename = File.basename path in
+        check_and_chop_catala_ext basename
+        |> function
+        | None -> acc
+        | Some chopped ->
+          (* all ids are to_id -> lowercase *)
+          let id = String.lowercase_ascii (String.to_id chopped) in
+          String.Map.add path id acc)
+      fset Ident.Map.empty
+  in
+  let module_candidates =
+    String.Map.fold
+      (fun path id acc ->
+        let lazy_load =
+          lazy
+            (let module_content =
+               (* FIXME: triggers an error if the file isn't a module
+               even when other valid candidates are present. *)
+               load_module ~is_stdlib ~allow_notmodules options path
+             in
+             let mn =
+               ModuleName.fresh module_content.Ast.module_modname.module_name
+             in
+             mn, module_content)
+        in
+        add_item (id, path) lazy_load acc)
+      (all_files includes) Ident.Map.empty
+  in
+  module_candidates
+
+let load_included_modules
     options
-    includes
+    ~includes
     ~stdlib
     ?(more_includes = [])
     ?(allow_notmodules = false)
     ?(load_module : module_loading = load_module)
-    program :
+    () =
+  let stdlib_includes =
+    match stdlib with
+    | Some dir ->
+      File.scan_dir (options.Global.path_rewrite dir) |> File.Set.of_list
+    | None -> File.Set.empty
+  in
+  let includes =
+    List.map options.Global.path_rewrite includes @ more_includes
+    |> List.concat_map File.scan_dir
+    |> File.Set.of_list
+  in
+  let modules_candidates =
+    load_modules_candidates includes ~load_module ~is_stdlib:false
+      ~allow_notmodules options
+  in
+  let stdlib_modules =
+    load_modules_candidates stdlib_includes ~load_module ~is_stdlib:true
+      ~allow_notmodules options
+  in
+  (* Modules in [stdlib_includes] might also be referenced in
+     [includes], in particular when compiling the stdlib. Our double
+     map joins modules on their path so we merge them together. *)
+  Ident.Map.union
+    (fun _id l r ->
+      Some (File.Map.union (fun _path l _r -> (* same file *) Some l) l r))
+    modules_candidates stdlib_modules
+
+(* Recurse into program modules, looking up files in [using] and loading
+   them *)
+let load_modules_with_candidates options ~stdlib module_candidates program :
     ModuleName.t Ident.Map.t
     * (Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t =
   let stdlib_root_module lang =
     let lang = if Global.has_localised_stdlib lang then lang else `En in
     "Stdlib_" ^ Cli.language_code lang
-  in
-  if stdlib <> None || program.Ast.program_used_modules <> [] then
-    Message.debug "Loading module interfaces...";
-  (* Recurse into program modules, looking up files in [using] and loading
-     them *)
-  let stdlib_includes =
-    match stdlib with
-    | Some dir -> File.Tree.build (options.Global.path_rewrite dir)
-    | None -> File.Tree.empty
   in
   let stdlib_use file =
     let pos = Pos.from_file file in
@@ -691,22 +763,11 @@ let load_modules
       Ast.mod_use_alias = "Stdlib", pos;
     }
   in
-  let includes =
-    List.map options.Global.path_rewrite includes @ more_includes
-    |> List.map File.Tree.build
-    |> List.fold_left File.Tree.union File.Tree.empty
-  in
   let err_req_pos chain =
     List.map (fun mpos -> "Module required from", mpos) chain
   in
   let find_module in_stdlib req_chain (mname, mpos) =
-    let includes = if in_stdlib then stdlib_includes else includes in
-    match
-      List.filter_map
-        (fun (ext, _) -> File.Tree.lookup includes (mname ^ ext))
-        extensions
-    with
-    | [] ->
+    let no_module_found_err () =
       if in_stdlib then
         Message.error
           "@[<v>@[<hov>The standard library module @{<magenta>%s@}@ could@ \
@@ -722,17 +783,31 @@ let load_modules
         Message.error
           ~extra_pos:(err_req_pos (mpos :: req_chain))
           "Required module not found: @{<blue>%s@}" mname
-    | [f] -> f
-    | ms ->
+    in
+    let multiple_module_found_err ms =
       Message.error
         ~extra_pos:(err_req_pos (mpos :: req_chain))
         "@[<hv 2>@[<hov>Required module @{<blue>%s@}@ matches@ multiple@ \
-         files:@]@ %a@]@,\
+         files:@]@ %a@]@\n\
          @[<hov>@{<bold>Hint:@} %a@ '@{<cyan>clerk clean@}'@ and@ retry@]"
         mname
         (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
-        ms Format.pp_print_text
+        ((List.map (fun (path, _lv) -> path)) ms)
+        Format.pp_print_text
         "This might be a leftover from a renamed file, you may want to run"
+    in
+    let mname =
+      (* We normalized module names in [module_candidates] using
+         [String.(lowercase_ascii (to_id filename))]. Replicating from
+         a [ModuleName.t] should project to the same value. *)
+      String.lowercase_ascii (String.to_id mname)
+    in
+    let m_opt = Ident.Map.find_opt mname module_candidates in
+    let mf_opt = Option.map (fun fmap -> File.Map.bindings fmap) m_opt in
+    match mf_opt with
+    | None | Some [] -> no_module_found_err ()
+    | Some [(path, lv)] -> path, Lazy.force lv
+    | Some ms -> multiple_module_found_err ms
   in
   let rec load_uses file ~is_stdlib req_chain acc uses :
       (ModuleName.t option File.Map.t
@@ -762,8 +837,10 @@ let load_modules
         acc, Ident.Map.add (Mark.remove use.Ast.mod_use_alias) modname use_map)
       (acc, use_map) uses
   and load_submodule ~is_stdlib req_chain (files, modules) use =
-    let f = find_module is_stdlib req_chain use.Ast.mod_use_name in
-    match File.Map.find_opt f files with
+    let path, (modname, modcontent) =
+      find_module is_stdlib req_chain use.Ast.mod_use_name
+    in
+    match File.Map.find_opt path files with
     | Some (Some modname) ->
       (* Already loaded *)
       (files, modules), modname
@@ -773,18 +850,14 @@ let load_modules
         ~extra_pos:(err_req_pos (Mark.get use.Ast.mod_use_name :: req_chain))
         "Circular module dependency"
     | None ->
-      let module_content = load_module ~is_stdlib ~allow_notmodules options f in
-      let modname =
-        ModuleName.fresh module_content.Ast.module_modname.module_name
-      in
-      let files = File.Map.add f None files in
+      let files = File.Map.add path None files in
       let req_chain = Mark.get use.Ast.mod_use_name :: req_chain in
       let (files, modules), use_map =
-        load_uses f ~is_stdlib req_chain (files, modules)
-          module_content.Ast.module_submodules
+        load_uses path ~is_stdlib req_chain (files, modules)
+          modcontent.Ast.module_submodules
       in
-      ( ( File.Map.add f (Some modname) files,
-          ModuleName.Map.add modname (module_content, use_map) modules ),
+      ( ( File.Map.add path (Some modname) files,
+          ModuleName.Map.add modname (modcontent, use_map) modules ),
         modname )
   in
   let file =
@@ -799,6 +872,23 @@ let load_modules
       program.Ast.program_used_modules
   in
   root_uses, module_map
+
+let load_modules
+    options
+    includes
+    ~stdlib
+    ?(more_includes = [])
+    ?(allow_notmodules = false)
+    program :
+    ModuleName.t Ident.Map.t
+    * (Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t =
+  if stdlib <> None || program.Ast.program_used_modules <> [] then
+    Message.debug "Loading module interfaces...";
+  let module_candidates =
+    load_included_modules options ~includes ~stdlib ~more_includes
+      ~allow_notmodules ()
+  in
+  load_modules_with_candidates options ~stdlib module_candidates program
 
 let parse_top_level_file
     ?resolve_included_file

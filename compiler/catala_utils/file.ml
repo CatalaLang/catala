@@ -399,6 +399,18 @@ let not_hidden f =
   let n = basename f in
   match n.[0] with '.' -> n = "." || n = ".." | '_' -> false | _ -> true
 
+let is_dir t = try Sys.is_directory t with Sys_error _ -> false
+
+let scan_dir d : string list =
+  if not (is_dir d) then []
+  else
+    Sys.readdir d
+    |> Array.to_list
+    |> List.sort compare
+    |> List.filter_map (fun f ->
+        let path = d / f in
+        if not_hidden f && not (is_dir path) then Some path else None)
+
 let scan_tree f ?(filter_dirs = not_hidden) t =
   let is_dir t =
     try Sys.is_directory t
