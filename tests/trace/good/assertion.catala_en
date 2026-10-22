@@ -1,0 +1,158 @@
+```catala-metadata
+declaration scope I:
+  input d content optional of integer
+  internal sub content integer
+  output s content integer
+
+scope I:
+  definition sub equals match d with pattern
+  -- Absent : 0
+  -- Present content x : x
+  definition s equals sub + 5
+declaration scope S:
+  input i content integer
+  internal ii content integer
+  internal ic content I
+  output sr content integer
+
+scope S:
+  definition ic equals output of I with { --d: Absent }
+  definition ii equals 10
+  definition sr equals i + ii + ic.s
+
+#[test]
+#[trace.assert = (res.S.ic.I.s, 5)]
+#[trace.assert = (res.S.ii, 10)]
+declaration scope T:
+  output res scope S
+
+scope T:
+  definition res.i equals 4
+  assertion (res.sr = 19)
+```
+
+```catala
+declaration enumeration Color:
+  -- Red
+  -- Green content integer
+  -- Blue content (integer, date)
+
+declaration structure Point:
+  data x content integer
+  data y content decimal
+
+declaration scope Values:
+  input n content integer
+  output c_red content Color
+  output c_green content Color
+  output c_blue content Color
+  output dt content date
+  output du_year content duration
+  output du_month content duration
+  output du_day content duration
+  output du_neg content duration
+  output m content money
+  output m_neg content money
+  output dec content decimal
+  output pct content decimal
+  output b content boolean
+  output p content Point
+  output l content list of integer
+  output l_empty content list of integer
+  output period content (date, date)
+  output o_present content optional of integer
+  output o_absent content optional of integer
+
+scope Values:
+  definition c_red equals Red
+  definition c_green equals Green content (n + 1)
+  definition c_blue equals Blue content (n, |2024-01-15|)
+  definition dt equals |2024-02-29| + 1 day
+  definition du_year equals 2 year
+  definition du_month equals 3 month
+  definition du_day equals |2024-03-01| - |2024-02-01|
+  definition du_neg equals - 5 day
+  definition m equals $12.50 * 2.0
+  definition m_neg equals $0 - $3.20
+  definition dec equals 1.5
+  definition pct equals 25%
+  definition b equals n > 3
+  definition p equals Point { -- x: n -- y: 2.5 }
+  definition l equals [n; n + 1; n + 2]
+  definition l_empty equals []
+  definition period equals (|2024-01-01|, |2024-12-31|)
+  definition o_present equals Present content n
+  definition o_absent equals Absent
+
+#[test]
+#[trace.assert = (v.Values.c_red, Red)]
+#[trace.assert = (v.Values.c_green, Green content 5)]
+#[trace.assert = (v.Values.c_blue, Blue content (4, |2024-01-15|))]
+#[trace.assert = (v.Values.dt, |2024-03-01|)]
+#[trace.assert = (v.Values.du_year, 2 year)]
+#[trace.assert = (v.Values.du_month, 3 month)]
+#[trace.assert = (v.Values.du_day, 29 day)]
+#[trace.assert = (v.Values.du_neg, -5 day)]
+#[trace.assert = (v.Values.m, $25.00)]
+#[trace.assert = (v.Values.m_neg, -$3.20)]
+#[trace.assert = (v.Values.dec, 1.5)]
+#[trace.assert = (v.Values.pct, 0.25)]
+#[trace.assert = (v.Values.b, true)]
+#[trace.assert = (v.Values.p, Point { -- x: 4 -- y: 2.5 })]
+#[trace.assert = (v.Values.l, [4; 5; 6])]
+#[trace.assert = (v.Values.l_empty, [])]
+#[trace.assert = (v.Values.period, (|2024-01-01|, |2024-12-31|))]
+#[trace.assert = (v.Values.o_present, 4)]
+#[trace.assert = (v.Values.o_absent, Absent)]
+declaration scope TestValues:
+  output v scope Values
+
+scope TestValues:
+  definition v.n equals 4
+  assertion (v.c_red = Red)
+  assertion (v.c_green = Green content 5)
+  assertion (v.c_blue = Blue content (4, |2024-01-15|))
+  assertion (v.dt = |2024-03-01|)
+  assertion (v.du_year = 2 year)
+  assertion (v.du_month = 3 month)
+  assertion (v.du_day = 29 day)
+  assertion (v.du_neg = -5 day)
+  assertion (v.m = $25.00)
+  assertion (v.m_neg = -$3.20)
+  assertion (v.dec = 1.5)
+  assertion (v.pct = 0.25)
+  assertion v.b
+  assertion (v.p = Point { -- x: 4 -- y: 2.5 })
+  assertion (v.l = [4; 5; 6])
+  assertion (number of v.l_empty = 0)
+  assertion (v.period = (|2024-01-01|, |2024-12-31|))
+  assertion (v.o_present = Present content 4)
+  assertion (v.o_absent = Absent)
+
+declaration scope State:
+  input n content integer
+  output st content integer
+    state first
+    state second
+    state third
+  output after content integer
+
+scope State:
+  definition st state first equals n
+  definition st state second equals st * 10
+  definition st state third equals st + 2
+  definition after equals st + 1
+
+#[test]
+#[trace.assert_state = (s.State.st, first, 4)]
+#[trace.assert_state = (s.State.st, second, 40)]
+#[trace.assert_state = (s.State.st, third, 42)]
+#[trace.assert = (s.State.after, 43)]
+declaration scope TestState:
+  output s scope State
+
+scope TestState:
+  definition s.n equals 4
+  assertion (s.st = 42)
+  assertion (s.after = 43)
+```

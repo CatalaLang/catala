@@ -81,14 +81,19 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
     else options
   in
   let word s = Expr.Word s in
-  let catala_flags =
+  let base_catala_flags =
     lazy
       ((if inplace then Expr.Word ("--stdlib=" ^ Lazy.force Poll.stdlib_dir)
         else Expr.Word ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala)))
-       :: Expr.Word ("--directory=" ^ Var.(!builddir))
-       :: (if trace then [Expr.Word "--trace"] else [])
-      @ List.map word options.global.catala_opts)
+      :: Expr.Word ("--directory=" ^ Var.(!builddir))
+      :: List.map word options.global.catala_opts)
   in
+  (* [--trace] is needed to compile the modules with trace instrumentation. It
+     is kept out of CATALA_FLAGS, in its own variable, so that [Clerk_rules] can
+     still enable it at the end of the ninja file; and out of the flags
+     forwarded to 'clerk runtest': every test would otherwise be interpreted
+     with it, while only the files with #[trace.assert] attributes get it *)
+  let catala_trace = lazy (if trace then [Expr.Word "--trace"] else []) in
   let includes = lazy (List.map word (includes include_dirs)) in
   let test_flags = config.Clerk_cli.test_flags in
   let def v x = Var.def ~overrides:options.variables v x in
@@ -103,7 +108,8 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
         (match options.global.catala_exe with
         | Some e -> File.check_exec e
         | None -> Lazy.force Poll.catala_exe));
-    def Var.catala_flags catala_flags;
+    def Var.catala_flags base_catala_flags;
+    def Var.catala_trace catala_trace;
     def Var.catala_includes includes;
     def Var.clerk_flags
       (lazy
@@ -116,6 +122,6 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
             (function
               | Expr.Word s -> word ("--catala-opts=" ^ s)
               | _ -> Message.error "Unallowed variable reference in Catala args")
-            (Lazy.force catala_flags
+            (Lazy.force base_catala_flags
             @ if code_coverage then [word "--whole-program"] else [])));
   ]

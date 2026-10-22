@@ -40,6 +40,21 @@ val evaluate_expr :
 (** Evaluates an expression according to the semantics of the default calculus.
 *)
 
+val evaluate_expr_with_trace :
+  decl_ctx ->
+  Global.backend_lang ->
+  ScopeName.t ->
+  (('a, 'b, _) interpr_kind, 'm) gexpr ->
+  (('a, 'b, yes) interpr_kind, 'm) gexpr
+  * Trace_assertion.failed_trace_assertions list
+(** Like {!evaluate_expr}, but evaluates the expression as the given scope,
+    whose [#[trace.assert]] attributes are checked against the collected trace.
+    The trace itself is not dumped. Each failure is also reported as an
+    [AssertFailure] error, which can be absorbed with
+    {!Catala_utils.Message.register_lsp_error_absorber}. Trace events are only
+    collected, hence assertions only checked, when [Global.options.trace] is set
+    and [Global.options.check_trace_assertion] is [true]. *)
+
 val interpret_program_dcalc :
   ?input:Yojson.Safe.t ->
   (dcalc, 'm) gexpr program ->

@@ -1,3 +1,4 @@
 [project]
 name = "catala"
 include_dirs = [ "tests", "tests-extra", "doc" ]
+check_trace_assertion = true

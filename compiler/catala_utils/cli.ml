@@ -183,9 +183,11 @@ module Flags = struct
           ~env:(Cmd.Env.info "CATALA_TRACE")
           ~doc:
             "Displays a trace of the interpreter's computation or generates \
-             trace instructions in translated programs. If set as a flag, \
-             outputs trace to stdout. If $(docv) is defined, outputs the trace \
-             to a file while interpreting.\n\
+             trace instructions in translated programs. If set as a flag, the \
+             trace is collected but only output to stdout if \
+             $(b,--trace-format) is given. If $(docv) is defined, outputs the \
+             trace to a file while interpreting, in JSON if $(docv) has a \
+             $(i,.json) extension and in human-readable form otherwise.\n\
              Defining a filename does not affect code generation. Cannot use \
              .catala extension."
 
@@ -280,6 +282,17 @@ module Flags = struct
             "Instead of reporting an error on assertion failure, reports a \
              warning and carry on with the interpretation as usual."
 
+    let check_trace_assertion =
+      let open Arg in
+      value
+      & flag
+      & info ["check-trace-assertion"]
+          ~doc:
+            "Check the values asserted by the $(i,#[trace.assert]) attributes \
+             against the execution trace, and fail if they don't match. \
+             Requires a trace file in JSON format (see $(b,--trace) and \
+             $(b,--trace-format))."
+
     let whole_program =
       value
       & flag
@@ -334,6 +347,7 @@ module Flags = struct
           directory
           stop_on_error
           no_fail_on_assert
+          check_trace_assertion
           whole_program
           bin_dir
           gen_external
@@ -351,7 +365,13 @@ module Flags = struct
         let trace, trace_format =
           match trace, trace_format with
           | None, _ -> None, trace_format
-          | Some `Stdout, _ -> Some (lazy (Message.std_ppf ())), trace_format
+          | Some `Stdout, None ->
+            (* Without a format, the trace is collected (e.g. for
+               [--check-trace-assertion]) but not output *)
+            ( Some (lazy (Format.make_formatter (fun _ _ _ -> ()) ignore)),
+              trace_format )
+          | Some `Stdout, Some _ ->
+            Some (lazy (Message.std_ppf ())), trace_format
           | Some (`FileName (f : Global.raw_file)), Some _ ->
             ( Some
                 (lazy
@@ -380,7 +400,8 @@ module Flags = struct
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
           ~trace_format ~output_format ~plugins_dirs ~disable_warnings
           ~max_prec_digits ~path_rewrite ~stop_on_error ~no_fail_on_assert
-          ~whole_program ~bin_dir ~gen_external ~dynlink ()
+          ~check_trace_assertion ~whole_program ~bin_dir ~gen_external ~dynlink
+          ()
       in
       Term.(
         const make
@@ -397,6 +418,7 @@ module Flags = struct
         $ directory
         $ stop_on_error
         $ no_fail_on_assert
+        $ check_trace_assertion
         $ whole_program
         $ bin_dir
         $ gen_external

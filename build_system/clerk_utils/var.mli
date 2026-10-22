@@ -41,6 +41,15 @@ val catala_flags : Expr.t t
 val catala_includes : Expr.t t
 val runtime : string t
 
+val trace : Expr.t t
+(** Trace destination passed to the test rules. Must be referenced directly in a
+    rule's command so that individual edges can override it. *)
+
+val catala_trace : Expr.t t
+(** [--trace] flag for the catala compilation rules. Must be referenced directly
+    in the rules' commands, so that it can be redefined at the end of the ninja
+    file. *)
+
 (** {2 Definition spreading different rules} *)
 
 val tdir : string t

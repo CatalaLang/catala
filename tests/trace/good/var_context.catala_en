@@ -32,7 +32,7 @@ scope T2:
 ```
 
 ```catala-test-cli
-$ catala interpret -s T --trace
+$ catala interpret -s T --trace --trace-format=human
 → Entering scope T
 ─➤ tests/trace/good/var_context.catala_en:20.19-20:
    │
@@ -153,7 +153,7 @@ $ catala interpret -s T --trace
 ```
 
 ```catala-test-cli
-$ catala interpret -s T2 --trace
+$ catala interpret -s T2 --trace --trace-format=human
 → Entering scope T2
 ─➤ tests/trace/good/var_context.catala_en:27.19-21:
    │
@@ -238,7 +238,7 @@ $ catala interpret -s T2 --trace
 ```
 
 ```catala-test-cli
-$ catala interpret -s T --trace --lcalc
+$ catala interpret -s T --trace --trace-format=human --lcalc
 → Entering scope T
 ─➤ tests/trace/good/var_context.catala_en:20.19-20:
    │
@@ -360,7 +360,7 @@ $ catala interpret -s T --trace --lcalc
 ```
 
 ```catala-test-cli
-$ catala interpret -s T2 --trace --lcalc
+$ catala interpret -s T2 --trace --trace-format=human --lcalc
 → Entering scope T2
 ─➤ tests/trace/good/var_context.catala_en:27.19-21:
    │
