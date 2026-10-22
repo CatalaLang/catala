@@ -658,7 +658,7 @@ let check_and_chop_catala_ext =
     if String.Set.mem full_ext exts then Some File.(s -.- "") else None
 
 let load_modules_candidates
-    (includes : File.Tree.t)
+    (includes : File.Set.t)
     ~(load_module : module_loading)
     ~is_stdlib
     ~allow_notmodules
@@ -675,26 +675,21 @@ let load_modules_candidates
                fmap))
       m
   in
-  let all_files t =
+  let all_files fset =
     (* Union of folders may overlap, we normalize all files based on
        their (hopefully) rewritten path and filter out non-catala
        files *)
-    let rec loop acc (t : File.Tree.t) =
-      File.Map.fold
-        (fun basename (path, item) acc ->
-          match item with
-          | File.Tree.F -> (
-            check_and_chop_catala_ext basename
-            |> function
-            | None -> acc
-            | Some chopped ->
-              (* all ids are to_id -> lowercase *)
-              let id = String.lowercase_ascii (String.to_id chopped) in
-              String.Map.add path id acc)
-          | D t -> loop acc t)
-        (Lazy.force t) acc
-    in
-    loop String.Map.empty t
+    File.Set.fold
+      (fun path acc ->
+        let basename = File.basename path in
+        check_and_chop_catala_ext basename
+        |> function
+        | None -> acc
+        | Some chopped ->
+          (* all ids are to_id -> lowercase *)
+          let id = String.lowercase_ascii (String.to_id chopped) in
+          String.Map.add path id acc)
+      fset Ident.Map.empty
   in
   let module_candidates =
     String.Map.fold
@@ -726,13 +721,14 @@ let load_included_modules
     () =
   let stdlib_includes =
     match stdlib with
-    | Some dir -> File.Tree.build (options.Global.path_rewrite dir)
-    | None -> File.Tree.empty
+    | Some dir ->
+      File.scan_dir (options.Global.path_rewrite dir) |> File.Set.of_list
+    | None -> File.Set.empty
   in
   let includes =
     List.map options.Global.path_rewrite includes @ more_includes
-    |> List.map File.Tree.build
-    |> List.fold_left File.Tree.union File.Tree.empty
+    |> List.concat_map File.scan_dir
+    |> File.Set.of_list
   in
   let modules_candidates =
     load_modules_candidates includes ~load_module ~is_stdlib:false
