@@ -614,13 +614,14 @@ let tag_to_runtime = function
   | BranchingCondition -> BranchingCondition
   | Branching None -> IfBranching
   | Branching (Some constructor_name) -> MatchBranching { constructor_name }
-  | Exception { label; cons_pos } ->
-    let label =
-      match label with
-      | None -> None
-      | Some (l, p) -> Some (l, Expr.pos_to_runtime p)
-    in
-    Exception { label; cons_pos = Expr.pos_to_runtime cons_pos }
+  | Exception { label; cons_pos; var } ->
+    let to_runtime = Option.map (fun (l, p) -> l, Expr.pos_to_runtime p) in
+    Exception
+      {
+        label = to_runtime label;
+        cons_pos = Expr.pos_to_runtime cons_pos;
+        var = to_runtime var;
+      }
   | Assertion -> Assertion
 
 let rec handle_assert : type d r.

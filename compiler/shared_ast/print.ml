@@ -228,9 +228,9 @@ let tag (fmt : Format.formatter) (entry : tag) : unit =
   | BranchingCondition -> Format.fprintf fmt "BranchingCondition"
   | Branching None -> Format.fprintf fmt "IfBranching"
   | Branching (Some cstr) -> Format.fprintf fmt "MatchBranching(%s)" cstr
-  | Exception { label = Some (lbl, _); cons_pos = _ } ->
+  | Exception { label = Some (lbl, _); _ } ->
     Format.fprintf fmt "Exception(%s)" lbl
-  | Exception { label = None; cons_pos = _ } -> Format.fprintf fmt "Exception"
+  | Exception { label = None; _ } -> Format.fprintf fmt "Exception"
   | Assertion -> Format.fprintf fmt "Assertion"
 
 let tag_to_runtime (k : tag) =
@@ -1405,7 +1405,7 @@ and trace_element =
     | Assertion ->
       fprintf ppf "@<1>%s Assertion@," "⊹";
       fprintf ppf "@[<v 2>%a%t@]" pp_pos pos pp_sub_trace
-    | Exception { label; cons_pos } ->
+    | Exception { label; cons_pos; var } ->
       let is_fulfilled =
         match value with
         | Some (Catala_runtime.Value.V (Bool, true)) -> true
@@ -1418,7 +1418,12 @@ and trace_element =
       let format_label ppf =
         Option.iter (fun (lbl, _pos) -> fprintf ppf " %a" lit_style lbl) label
       in
-      fprintf ppf "⊕ Definition%t %t@ " format_label format_decision;
+      let format_kind ppf =
+        match var with
+        | None -> fprintf ppf "Definition"
+        | Some (v, _pos) -> fprintf ppf "Assignment of %a" lit_style v
+      in
+      fprintf ppf "⊕ %t%t %t@ " format_kind format_label format_decision;
       if is_fulfilled then (
         fprintf ppf "%a@ @<1>%s Consequence:@ " pp_pos pos "⊸";
         fprintf ppf "@[<v 2>%a%t@]" pp_pos cons_pos pp_sub_trace)
