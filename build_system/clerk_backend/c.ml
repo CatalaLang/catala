@@ -159,6 +159,19 @@ module Spec : Sig.Spec = struct
                (Common.target ~name "h"
                :: Word "@c/runtime/src"
                :: implicit_modules)
+             ~vars:
+               (if Sys.win32 then
+                  (* Workaround a bug in mingw32 that looks up `#include "foo"` in the include
+                    directories *)
+                  [
+                    Nj.Binding.make c_include
+                      [
+                        Nj.Expr.Word "-I";
+                        Nj.Expr.Word (!tdir / "c");
+                        !!c_include;
+                      ];
+                  ]
+                else [])
              ~outputs:[Common.target ~name "+main.o"];
          ]
        else [])
@@ -307,6 +320,11 @@ include $(CLERK_TARGETS:=/make.deps)
     @ ["-lgmp"]
     @ target_objs
     @ Var.get var_bindings c_flags
+    @ (if Sys.win32 then
+         (* Workaround a bug in mingw32 that looks up `#include "foo"` in the include
+            directories *)
+         ["-I"; build_dir / dirname target / "c"]
+       else [])
     @ Var.get var_bindings c_include
     @ ["-o"; target -.- "exe"]
 
