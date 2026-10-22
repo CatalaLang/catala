@@ -244,34 +244,36 @@ public class CatalaTrace {
 
     public static class LocalVarDef implements TraceKind {
 
-        public final String name;
+        public final VarDef varDef;
 
-        public LocalVarDef(String varName) {
-            this.name = varName;
+        public LocalVarDef(String varName, CatalaPosition declPos) {
+            this.varDef = new VarDef(varName, declPos);
         }
 
         @Override
         public void writeJSON(StringBuilder sb) {
-            sb.append("{\"kind\":\"local_var\",\"name\":\"");
-            sb.append(name);
-            sb.append("\"}");
+            sb.append("{\"kind\":\"local_var\"");
+            varDef.appendJSON(sb);
+            sb.append("}");
         }
     }
 
     public static class LocalTupDef implements TraceKind {
 
-        public final String[] names;
+        public final VarDef[] varDefs;
 
-        public LocalTupDef(String[] names) {
-            this.names = names;
+        public LocalTupDef(VarDef[] varDefs) {
+            this.varDefs = varDefs;
         }
 
         @Override
         public void writeJSON(StringBuilder sb) {
             sb.append("{\"kind\":\"local_tup\",\"names\":[");
-            for (int i = 0; i < names.length; i++) {
-                sb.append(String.format("\"%s\"", names[i]));
-                if (i < names.length - 1) {
+            for (int i = 0; i < varDefs.length; i++) {
+                sb.append(String.format("{\"name\":\"%s\",\"decl_pos\":", varDefs[i].varName));
+                sb.append(varDefs[i].decl_pos.toJSONString().replaceAll("\\s", ""));
+                sb.append('}');
+                if (i < varDefs.length - 1) {
                     sb.append(',');
                 }
             }

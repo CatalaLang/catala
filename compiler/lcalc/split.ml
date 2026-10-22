@@ -37,7 +37,8 @@ let add_size (type a) : (a, typed) gexpr -> (a, size_mark) boxed_gexpr =
     | Tag (FunCall _) -> 3 + location_size + 2
     | Tag (ScopeVarDef _) -> 2 + 2 + 2 + location_size + 2
     | Tag (LocalVarDef _) -> 3 + location_size + 2
-    | Tag (LocalTupDef { names }) -> 2 + List.length names + location_size + 2
+    | Tag (LocalTupDef { names }) ->
+      2 + (List.length names * (1 + location_size)) + location_size + 2
     | Tag BranchingCondition -> 2 + location_size + 2
     | Tag (Branching None) -> 2 + location_size + 2
     | Tag (Branching (Some _)) -> 3 + location_size + 2

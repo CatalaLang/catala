@@ -941,29 +941,30 @@ class ScopeVarDef(TraceKind):
 
 
 class LocalVarDef(TraceKind):
-    __slots__ = "name"
-    name: str
+    __slots__ = "var_def"
+    var_def: TraceVarDef
 
     kind = "local_var"
 
-    def __init__(self, name: str) -> None:
-        self.name = name
+    def __init__(self, name: str, decl_pos: SourcePosition) -> None:
+        self.var_def = TraceVarDef(name, decl_pos)
 
     def to_json(self) -> str:
-        return self.to_json_kind(f'"name":{json.dumps(self.name)}')
+        return self.to_json_kind(self.var_def.appendable_json())
 
 
 class LocalTupDef(TraceKind):
-    __slots__ = "names"
-    names: List[str]
+    __slots__ = "var_defs"
+    var_defs: List[TraceVarDef]
 
     kind = "local_tup"
 
-    def __init__(self, names: List[str]) -> None:
-        self.names = names
+    def __init__(self, var_defs: List[TraceVarDef]) -> None:
+        self.var_defs = var_defs
 
     def to_json(self) -> str:
-        return self.to_json_kind(f'"names":{json.dumps(self.names)}')
+        names = ",".join(f"{{{v.appendable_json()}}}" for v in self.var_defs)
+        return self.to_json_kind(f'"names":[{names}]')
 
 
 class FunCall(TraceKind):

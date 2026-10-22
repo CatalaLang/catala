@@ -466,7 +466,8 @@ let format_begin_trace ctx ppf (tag, pos) =
         | OnlyInput -> "OnlyInput"
         | Reentrant -> "Reentrant")
         io.io_output
-    | LocalVarDef { name } -> fprintf ppf "LocalVarDef(%s)" (String.quote name)
+    | LocalVarDef { name; decl_pos } ->
+      fprintf ppf "LocalVarDef(%s,@ %a)" (String.quote name) format_pos decl_pos
     | FunCall topdef ->
       let _, decl_pos = TopdefName.get_info topdef in
       fprintf ppf "FunCall(%s,@ %a)"
@@ -475,8 +476,10 @@ let format_begin_trace ctx ppf (tag, pos) =
     | LocalTupDef { names } ->
       fprintf ppf "LocalTupDef([%a])"
         (pp_print_list
-           ~pp_sep:(fun ppf () -> fprintf ppf ",")
-           (fun fmt name -> pp_print_string fmt (String.quote name)))
+           ~pp_sep:(fun ppf () -> fprintf ppf ",@ ")
+           (fun fmt (name, decl_pos) ->
+             fprintf fmt "TraceVarDef(%s,@ %a)" (String.quote name) format_pos
+               decl_pos))
         names
     | BranchingCondition -> fprintf ppf "BranchingCondition()"
     | Assertion -> fprintf ppf "Assertion()"

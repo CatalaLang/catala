@@ -605,8 +605,14 @@ let tag_to_runtime = function
     let _, decl_pos = ScopeVar.get_info var in
     Runtime.ScopeVarDef
       { var = { name; decl_pos = Expr.pos_to_runtime decl_pos }; io }
-  | LocalVarDef { name } -> Runtime.LocalVarDef name
-  | LocalTupDef { names } -> Runtime.LocalTupDef names
+  | LocalVarDef { name; decl_pos } ->
+    Runtime.LocalVarDef { name; decl_pos = Expr.pos_to_runtime decl_pos }
+  | LocalTupDef { names } ->
+    Runtime.LocalTupDef
+      (List.map
+         (fun (name, decl_pos) ->
+           { Runtime.name; decl_pos = Expr.pos_to_runtime decl_pos })
+         names)
   | FunCall topdef ->
     let name = TopdefName.original_base topdef in
     let _, decl_pos = TopdefName.get_info topdef in

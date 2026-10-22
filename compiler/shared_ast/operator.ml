@@ -107,10 +107,11 @@ let compare_tag t1 t2 =
   | ScopeCall s1, ScopeCall s2 -> ScopeName.compare s1 s2
   | ScopeVarDef { var = v1; _ }, ScopeVarDef { var = v2; _ } ->
     ScopeVar.compare v1 v2
-  | LocalVarDef { name = v1 }, LocalVarDef { name = v2 } -> Ident.compare v1 v2
+  | LocalVarDef { name = v1; _ }, LocalVarDef { name = v2; _ } ->
+    Ident.compare v1 v2
   | FunCall v1, FunCall v2 -> TopdefName.compare v1 v2
   | LocalTupDef { names = t1 }, LocalTupDef { names = t2 } ->
-    List.compare Ident.compare t1 t2
+    List.compare (Mark.compare Ident.compare) t1 t2
   | BranchingCondition, BranchingCondition -> 0
   | Branching (Some _), Branching None -> 1
   | Branching None, Branching (Some _) -> -1

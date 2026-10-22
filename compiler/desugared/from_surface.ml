@@ -949,9 +949,10 @@ let rec translate_expr
       let e = rec_helper e1 in
       match xs with
       | [] -> e
-      | [(name, decl_pos)] -> Expr.etag ~pos:decl_pos (LocalVarDef { name }) e
-      | vs ->
-        let names, lpos = List.split vs in
+      | [(name, decl_pos)] ->
+        Expr.etag ~pos:decl_pos (LocalVarDef { name; decl_pos }) e
+      | names ->
+        let _, lpos = List.split names in
         let tup_pos = List.fold_left Pos.join (List.hd lpos) (List.tl lpos) in
         Expr.etag ~pos:tup_pos (LocalTupDef { names }) e
     in
