@@ -49,7 +49,7 @@ module Spec : Sig.Spec = struct
   let[@ocamlformat "disable"] rules =
     [
       Nj.rule "catala-python"
-        ~command:[!!catala_exe; Nj.Expr.Word name; !!catala_flags; !!catala_flags_python;
+        ~command:[!!catala_exe; Nj.Expr.Word name; !!catala_flags; !!catala_trace; !!catala_flags_python;
                   !!catala_includes;
                   Nj.Expr.Word "-o"; !!output; Nj.Expr.Word "--"; !!input]
         ~description:[Nj.Expr.Word "<catala>"; Nj.Expr.Word name; Nj.Expr.Word "⇒"; !!output];
