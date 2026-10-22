@@ -70,7 +70,7 @@ module Spec : Sig.Spec = struct
   let[@ocamlformat "disable"] rules =
     [
       Nj.rule "catala-java"
-        ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_flags_java;
+        ~command:[!!catala_exe; Word name; !!catala_flags; !!catala_trace; !!catala_flags_java;
                   !!catala_includes;
                   Word "-o"; !!output; Word "--"; !!input]
         ~description:[Word "<catala>"; Word name; Word "⇒"; !!output];

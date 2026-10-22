@@ -89,15 +89,12 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
       :: Expr.Word ("--directory=" ^ Var.(!builddir))
       :: List.map word options.global.catala_opts)
   in
-  (* [--trace] is needed to compile the modules with trace instrumentation, but
-     is kept out of the flags forwarded to 'clerk runtest': every test would
-     otherwise be interpreted with it, while only the files with
-     #[trace.assert] attributes get it (see [Clerk_rules]) *)
-  let catala_flags =
-    lazy
-      (Lazy.force base_catala_flags
-      @ if trace then [Expr.Word "--trace"] else [])
-  in
+  (* [--trace] is needed to compile the modules with trace instrumentation. It
+     is kept out of CATALA_FLAGS, in its own variable, so that [Clerk_rules] can
+     still enable it at the end of the ninja file; and out of the flags
+     forwarded to 'clerk runtest': every test would otherwise be interpreted
+     with it, while only the files with #[trace.assert] attributes get it *)
+  let catala_trace = lazy (if trace then [Expr.Word "--trace"] else []) in
   let includes = lazy (List.map word (includes include_dirs)) in
   let test_flags = config.Clerk_cli.test_flags in
   let def v x = Var.def ~overrides:options.variables v x in
@@ -112,7 +109,8 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
         (match options.global.catala_exe with
         | Some e -> File.check_exec e
         | None -> Lazy.force Poll.catala_exe));
-    def Var.catala_flags catala_flags;
+    def Var.catala_flags base_catala_flags;
+    def Var.catala_trace catala_trace;
     def Var.catala_includes includes;
     def Var.clerk_flags
       (lazy

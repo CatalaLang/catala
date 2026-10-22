@@ -39,6 +39,12 @@ let runtime = make_scalar "CATALA_RUNTIME"
    per-edge. It must therefore be referenced directly in the rules' commands. *)
 let trace = make_vector "TRACE"
 
+(* [--trace] flag for the catala compilation rules. Kept out of CATALA_FLAGS and
+   referenced directly in the rules' commands, which ninja only expands at build
+   time: a binding emitted at the end of the ninja file therefore still applies
+   to all the edges above it (see [Clerk_rules.run_ninja]). *)
+let catala_trace = make_vector "CATALA_TRACE"
+
 (* Definition spreading different rules *)
 
 let tdir = make_scalar "tdir"

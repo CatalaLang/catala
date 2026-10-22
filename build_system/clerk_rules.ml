@@ -689,12 +689,23 @@ let run_ninja
     ~default
     ?keep_going
     ~code_coverage
+    ?(trace = false)
     ~check_trace_assertion
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
   let includes = Scan.include_dirs ~config in
+  let var_bindings =
+    (* With [~check_trace_assertion], whether the modules need to be compiled
+       with [--trace] depends on the scanned items: it is decided at the end of
+       the ninja file, see below *)
+    base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
+      ~inplace:false ~includes ()
+  in
+  let enabled_backends =
+    List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
+  in
   with_ninja_process ~config ~clean_up_env ~ninja_flags ~default ?keep_going
     (fun nin_ppf ->
       (* Design note: the idea here is to write the ninja file as a stream while
@@ -705,15 +716,6 @@ let run_ninja
       let item_tree =
         if skip_project_scan then Seq.empty
         else scan_project_items ~cleanup:true ~config ~includes
-      in
-      let var_bindings =
-        let need_trace = has_trace_assertions item_tree in
-        base_bindings ~code_coverage
-          ~trace:(check_trace_assertion && need_trace)
-          ~config ~enabled_backends ~autotest ~inplace:false ~includes ()
-      in
-      let enabled_backends =
-        List.map Clerk_backend.get (List.sort_uniq compare enabled_backends)
       in
       let items =
         output_ninja_file nin_ppf ~config ~tests ~enabled_backends ~autotest
@@ -777,6 +779,20 @@ let run_ninja
                       (String.Set.elements backends))))
         callback_info.targets_map;
       pp (Nj.comment "\n- Global rules and defaults - #\n");
+      (* The header can't depend on the items without forcing the whole scan
+         before ninja gets any input. Instead, CATALA_TRACE is only referenced
+         from rule commands, which ninja expands at build time with the final
+         value of the variable: redefining it here, once the scan is complete,
+         applies to all the edges above. *)
+      if (not trace) && check_trace_assertion && has_trace_assertions item_tree
+      then (
+        pp
+          (Nj.comment
+             "Overrides the CATALA_TRACE defined at the top: rule commands use \
+              the last value");
+        pp
+          (Nj.binding
+             (Nj.Binding.make Var.catala_trace [Nj.Expr.Word "--trace"])));
       if tests then
         pp
           (Nj.build "phony" ~outputs:[Word "test"]
