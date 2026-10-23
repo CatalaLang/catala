@@ -45,7 +45,7 @@ let base_bindings
       (fun bk ->
         let module Backend : Clerk_backend.S = (val Clerk_backend.get bk) in
         Backend.var_defs ~variables:options.variables ~autotest
-          ~use_default_flags ~test_flags ~include_dirs:includes)
+          ~use_default_flags ~test_flags ~include_dirs:includes ~trace)
       enabled_backends
   in
   default_flags @ backend_flags

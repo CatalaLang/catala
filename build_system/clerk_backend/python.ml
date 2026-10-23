@@ -38,10 +38,11 @@ module Spec : Sig.Spec = struct
       ~autotest
       ~use_default_flags
       ~test_flags
-      ~include_dirs:_ =
+      ~include_dirs:_
+      ~trace =
     let catala_flags =
       Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
-        ~accepts_closure_conversion:true
+        ~accepts_closure_conversion:true ~trace
     in
     let def v x = Var.def ~overrides:variables v x in
     [def catala_flags_python catala_flags; def python (lazy "python3")]

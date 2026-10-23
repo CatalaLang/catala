@@ -25,6 +25,7 @@ val catala_backend_flags :
   use_default_flags:bool ->
   test_flags:string list ->
   accepts_closure_conversion:bool ->
+  trace:bool ->
   Ninja_utils.Expr.t Lazy.t
 
 val default :

@@ -150,28 +150,30 @@ let reverse ~cwd ~from_dir ~to_dir f =
     let f =
       if is_relative f then f else make_relative_to ~cwd ~dir:from_dir f
     in
-    let to_dir =
-      if is_relative to_dir then to_dir
-      else make_relative_to ~cwd ~dir:from_dir to_dir
-    in
-    let rec aux acc rbase = function
-      | [] -> acc
-      | dir :: p -> (
-        if dir = parent then
-          match rbase with
-          | base1 :: rbase -> aux (base1 :: acc) rbase p
-          | [] -> aux acc [] p
-        else
-          match acc with
-          | dir1 :: acc when dir1 = dir -> aux acc rbase p
-          | _ -> aux (parent :: acc) rbase p)
-    in
-    let _, frompath = to_list from_dir in
-    let todrive, topath = to_list to_dir in
-    let fdrive, fpath = to_list f in
-    if compat_drives todrive fdrive then
-      from_list (todrive, aux fpath (List.rev frompath) topath)
-    else make_absolute ~cwd f
+    if not (is_relative f) then f
+    else
+      let to_dir =
+        if is_relative to_dir then to_dir
+        else make_relative_to ~cwd ~dir:from_dir to_dir
+      in
+      let rec aux acc rbase = function
+        | [] -> acc
+        | dir :: p -> (
+          if dir = parent then
+            match rbase with
+            | base1 :: rbase -> aux (base1 :: acc) rbase p
+            | [] -> aux acc [] p
+          else
+            match acc with
+            | dir1 :: acc when dir1 = dir -> aux acc rbase p
+            | _ -> aux (parent :: acc) rbase p)
+      in
+      let _, frompath = to_list from_dir in
+      let todrive, topath = to_list to_dir in
+      let fdrive, fpath = to_list f in
+      if compat_drives todrive fdrive then
+        from_list (todrive, aux fpath (List.rev frompath) topath)
+      else make_absolute ~cwd f
 
 (* Leading slash before "C:" (else "C:" reads as the URL authority); a UNC
    path's server IS the authority, so its two leading slashes collapse to none. *)

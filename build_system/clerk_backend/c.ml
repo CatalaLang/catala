@@ -35,12 +35,17 @@ module Spec : Sig.Spec = struct
   let all_obj_extensions = ["o"]
   let stdlib_subdir = ""
 
-  let var_defs ~variables ~autotest ~use_default_flags ~test_flags ~include_dirs
-      =
+  let var_defs
+      ~variables
+      ~autotest
+      ~use_default_flags
+      ~test_flags
+      ~include_dirs
+      ~trace =
     let open Flags in
     let catala_flags =
       catala_backend_flags ~autotest ~use_default_flags ~test_flags
-        ~accepts_closure_conversion:false
+        ~accepts_closure_conversion:false ~trace
     in
     let def v x = Var.def ~overrides:variables v x in
     let word w = Ninja_utils.Expr.Word w in
