@@ -132,10 +132,15 @@ let run_catala_test filename cmd program expected out_line =
   in
   Unix.close cmd_in_rd;
   Unix.close cmd_out_wr;
-  Seq.iter (output_string command_oc) program;
-  close_out command_oc;
+  let () =
+    try
+      Seq.iter (output_string command_oc) program;
+      close_out command_oc
+    with Sys_error _ -> ()
+  in
   let out_lines =
-    Seq.of_dispenser (fun () -> In_channel.input_line command_ic)
+    Seq.of_dispenser (fun () ->
+        try In_channel.input_line command_ic with Sys_error _ -> None)
   in
   let success, expected =
     Seq.fold_left
