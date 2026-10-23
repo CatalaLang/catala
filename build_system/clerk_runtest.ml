@@ -23,11 +23,11 @@ type output_buf = { oc : out_channel; mutable pos : Lexing.position }
 let pos0 pos_fname =
   { Lexing.pos_fname; pos_cnum = 0; pos_lnum = 1; pos_bol = 0 }
 
-let with_output file_opt f =
-  match file_opt with
-  | Some file ->
+let with_output file f =
+  match file with
+  | "-" -> f { oc = stdout; pos = pos0 "<stdout>" }
+  | file ->
     File.with_out_channel ~bin:false file @@ fun oc -> f { oc; pos = pos0 file }
-  | None -> f { oc = stdout; pos = pos0 "<stdout>" }
 
 let out_line output_buf str =
   let len = String.length str in

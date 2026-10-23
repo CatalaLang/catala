@@ -132,7 +132,7 @@ let test_flags =
 let runtest_report =
   Arg.(
     value
-    & opt (some string) None
+    & opt (some filepath) None
     & info ["report"] ~docv:"FILE"
         ~doc:
           "If set, $(i,clerk runtest) will output a tests result summary in \
@@ -141,7 +141,7 @@ let runtest_report =
 let runtest_out =
   Arg.(
     value
-    & pos 1 (some string) None
+    & pos 1 filepath "-"
     & info [] ~docv:"OUTFILE"
         ~doc:"Write the test outcome to file $(b,OUTFILE) instead of stdout.")
 
