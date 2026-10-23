@@ -31,7 +31,7 @@ val scan_dirs : string list Term.t
 val include_dirs : string list Term.t
 val test_flags : string list Term.t
 val runtest_report : string option Term.t
-val runtest_out : string option Term.t
+val runtest_out : string Term.t
 val backends : backend list Term.t
 val run_command : string Term.t
 val vars_override : (string * string) list Term.t

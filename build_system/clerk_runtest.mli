@@ -28,7 +28,7 @@ val run_tests :
   code_coverage:bool ->
   test_flags:string list ->
   report:File.t option ->
-  out:File.t option ->
+  out:File.t ->
   File.t ->
   unit
 (** [run_tests ~catala_exe ~catala_opts ~test_flags ~report ~out file] runs the

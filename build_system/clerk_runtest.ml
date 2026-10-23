@@ -23,11 +23,11 @@ type output_buf = { oc : out_channel; mutable pos : Lexing.position }
 let pos0 pos_fname =
   { Lexing.pos_fname; pos_cnum = 0; pos_lnum = 1; pos_bol = 0 }
 
-let with_output file_opt f =
-  match file_opt with
-  | Some file ->
+let with_output file f =
+  match file with
+  | "-" -> f { oc = stdout; pos = pos0 "<stdout>" }
+  | file ->
     File.with_out_channel ~bin:false file @@ fun oc -> f { oc; pos = pos0 file }
-  | None -> f { oc = stdout; pos = pos0 "<stdout>" }
 
 let out_line output_buf str =
   let len = String.length str in
@@ -132,10 +132,15 @@ let run_catala_test filename cmd program expected out_line =
   in
   Unix.close cmd_in_rd;
   Unix.close cmd_out_wr;
-  Seq.iter (output_string command_oc) program;
-  close_out command_oc;
+  let () =
+    try
+      Seq.iter (output_string command_oc) program;
+      close_out command_oc
+    with Sys_error _ -> ()
+  in
   let out_lines =
-    Seq.of_dispenser (fun () -> In_channel.input_line command_ic)
+    Seq.of_dispenser (fun () ->
+        try In_channel.input_line command_ic with Sys_error _ -> None)
   in
   let success, expected =
     Seq.fold_left

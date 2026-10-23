@@ -26,7 +26,7 @@ steps:
   # - name: opam
   #   image: powershell
   #   commands:
-  #     - winget install Git.Git OCaml.opam
+  #     - winget install Git.Git OCaml.opam EclipseAdoptium.Temurin.17.JDK python3
 
   # PowerShell doesn't stop on a failing native command: without the check
   # after each one, a step's status is its last command's.
@@ -57,24 +57,11 @@ steps:
     environment: *env
     commands:
       - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
-      - dune exec -- clerk test tests doc; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
-      - dune exec -- clerk test tests --backend ocaml -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
-
-  # Needs a JDK on the host (winget install EclipseAdoptium.Temurin.17.JDK)
-  - name: test-java
-    image: powershell
-    environment: *env
-    commands:
-      - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
-      - dune exec -- clerk test tests --backend java -c--disable-warnings; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
-
-  - name: test-c
-    image: powershell
-    environment: *env
-    commands:
-      - (& opam env) -split '\r?\n' | ForEach-Object { Invoke-Expression $$_ }
-      - dune exec -- clerk test tests --backend c -c--disable-warnings --vars CC=x86_64-w64-mingw32-gcc; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
-    failure: ignore
+      - dune exec -- clerk test tests --backend all
+        --vars "CC='x86_64-w64-mingw32-gcc'"
+        --vars "PYTHON='$env:LOCALAPPDATA\Programs\Python\Python314\python'";
+        if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
+      - dune exec -- clerk test doc; if ($$LASTEXITCODE) { exit $$LASTEXITCODE }
 
   - name: examples
     image: powershell
