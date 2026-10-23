@@ -43,7 +43,7 @@ module Spec : Sig.Spec = struct
   let stdlib_subdir = "catala" / "stdlib"
 
   let var_defs
-      ~variables
+      ~config
       ~autotest
       ~use_default_flags
       ~test_flags
@@ -53,7 +53,7 @@ module Spec : Sig.Spec = struct
       Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true ~trace
     in
-    let def v x = Var.def ~overrides:variables v x in
+    let def v x = Var.def ~overrides:config.Clerk_cli.file.variables v x in
     let word w = Ninja_utils.Expr.Word w in
     [
       def catala_flags_java catala_flags;
@@ -61,7 +61,10 @@ module Spec : Sig.Spec = struct
       def javac (lazy "javac");
       def jar (lazy "jar");
       def javac_flags (lazy [word "-implicit:none"]);
-      def class_path (lazy (Backend_paths.classpath ~backend:name include_dirs));
+      def class_path
+        (lazy
+          (Backend_paths.classpath ~backend:name
+             (include_dirs @ config.Clerk_cli.file.backends_conf.java.use_libs)));
     ]
 
   let[@ocamlformat "disable"] rules =
@@ -178,7 +181,7 @@ module Spec : Sig.Spec = struct
       config.Clerk_cli.file.global.project_name
       |> Option.value ~default:"default-project"
     in
-    Java_project_file.format_target_pom_xml ~project_name ppf target
+    Java_project_file.format_target_pom_xml ~config ~project_name ppf target
 
   let install_extensions config =
     src_extensions
