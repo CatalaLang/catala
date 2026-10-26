@@ -90,6 +90,10 @@ module OCaml_Flags = struct
     let includes, libs = List.split includes_libs in
     List.concat includes, libs
 
+  let base_includes, base_libs =
+    let both = Lazy.from_fun ocaml_include_and_lib in
+    Lazy.map fst both, Lazy.map snd both
+
   let default
       ~config
       ~autotest
@@ -97,12 +101,10 @@ module OCaml_Flags = struct
       ~test_flags
       ~include_dirs
       ~trace =
-    let open Flags in
     let catala_flags =
-      catala_backend_flags ~autotest ~use_default_flags ~test_flags
+      Flags.catala_backend_flags ~autotest ~use_default_flags ~test_flags
         ~accepts_closure_conversion:true ~trace
     in
-    let base_libs = lazy (ocaml_include_and_lib ()) in
     let custom_libs =
       lazy (resolve_libs config.Clerk_cli.file.backends_conf.ocaml.use_libs)
     in
@@ -116,14 +118,13 @@ module OCaml_Flags = struct
       def ocaml_include
         (lazy
           (List.map word
-             (fst (Lazy.force base_libs)
+             (Lazy.force base_includes
              @ fst (Lazy.force custom_libs)
              @ Flags.includes ~name include_dirs
              @ ["-I"; File.(Var.(!builddir) / Scan.libcatala / name)])));
       def ocaml_link
         (lazy
-          (List.map word
-             (snd (Lazy.force base_libs) @ snd (Lazy.force custom_libs))));
+          (List.map word (Lazy.force base_libs @ snd (Lazy.force custom_libs))));
       Ninja_utils.Binding.make Var.catala_flags
         (Ninja_utils.Expr.Splice Var.catala_flags
         :: List.map
@@ -268,10 +269,11 @@ module Spec : Sig.Spec = struct
         ~vars:
           [
             Nj.Binding.make ocaml_include
-              (!!ocaml_include
-              :: List.map
-                   (fun w -> Ninja_utils.Expr.Word w)
-                   ["-I"; File.(Var.(!builddir) / Scan.libcatala / name)]);
+              (List.map
+                 (fun w -> Ninja_utils.Expr.Word w)
+                 ("-I"
+                 :: File.(Var.(!builddir) / Scan.libcatala / name)
+                 :: Lazy.force OCaml_Flags.base_includes));
           ];
     ]
 
