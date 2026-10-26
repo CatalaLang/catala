@@ -1014,14 +1014,13 @@ let rec evaluate_expr : type d r.
 let evaluate_expr_trace : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     ?disable_trace:bool ->
-    ?hide_trace:bool ->
     decl_ctx ->
     Global.backend_lang ->
     ScopeName.t ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
     ((d, r, yes) interpr_kind, 't) gexpr
     * Trace_assertion.failed_trace_assertions list =
- fun ?on_expr ?(disable_trace = false) ?(hide_trace = false) ctx lang s e ->
+ fun ?on_expr ?(disable_trace = false) ctx lang s e ->
   Fun.protect
     (fun () ->
       let f () = evaluate_expr ?on_expr ctx lang e in
@@ -1059,7 +1058,7 @@ let evaluate_expr_trace : type d r.
     ~finally:(fun () ->
       match Global.options.trace with
       | None -> ()
-      | Some _ when disable_trace || hide_trace ->
+      | Some _ when disable_trace ->
         (* Nothing is dumped, but trace events were still collected in the
            global state *)
         Runtime.reset_trace ()
@@ -1095,17 +1094,16 @@ let report_trace_assertion_failures s failures =
 let evaluate_expr_safe_with_trace_failures : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     ?disable_trace:bool ->
-    ?hide_trace:bool ->
     decl_ctx ->
     Global.backend_lang ->
     ScopeName.t ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
     ((d, r, yes) interpr_kind, 't) gexpr
     * Trace_assertion.failed_trace_assertions list =
- fun ?on_expr ?disable_trace ?hide_trace ctx lang s e ->
+ fun ?on_expr ?disable_trace ctx lang s e ->
   try
     let r, failures =
-      evaluate_expr_trace ?on_expr ?disable_trace ?hide_trace ctx lang s e
+      evaluate_expr_trace ?on_expr ?disable_trace ctx lang s e
     in
     report_trace_assertion_failures s failures;
     Message.report_delayed_errors_if_any ();
@@ -1123,16 +1121,14 @@ let evaluate_expr_safe_with_trace_failures : type d r.
 let evaluate_expr_safe : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     ?disable_trace:bool ->
-    ?hide_trace:bool ->
     decl_ctx ->
     Global.backend_lang ->
     ScopeName.t ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
     ((d, r, yes) interpr_kind, 't) gexpr =
- fun ?on_expr ?disable_trace ?hide_trace ctx lang s e ->
+ fun ?on_expr ?disable_trace ctx lang s e ->
   fst
-    (evaluate_expr_safe_with_trace_failures ?on_expr ?disable_trace ?hide_trace
-       ctx lang s e)
+    (evaluate_expr_safe_with_trace_failures ?on_expr ?disable_trace ctx lang s e)
 
 (* Typing shenanigan to add custom terms to the AST type. *)
 let addcustom e =
@@ -1365,7 +1361,7 @@ let evaluate_expr ctx lang e =
 let evaluate_expr_with_trace ctx lang s e =
   Fun.protect ~finally:Runtime.reset_trace
   @@ fun () ->
-  evaluate_expr_safe_with_trace_failures ~hide_trace:true ctx lang s
+  evaluate_expr_safe_with_trace_failures ~disable_trace:true ctx lang s
     (addcustom e)
 
 let loaded_modules = Hashtbl.create 17
