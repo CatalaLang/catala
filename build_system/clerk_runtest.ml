@@ -175,7 +175,14 @@ let get_pos pos_fname pos_lnum col =
   let pos_bol = -1 in
   { Lexing.pos_fname; pos_lnum; pos_bol; pos_cnum = pos_bol + col }
 
+(* 'clerk runtest' does not parse the catala global flags itself, so the option
+   is looked up in the flags forwarded to the interpreter, as [trace_file_of_opts]
+   does for the trace destination. *)
+let no_fail_on_assert_of_opts catala_opts =
+  List.mem "--no-fail-on-assert" catala_opts
+
 let run_catala_test_scopes
+    ~has_trace_assert
     ~code_coverage
     test_flags
     catala_exe
@@ -188,13 +195,14 @@ let run_catala_test_scopes
   let code_coverage_opt = "--code-coverage" in
   let catala_opts =
     catala_opts
-    @
-    if code_coverage then
-      (if List.mem code_coverage_opt catala_opts then []
-       else [code_coverage_opt])
-      @
-      if List.mem whole_program_opt catala_opts then [] else [whole_program_opt]
-    else []
+    @ (if code_coverage then
+         (if List.mem code_coverage_opt catala_opts then []
+          else [code_coverage_opt])
+         @
+         if List.mem whole_program_opt catala_opts then []
+         else [whole_program_opt]
+       else [])
+    @ if has_trace_assert then ["--check-trace-assertion"] else []
   in
   let test_flags =
     if code_coverage then List.filter (( <> ) whole_program_opt) test_flags
@@ -350,7 +358,7 @@ let run_catala_test_scopes
       :: scopes_results
     else scopes_results
   in
-  List.rev scopes_results
+  scopes_results
 
 (** Directly runs the test (not using ninja, this will be called by ninja rules
     through the "clerk runtest" command) *)
@@ -361,6 +369,7 @@ let run_tests
     ~test_flags
     ~report
     ~out
+    ~check_trace_assertion
     filename =
   let module L = Surface.Lexer_common in
   let lang =
@@ -487,41 +496,46 @@ let run_tests
         :: !rtests;
       lines
   in
-  let rec process ~has_test_scopes ~includes lines =
+  let rec process ~has_trace_assert ~has_test_scopes ~includes lines =
     match Seq.uncons lines with
     | Some ((str, L.LINE_INLINE_TEST, _), lines) ->
       push_line str;
       let lines = run_inline_test lines in
-      process ~has_test_scopes ~includes lines
+      process ~has_trace_assert ~has_test_scopes ~includes lines
     | Some ((str, L.LINE_TEST_ATTRIBUTE, _), lines) ->
       push_line str;
-      process ~has_test_scopes:true ~includes lines
+      process ~has_trace_assert ~has_test_scopes:true ~includes lines
     | Some ((str, L.LINE_INCLUDE f, _), lines) ->
       push_line str;
       let f = if Filename.is_relative f then File.(filename /../ f) else f in
-      process ~has_test_scopes ~includes:(f :: includes) lines
+      process ~has_trace_assert ~has_test_scopes ~includes:(f :: includes) lines
     | Some ((str, _, _), lines) ->
       push_line str;
-      process ~has_test_scopes ~includes lines
-    | None -> has_test_scopes, includes
+      process ~has_trace_assert ~has_test_scopes ~includes lines
+    | None -> has_trace_assert, has_test_scopes, includes
   in
-  let has_test_scopes, includes =
-    process ~has_test_scopes:false ~includes:[] lines
+  let has_trace_assert, has_test_scopes, includes =
+    process ~has_trace_assert:false ~has_test_scopes:false ~includes:[] lines
   in
   let has_test_scopes =
     has_test_scopes || List.exists (Scan.has_test_scope ~lang) includes
   in
   let scopes_results =
     if has_test_scopes then
-      run_catala_test_scopes ~code_coverage test_flags catala_exe catala_opts
-        filename
+      run_catala_test_scopes
+        ~has_trace_assert:(has_trace_assert && check_trace_assertion)
+        ~code_coverage test_flags catala_exe catala_opts filename
     else []
   in
+  (* Mismatching asserted trace variables are treated like failed assertions:
+     under --no-fail-on-assert they are reported but do not fail the test *)
+  let fail_on_assert = not (no_fail_on_assert_of_opts catala_opts) in
   let successful_test_scopes, failed_test_scopes, coverage =
     List.fold_left
       (fun (nsucc, nfail, code_coverage) t ->
         let x, y =
-          if t.Clerk_report.s_success then nsucc + 1, nfail
+          if t.Clerk_report.s_success || not fail_on_assert then
+            nsucc + 1, nfail
           else nsucc, nfail + 1
         in
         let code_coverage =

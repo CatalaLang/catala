@@ -629,6 +629,45 @@ let tag_to_runtime = function
     Exception { label; cons_pos = Expr.pos_to_runtime cons_pos }
   | Assertion -> Assertion
 
+(* Trace assertion failures are reported with the [AssertFailure] kind, as
+   failed assertions are, so that the language server absorbs both alike. *)
+let report_trace_assertion_failures s failures =
+  List.iter
+    (fun (failed_trace : Trace_assertion.failed_trace_assertions) ->
+      (* Without a position, the GNU-formatted message is not recognised by
+         'clerk runtest' and gets dropped *)
+      let pos =
+        match failed_trace.pos with
+        | Some pos -> Expr.runtime_to_pos pos
+        | None -> snd (ScopeName.get_info s)
+      in
+      if Global.options.no_fail_on_assert then
+        Message.warning ~pos "%a" Trace_assertion.display failed_trace
+      else
+        Message.delayed_error ~kind:TraceAssertFails () ~pos "%a"
+          Trace_assertion.display failed_trace)
+    failures
+
+let handle_trace_assert scope scope_name =
+  let failures =
+    let trace_assert =
+      Pos.get_attrs
+        (snd (ScopeName.get_info scope))
+        (function TraceAssert (path, value) -> Some (path, value) | _ -> None)
+    in
+    let trace = Runtime.retrieve_trace () in
+    let trace_assert =
+      List.fold_left
+        (fun acc (path, value) ->
+          Trace_assertion.add_asserted_trace_variable path value acc)
+        Trace_assertion.empty trace_assert
+    in
+    Trace_assertion.check ~asserted_trace_variables:trace_assert
+      ~tested_scope:scope_name trace
+  in
+  report_trace_assertion_failures scope failures;
+  failures
+
 let rec handle_assert : type d r.
     eval_expr:
       (((d, r, yes) interpr_kind, 't) gexpr ->
@@ -658,9 +697,9 @@ let rec handle_assert : type d r.
     in
     (match Mark.remove partially_evaluated_pred with
     | ELit (LBool false) ->
-      let bt = Printexc.get_raw_backtrace () in
       if Global.options.no_fail_on_assert then Message.warning ~pos "%t." msg
       else if Global.options.trace <> None then
+        let bt = Printexc.get_raw_backtrace () in
         let msg = Format.asprintf "%t" msg in
         (* We raise a runtime error so that the trace builder catches
            its expected type of error. *)
@@ -845,7 +884,7 @@ let rec evaluate_expr : type d r.
           if Global.options.debug then Format.fprintf ppf ":@ %a" Expr.format e
           else ())
         e1)
-  | EAppOp { op = Tag t, _; args = [e]; _ } when Global.options.trace <> None ->
+  | EAppOp { op = Tag t, _; args = [e]; _ } when Global.trace_enabled () ->
     let pos = Expr.pos e in
     let kind = tag_to_runtime t in
     Runtime.with_trace ~embed:(Expr.embed_value ctx) kind
@@ -1018,23 +1057,38 @@ let evaluate_expr_trace : type d r.
     Global.backend_lang ->
     ScopeName.t ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
-    ((d, r, yes) interpr_kind, 't) gexpr =
+    ((d, r, yes) interpr_kind, 't) gexpr
+    * Trace_assertion.failed_trace_assertions list =
  fun ?on_expr ?(disable_trace = false) ctx lang s e ->
   Fun.protect
     (fun () ->
       let f () = evaluate_expr ?on_expr ctx lang e in
-      if (not disable_trace) && Global.options.trace <> None then
+      if (not disable_trace) && Global.trace_enabled () then
         let scope_pos = Expr.pos_to_runtime (snd (ScopeName.get_info s)) in
         (* [ScopeCall] tags are defined at call-sites, we must add an
-            artificial one here. *)
-        Runtime.with_trace ~embed:(Expr.embed_value ctx)
-          (ScopeCall { name = ScopeName.original_base s; decl_pos = scope_pos })
-          scope_pos f
-      else f ())
+        artificial one here. *)
+        let scope_name = ScopeName.original_base s in
+        let expr =
+          Runtime.with_trace ~embed:(Expr.embed_value ctx)
+            (ScopeCall { name = scope_name; decl_pos = scope_pos })
+            scope_pos f
+        in
+        let failures =
+          if Global.options.check_trace_assertion then
+            handle_trace_assert s scope_name
+          else []
+        in
+        expr, failures
+      else f (), [])
     ~finally:(fun () ->
       match Global.options.trace with
-      | None -> ()
-      | Some _ when disable_trace -> ()
+      | None ->
+        (* Trace events may still have been collected for trace assertions *)
+        if Global.trace_enabled () then Runtime.reset_trace ()
+      | Some _ when disable_trace ->
+        (* Nothing is dumped, but trace events were still collected in the
+           global state *)
+        Runtime.reset_trace ()
       | Some (lazy ppf) ->
         let trace = Runtime.retrieve_trace () in
         let output_trace ppf =
@@ -1044,16 +1098,19 @@ let evaluate_expr_trace : type d r.
         in
         Fun.protect
           (fun () -> output_trace ppf)
-          ~finally:(fun () -> Format.pp_print_flush ppf ()))
+          ~finally:(fun () ->
+            Format.pp_print_flush ppf ();
+            Runtime.reset_trace ()))
 
-let evaluate_expr_safe : type d r.
+let evaluate_expr_safe_with_trace_failures : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     ?disable_trace:bool ->
     decl_ctx ->
     Global.backend_lang ->
     ScopeName.t ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
-    ((d, r, yes) interpr_kind, 't) gexpr =
+    ((d, r, yes) interpr_kind, 't) gexpr
+    * Trace_assertion.failed_trace_assertions list =
  fun ?on_expr ?disable_trace ctx lang s e ->
   try
     let r = evaluate_expr_trace ?on_expr ?disable_trace ctx lang s e in
@@ -1068,6 +1125,18 @@ let evaluate_expr_safe : type d r.
         match note with
         | None -> ()
         | Some n -> Format.fprintf ppf "@,@[<hov>%a@]" Format.pp_print_text n)
+
+let evaluate_expr_safe : type d r.
+    ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
+    ?disable_trace:bool ->
+    decl_ctx ->
+    Global.backend_lang ->
+    ScopeName.t ->
+    ((d, r, yes) interpr_kind, 't) gexpr ->
+    ((d, r, yes) interpr_kind, 't) gexpr =
+ fun ?on_expr ?disable_trace ctx lang s e ->
+  fst
+    (evaluate_expr_safe_with_trace_failures ?on_expr ?disable_trace ctx lang s e)
 
 (* Typing shenanigan to add custom terms to the AST type. *)
 let addcustom e =
@@ -1286,11 +1355,20 @@ let interpret_program_dcalc ?input p s = interpret_program_dcalc ?input p s
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
    and [delcustom] are needed to expand and shrink the type of the terms to
    reflect that. *)
+(* This entry point is used for evaluations performed at compile-time (constant
+   folding in [Optimizations], and the computation by [Autotest] of the values
+   embedded in the generated test programs). Tracing is disabled: these are not
+   executions of the program, and their traces would otherwise be dumped to the
+   [--trace] destination, polluting the compiler output. *)
 let evaluate_expr ctx lang e =
   Fun.protect ~finally:Runtime.reset_trace
   @@ fun () ->
   let dummy_scope = ScopeName.fresh [] ("dummy", Pos.void) in
-  evaluate_expr_safe ctx lang dummy_scope (addcustom e)
+  evaluate_expr_safe ~disable_trace:true ctx lang dummy_scope (addcustom e)
+
+let evaluate_expr_with_trace ctx lang s e =
+  Fun.protect ~finally:Runtime.reset_trace
+  @@ fun () -> evaluate_expr_safe_with_trace_failures ctx lang s (addcustom e)
 
 let loaded_modules = Hashtbl.create 17
 

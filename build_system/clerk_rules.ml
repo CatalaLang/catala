@@ -60,6 +60,11 @@ let static_base_rules ~tests enabled_backends =
             [
               !!clerk_exe;
               Word "runtest";
+              (* [!trace] must be referenced here rather than from within
+                 [!clerk_flags]: ninja expands the right-hand side of a variable
+                 declaration immediately, so a nested reference could not be
+                 overridden per-edge. *)
+              !!trace;
               !!clerk_flags;
               !!input;
               Word "--report";
@@ -91,14 +96,37 @@ let static_base_rules ~tests enabled_backends =
   in
   Clerk_backend.static_base_rules @ backend_static_rules @ test_rules
 
+(* Reported once per run: a file declaring asserted trace variables while the
+   project never says whether they should be checked is most likely an
+   oversight. An explicit "check_trace_assertion = false" is a deliberate
+   choice and stays silent. *)
+let warned_missing_check_trace_assertion = ref false
+
+let warn_missing_check_trace_assertion (item : Scan.item) =
+  if not !warned_missing_check_trace_assertion then (
+    warned_missing_check_trace_assertion := true;
+    Message.warning
+      "@[<hov>%a declares @{<bold>#[trace.assert]@} attributes, but \
+       @{<bold>check_trace_assertion@} is not set in the @{<bold>[project]@} \
+       section of @{<bold>clerk.toml@}:@ the asserted trace variables are \
+       verified.@ Set it to @{<bold>true@} to check them, or to \
+       @{<bold>false@} to silence this warning.@]"
+      File.format item.Scan.file_name)
+
 let gen_build_statements
     ~(tests : bool)
+    ~(check_trace_assertion : bool option)
     (enabled_backends : (module Clerk_backend.S) list)
     (autotest : bool)
     ~is_stdlib
     (item : Scan.item) : Nj.ninja =
   let open File in
   let open Var.Op in
+  (* Checked here rather than from the test rules below, which are only generated
+     for files that also carry tests. *)
+  if item.has_trace_assertions && check_trace_assertion = None then
+    warn_missing_check_trace_assertion item;
+
   let src = item.file_name in
   let dir = dirname src in
   let def_vars =
@@ -231,8 +259,20 @@ let gen_build_statements
     if not (item.has_inline_tests || Lazy.force item.has_scope_tests > 0) then
       []
     else
+      let vars =
+        if item.has_trace_assertions && check_trace_assertion = Some true then
+          Some
+            [
+              Nj.Binding.make Var.trace
+                [
+                  Word "--catala-opts=--check-trace-assertion";
+                  Word "--check-trace-assertion";
+                ];
+            ]
+        else None
+      in
       [
-        Nj.build "tests" ~inputs:[catala_src]
+        Nj.build "tests" ~inputs:[catala_src] ?vars
           ~implicit_in:
             (!!Var.clerk_exe :: List.map Clerk_backend.catala_obj_target modules)
           ~outputs:
@@ -260,6 +300,7 @@ let gen_build_statements_dir
     ~is_stdlib
     (dir : string)
     ~(tests : bool)
+    ~(check_trace_assertion : bool option)
     (enabled_backends : (module Clerk_backend.S) list)
     (autotest : bool)
     (items : Scan.item list) : Nj.ninja =
@@ -287,7 +328,8 @@ let gen_build_statements_dir
   @@ Seq.cons (Nj.comment "")
   @@ Seq.cons (Nj.binding (Nj.Binding.make Var.tdir (!Var.builddir / dir)))
   @@ Seq.flat_map
-       (gen_build_statements ~tests ~is_stdlib enabled_backends autotest)
+       (gen_build_statements ~check_trace_assertion ~tests ~is_stdlib
+          enabled_backends autotest)
        (List.to_seq items)
 
 let dir_test_rules dir subdirs items =
@@ -347,7 +389,7 @@ let output_ninja_file_header pp ~config ~tests ~enabled_backends ~var_bindings =
 
 let output_ninja_file_item_statements
     nin_ppf
-    ~config:_
+    ~config
     ~tests
     ~enabled_backends
     ~autotest
@@ -358,7 +400,9 @@ let output_ninja_file_item_statements
     match seq () with
     | Seq.Cons ((dir, subdirs, items), seq) ->
       Nj.format nin_ppf
-      @@ gen_build_statements_dir dir ~is_stdlib ~tests enabled_backends
+      @@ gen_build_statements_dir dir ~is_stdlib ~tests
+           ~check_trace_assertion:
+             config.Clerk_cli.file.global.check_trace_assertion enabled_backends
            autotest items;
       if (not is_stdlib) && tests then
         Nj.format nin_ppf @@ dir_test_rules dir subdirs items;
@@ -629,6 +673,13 @@ let scan_project_items ~cleanup ~config ~includes =
   in
   Seq.memoize item_tree
 
+let has_trace_assertions
+    (item_tree : (string * string list * Scan.item list) Seq.t) =
+  Seq.exists
+    (fun (_, _, items) ->
+      List.exists (fun item -> item.Scan.has_trace_assertions) items)
+    item_tree
+
 let run_ninja
     ?(skip_project_scan = false)
     ~config
@@ -637,13 +688,17 @@ let run_ninja
     ~default
     ?keep_going
     ~code_coverage
-    ~trace
+    ?(trace = false)
+    ~check_trace_assertion
     ~autotest
     ?(clean_up_env = false)
     ?(ninja_flags = [])
     callback =
   let includes = Scan.include_dirs ~config in
   let var_bindings =
+    (* With [~check_trace_assertion], whether the modules need to be compiled
+       with [--trace] depends on the scanned items: it is decided at the end of
+       the ninja file, see below *)
     base_bindings ~code_coverage ~trace ~config ~enabled_backends ~autotest
       ~inplace:false ~includes ()
   in
@@ -723,6 +778,20 @@ let run_ninja
                       (String.Set.elements backends))))
         callback_info.targets_map;
       pp (Nj.comment "\n- Global rules and defaults - #\n");
+      (* The header can't depend on the items without forcing the whole scan
+         before ninja gets any input. Instead, CATALA_TRACE is only referenced
+         from rule commands, which ninja expands at build time with the final
+         value of the variable: redefining it here, once the scan is complete,
+         applies to all the edges above. *)
+      if (not trace) && check_trace_assertion && has_trace_assertions item_tree
+      then (
+        pp
+          (Nj.comment
+             "Overrides the CATALA_TRACE defined at the top: rule commands use \
+              the last value");
+        pp
+          (Nj.binding
+             (Nj.Binding.make Var.catala_trace [Nj.Expr.Word "--trace"])));
       if tests then
         pp
           (Nj.build "phony" ~outputs:[Word "test"]

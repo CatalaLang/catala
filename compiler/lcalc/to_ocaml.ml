@@ -444,8 +444,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
          (fun fmt (x, tau) ->
            Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
       xs_tau format_expr body
-  | EAppOp { op = Tag t, log_pos; args = [f]; _ }
-    when Global.options.trace <> None ->
+  | EAppOp { op = Tag t, log_pos; args = [f]; _ } when Global.trace_enabled ()
+    ->
     Format.fprintf fmt
       "@[<hov 2>(with_trace ~embed:(%a)@ %a@ %a (fun () ->@\n%a))@]"
       format_embedding (Expr.ty f) format_trace_tag t format_code_location
@@ -861,7 +861,7 @@ let catala_test_commands = if commands = [] then test_scopes else commands
   Format.fprintf fmt "open %s@,@," modname;
   let format_initial_call_trace fmt (scope, _e) =
     let scope_info = ScopeName.Map.find scope p.decl_ctx.ctx_scopes in
-    if Global.options.trace <> None then
+    if Global.trace_enabled () then
       let out_typ = TStruct scope_info.out_struct_name, Pos.void in
       let decl_pos = Mark.get (ScopeName.get_info scope) in
       Format.fprintf fmt

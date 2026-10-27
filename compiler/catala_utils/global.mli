@@ -63,6 +63,7 @@ type options = private {
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
   mutable no_fail_on_assert : bool;
+  mutable check_trace_assertion : bool;
   mutable whole_program : bool;
   mutable bin_dir : string;
   mutable gen_external : bool;
@@ -76,6 +77,10 @@ val options : options
 (** A global definition to the global options is provided for convenience, e.g.
     choosing the proper output in formatting functions. Prefer the use of the
     options returned by the command-line parsing whenever possible. *)
+
+val trace_enabled : unit -> bool
+(** Whether trace events should be generated and collected: true when either
+    [options.trace] is set or [options.check_trace_assertion] is enabled. *)
 
 val enforce_options :
   ?input_src:file input_src ->
@@ -92,6 +97,7 @@ val enforce_options :
   ?path_rewrite:(raw_file -> file) ->
   ?stop_on_error:bool ->
   ?no_fail_on_assert:bool ->
+  ?check_trace_assertion:bool ->
   ?whole_program:bool ->
   ?bin_dir:string ->
   ?gen_external:bool ->

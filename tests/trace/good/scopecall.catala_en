@@ -23,7 +23,7 @@ scope T:
 ```
 
 ```catala-test-cli
-$ catala interpret -s T --trace -O
+$ catala interpret -s T --trace --trace-format=human -O
 → Entering scope T
 ─➤ tests/trace/good/scopecall.catala_en:18.19-20:
    │

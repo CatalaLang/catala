@@ -382,7 +382,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
         | _ -> assert false)
       op (format_expression ctx) a2 (format_expression ctx) pos
   | EApp { f = EAppOp { op = Tag _, _; args = [_f]; _ }, _; args = [_arg]; _ }
-    when Global.options.trace <> None ->
+    when Global.trace_enabled () ->
     Message.error "Traces in python are not yet implemented"
   | EAppOp { op = Tag _, _; args = [arg1]; _ } ->
     Format.fprintf fmt "%a" (format_expression ctx) arg1
@@ -768,7 +768,7 @@ let format_tests ctx ppf (p : Ast.program) =
          *   name; *)
         Format.fprintf ppf "@[<v 2>if args.scopes == [] or '%a' in args.scopes:"
           ScopeName.format_original name;
-        if Global.options.trace <> None then (
+        if Global.trace_enabled () then (
           Format.fprintf ppf "@,@[<v 2>if args.trace:@ ";
           let scope_pos = Mark.get (ScopeName.get_info name) in
           Format.fprintf ppf "%a@\n" (format_begin_trace ctx)
@@ -786,7 +786,7 @@ let format_tests ctx ppf (p : Ast.program) =
           Format.fprintf ppf "@]@,@[<v 2>else:@,")
         else Format.pp_print_cut ppf ();
         format_block ctx ppf block;
-        if Global.options.trace <> None then Format.fprintf ppf "@]";
+        if Global.trace_enabled () then Format.fprintf ppf "@]";
         Format.fprintf ppf
           "@,\
            print(\"\\x1b[32m[RESULT]\\x1b[m Scope %a executed successfully.\", \

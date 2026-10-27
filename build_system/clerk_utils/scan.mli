@@ -29,6 +29,7 @@ type item = {
   included_files : File.t Mark.pos list;
   has_inline_tests : bool;
   has_scope_tests : int Lazy.t;
+  has_trace_assertions : bool;
 }
 (** Contains all the data extracted from a single Catala file. Lists are in
     reverse file order. *)
