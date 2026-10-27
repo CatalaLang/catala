@@ -265,7 +265,6 @@ let gen_build_statements
             [
               Nj.Binding.make Var.trace
                 [
-                  Word (Format.sprintf "--catala-opts=--trace");
                   Word "--catala-opts=--check-trace-assertion";
                   Word "--check-trace-assertion";
                 ];

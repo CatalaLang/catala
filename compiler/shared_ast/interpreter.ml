@@ -650,23 +650,20 @@ let report_trace_assertion_failures s failures =
 
 let handle_trace_assert scope scope_name =
   let failures =
-    if Global.options.check_trace_assertion then
-      let trace_assert =
-        Pos.get_attrs
-          (snd (ScopeName.get_info scope))
-          (function
-            | TraceAssert (path, value) -> Some (path, value) | _ -> None)
-      in
-      let trace = Runtime.retrieve_trace () in
-      let trace_assert =
-        List.fold_left
-          (fun acc (path, value) ->
-            Trace_assertion.add_asserted_trace_variable path value acc)
-          Trace_assertion.empty trace_assert
-      in
-      Trace_assertion.check ~asserted_trace_variables:trace_assert
-        ~tested_scope:scope_name trace
-    else []
+    let trace_assert =
+      Pos.get_attrs
+        (snd (ScopeName.get_info scope))
+        (function TraceAssert (path, value) -> Some (path, value) | _ -> None)
+    in
+    let trace = Runtime.retrieve_trace () in
+    let trace_assert =
+      List.fold_left
+        (fun acc (path, value) ->
+          Trace_assertion.add_asserted_trace_variable path value acc)
+        Trace_assertion.empty trace_assert
+    in
+    Trace_assertion.check ~asserted_trace_variables:trace_assert
+      ~tested_scope:scope_name trace
   in
   report_trace_assertion_failures scope failures;
   failures
@@ -887,7 +884,7 @@ let rec evaluate_expr : type d r.
           if Global.options.debug then Format.fprintf ppf ":@ %a" Expr.format e
           else ())
         e1)
-  | EAppOp { op = Tag t, _; args = [e]; _ } when Global.options.trace <> None ->
+  | EAppOp { op = Tag t, _; args = [e]; _ } when Global.trace_enabled () ->
     let pos = Expr.pos e in
     let kind = tag_to_runtime t in
     Runtime.with_trace ~embed:(Expr.embed_value ctx) kind
@@ -1066,7 +1063,7 @@ let evaluate_expr_trace : type d r.
   Fun.protect
     (fun () ->
       let f () = evaluate_expr ?on_expr ctx lang e in
-      if (not disable_trace) && Global.options.trace <> None then
+      if (not disable_trace) && Global.trace_enabled () then
         let scope_pos = Expr.pos_to_runtime (snd (ScopeName.get_info s)) in
         (* [ScopeCall] tags are defined at call-sites, we must add an
         artificial one here. *)
@@ -1085,7 +1082,9 @@ let evaluate_expr_trace : type d r.
       else f (), [])
     ~finally:(fun () ->
       match Global.options.trace with
-      | None -> ()
+      | None ->
+        (* Trace events may still have been collected for trace assertions *)
+        if Global.trace_enabled () then Runtime.reset_trace ()
       | Some _ when disable_trace ->
         (* Nothing is dumped, but trace events were still collected in the
            global state *)
@@ -1369,9 +1368,7 @@ let evaluate_expr ctx lang e =
 
 let evaluate_expr_with_trace ctx lang s e =
   Fun.protect ~finally:Runtime.reset_trace
-  @@ fun () ->
-  evaluate_expr_safe_with_trace_failures ~disable_trace:true ctx lang s
-    (addcustom e)
+  @@ fun () -> evaluate_expr_safe_with_trace_failures ctx lang s (addcustom e)
 
 let loaded_modules = Hashtbl.create 17
 

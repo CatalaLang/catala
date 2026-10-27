@@ -79,6 +79,8 @@ let options =
     no_stdlib = false;
   }
 
+let trace_enabled () = options.trace <> None || options.check_trace_assertion
+
 let enforce_options
     ?input_src
     ?language

@@ -512,8 +512,8 @@ let rec format_expression ctx (ppf : formatter) (e : expr) : unit =
     fprintf ppf "@[<hv 2>%a.%a@;<0 -1>(%a@])"
       (format_expression_with_paren ctx)
       arg1 format_op op (format_expression ctx) arg2
-  | EAppOp { op = Tag _, _; args = [_]; tys = _ }
-    when Global.options.trace <> None ->
+  | EAppOp { op = Tag _, _; args = [_]; tys = _ } when Global.trace_enabled ()
+    ->
     (* FIXME: enforce no trace in scalc operators *)
     assert false
   | EAppOp { op = (Not, _) as op; args = [arg1]; _ } ->
@@ -1063,7 +1063,7 @@ let format_tests ctx ppf p =
      let () =
        fprintf ppf "boolean test_mode = false;";
        fprintf ppf "@,boolean json_mode = false;";
-       if Global.options.trace <> None then
+       if Global.trace_enabled () then
          fprintf ppf "@,CatalaGlobals.tracing = true;";
        fprintf ppf
          "@,\
@@ -1106,12 +1106,12 @@ let format_tests ctx ppf p =
          (java_string (ScopeName.original_base scope_name));
        pp_open_vbox ppf 2;
        fprintf ppf "try {@\n";
-       (if Global.options.trace <> None then
+       (if Global.trace_enabled () then
           let scope_pos = Mark.get (ScopeName.get_info scope_name) in
           fprintf ppf "%a@\n" (format_begin_trace ctx)
             (ScopeCall scope_name, scope_pos));
        fprintf ppf "%a@\n" (format_block ~toplevel:true ctx) block;
-       if Global.options.trace <> None then
+       if Global.trace_enabled () then
          fprintf ppf "CatalaTrace.end(%s);@\n" (VarName.to_string var);
        fprintf ppf "CatalaGlobals.displayResult(%s, %s, test_mode, json_mode);"
          (java_string (ScopeName.original_base scope_name))

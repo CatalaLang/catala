@@ -1087,7 +1087,7 @@ let etag
     ?pos:epos
     (tag : tag)
     (e : (< polymorphic : yes ; .. >, m) boxed_gexpr) : ('a, m) boxed_gexpr =
-  if Global.options.trace <> None then
+  if Global.trace_enabled () then
     let pos = Option.value ~default:(pos e) epos in
     let m = map_mark (fun _ -> pos) (fun _ -> Type.any pos) (Mark.get e) in
     eappop ~op:(Tag tag, pos) ~tys:[Type.any pos] ~args:[e] m
@@ -1098,7 +1098,7 @@ let etag_nobox
     ?pos:epos
     (tag : tag)
     (e : (< polymorphic : yes ; .. >, m) gexpr) : ('a, m) gexpr =
-  if Global.options.trace <> None then
+  if Global.trace_enabled () then
     let pos = Option.value ~default:(pos e) epos in
     let m = map_mark (fun _ -> pos) (fun _ -> Type.any pos) (Mark.get e) in
     Mark.add m (EAppOp { op = Tag tag, pos; tys = [Type.any pos]; args = [e] })

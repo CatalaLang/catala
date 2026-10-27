@@ -78,6 +78,10 @@ val options : options
     choosing the proper output in formatting functions. Prefer the use of the
     options returned by the command-line parsing whenever possible. *)
 
+val trace_enabled : unit -> bool
+(** Whether trace events should be generated and collected: true when either
+    [options.trace] is set or [options.check_trace_assertion] is enabled. *)
+
 val enforce_options :
   ?input_src:file input_src ->
   ?language:backend_lang option ->
