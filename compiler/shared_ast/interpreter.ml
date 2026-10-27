@@ -629,6 +629,48 @@ let tag_to_runtime = function
     Exception { label; cons_pos = Expr.pos_to_runtime cons_pos }
   | Assertion -> Assertion
 
+(* Trace assertion failures are reported with the [AssertFailure] kind, as
+   failed assertions are, so that the language server absorbs both alike. *)
+let report_trace_assertion_failures s failures =
+  List.iter
+    (fun (failed_trace : Trace_assertion.failed_trace_assertions) ->
+      (* Without a position, the GNU-formatted message is not recognised by
+         'clerk runtest' and gets dropped *)
+      let pos =
+        match failed_trace.pos with
+        | Some pos -> Expr.runtime_to_pos pos
+        | None -> snd (ScopeName.get_info s)
+      in
+      if Global.options.no_fail_on_assert then
+        Message.warning ~pos "%a" Trace_assertion.display failed_trace
+      else
+        Message.delayed_error ~kind:TraceAssertFails () ~pos "%a"
+          Trace_assertion.display failed_trace)
+    failures
+
+let handle_trace_assert scope scope_name =
+  let failures =
+    if Global.options.check_trace_assertion then
+      let trace_assert =
+        Pos.get_attrs
+          (snd (ScopeName.get_info scope))
+          (function
+            | TraceAssert (path, value) -> Some (path, value) | _ -> None)
+      in
+      let trace = Runtime.retrieve_trace () in
+      let trace_assert =
+        List.fold_left
+          (fun acc (path, value) ->
+            Trace_assertion.add_asserted_trace_variable path value acc)
+          Trace_assertion.empty trace_assert
+      in
+      Trace_assertion.check ~asserted_trace_variables:trace_assert
+        ~tested_scope:scope_name trace
+    else []
+  in
+  report_trace_assertion_failures scope failures;
+  failures
+
 let rec handle_assert : type d r.
     eval_expr:
       (((d, r, yes) interpr_kind, 't) gexpr ->
@@ -1036,21 +1078,7 @@ let evaluate_expr_trace : type d r.
         in
         let failures =
           if Global.options.check_trace_assertion then
-            let trace_assert =
-              Pos.get_attrs
-                (snd (ScopeName.get_info s))
-                (function
-                  | TraceAssert (path, value) -> Some (path, value) | _ -> None)
-            in
-            let trace = Runtime.retrieve_trace () in
-            let trace_assert =
-              List.fold_left
-                (fun acc (path, value) ->
-                  Trace_assertion.add_asserted_trace_variable path value acc)
-                Trace_assertion.empty trace_assert
-            in
-            Trace_assertion.check ~asserted_trace_variables:trace_assert
-              ~tested_scope:scope_name trace
+            handle_trace_assert s scope_name
           else []
         in
         expr, failures
@@ -1075,22 +1103,6 @@ let evaluate_expr_trace : type d r.
             Format.pp_print_flush ppf ();
             Runtime.reset_trace ()))
 
-(* Trace assertion failures are reported with the [AssertFailure] kind, as
-   failed assertions are, so that the language server absorbs both alike. *)
-let report_trace_assertion_failures s failures =
-  List.iter
-    (fun (failed_trace : Trace_assertion.failed_trace_assertions) ->
-      (* Without a position, the GNU-formatted message is not recognised by
-         'clerk runtest' and gets dropped *)
-      let pos =
-        match failed_trace.pos with
-        | Some pos -> Expr.runtime_to_pos pos
-        | None -> snd (ScopeName.get_info s)
-      in
-      Message.delayed_error ~kind:AssertFailure () ~pos "%a"
-        Trace_assertion.display failed_trace)
-    failures
-
 let evaluate_expr_safe_with_trace_failures : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     ?disable_trace:bool ->
@@ -1102,12 +1114,9 @@ let evaluate_expr_safe_with_trace_failures : type d r.
     * Trace_assertion.failed_trace_assertions list =
  fun ?on_expr ?disable_trace ctx lang s e ->
   try
-    let r, failures =
-      evaluate_expr_trace ?on_expr ?disable_trace ctx lang s e
-    in
-    report_trace_assertion_failures s failures;
+    let r = evaluate_expr_trace ?on_expr ?disable_trace ctx lang s e in
     Message.report_delayed_errors_if_any ();
-    r, failures
+    r
   with Runtime.Error (err, rpos, note) ->
     Message.error
       ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)

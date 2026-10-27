@@ -545,6 +545,7 @@ type lsp_error_kind =
   | Generic
   | Warning
   | AssertFailure
+  | TraceAssertFails
 
 type lsp_error = {
   kind : lsp_error_kind;
