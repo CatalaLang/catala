@@ -91,10 +91,6 @@ type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
 type catala_option = DateRounding of variation_typ
 
-type meta_assertion =
-  | FixedBy of reference_typ Mark.pos
-  | VariesWith of unit * variation_typ Mark.pos option
-
 type io = {
   io_output : bool Mark.pos;
       (** [true] is present in the output of the scope. *)
@@ -122,7 +118,6 @@ type scope = {
   scope_assertions : assertion AssertionName.Map.t;
       (** empty outside of the root module *)
   scope_options : catala_option Mark.pos list;
-  scope_meta_assertions : meta_assertion list;
   scope_visibility : visibility;
 }
 

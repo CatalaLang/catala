@@ -225,10 +225,6 @@ type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
 type catala_option = DateRounding of variation_typ
 
-type meta_assertion =
-  | FixedBy of reference_typ Mark.pos
-  | VariesWith of unit * variation_typ Mark.pos option
-
 type scope_def = {
   scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
@@ -248,7 +244,6 @@ type scope = {
   scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion AssertionName.Map.t;
   scope_options : catala_option Mark.pos list;
-  scope_meta_assertions : meta_assertion list;
   scope_visibility : visibility;
 }
 

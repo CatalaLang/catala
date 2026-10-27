@@ -2029,7 +2029,6 @@ let translate_program
       scope_sub_scopes;
       scope_defs = init_scope_defs ctxt s_context;
       scope_assertions = Ast.AssertionName.Map.empty;
-      scope_meta_assertions = [];
       scope_options = [];
       scope_uid = s_uid;
       scope_visibility = s_context.Name_resolution.scope_visibility;
