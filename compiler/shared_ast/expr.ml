@@ -756,7 +756,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare f1 f2 @@< fun () ->
     List.compare compare args1 args2 @@< fun () ->
     List.compare Type.compare tys1 tys2
-  | EAppOp {op=op1; args=args1; tys=tys1}, EAppOp {op=op2; args=args2; tys=tys2} ->
+  | EAppOp {op=op1; args=args1; tys=tys1},
+    EAppOp {op=op2; args=args2; tys=tys2} ->
     Mark.compare Operator.compare op1 op2 @@< fun () ->
     List.compare compare args1 args2 @@< fun () ->
     List.compare Type.compare tys1 tys2
@@ -805,7 +806,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EScopeCall {scope=name1; args=field_map1},
     EScopeCall {scope=name2; args=field_map2} ->
     ScopeName.compare name1 name2 @@< fun () ->
-    ScopeVar.Map.compare (fun (_, e) (_, e') -> compare e e') field_map1 field_map2
+    ScopeVar.Map.compare (fun (_, e) (_, e') -> compare e e')
+      field_map1 field_map2
   | ETuple es1, ETuple es2 ->
     List.compare compare es1 es2
   | ETupleAccess {e=e1; index=n1; size=s1},

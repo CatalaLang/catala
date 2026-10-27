@@ -135,6 +135,10 @@ val register_attribute :
     attribute. To be called from plugins, together with the extension of the
     [Pos.attr] type. *)
 
+type Pos.attr +=
+  | TraceAssert of string list * Surface.Ast.expression
+        (** Surface attribute for trace assertions *)
+
 val translate_pos : attribute_context -> Pos.t -> Pos.t
 (** May trigger warnings on unrecognised attributes *)
 

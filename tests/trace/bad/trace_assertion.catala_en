@@ -20,14 +20,15 @@ scope S:
   definition ii equals 10
   definition sr equals i + ii + ic.s
 
-#[trace.assert = (res.S.ic.I.s, 6)]
-#[trace.assert = (res.S.ii, 11)]
-#[trace.assert = (res.S.unknown, 0)]
 declaration scope T:
   output res scope S
 
 scope T:
   definition res.i equals 4
+  #[trace.assert = (res.S.ic.I.s = 6)]
+  #[trace.assert = (res.S.ii = 11)]
+  #[trace.assert = (res.S.unknown = 0.0)]
+  assertion true
 ```
 
 ```catala
@@ -83,30 +84,32 @@ scope Values:
   definition o_present equals Present content n
   definition o_absent equals Absent
 
-#[trace.assert = (v.Values.c_red, Green content 0)]
-#[trace.assert = (v.Values.c_green, Green content 6)]
-#[trace.assert = (v.Values.c_blue, Blue content (4, |2024-01-16|))]
-#[trace.assert = (v.Values.dt, |2024-02-29|)]
-#[trace.assert = (v.Values.du_year, 3 year)]
-#[trace.assert = (v.Values.du_month, 4 month)]
-#[trace.assert = (v.Values.du_day, 29 month)]
-#[trace.assert = (v.Values.du_neg, 5 day)]
-#[trace.assert = (v.Values.m, $25.01)]
-#[trace.assert = (v.Values.m_neg, $3.20)]
-#[trace.assert = (v.Values.dec, 1.6)]
-#[trace.assert = (v.Values.pct, 25)]
-#[trace.assert = (v.Values.b, false)]
-#[trace.assert = (v.Values.p, Point { -- x: 4 -- y: 2.6 })]
-#[trace.assert = (v.Values.l, [4; 5])]
-#[trace.assert = (v.Values.l_empty, [1])]
-#[trace.assert = (v.Values.period, (|2024-01-01|, |2024-12-30|))]
-#[trace.assert = (v.Values.o_present, 5)]
-#[trace.assert = (v.Values.o_absent, 3)]
 declaration scope TestValues:
   output v scope Values
 
 scope TestValues:
   definition v.n equals 4
+  #[trace.assert = (v.Values.c_red = Green content 0)]
+  #[trace.assert = (v.Values.c_green = Green content 6)]
+  #[trace.assert = (v.Values.c_blue = Blue content (4, |2024-01-16|))]
+  #[trace.assert = (v.Values.c_blue = Green content 3)]
+  #[trace.assert = (v.Values.dt = |2024-02-29|)]
+  #[trace.assert = (v.Values.du_year = 3 year)]
+  #[trace.assert = (v.Values.du_month = 4 month)]
+  #[trace.assert = (v.Values.du_day = 29 month)]
+  #[trace.assert = (v.Values.du_neg = 5 day)]
+  #[trace.assert = (v.Values.m = $25.01)]
+  #[trace.assert = (v.Values.m_neg = $3.20)]
+  #[trace.assert = (v.Values.dec = 1.6)]
+  #[trace.assert = (v.Values.pct = 25.0)]
+  #[trace.assert = (v.Values.b = false)]
+  #[trace.assert = (v.Values.p = Point { -- x: 4 -- y: 2.6 })]
+  #[trace.assert = (v.Values.l = [4; 5])]
+  #[trace.assert = (v.Values.l_empty = [1])]
+  #[trace.assert = (v.Values.period = (|2024-01-01|, |2024-12-30|))]
+  #[trace.assert = (v.Values.o_present = 5)]
+  #[trace.assert = (v.Values.o_absent = 3)]
+  assertion true
 
 declaration scope State:
   input n content integer
@@ -122,32 +125,40 @@ scope State:
   definition st state third equals st + 2
   definition after equals st + 1
 
-#[trace.assert_state = (s.State.st, first, 5)]
-#[trace.assert_state = (s.State.st, second, 41)]
-#[trace.assert_state = (s.State.st, third, 43)]
-#[trace.assert_state = (s.State.st, fourth, 42)]
-#[trace.assert = (s.State.after, 44)]
 declaration scope TestState:
   output s scope State
 
 scope TestState:
   definition s.n equals 4
+  #[trace.assert = (s.State.st/first = 5)]
+  #[trace.assert = (s.State.st/second = 41)]
+  #[trace.assert = (s.State.st/third = 43)]
+  #[trace.assert = (s.State.st/fourth = 42)]
+  #[trace.assert = (s.State.after = 44)]
+  assertion true
 ```
 
 ```catala-test-cli
 $ catala interpret -s T
+┌─[RESULT]─ T ─
+│ res = S {
+│         -- sr: 19
+│       }
+└─
 ┌─[ERROR]─ 1/3 ─
 │
-│  Trace Assertion Failed: res.S.unknown ≠ 0 (Missing)
+│  Trace assertion failed: expected res.S.unknown = 0.0,
+│  got: Missing
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:26.19-20:
+├─➤ tests/trace/bad/trace_assertion.catala_en:23.19-20:
 │    │
-│ 26 │ declaration scope T:
+│ 23 │ declaration scope T:
 │    │                   ‾
 └─
 ┌─[ERROR]─ 2/3 ─
 │
-│  Trace Assertion Failed: res.S.ii ≠ 11 (10)
+│  Trace assertion failed: expected res.S.ii = 11,
+│  got: 10
 │
 ├─➤ tests/trace/bad/trace_assertion.catala_en:14.12-14:
 │    │
@@ -156,7 +167,8 @@ $ catala interpret -s T
 └─
 ┌─[ERROR]─ 3/3 ─
 │
-│  Trace Assertion Failed: res.S.ic.I.s ≠ 6 (5)
+│  Trace assertion failed: expected res.S.ic.I.s = 6,
+│  got: 5
 │
 ├─➤ tests/trace/bad/trace_assertion.catala_en:5.10-11:
 │   │
@@ -168,175 +180,242 @@ $ catala interpret -s T
 
 ```catala-test-cli
 $ catala interpret -s TestValues
+┌─[RESULT]─ TestValues ─
+│ v =
+│   Values {
+│     -- c_red: Red
+│     -- c_green: Green content 5
+│     -- c_blue: Blue content (4, |2024-01-15|)
+│     -- dt: |2024-03-01|
+│     -- du_year: [2 years]
+│     -- du_month: [3 months]
+│     -- du_day: [29 days]
+│     -- du_neg: [-5 days]
+│     -- m: $25.00
+│     -- m_neg: -$3.20
+│     -- dec: 1.5
+│     -- pct: 0.25
+│     -- b: true
+│     -- p: Point {
+│       -- x: 4
+│       -- y: 2.5
+│     }
+│     -- l: [
+│       4;
+│       5;
+│       6;
+│     ]
+│     -- l_empty: []
+│     -- period: (|2024-01-01|, |2024-12-31|)
+│     -- o_present: Present content 4
+│     -- o_absent: Absent
+│   }
+└─
 ┌─[ERROR]─ 1/19 ─
 │
-│  Trace Assertion Failed: v.Values.period ≠ (|2024-01-01|, |2024-12-30|) ((|2024-01-01|, |2024-12-31|))
+│  Trace assertion failed: expected v.Values.period =
+│  (|2024-01-01|, |2024-12-30|),
+│  got: (|2024-01-01|, |2024-12-31|)
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:61.10-16:
+├─➤ tests/trace/bad/trace_assertion.catala_en:62.10-16:
 │    │
-│ 61 │   output period content (date, date)
+│ 62 │   output period content (date, date)
 │    │          ‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 2/19 ─
 │
-│  Trace Assertion Failed: v.Values.pct ≠ 25 (0.25)
+│  Trace assertion failed: expected v.Values.pct = 25.0,
+│  got: 0.25
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:56.10-13:
+├─➤ tests/trace/bad/trace_assertion.catala_en:57.10-13:
 │    │
-│ 56 │   output pct content decimal
+│ 57 │   output pct content decimal
 │    │          ‾‾‾
 └─
 ┌─[ERROR]─ 3/19 ─
 │
-│  Trace Assertion Failed: v.Values.p ≠ Point { -- x: 4 -- y: 2.6 } (Point { -- x: 4 -- y: 2.5 })
+│  Trace assertion failed: expected v.Values.p = Point {
+│                                                  -- x: 4
+│                                                  -- y: 2.6
+│                                                },
+│  got: Point {
+│         -- x: 4
+│         -- y: 2.5
+│       }
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:58.10-11:
+├─➤ tests/trace/bad/trace_assertion.catala_en:59.10-11:
 │    │
-│ 58 │   output p content Point
+│ 59 │   output p content Point
 │    │          ‾
 └─
 ┌─[ERROR]─ 4/19 ─
 │
-│  Trace Assertion Failed: v.Values.o_present ≠ 5 (4)
+│  Trace assertion failed: expected v.Values.o_present = 5,
+│  got: Present content 4
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:62.10-19:
+├─➤ tests/trace/bad/trace_assertion.catala_en:63.10-19:
 │    │
-│ 62 │   output o_present content optional of integer
+│ 63 │   output o_present content optional of integer
 │    │          ‾‾‾‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 5/19 ─
 │
-│  Trace Assertion Failed: v.Values.o_absent ≠ 3 (Absent)
+│  Trace assertion failed: expected v.Values.o_absent = 3,
+│  got: Absent
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:63.10-18:
+├─➤ tests/trace/bad/trace_assertion.catala_en:64.10-18:
 │    │
-│ 63 │   output o_absent content optional of integer
+│ 64 │   output o_absent content optional of integer
 │    │          ‾‾‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 6/19 ─
 │
-│  Trace Assertion Failed: v.Values.m_neg ≠ $3.20 (-$3.20)
+│  Trace assertion failed: expected v.Values.m_neg = $3.20,
+│  got: -$3.20
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:54.10-15:
+├─➤ tests/trace/bad/trace_assertion.catala_en:55.10-15:
 │    │
-│ 54 │   output m_neg content money
+│ 55 │   output m_neg content money
 │    │          ‾‾‾‾‾
 └─
 ┌─[ERROR]─ 7/19 ─
 │
-│  Trace Assertion Failed: v.Values.m ≠ $25.01 ($25.00)
+│  Trace assertion failed: expected v.Values.m = $25.01,
+│  got: $25.00
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:53.10-11:
+├─➤ tests/trace/bad/trace_assertion.catala_en:54.10-11:
 │    │
-│ 53 │   output m content money
+│ 54 │   output m content money
 │    │          ‾
 └─
 ┌─[ERROR]─ 8/19 ─
 │
-│  Trace Assertion Failed: v.Values.l_empty ≠ [1] ([])
+│  Trace assertion failed: expected v.Values.l_empty = [
+│                                                        1;
+│                                                      ],
+│  got: []
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:60.10-17:
+├─➤ tests/trace/bad/trace_assertion.catala_en:61.10-17:
 │    │
-│ 60 │   output l_empty content list of integer
+│ 61 │   output l_empty content list of integer
 │    │          ‾‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 9/19 ─
 │
-│  Trace Assertion Failed: v.Values.l ≠ [4; 5] ([4; 5; 6])
+│  Trace assertion failed: expected v.Values.l = [
+│                                                  4;
+│                                                  5;
+│                                                ],
+│  got: [
+│         4;
+│         5;
+│         6;
+│       ]
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:59.10-11:
+├─➤ tests/trace/bad/trace_assertion.catala_en:60.10-11:
 │    │
-│ 59 │   output l content list of integer
+│ 60 │   output l content list of integer
 │    │          ‾
 └─
 ┌─[ERROR]─ 10/19 ─
 │
-│  Trace Assertion Failed: v.Values.du_year ≠ [3 years] ([2 years])
+│  Trace assertion failed: expected v.Values.du_year = [3 years],
+│  got: [2 years]
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:49.10-17:
+├─➤ tests/trace/bad/trace_assertion.catala_en:50.10-17:
 │    │
-│ 49 │   output du_year content duration
+│ 50 │   output du_year content duration
 │    │          ‾‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 11/19 ─
 │
-│  Trace Assertion Failed: v.Values.du_neg ≠ [5 days] ([-5 days])
+│  Trace assertion failed: expected v.Values.du_neg = [5 days],
+│  got: [-5 days]
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:52.10-16:
+├─➤ tests/trace/bad/trace_assertion.catala_en:53.10-16:
 │    │
-│ 52 │   output du_neg content duration
+│ 53 │   output du_neg content duration
 │    │          ‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 12/19 ─
 │
-│  Trace Assertion Failed: v.Values.du_month ≠ [4 months] ([3 months])
+│  Trace assertion failed: expected v.Values.du_month = [4 months],
+│  got: [3 months]
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:50.10-18:
+├─➤ tests/trace/bad/trace_assertion.catala_en:51.10-18:
 │    │
-│ 50 │   output du_month content duration
+│ 51 │   output du_month content duration
 │    │          ‾‾‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 13/19 ─
 │
-│  Trace Assertion Failed: v.Values.du_day ≠ [29 months] ([29 days]) [ambiguous comparison between durations in different units (e.g. months vs. days)]
+│  Trace assertion failed: expected v.Values.du_day = [29 months],
+│  got: [29 days]
+│  [ambiguous comparison between durations in different units (e.g. months vs. days)]
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:51.10-16:
+├─➤ tests/trace/bad/trace_assertion.catala_en:52.10-16:
 │    │
-│ 51 │   output du_day content duration
+│ 52 │   output du_day content duration
 │    │          ‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 14/19 ─
 │
-│  Trace Assertion Failed: v.Values.dt ≠ |2024-02-29| (|2024-03-01|)
+│  Trace assertion failed: expected v.Values.dt = |2024-02-29|,
+│  got: |2024-03-01|
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:48.10-12:
+├─➤ tests/trace/bad/trace_assertion.catala_en:49.10-12:
 │    │
-│ 48 │   output dt content date
+│ 49 │   output dt content date
 │    │          ‾‾
 └─
 ┌─[ERROR]─ 15/19 ─
 │
-│  Trace Assertion Failed: v.Values.dec ≠ 1.6 (1.5)
+│  Trace assertion failed: expected v.Values.dec = 1.6,
+│  got: 1.5
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:55.10-13:
+├─➤ tests/trace/bad/trace_assertion.catala_en:56.10-13:
 │    │
-│ 55 │   output dec content decimal
+│ 56 │   output dec content decimal
 │    │          ‾‾‾
 └─
 ┌─[ERROR]─ 16/19 ─
 │
-│  Trace Assertion Failed: v.Values.c_red ≠ Green content 0 (Red)
+│  Trace assertion failed: expected v.Values.c_red = Green content 0,
+│  got: Red
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:45.10-15:
+├─➤ tests/trace/bad/trace_assertion.catala_en:46.10-15:
 │    │
-│ 45 │   output c_red content Color
+│ 46 │   output c_red content Color
 │    │          ‾‾‾‾‾
 └─
 ┌─[ERROR]─ 17/19 ─
 │
-│  Trace Assertion Failed: v.Values.c_green ≠ Green content 6 (Green content 5)
+│  Trace assertion failed: expected v.Values.c_green = Green content 6,
+│  got: Green content 5
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:46.10-17:
+├─➤ tests/trace/bad/trace_assertion.catala_en:47.10-17:
 │    │
-│ 46 │   output c_green content Color
+│ 47 │   output c_green content Color
 │    │          ‾‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 18/19 ─
 │
-│  Trace Assertion Failed: v.Values.c_blue ≠ Blue content (4, |2024-01-16|) (Blue content (4, |2024-01-15|))
+│  Trace assertion failed: expected v.Values.c_blue = Green content 3,
+│  got: Blue content (4, |2024-01-15|)
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:47.10-16:
+├─➤ tests/trace/bad/trace_assertion.catala_en:48.10-16:
 │    │
-│ 47 │   output c_blue content Color
+│ 48 │   output c_blue content Color
 │    │          ‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 19/19 ─
 │
-│  Trace Assertion Failed: v.Values.b ≠ false (true)
+│  Trace assertion failed: expected v.Values.b = false,
+│  got: true
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:57.10-11:
+├─➤ tests/trace/bad/trace_assertion.catala_en:58.10-11:
 │    │
-│ 57 │   output b content boolean
+│ 58 │   output b content boolean
 │    │          ‾
 └─
 #return code 123#
@@ -344,49 +423,60 @@ $ catala interpret -s TestValues
 
 ```catala-test-cli
 $ catala interpret -s TestState
+┌─[RESULT]─ TestState ─
+│ s = State {
+│       -- st: 42
+│       -- after: 43
+│     }
+└─
 ┌─[ERROR]─ 1/5 ─
 │
-│  Trace Assertion Failed: s.State.st#third ≠ 43 (42)
+│  Trace assertion failed: expected s.State.st/third = 43,
+│  got: 42
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:113.10-12:
+├─➤ tests/trace/bad/trace_assertion.catala_en:116.10-12:
 │     │
-│ 113 │   output st content integer
+│ 116 │   output st content integer
 │     │          ‾‾
 └─
 ┌─[ERROR]─ 2/5 ─
 │
-│  Trace Assertion Failed: s.State.st#second ≠ 41 (40)
+│  Trace assertion failed: expected s.State.st/second = 41,
+│  got: 40
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:113.10-12:
+├─➤ tests/trace/bad/trace_assertion.catala_en:116.10-12:
 │     │
-│ 113 │   output st content integer
+│ 116 │   output st content integer
 │     │          ‾‾
 └─
 ┌─[ERROR]─ 3/5 ─
 │
-│  Trace Assertion Failed: s.State.st#fourth ≠ 42 (Missing)
+│  Trace assertion failed: expected s.State.st/fourth = 42,
+│  got: Missing
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:130.19-28:
+├─➤ tests/trace/bad/trace_assertion.catala_en:128.19-28:
 │     │
-│ 130 │ declaration scope TestState:
+│ 128 │ declaration scope TestState:
 │     │                   ‾‾‾‾‾‾‾‾‾
 └─
 ┌─[ERROR]─ 4/5 ─
 │
-│  Trace Assertion Failed: s.State.st#first ≠ 5 (4)
+│  Trace assertion failed: expected s.State.st/first = 5,
+│  got: 4
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:113.10-12:
+├─➤ tests/trace/bad/trace_assertion.catala_en:116.10-12:
 │     │
-│ 113 │   output st content integer
+│ 116 │   output st content integer
 │     │          ‾‾
 └─
 ┌─[ERROR]─ 5/5 ─
 │
-│  Trace Assertion Failed: s.State.after ≠ 44 (43)
+│  Trace assertion failed: expected s.State.after = 44,
+│  got: 43
 │
-├─➤ tests/trace/bad/trace_assertion.catala_en:117.10-15:
+├─➤ tests/trace/bad/trace_assertion.catala_en:120.10-15:
 │     │
-│ 117 │   output after content integer
+│ 120 │   output after content integer
 │     │          ‾‾‾‾‾
 └─
 #return code 123#

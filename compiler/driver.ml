@@ -818,18 +818,22 @@ module Commands = struct
         (fun success scope ->
           if code_coverage then
             let interp () =
-              let res, cov =
+              let res, trace, cov =
                 Interpreter.interpret_program_dcalc_with_coverage ?stdlib prg
                   scope
               in
+              Dcalc.Trace_assertion.check prg scope trace;
               res, Some cov
             in
             print_interpretation_results options ~quiet interp scope
               prg.decl_ctx
           else
             let interp () =
-              ( Interpreter.interpret_program_dcalc ?input:scope_input prg scope,
-                None )
+              let r, trace =
+                Interpreter.interpret_program_dcalc ?input:scope_input prg scope
+              in
+              Dcalc.Trace_assertion.check prg scope trace;
+              r, None
             in
             print_interpretation_results ~quiet options interp scope
               prg.decl_ctx
@@ -935,8 +939,11 @@ module Commands = struct
       List.fold_left
         (fun success scope ->
           let interp () =
-            ( Interpreter.interpret_program_lcalc ?input:scope_input prg scope,
-              None )
+            let r, trace =
+              Interpreter.interpret_program_lcalc ?input:scope_input prg scope
+            in
+            Dcalc.Trace_assertion.check prg scope trace;
+            r, None
           in
           print_interpretation_results ~quiet options interp scope prg.decl_ctx
           && success)

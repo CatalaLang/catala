@@ -30,12 +30,6 @@ type inline_test = {
   i_result : pos;
 }
 
-(* Defined in [Clerk_utils], so that the compiler can check trace assertions
-   without depending on the reporting layer *)
-type trace_assertion = Trace_assertion.failed_trace_assertions
-
-let display_trace_assertion = Trace_assertion.display
-
 type scope_test = {
   s_success : bool;
   s_name : string;

@@ -1632,6 +1632,19 @@ let process_assert
      messages, it is only a reference to designate the assertion instead of its
      expression. *)
   let assertion_name =
+    let pos = Name_resolution.translate_pos Assertion pos in
+    let pos =
+      Pos.attrs pos
+      |> List.map (function
+        | Name_resolution.TraceAssert (path, e) ->
+          let e = translate_expr (Some scope_uid) None ctxt Ident.Map.empty e in
+          if not (Bindlib.is_closed (Mark.remove e)) then
+            Message.error ~pos:(Expr.pos e)
+              "Invalid trace assertion value: only constants are allowed";
+          Ast.TraceAssert (path, Expr.unbox e)
+        | attr -> attr)
+      |> Pos.set_attrs pos
+    in
     Ast.AssertionName.fresh
       ("assert", Name_resolution.translate_pos Assertion pos)
   in

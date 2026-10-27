@@ -629,45 +629,6 @@ let tag_to_runtime = function
     Exception { label; cons_pos = Expr.pos_to_runtime cons_pos }
   | Assertion -> Assertion
 
-(* Trace assertion failures are reported with the [AssertFailure] kind, as
-   failed assertions are, so that the language server absorbs both alike. *)
-let report_trace_assertion_failures s failures =
-  List.iter
-    (fun (failed_trace : Trace_assertion.failed_trace_assertions) ->
-      (* Without a position, the GNU-formatted message is not recognised by
-         'clerk runtest' and gets dropped *)
-      let pos =
-        match failed_trace.pos with
-        | Some pos -> Expr.runtime_to_pos pos
-        | None -> snd (ScopeName.get_info s)
-      in
-      if Global.options.no_fail_on_assert then
-        Message.warning ~pos "%a" Trace_assertion.display failed_trace
-      else
-        Message.delayed_error ~kind:TraceAssertFails () ~pos "%a"
-          Trace_assertion.display failed_trace)
-    failures
-
-let handle_trace_assert scope scope_name =
-  let failures =
-    let trace_assert =
-      Pos.get_attrs
-        (snd (ScopeName.get_info scope))
-        (function TraceAssert (path, value) -> Some (path, value) | _ -> None)
-    in
-    let trace = Runtime.retrieve_trace () in
-    let trace_assert =
-      List.fold_left
-        (fun acc (path, value) ->
-          Trace_assertion.add_asserted_trace_variable path value acc)
-        Trace_assertion.empty trace_assert
-    in
-    Trace_assertion.check ~asserted_trace_variables:trace_assert
-      ~tested_scope:scope_name trace
-  in
-  report_trace_assertion_failures scope failures;
-  failures
-
 let rec handle_assert : type d r.
     eval_expr:
       (((d, r, yes) interpr_kind, 't) gexpr ->
@@ -1057,8 +1018,7 @@ let evaluate_expr_trace : type d r.
     Global.backend_lang ->
     ScopeName.t ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
-    ((d, r, yes) interpr_kind, 't) gexpr
-    * Trace_assertion.failed_trace_assertions list =
+    ((d, r, yes) interpr_kind, 't) gexpr * Runtime.trace =
  fun ?on_expr ?(disable_trace = false) ctx lang s e ->
   Fun.protect
     (fun () ->
@@ -1073,12 +1033,7 @@ let evaluate_expr_trace : type d r.
             (ScopeCall { name = scope_name; decl_pos = scope_pos })
             scope_pos f
         in
-        let failures =
-          if Global.options.check_trace_assertion then
-            handle_trace_assert s scope_name
-          else []
-        in
-        expr, failures
+        expr, Runtime.retrieve_trace ()
       else f (), [])
     ~finally:(fun () ->
       match Global.options.trace with
@@ -1102,20 +1057,19 @@ let evaluate_expr_trace : type d r.
             Format.pp_print_flush ppf ();
             Runtime.reset_trace ()))
 
-let evaluate_expr_safe_with_trace_failures : type d r.
+let evaluate_expr_safe_with_trace : type d r.
     ?on_expr:(((d, r, yes) interpr_kind, 'm) gexpr -> unit) ->
     ?disable_trace:bool ->
     decl_ctx ->
     Global.backend_lang ->
     ScopeName.t ->
     ((d, r, yes) interpr_kind, 't) gexpr ->
-    ((d, r, yes) interpr_kind, 't) gexpr
-    * Trace_assertion.failed_trace_assertions list =
+    ((d, r, yes) interpr_kind, 't) gexpr * Runtime.trace =
  fun ?on_expr ?disable_trace ctx lang s e ->
   try
-    let r = evaluate_expr_trace ?on_expr ?disable_trace ctx lang s e in
+    let r, trace = evaluate_expr_trace ?on_expr ?disable_trace ctx lang s e in
     Message.report_delayed_errors_if_any ();
-    r
+    r, trace
   with Runtime.Error (err, rpos, note) ->
     Message.error
       ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
@@ -1135,8 +1089,7 @@ let evaluate_expr_safe : type d r.
     ((d, r, yes) interpr_kind, 't) gexpr ->
     ((d, r, yes) interpr_kind, 't) gexpr =
  fun ?on_expr ?disable_trace ctx lang s e ->
-  fst
-    (evaluate_expr_safe_with_trace_failures ?on_expr ?disable_trace ctx lang s e)
+  fst (evaluate_expr_safe_with_trace ?on_expr ?disable_trace ctx lang s e)
 
 (* Typing shenanigan to add custom terms to the AST type. *)
 let addcustom e =
@@ -1213,7 +1166,7 @@ let convert_json_input ctx scope_ty json =
   Encoding.parse_json encoding json
 
 let interpret_program_lcalc ?input p s :
-    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
+    (Uid.MarkedString.info * ('a, 'm) gexpr) list * Runtime.trace =
   let e = Expr.unbox @@ Program.to_expr p s in
   let ctx = p.decl_ctx in
   (* We disable tracing here as we first evaluate the lambda-term to
@@ -1242,12 +1195,13 @@ let interpret_program_lcalc ?input p s :
         (Expr.pos e)
     in
     match
-      Mark.remove (evaluate_expr_safe ctx p.lang s (Expr.unbox to_interpret))
+      evaluate_expr_safe_with_trace ctx p.lang s (Expr.unbox to_interpret)
     with
-    | EStruct { fields; _ } ->
-      List.map
-        (fun (fld, e) -> StructField.get_info fld, e)
-        (StructField.Map.bindings fields)
+    | (EStruct { fields; _ }, _), trace ->
+      ( List.map
+          (fun (fld, e) -> StructField.get_info fld, e)
+          (StructField.Map.bindings fields),
+        trace )
     (* | exception Runtime.Error (err, rpos) ->
      *   Message.error
      *     ~extra_pos:(List.map (fun rp -> "", Expr.runtime_to_pos rp) rpos)
@@ -1265,7 +1219,7 @@ let interpret_program_lcalc ?input p s :
 
 (** {1 API} *)
 let interpret_program_dcalc ?input ?on_expr p s :
-    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
+    (Uid.MarkedString.info * ('a, 'm) gexpr) list * Runtime.trace =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
   match
@@ -1295,12 +1249,14 @@ let interpret_program_dcalc ?input ?on_expr p s :
         (Expr.pos e)
     in
     match
-      evaluate_expr_safe ?on_expr ctx p.lang s (Expr.unbox to_interpret)
+      evaluate_expr_safe_with_trace ?on_expr ctx p.lang s
+        (Expr.unbox to_interpret)
     with
-    | EStruct { fields; _ }, _ ->
-      List.map
-        (fun (fld, e) -> StructField.get_info fld, e)
-        (StructField.Map.bindings fields)
+    | (EStruct { fields; _ }, _), trace ->
+      ( List.map
+          (fun (fld, e) -> StructField.get_info fld, e)
+          (StructField.Map.bindings fields),
+        trace )
     | _ ->
       Message.error ~pos:(Expr.pos e) ~internal:true "%a" Format.pp_print_text
         "The interpretation of a program should always yield a struct \
@@ -1316,6 +1272,7 @@ let interpret_program_dcalc_with_coverage
     (p : (dcalc, 'm) gexpr program)
     scope :
     (Uid.MarkedString.info * ((yes, no, yes) interpr_kind, 'm) gexpr) list
+    * Runtime.trace
     * Coverage.coverage_map =
   let reachable_map =
     (* Mark program positions as unreached *)
@@ -1330,7 +1287,7 @@ let interpret_program_dcalc_with_coverage
          later on *)
     | _ -> coverage_map := Coverage.reached_pos (Expr.pos e) scope !coverage_map
   in
-  let r = interpret_program_dcalc ~on_expr p scope in
+  let r, trace = interpret_program_dcalc ~on_expr p scope in
   Option.iter
     (fun (stdlib_dir : Global.raw_file) ->
       let stdlib_dir = Global.options.path_rewrite stdlib_dir in
@@ -1347,7 +1304,7 @@ let interpret_program_dcalc_with_coverage
       merge_with_reachable_positions ~reachable:reachable_map
         ~reached:!coverage_map)
   in
-  r, coverage
+  r, trace, coverage
 
 let interpret_program_dcalc ?input p s = interpret_program_dcalc ?input p s
 
@@ -1368,7 +1325,7 @@ let evaluate_expr ctx lang e =
 
 let evaluate_expr_with_trace ctx lang s e =
   Fun.protect ~finally:Runtime.reset_trace
-  @@ fun () -> evaluate_expr_safe_with_trace_failures ctx lang s (addcustom e)
+  @@ fun () -> evaluate_expr_safe_with_trace ctx lang s (addcustom e)
 
 let loaded_modules = Hashtbl.create 17
 

@@ -234,6 +234,7 @@ type scope_def = {
 }
 
 type var_or_states = WholeVar | States of StateName.t list
+type Pos.attr += TraceAssert of string list * expr
 
 (* If fields are added, make sure to consider including them in the hash
    computations below *)

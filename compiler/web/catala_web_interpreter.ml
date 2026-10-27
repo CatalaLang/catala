@@ -286,7 +286,7 @@ let () =
                 ~optimize:false ~check_invariants:false ~autotest:false
                 ~typed:Shared_ast.Expr.typed
             in
-            let results =
+            let results, _trace =
               Shared_ast.Interpreter.interpret_program_dcalc prg
                 (Commands.get_scope_uid prg.decl_ctx scope)
             in

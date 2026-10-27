@@ -14,13 +14,9 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Conversion of surface expressions denoting a value (e.g. the expected values
-    of [#[trace.assert]] attributes) into runtime values. *)
+open Shared_ast
 
-val value_of_literal : Ast.literal -> Catala_runtime.Value.t option
-(** Returns [None] on literals that have no exact runtime value, e.g. decimal
-    durations or invalid dates. *)
+(** Checks the values declared by the [#[trace.assert]] attributes against the
+    trace produced by the interpreter, and renders the mismatches. *)
 
-val value_of_expression : Ast.expression -> Catala_runtime.Value.t option
-(** Handles literals, and enum constructors, structs, lists and tuples built
-    from them. Returns [None] on anything that needs evaluating. *)
+val check : 'a program -> ScopeName.t -> Catala_runtime.trace -> unit

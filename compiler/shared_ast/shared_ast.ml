@@ -29,4 +29,3 @@ module Interpreter = Interpreter
 module Optimizations = Optimizations
 module Coverage = Coverage
 module Encoding = Encoding
-module Trace_assertion = Trace_assertion

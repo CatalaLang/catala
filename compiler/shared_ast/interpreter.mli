@@ -45,8 +45,7 @@ val evaluate_expr_with_trace :
   Global.backend_lang ->
   ScopeName.t ->
   (('a, 'b, _) interpr_kind, 'm) gexpr ->
-  (('a, 'b, yes) interpr_kind, 'm) gexpr
-  * Trace_assertion.failed_trace_assertions list
+  (('a, 'b, yes) interpr_kind, 'm) gexpr * Catala_runtime.trace
 (** Like {!evaluate_expr}, but evaluates the expression as the given scope,
     whose [#[trace.assert]] attributes are checked against the collected trace.
     The trace itself is not dumped. Each failure is also reported as an
@@ -60,6 +59,7 @@ val interpret_program_dcalc :
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
   (Uid.MarkedString.info * ((yes, no, yes) interpr_kind, 'm) gexpr) list
+  * Catala_runtime.trace
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
@@ -70,6 +70,7 @@ val interpret_program_dcalc_with_coverage :
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
   (Uid.MarkedString.info * ((yes, no, yes) interpr_kind, 'm) gexpr) list
+  * Catala_runtime.trace
   * Coverage.coverage_map
 (** Same as interpret_program_dcalc but also computes and returns the coverage
     map of the given program. If [stdlib] is provided, all positions that refers
@@ -80,6 +81,7 @@ val interpret_program_lcalc :
   (lcalc, 'm) gexpr program ->
   ScopeName.t ->
   (Uid.MarkedString.info * ((no, yes, yes) interpr_kind, 'm) gexpr) list
+  * Catala_runtime.trace
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all

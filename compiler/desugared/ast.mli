@@ -109,6 +109,7 @@ type scope_def = {
 }
 
 type var_or_states = WholeVar | States of StateName.t list
+type Pos.attr += TraceAssert of string list * expr
 
 type scope = {
   scope_vars : var_or_states ScopeVar.Map.t;
