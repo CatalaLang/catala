@@ -80,7 +80,7 @@ $ catala interpret -s T --trace
      │   ‾‾‾
     → Entering scope A
     
-      ⊕ Definition fulfilled
+      ⊕ Assignment of i fulfilled
       ─➤ tests/trace/good/bit_of_everything.catala_en:28.14-19:
          │
       28 │   definition ssv.i equals let zzz equals 333 in true

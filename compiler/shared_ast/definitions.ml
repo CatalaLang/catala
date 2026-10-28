@@ -340,7 +340,13 @@ type tag =
   | BranchingCondition
   | Branching of Ident.t option
   | Assertion
-  | Exception of { label : MarkedIdent.t option; cons_pos : Pos.t }
+  | Exception of {
+      label : MarkedIdent.t option;
+      cons_pos : Pos.t;
+      var : MarkedIdent.t option;
+          (** [Some] only for sub-scope inputs, whose callee variable the caller
+              does not otherwise know *)
+    }
 
 module Op = struct
   (** Classification of operators on how they should be typed *)

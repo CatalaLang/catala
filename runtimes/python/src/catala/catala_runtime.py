@@ -1020,24 +1020,31 @@ class MatchBranching(TraceKind):
 
 
 class ExceptionTrace(TraceKind):
-    __slots__ = ( "label", "label_pos", "cons_pos" )
+    __slots__ = ( "label", "label_pos", "cons_pos", "var", "var_pos" )
     label: str | None
     label_pos: SourcePosition | None
     cons_pos: SourcePosition
+    var: str | None
+    var_pos: SourcePosition | None
 
     kind = "exception"
 
     def __init__(
-        self, label: str | None, label_pos: SourcePosition | None, cons_pos: SourcePosition
+        self, label: str | None, label_pos: SourcePosition | None, cons_pos: SourcePosition,
+        var: str | None = None, var_pos: SourcePosition | None = None
     ) -> None:
         self.label = label
         self.label_pos = label_pos
         self.cons_pos = cons_pos
+        self.var = var
+        self.var_pos = var_pos
 
     def to_json(self) -> str:
         payload = ""
         if self.label != None and self.label_pos != None:
             payload += f'"label":{json.dumps(self.label)},"pos":{self.label_pos.to_json()},'
+        if self.var != None and self.var_pos != None:
+            payload += f'"var":{{"name":{json.dumps(self.var)},"pos":{self.var_pos.to_json()}}},'
         payload += f'"cons_pos":{self.cons_pos.to_json()}'
         return self.to_json_kind(payload)
 

@@ -390,6 +390,7 @@ let def_map_to_tree
     expression in the scope language. The [~toplevel] parameter is used to know
     when to place the toplevel binding in the case of functions. *)
 let rec rule_tree_to_expr
+    ?assigned_var
     (ctx : ctx)
     (def_pos : Pos.t)
     (params : D.expr Var.t list option)
@@ -466,6 +467,13 @@ let rec rule_tree_to_expr
                                Some (LabelName.to_string l, p)
                              | D.Unlabeled -> None);
                            cons_pos = Expr.pos cons;
+                           var =
+                             Option.map
+                               (fun name ->
+                                 ( name,
+                                   Mark.get
+                                     (RuleName.get_info base_rule.D.rule_id) ))
+                               assigned_var;
                          })
                       base_just)
                  ~cons
@@ -476,7 +484,9 @@ let rec rule_tree_to_expr
       ~cons:(Expr.eempty emark) emark
   in
   let excepts =
-    List.map (fun e -> snd (rule_tree_to_expr ctx def_pos params e)) exceptions
+    List.map
+      (fun e -> snd (rule_tree_to_expr ?assigned_var ctx def_pos params e))
+      exceptions
   in
   if excepts = [] then ctx, default_containing_base_cases
   else
@@ -584,7 +594,16 @@ let translate_def
         params
     in
     let def_pos = D.ScopeDef.get_position def_info in
-    let ctx, body = rule_tree_to_expr ctx def_pos params tree in
+    let assigned_var =
+      (* Only an input of a scope call is assigned from outside the scope that
+         declares it: elsewhere the exception already sits under the variable
+         it defines. *)
+      match def_info with
+      | _, D.ScopeDef.SubScopeInput { var_within_origin_scope = v; _ } ->
+        Some (ScopeVar.to_string v)
+      | _, D.ScopeDef.Var _ -> None
+    in
+    let ctx, body = rule_tree_to_expr ?assigned_var ctx def_pos params tree in
     let default =
       if allow_empty scope_def || (is_subscope_var && is_reentrant) then body
       else Expr.make_erroronempty body
