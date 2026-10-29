@@ -46,8 +46,8 @@ module SVertex = struct
     | (Scope _ | Topdef _), _ -> false
 
   let hash = function
-    | Scope (s, _) -> ScopeName.id s
-    | Topdef g -> TopdefName.id g
+    | Scope (s, _) -> 2 * ScopeName.id s
+    | Topdef g -> (2 * TopdefName.id g) + 1
 
   let format ppf = function
     | Scope (s, _) -> ScopeName.format ppf s
