@@ -19,11 +19,19 @@
 open Catala_utils
 open Clerk_utils
 
+let resolve_coord_parts ~project_name (dep_name : string) :
+    string * string * string =
+  if dep_name = Scan.libcatala then
+    Scan.libcatala, "catala-runtime", Catala_utils.Version.v
+  else
+    match String.split_on_char ':' dep_name with
+    | [grp; art] -> grp, art, "RELEASE"
+    | [grp; art; ver] -> grp, art, ver
+    | _ -> String.to_id project_name, String.to_snake_case dep_name, "1.0.0"
+
 let format_dependency ~project_name ppf (dep_name : string) =
   let groupId, artifactId, version =
-    if dep_name = Scan.libcatala then
-      Scan.libcatala, "catala-runtime", Catala_utils.Version.v
-    else String.to_id project_name, String.to_snake_case dep_name, "1.0.0"
+    resolve_coord_parts ~project_name dep_name
   in
   Format.fprintf ppf
     "    <dependency>\n\
