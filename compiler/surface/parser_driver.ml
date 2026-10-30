@@ -544,7 +544,7 @@ let load_source_file ?default_module_name ~is_stdlib source_file content_builder
     | None, Some n ->
       {
         module_name = n, Pos.from_file (Global.input_src_file source_file);
-        module_external = false;
+        module_is_external = false;
       }
     | None, None ->
       Message.error ~kind:Parsing

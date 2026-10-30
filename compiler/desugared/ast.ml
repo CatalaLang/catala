@@ -257,7 +257,7 @@ type topdef = {
   topdef_type : typ;
   topdef_arg_names : string Mark.pos list;
   topdef_visibility : visibility;
-  topdef_external : bool;
+  topdef_is_external : bool;
 }
 
 type modul = {

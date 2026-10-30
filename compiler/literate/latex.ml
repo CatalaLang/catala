@@ -272,14 +272,14 @@ let rec law_structure_to_latex
       (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
       file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
-  | A.ModuleDef { module_name; module_external } ->
+  | A.ModuleDef { module_name; module_is_external } ->
     (match language with
     | `Fr ->
       Format.fprintf fmt "\n\\textbf{Ceci définit le module %s \\texttt{%s}}"
-        (if module_external then "externe" else "catala")
+        (if module_is_external then "externe" else "catala")
     | _ ->
       Format.fprintf fmt "\n\\textbf{This defines the %s module \\texttt{%s}}"
-        (if module_external then "external" else "catala"))
+        (if module_is_external then "external" else "catala"))
       (pre_latexify (Mark.remove module_name))
   | A.ModuleUse (id, alias) -> (
     (match language with

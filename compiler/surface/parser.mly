@@ -1018,7 +1018,7 @@ let directive :=
 }
 | MODULE_DEF ; module_name = addpos(DIRECTIVE_ARG) ;
   ext = option (EXTERNAL) ; {
-  ModuleDef { module_name; module_external = ext <> None }
+  ModuleDef { module_name; module_is_external = ext <> None }
 }
 | MODULE_USE ; m = addpos(DIRECTIVE_ARG) ;
   alias = option (preceded(MODULE_ALIAS,addpos(DIRECTIVE_ARG))) ; {

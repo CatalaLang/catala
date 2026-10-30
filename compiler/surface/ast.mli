@@ -291,7 +291,10 @@ type law_include =
   | CatalaFile of string Mark.pos
   | LegislativeText of string Mark.pos
 
-type program_module = { module_name : uident Mark.pos; module_external : bool }
+type program_module = {
+  module_name : uident Mark.pos;
+  module_is_external : bool;
+}
 
 type law_structure =
   | LawInclude of law_include

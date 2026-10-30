@@ -1356,7 +1356,7 @@ let rec process_law_structure
     process_code_block
       (if is_metadata then Public else Private)
       process_item ctxt code
-  | Surface.Ast.ModuleDef { module_external = is_external; _ } ->
+  | Surface.Ast.ModuleDef { module_is_external = is_external; _ } ->
     { ctxt with local = { ctxt.local with is_external } }
   | Surface.Ast.LawInclude _ | Surface.Ast.LawText _ -> ctxt
   | Surface.Ast.ModuleUse _ -> ctxt
@@ -1690,7 +1690,7 @@ let form_context (surface, mod_uses) surface_modules : context =
                   used_modules = mod_uses;
                   current_revpath = revpath;
                   is_external =
-                    module_content.Surface.Ast.module_modname.module_external;
+                    module_content.Surface.Ast.module_modname.module_is_external;
                   typedefs = submodules_root_types;
                 };
             }
