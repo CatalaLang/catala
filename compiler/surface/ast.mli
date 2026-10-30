@@ -291,9 +291,11 @@ type law_include =
   | CatalaFile of string Mark.pos
   | LegislativeText of string Mark.pos
 
+type program_module = { module_name : uident Mark.pos; module_external : bool }
+
 type law_structure =
   | LawInclude of law_include
-  | ModuleDef of { mod_def_name : uident Mark.pos; mod_def_external : bool }
+  | ModuleDef of program_module
   | ModuleUse of uident Mark.pos * uident Mark.pos option
   | LawHeading of law_heading * law_structure list
   | LawText of string
@@ -303,8 +305,6 @@ type module_use = {
   mod_use_name : uident Mark.pos;
   mod_use_alias : uident Mark.pos;
 }
-
-type program_module = { module_name : uident Mark.pos; module_external : bool }
 
 type program = {
   program_module : program_module option;

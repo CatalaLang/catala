@@ -418,12 +418,10 @@ and expand_includes
               "Multiple definitions of the module name"
         in
         match command with
-        | Ast.ModuleDef { mod_def_name; mod_def_external = module_external } ->
+        | Ast.ModuleDef m ->
           {
             acc with
-            Ast.program_module =
-              join_module_names
-                (Some { module_name = mod_def_name; module_external });
+            Ast.program_module = join_module_names (Some m);
             Ast.program_items = command :: acc.Ast.program_items;
           }
         | Ast.ModuleUse (mod_use_name, alias) ->

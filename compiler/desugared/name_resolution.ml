@@ -1356,7 +1356,7 @@ let rec process_law_structure
     process_code_block
       (if is_metadata then Public else Private)
       process_item ctxt code
-  | Surface.Ast.ModuleDef { mod_def_external = is_external; _ } ->
+  | Surface.Ast.ModuleDef { module_external = is_external; _ } ->
     { ctxt with local = { ctxt.local with is_external } }
   | Surface.Ast.LawInclude _ | Surface.Ast.LawText _ -> ctxt
   | Surface.Ast.ModuleUse _ -> ctxt
