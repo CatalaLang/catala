@@ -565,43 +565,42 @@ let load_source_file ?default_module_name ~is_stdlib source_file content_builder
     module_submodules = used_modules;
   }
 
-let load_interface ?default_module_name ~is_stdlib source_file =
-  let get_interface program =
-    let rec filter (req, acc) = function
-      | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req, acc
-      | Ast.LawHeading (_, str) -> List.fold_left filter (req, acc) str
-      | Ast.ModuleUse (mod_use_name, alias) ->
-        ( {
-            Ast.mod_use_name;
-            mod_use_alias = Option.value ~default:mod_use_name alias;
-          }
-          :: req,
-          acc )
-      | Ast.CodeBlock { code; is_metadata; _ } ->
-        (* Non-metadata blocks are ignored ; except for types that can
-           automatically get exported if required by public or test items *)
-        ( req,
-          List.fold_left
-            (fun acc -> function
-              | Ast.ScopeUse _, _ -> acc
-              | ( ( Ast.ScopeDecl _ | StructDecl _ | EnumDecl _
-                  | AbstractTypeDecl _ ),
-                  _ ) as e ->
-                ( e,
-                  if is_metadata then Shared_ast.Public else Shared_ast.Private
-                )
-                :: acc
-              | Ast.Topdef def, m ->
-                if is_metadata then
-                  ((Ast.Topdef { def with topdef_expr = None }, m), Public)
-                  :: acc
-                else acc)
-            acc code )
-    in
-    let req, acc = List.fold_left filter ([], []) program.Ast.program_items in
-    List.rev req, Ast.Interface (List.rev acc)
+let get_interface program =
+  let rec filter (req, acc) = function
+    | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req, acc
+    | Ast.LawHeading (_, str) -> List.fold_left filter (req, acc) str
+    | Ast.ModuleUse (mod_use_name, alias) ->
+      ( {
+          Ast.mod_use_name;
+          mod_use_alias = Option.value ~default:mod_use_name alias;
+        }
+        :: req,
+        acc )
+    | Ast.CodeBlock { code; is_metadata; _ } ->
+      (* Non-metadata blocks are ignored ; except for types that can
+         automatically get exported if required by public or test items *)
+      ( req,
+        List.fold_left
+          (fun acc -> function
+            | Ast.ScopeUse _, _ -> acc
+            | ( ( Ast.ScopeDecl _ | StructDecl _ | EnumDecl _
+                | AbstractTypeDecl _ ),
+                _ ) as e ->
+              (e, if is_metadata then Shared_ast.Public else Shared_ast.Private)
+              :: acc
+            | Ast.Topdef def, m ->
+              if is_metadata then
+                ((Ast.Topdef { def with topdef_expr = None }, m), Public) :: acc
+              else acc)
+          acc code )
   in
-  load_source_file ?default_module_name ~is_stdlib source_file get_interface
+  let req, acc = List.fold_left filter ([], []) program.Ast.program_items in
+  List.rev req, List.rev acc
+
+let load_interface ?default_module_name ~is_stdlib source_file =
+  load_source_file ?default_module_name ~is_stdlib source_file (fun program ->
+      let used_modules, items = get_interface program in
+      used_modules, Ast.Interface items)
 
 let load_interface_and_code ?default_module_name ~is_stdlib source_file =
   let get_code_block program =
