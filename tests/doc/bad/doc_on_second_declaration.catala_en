@@ -1,0 +1,61 @@
+# Docstrings on the second declaration of a constant or function
+
+A constant or function declared twice in metadata blocks is documented by its
+first declaration, whichever it is.
+
+> Module Doc_on_second_declaration
+
+```catala-metadata
+## On the first declaration: documented.
+declaration f content integer
+  depends on x content integer, y content integer
+```
+
+```catala-metadata
+## On the second declaration: error.
+declaration f content integer
+  depends on
+    x content integer,
+    ## On an argument of the second declaration: error.
+    y content integer
+  equals x + y
+```
+
+```catala-test-cli
+$ catala doc --no-wrap -o -
+┌─[ERROR]─ 1/2 ─
+│
+│  This constant or function is declared twice in metadata
+│  blocks: its documentation must be on the first declaration.
+│
+├─➤ tests/doc/bad/doc_on_second_declaration.catala_en:15-16:
+│    │
+│ 15 │ ## On the second declaration: error.
+│    │ ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Docstrings on the second declaration of a constant or function
+│
+│ First declaration
+├─➤ tests/doc/bad/doc_on_second_declaration.catala_en:10.13-14:
+│    │
+│ 10 │ declaration f content integer
+│    │             ‾
+└─ Docstrings on the second declaration of a constant or function
+┌─[ERROR]─ 2/2 ─
+│
+│  This constant or function is declared twice in metadata
+│  blocks: its documentation must be on the first declaration.
+│
+├─➤ tests/doc/bad/doc_on_second_declaration.catala_en:19.5-20.1:
+│    │
+│ 19 │     ## On an argument of the second declaration: error.
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+├─ Docstrings on the second declaration of a constant or function
+│
+│ First declaration
+├─➤ tests/doc/bad/doc_on_second_declaration.catala_en:10.13-14:
+│    │
+│ 10 │ declaration f content integer
+│    │             ‾
+└─ Docstrings on the second declaration of a constant or function
+#return code 123#
+```

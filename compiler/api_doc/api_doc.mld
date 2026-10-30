@@ -1,0 +1,16 @@
+{0 API documentation}
+
+These modules generate the reference documentation of a Catala module (the
+[catala doc] command). The documented interface is made of the declarations
+found in the [catala-metadata] blocks of the module, along with their
+docstrings ([## ...] lines, or [#[doc = "..."]] attributes). The rest of the
+file, law text included, is ignored.
+
+{!Api_doc.Extract} reads the interface from the {{:surface.html} surface
+representation} and resolves the named types it uses with the name resolution
+context of {!Desugared.Name_resolution}, so that they can be linked.
+{!Api_doc.Html} renders the result as a standalone HTML page.
+
+Related modules:
+
+{!modules: Api_doc.Extract Api_doc.Html}

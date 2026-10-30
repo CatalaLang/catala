@@ -1,0 +1,208 @@
+# Documentation generation
+
+> Module Doc_benefits
+> Using Doc_calendar as Calendar
+
+This law text is not part of the generated documentation.
+
+```catala-metadata
+## Adds two amounts.
+declaration add
+  content money
+  depends on
+    ## The first amount
+    x content money,
+    y content money
+```
+
+```catala-metadata
+## A household, as defined in article 3.
+##
+## Second paragraph, with <special> "characters" & more.
+declaration structure Household:
+  ## Number of dependent children,
+  ## counted at the start of the month.
+  ##
+  ## Second paragraph of the field documentation.
+  data children content integer
+  data members content list of Person
+  #[doc = "Month the household registered"]
+  data registered content Calendar.Month
+  condition single_parent
+
+#[doc = "Computes the benefit of a household."]
+declaration scope Benefit:
+  ## The household
+  input household content Household
+  context rate content decimal
+  internal intermediate content money
+  ## Monthly amount
+  output amount content money
+  output eligible condition
+    depends on
+      ## The month to check
+      m content Calendar.Month
+  output details scope Details
+
+#[test]
+declaration scope TestBenefit:
+  output result scope Benefit
+
+declaration add
+  content money
+  depends on x content money, y content money
+  equals x + y
+
+## Returns its argument.
+declaration identity
+  content anything of type t
+  depends on v content anything of type t
+  equals v
+
+declaration type Opaque: external
+
+## Declared last, but listed first among the types of the navigation.
+declaration enumeration Area:
+  -- North
+  -- South
+```
+
+```catala
+## A person, declared outside of metadata blocks but used by `Household`.
+declaration structure Person:
+  data name content Name
+  data age content integer
+
+declaration structure Name:
+  data first content integer
+
+declaration structure Unused:
+  data x content integer
+
+## Details of the computation, declared outside of metadata blocks.
+declaration scope Details:
+  output base content money
+
+scope Details:
+  definition base equals $50
+
+scope TestBenefit:
+  definition result.household equals Household {
+    -- children: 0
+    -- members: []
+    -- registered: Calendar.Month.January
+    -- single_parent: false
+  }
+
+scope Benefit:
+  definition intermediate equals $0
+  definition amount equals $100
+  definition eligible of m equals true
+```
+
+```catala-test-cli
+$ catala doc --no-wrap -o -
+┌─[WARNING]─
+│
+│  Person is private, but the public interface uses it: it is not documented,
+│  and other modules cannot name it. Declare it in a ```catala-metadata block
+│  to make it public.
+│
+├─➤ tests/doc/good/doc_benefits.catala_en:28.32-38:
+│    │
+│ 28 │   data members content list of Person
+│    │                                ‾‾‾‾‾‾
+└─ Documentation generation
+┌─[WARNING]─
+│
+│  Details is private, but the public interface uses it: it is not
+│  documented, and other modules cannot name it. Declare it in a
+│  ```catala-metadata block to make it public.
+│
+├─➤ tests/doc/good/doc_benefits.catala_en:45.24-31:
+│    │
+│ 45 │   output details scope Details
+│    │                        ‾‾‾‾‾‾‾
+└─ Documentation generation
+<div class="page">
+<nav>
+<a class="module" href="#top">Doc_benefits</a>
+<h3>Types</h3>
+<ul>
+<li><a href="#enum-Area">Area</a></li>
+<li><a href="#struct-Household">Household</a></li>
+<li><a href="#type-Opaque">Opaque</a></li>
+</ul>
+<h3>Constants and functions</h3>
+<ul>
+<li><a href="#topdef-add">add</a></li>
+<li><a href="#topdef-identity">identity</a></li>
+</ul>
+<h3>Scopes</h3>
+<ul>
+<li><a href="#scope-Benefit">Benefit</a></li>
+</ul>
+</nav>
+<main>
+<header id="top">
+<h1>Doc_benefits</h1>
+<p class="meta">Catala module · uses <a href="Doc_calendar.html">Doc_calendar</a> as Calendar</p>
+</header>
+<section class="item" id="topdef-add">
+<h3><a href="#topdef-add">add</a></h3>
+<div class="doc"><p>Adds two amounts.</p></div>
+<div class="decl">
+<div class="line"><span class="kw">declaration</span> <span class="name">add</span> <span class="kw">content</span> <span class="builtin">money</span> <span class="kw">depends on</span></div>
+<div class="member" id="topdef-add.x"><div class="line"><span class="name">x</span> <span class="kw">content</span> <span class="builtin">money</span>,</div><div class="doc"><p>The first amount</p></div></div>
+<div class="member" id="topdef-add.y"><div class="line"><span class="name">y</span> <span class="kw">content</span> <span class="builtin">money</span></div></div>
+</div>
+</section>
+<section class="item" id="struct-Household">
+<h3><a href="#struct-Household">Household</a></h3>
+<div class="doc"><p>A household, as defined in article 3.</p><p>Second paragraph, with &lt;special&gt; &quot;characters&quot; &amp; more.</p></div>
+<div class="decl">
+<div class="line"><span class="kw">declaration</span> <span class="kw">structure</span> <span class="name">Household</span>:</div>
+<div class="member" id="struct-Household.children"><div class="line"><span class="kw">data</span> <span class="name">children</span> <span class="kw">content</span> <span class="builtin">integer</span></div><div class="doc"><p>Number of dependent children, counted at the start of the month.</p><p>Second paragraph of the field documentation.</p></div></div>
+<div class="member" id="struct-Household.members"><div class="line"><span class="kw">data</span> <span class="name">members</span> <span class="kw">content</span> <span class="kw">list of</span> <span class="ty">Person</span></div></div>
+<div class="member" id="struct-Household.registered"><div class="line"><span class="kw">data</span> <span class="name">registered</span> <span class="kw">content</span> <a class="ty" href="Doc_calendar.html#enum-Month">Calendar.Month</a></div><div class="doc"><p>Month the household registered</p></div></div>
+<div class="member" id="struct-Household.single_parent"><div class="line"><span class="kw">condition</span> <span class="name">single_parent</span></div></div>
+</div>
+</section>
+<section class="item" id="scope-Benefit">
+<h3><a href="#scope-Benefit">Benefit</a></h3>
+<div class="doc"><p>Computes the benefit of a household.</p></div>
+<div class="decl">
+<div class="line"><span class="kw">declaration</span> <span class="kw">scope</span> <span class="name">Benefit</span>:</div>
+<div class="member" id="scope-Benefit.household"><div class="line"><span class="kw">input</span> <span class="name">household</span> <span class="kw">content</span> <a class="ty" href="#struct-Household">Household</a></div><div class="doc"><p>The household</p></div></div>
+<div class="member" id="scope-Benefit.rate"><div class="line"><span class="kw">context</span> <span class="name">rate</span> <span class="kw">content</span> <span class="builtin">decimal</span></div></div>
+<div class="member" id="scope-Benefit.amount"><div class="line"><span class="kw">output</span> <span class="name">amount</span> <span class="kw">content</span> <span class="builtin">money</span></div><div class="doc"><p>Monthly amount</p></div></div>
+<div class="member" id="scope-Benefit.eligible"><div class="line"><span class="kw">output</span> <span class="name">eligible</span> <span class="kw">condition</span> <span class="kw">depends on</span> <span class="name">m</span> <span class="kw">content</span> <a class="ty" href="Doc_calendar.html#enum-Month">Calendar.Month</a></div><dl class="args"><dt>m</dt><dd><div class="doc"><p>The month to check</p></div></dd></dl></div>
+<div class="member" id="scope-Benefit.details"><div class="line"><span class="kw">output</span> <span class="name">details</span> <span class="kw">scope</span> <span class="ty">Details</span></div></div>
+</div>
+</section>
+<section class="item" id="topdef-identity">
+<h3><a href="#topdef-identity">identity</a></h3>
+<div class="doc"><p>Returns its argument.</p></div>
+<div class="decl">
+<div class="line"><span class="kw">declaration</span> <span class="name">identity</span> <span class="kw">content</span> <span class="kw">anything</span> <span class="kw">of</span> <span class="kw">type</span> <span class="tvar">t</span> <span class="kw">depends on</span></div>
+<div class="member" id="topdef-identity.v"><div class="line"><span class="name">v</span> <span class="kw">content</span> <span class="kw">anything</span> <span class="kw">of</span> <span class="kw">type</span> <span class="tvar">t</span></div></div>
+</div>
+</section>
+<section class="item" id="type-Opaque">
+<h3><a href="#type-Opaque">Opaque</a></h3>
+<div class="decl">
+<div class="line"><span class="kw">declaration</span> <span class="kw">type</span> <span class="name">Opaque</span>: <span class="kw">external</span></div>
+</div>
+</section>
+<section class="item" id="enum-Area">
+<h3><a href="#enum-Area">Area</a></h3>
+<div class="doc"><p>Declared last, but listed first among the types of the navigation.</p></div>
+<div class="decl">
+<div class="line"><span class="kw">declaration</span> <span class="kw">enumeration</span> <span class="name">Area</span>:</div>
+<div class="member" id="enum-Area.North"><div class="line"><span class="punct">--</span> <span class="name">North</span></div></div>
+<div class="member" id="enum-Area.South"><div class="line"><span class="punct">--</span> <span class="name">South</span></div></div>
+</div>
+</section>
+</main>
+</div>
+```

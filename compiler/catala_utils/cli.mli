@@ -55,6 +55,7 @@ module Flags : sig
   val autotest : bool Term.t
   val no_typing : bool Term.t
   val wrap_weaved_output : bool Term.t
+  val no_wrap : bool Term.t
   val print_only_law : bool Term.t
   val ex_scope : string Term.t
   val ex_scope_opt : string option Term.t

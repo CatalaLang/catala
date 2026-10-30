@@ -1,0 +1,12 @@
+# Calendar helpers used by the documentation test
+
+> Module Doc_calendar
+
+```catala-metadata
+## The months of the year.
+declaration enumeration Month:
+  ## First month of the year
+  -- January
+  -- February
+  -- Other content integer
+```
