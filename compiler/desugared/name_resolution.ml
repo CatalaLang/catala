@@ -1352,11 +1352,11 @@ let rec process_law_structure
         Message.wrap_to_delayed_error ~kind:Parsing ctxt
         @@ fun () -> process_law_structure process_item ctxt child)
       ctxt children
-  | Surface.Ast.CodeBlock (block, _, is_meta) ->
+  | Surface.Ast.CodeBlock { code; is_metadata; _ } ->
     process_code_block
-      (if is_meta then Public else Private)
-      process_item ctxt block
-  | Surface.Ast.ModuleDef (_, is_external) ->
+      (if is_metadata then Public else Private)
+      process_item ctxt code
+  | Surface.Ast.ModuleDef { mod_def_external = is_external; _ } ->
     { ctxt with local = { ctxt.local with is_external } }
   | Surface.Ast.LawInclude _ | Surface.Ast.LawText _ -> ctxt
   | Surface.Ast.ModuleUse _ -> ctxt

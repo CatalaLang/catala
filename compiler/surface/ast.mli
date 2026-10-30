@@ -293,11 +293,11 @@ type law_include =
 
 type law_structure =
   | LawInclude of law_include
-  | ModuleDef of uident Mark.pos * bool (* External if true *)
+  | ModuleDef of { mod_def_name : uident Mark.pos; mod_def_external : bool }
   | ModuleUse of uident Mark.pos * uident Mark.pos option
   | LawHeading of law_heading * law_structure list
   | LawText of string
-  | CodeBlock of code_block * source_repr * bool (* Metadata if true *)
+  | CodeBlock of { code : code_block; source : source_repr; is_metadata : bool }
 
 type module_use = {
   mod_use_name : uident Mark.pos;

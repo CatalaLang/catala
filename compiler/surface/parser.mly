@@ -1016,9 +1016,9 @@ let directive :=
   else
     LawInclude (Ast.CatalaFile (filename, pos))
 }
-| MODULE_DEF ; m = addpos(DIRECTIVE_ARG) ;
+| MODULE_DEF ; mod_def_name = addpos(DIRECTIVE_ARG) ;
   ext = option (EXTERNAL) ; {
-  ModuleDef (m, ext <> None)
+  ModuleDef { mod_def_name ; mod_def_external = ext <> None }
 }
 | MODULE_USE ; m = addpos(DIRECTIVE_ARG) ;
   alias = option (preceded(MODULE_ALIAS,addpos(DIRECTIVE_ARG))) ; {
@@ -1031,14 +1031,14 @@ let source_file_item :=
 | BEGIN_CODE ;
   ~ = code ;
   text = END_CODE ; {
-  CodeBlock (code, (text, get_pos $sloc), false)
+  CodeBlock { code; source = (text, get_pos $sloc); is_metadata = false }
 }
 | heading = law_heading ; {
   LawHeading (heading, [])
 }
 | code = metadata_block ; {
-  let (code, source_repr) = code in
-  CodeBlock (code, source_repr, true)
+  let (code, source) = code in
+  CodeBlock { code; source; is_metadata = true }
 }
 | BEGIN_DIRECTIVE ; ~ = directive ; END_DIRECTIVE ; { directive }
 

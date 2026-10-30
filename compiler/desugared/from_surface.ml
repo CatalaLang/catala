@@ -2201,8 +2201,8 @@ let translate_program
       fold_left_catch_errors
         (fun modul child -> process_structure ctxt modul child)
         modul children
-    | S.CodeBlock (block, _, is_meta) ->
-      process_code_block ctxt modul ~is_meta block
+    | S.CodeBlock { code; is_metadata; _ } ->
+      process_code_block ctxt modul ~is_meta:is_metadata code
     | S.ModuleDef _ | S.LawInclude _ | S.LawText _ | S.ModuleUse _ -> modul
   in
   let desugared =

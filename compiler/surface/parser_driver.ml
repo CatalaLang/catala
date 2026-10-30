@@ -418,12 +418,12 @@ and expand_includes
               "Multiple definitions of the module name"
         in
         match command with
-        | Ast.ModuleDef (id, is_external) ->
+        | Ast.ModuleDef { mod_def_name; mod_def_external = module_external } ->
           {
             acc with
             Ast.program_module =
               join_module_names
-                (Some { module_name = id; module_external = is_external });
+                (Some { module_name = mod_def_name; module_external });
             Ast.program_items = command :: acc.Ast.program_items;
           }
         | Ast.ModuleUse (mod_use_name, alias) ->
@@ -579,7 +579,7 @@ let load_interface ?default_module_name ~is_stdlib source_file =
           }
           :: req,
           acc )
-      | Ast.CodeBlock (code, _, is_metadata) ->
+      | Ast.CodeBlock { code; is_metadata; _ } ->
         (* Non-metadata blocks are ignored ; except for types that can
            automatically get exported if required by public or test items *)
         ( req,

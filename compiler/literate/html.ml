@@ -139,20 +139,20 @@ let rec law_structure_to_html
   | A.LawText t ->
     let t = pre_html t in
     if t = "" then () else Format.fprintf fmt "<div class='law-text'>%s</div>" t
-  | A.CodeBlock (_, c, metadata) when not print_only_law ->
-    let start_line = Pos.get_start_line (Mark.get c) + 1 in
-    let filename = Pos.get_file (Mark.get c) in
-    let block_content = Mark.remove c in
+  | A.CodeBlock { source; is_metadata; _ } when not print_only_law ->
+    let start_line = Pos.get_start_line (Mark.get source) + 1 in
+    let filename = Pos.get_file (Mark.get source) in
+    let block_content = Mark.remove source in
     check_exceeding_lines start_line filename block_content;
     Format.fprintf fmt
       "<div class='code-wrapper%s catala-code'>\n\
        <div class='filename'>%s</div>\n\
        %s\n\
        </div>"
-      (if metadata then " code-metadata" else "")
-      (Pos.get_file (Mark.get c))
+      (if is_metadata then " code-metadata" else "")
+      (Pos.get_file (Mark.get source))
       (pygmentize_code
-         (Mark.copy c ("```catala\n" ^ Mark.remove c ^ "```"))
+         (Mark.copy source ("```catala\n" ^ Mark.remove source ^ "```"))
          language)
   | A.CodeBlock _ -> ()
   | A.LawHeading (heading, children) ->

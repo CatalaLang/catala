@@ -272,7 +272,7 @@ let rec law_structure_to_latex
       (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
       file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
-  | A.ModuleDef (id, extern) ->
+  | A.ModuleDef { mod_def_name; mod_def_external = extern } ->
     (match language with
     | `Fr ->
       Format.fprintf fmt "\n\\textbf{Ceci définit le module %s \\texttt{%s}}"
@@ -280,7 +280,7 @@ let rec law_structure_to_latex
     | _ ->
       Format.fprintf fmt "\n\\textbf{This defines the %s module \\texttt{%s}}"
         (if extern then "external" else "catala"))
-      (pre_latexify (Mark.remove id))
+      (pre_latexify (Mark.remove mod_def_name))
   | A.ModuleUse (id, alias) -> (
     (match language with
     | `Fr ->
@@ -297,25 +297,25 @@ let rec law_structure_to_latex
       | _ -> Format.fprintf fmt " under the name \\texttt{%s}}")
         (pre_latexify (Mark.remove al)))
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
-  | A.CodeBlock (_, c, false) when not print_only_law ->
-    let start_line = Pos.get_start_line (Mark.get c) + 1 in
-    let filename = Pos.get_file (Mark.get c) in
-    let block_content = Mark.remove c in
+  | A.CodeBlock { source; is_metadata = false; _ } when not print_only_law ->
+    let start_line = Pos.get_start_line (Mark.get source) + 1 in
+    let filename = Pos.get_file (Mark.get source) in
+    let block_content = Mark.remove source in
     check_exceeding_lines start_line filename block_content;
-    update_lines_of_code c;
-    code_block ~meta:false language fmt c
-  | A.CodeBlock (_, c, true) when not print_only_law ->
+    update_lines_of_code source;
+    code_block ~meta:false language fmt source
+  | A.CodeBlock { source; is_metadata = true; _ } when not print_only_law ->
     let metadata_title =
       match language with
       | `Fr -> "Métadonnées"
       | `En -> "Metadata"
       | `Pl -> "Metadane"
     in
-    let start_line = Pos.get_start_line (Mark.get c) + 1 in
-    let filename = Pos.get_file (Mark.get c) in
-    let block_content = Mark.remove c in
+    let start_line = Pos.get_start_line (Mark.get source) + 1 in
+    let filename = Pos.get_file (Mark.get source) in
+    let block_content = Mark.remove source in
     check_exceeding_lines start_line filename block_content;
-    update_lines_of_code c;
+    update_lines_of_code source;
     Format.fprintf fmt
       "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
        title=\\textcolor{black}{\\texttt{%s}},title after \
@@ -325,7 +325,7 @@ let rec law_structure_to_latex
        \\end{tcolorbox}"
       metadata_title metadata_title
       (code_block ~meta:true language)
-      c
+      source
   | A.CodeBlock _ -> ()
 
 (** {1 API} *)
