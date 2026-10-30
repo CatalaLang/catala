@@ -30,8 +30,10 @@ module Passes = struct
     debug_pass_name "surface";
     Surface.Parser_driver.parse_top_level_file options.Global.input_src
 
-  let desugared ?allow_external options ~includes ~stdlib :
-      Desugared.Ast.program * Desugared.Name_resolution.context =
+  let name_resolution options ~includes ~stdlib :
+      Surface.Ast.program
+      * Surface.Ast.module_content ModuleName.Map.t
+      * Desugared.Name_resolution.context =
     let prg = surface options in
     let mod_uses, modules =
       Surface.Parser_driver.load_modules options includes ~stdlib prg
@@ -40,8 +42,12 @@ module Passes = struct
     Message.debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context (prg, mod_uses) modules in
     Message.report_delayed_errors_if_any ();
+    prg, ModuleName.Map.map fst modules, ctx
+
+  let desugared ?allow_external options ~includes ~stdlib :
+      Desugared.Ast.program * Desugared.Name_resolution.context =
+    let prg, modules, ctx = name_resolution options ~includes ~stdlib in
     Message.debug "Desugaring...";
-    let modules = ModuleName.Map.map fst modules in
     let prg =
       Desugared.From_surface.translate_program ctx ?allow_external modules prg
     in

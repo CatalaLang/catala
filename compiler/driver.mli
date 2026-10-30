@@ -27,6 +27,16 @@ val main : unit -> unit
 module Passes : sig
   val surface : Global.options -> Surface.Ast.program
 
+  val name_resolution :
+    Global.options ->
+    includes:Global.raw_file list ->
+    stdlib:Global.raw_file option ->
+    Surface.Ast.program
+    * Surface.Ast.module_content Shared_ast.ModuleName.Map.t
+    * Desugared.Name_resolution.context
+  (** Parses the program, loads the modules it uses and resolves the names of
+      its declarations, without translating rules and definitions *)
+
   val desugared :
     ?allow_external:bool ->
     Global.options ->
