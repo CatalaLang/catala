@@ -248,6 +248,9 @@ type trace_kind =
       cons_pos : code_location;
           (** Position of the consequence that would be evaluated if this
               exception gets fulfilled *)
+      var : (string * code_location) option;
+          (** Variable assigned by this exception and the position of the rule
+              assigning it, when it defines the input of a scope call *)
     }  (** Scope variable definition exception *)
   | Error of {
       error : error;  (** Runtime error itself *)

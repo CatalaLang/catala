@@ -715,6 +715,7 @@ type trace_kind =
   | Exception of {
       label : (string * code_location) option;
       cons_pos : code_location;
+      var : (string * code_location) option;
     }
   | Error of {
       error : error;
@@ -967,7 +968,7 @@ module BufferedJson = struct
       Printf.bprintf buf {|{"kind":"match_branching","constructor":%a}|} quote
         constructor_name
     | Assertion -> Printf.bprintf buf {|{"kind":"assertion"}|}
-    | Exception { label; cons_pos } ->
+    | Exception { label; cons_pos; var } ->
       let lbl buf =
         match label with
         | None -> ()
@@ -975,7 +976,14 @@ module BufferedJson = struct
           Printf.bprintf buf {|,"label":%a,"pos":%a|} quote label code_location
             pos
       in
-      Printf.bprintf buf {|{"kind":"exception"%t,"cons_pos":%a}|} lbl
+      let var buf =
+        match var with
+        | None -> ()
+        | Some (name, pos) ->
+          Printf.bprintf buf {|,"var":{"name":%a,"pos":%a}|} quote name
+            code_location pos
+      in
+      Printf.bprintf buf {|{"kind":"exception"%t%t,"cons_pos":%a}|} lbl var
         code_location cons_pos
     | Error { error; locs; message } ->
       let locs buf =

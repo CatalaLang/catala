@@ -354,17 +354,24 @@ public class CatalaTrace {
         public final String label;
         public final CatalaPosition label_pos;
         public final CatalaPosition consequence_pos;
+        public final String var;
+        public final CatalaPosition var_pos;
 
         public Exception(CatalaPosition consequence_pos) {
-            this.label = null;
-            this.label_pos = null;
-            this.consequence_pos = consequence_pos;
+            this(null, null, consequence_pos, null, null);
         }
 
         public Exception(String label, CatalaPosition label_pos, CatalaPosition consequence_pos) {
+            this(label, label_pos, consequence_pos, null, null);
+        }
+
+        public Exception(String label, CatalaPosition label_pos, CatalaPosition consequence_pos,
+                String var, CatalaPosition var_pos) {
             this.label = label;
             this.label_pos = label_pos;
             this.consequence_pos = consequence_pos;
+            this.var = var;
+            this.var_pos = var_pos;
         }
 
         @Override
@@ -373,6 +380,10 @@ public class CatalaTrace {
             if (this.label != null && this.label_pos != null) {
                 sb.append(String.format("\"label\":\"%s\",\"pos\":%s,",
                         label, label_pos.toJSONString().replaceAll("\\s", "")));
+            }
+            if (this.var != null && this.var_pos != null) {
+                sb.append(String.format("\"var\":{\"name\":\"%s\",\"pos\":%s},",
+                        var, var_pos.toJSONString().replaceAll("\\s", "")));
             }
             sb.append(String.format("\"cons_pos\":%s}", consequence_pos.toJSONString().replaceAll("\\s", "")));
         }
