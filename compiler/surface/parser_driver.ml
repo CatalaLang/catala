@@ -566,36 +566,43 @@ let load_source_file ?default_module_name ~is_stdlib source_file content_builder
   }
 
 let get_interface program =
-  let rec filter (req, acc) = function
-    | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req, acc
-    | Ast.LawHeading (_, str) -> List.fold_left filter (req, acc) str
+  let push_module_use (used_modules, declarations) m =
+    m :: used_modules, declarations
+  in
+  let push_declaration (used_modules, declarations) d =
+    used_modules, d :: declarations
+  in
+  (* Non-metadata blocks are ignored ; except for types that can
+     automatically get exported if required by public or test items *)
+  let rec filter acc = function
+    | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> acc
+    | Ast.LawHeading (_, str) -> List.fold_left filter acc str
     | Ast.ModuleUse (mod_use_name, alias) ->
-      ( {
+      push_module_use acc
+        {
           Ast.mod_use_name;
           mod_use_alias = Option.value ~default:mod_use_name alias;
         }
-        :: req,
-        acc )
     | Ast.CodeBlock { code; is_metadata; _ } ->
-      (* Non-metadata blocks are ignored ; except for types that can
-         automatically get exported if required by public or test items *)
-      ( req,
-        List.fold_left
-          (fun acc -> function
-            | Ast.ScopeUse _, _ -> acc
-            | ( ( Ast.ScopeDecl _ | StructDecl _ | EnumDecl _
-                | AbstractTypeDecl _ ),
-                _ ) as e ->
-              (e, if is_metadata then Shared_ast.Public else Shared_ast.Private)
-              :: acc
-            | Ast.Topdef def, m ->
-              if is_metadata then
-                ((Ast.Topdef { def with topdef_expr = None }, m), Public) :: acc
-              else acc)
-          acc code )
+      let filter_code acc = function
+        | Ast.ScopeUse _, _ -> acc
+        | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _ | AbstractTypeDecl _), _)
+          as e ->
+          let vis =
+            if is_metadata then Shared_ast.Public else Shared_ast.Private
+          in
+          push_declaration acc (e, vis)
+        | Ast.Topdef def, m when is_metadata ->
+          push_declaration acc
+            ((Ast.Topdef { def with topdef_expr = None }, m), Public)
+        | Ast.Topdef _, _ -> acc
+      in
+      List.fold_left filter_code acc code
   in
-  let req, acc = List.fold_left filter ([], []) program.Ast.program_items in
-  List.rev req, List.rev acc
+  let used_modules, declarations =
+    List.fold_left filter ([], []) program.Ast.program_items
+  in
+  List.rev used_modules, List.rev declarations
 
 let load_interface ?default_module_name ~is_stdlib source_file =
   load_source_file ?default_module_name ~is_stdlib source_file (fun program ->
