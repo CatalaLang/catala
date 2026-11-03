@@ -16,7 +16,15 @@ public class CatalaGlobals {
 
     public static Integer max_decimals = 6;
 
-    public static Boolean tracing = false;
+    private static ThreadLocal<Boolean> tracing = ThreadLocal.withInitial(() -> false);
+
+    public static Boolean tracing() {
+        return tracing.get();
+    }
+
+    public static void setTracing(Boolean b) {
+        tracing.set(b);
+    }
 
     public static NumberFormat number_format() {
         NumberFormat nf;
@@ -45,7 +53,7 @@ public class CatalaGlobals {
     }
 
     public static void displayResult(String scope, CatalaValue<?> result, boolean test_mode, boolean json_mode) {
-        if (tracing) {
+        if (tracing()) {
             System.out.println(CatalaTrace.retrieve().toJSONString());
         }
         System.err.println("\u001B[32m[RESULT]\u001B[0m Scope " + scope + " executed successfully.");
@@ -61,7 +69,7 @@ public class CatalaGlobals {
     private static final String ERR_PREFIX = "\033[1;31m[ERROR]\033[m ";
 
     public static void displayError(String scope, RuntimeException e) {
-        if (tracing) {
+        if (tracing()) {
             System.out.println(CatalaTrace.retrieve().toJSONString());
         }
         if (e instanceof CatalaError ce) {
