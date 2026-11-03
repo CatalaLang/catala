@@ -26,11 +26,10 @@ let pythonpath dirs = String.concat (Path.list_sep ()) dirs
 let classpath ~backend include_dirs =
   let open Var in
   String.concat (Path.list_sep ())
-    ((!tdir / backend)
-    :: List.map
-         (fun d ->
-           (if Filename.is_relative d then !builddir / d else d) / backend)
-         include_dirs)
+    (List.map
+       (fun d ->
+         (if Filename.is_relative d then !builddir / d else d) / backend)
+       include_dirs)
 
 let jar_argfile_content (entries : (string * string) list) : string =
   let quote_path p =

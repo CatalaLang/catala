@@ -92,11 +92,15 @@ let test_include_flags_single_words () =
 
 let test_classpath_separator () =
   with_os true (fun () ->
-      check "Java classpath: ';' on Windows" {|${tdir}/java;/opt/lib a/java|}
-        (fwd (Backend_paths.classpath ~backend:"java" [{|/opt/lib a|}])));
+      check "Java classpath: ';' on Windows" {|/opt/lib a/java;/opt/lib b/java|}
+        (fwd
+           (Backend_paths.classpath ~backend:"java"
+              [{|/opt/lib a|}; {|/opt/lib b|}])));
   with_os false (fun () ->
-      check "Java classpath: ':' on Unix" {|${tdir}/java:/opt/lib a/java|}
-        (fwd (Backend_paths.classpath ~backend:"java" [{|/opt/lib a|}])))
+      check "Java classpath: ':' on Unix" {|/opt/lib a/java:/opt/lib b/java|}
+        (fwd
+           (Backend_paths.classpath ~backend:"java"
+              [{|/opt/lib a|}; {|/opt/lib b|}])))
 
 let test_pythonpath_separator () =
   with_os true (fun () ->
