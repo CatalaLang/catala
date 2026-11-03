@@ -1031,7 +1031,8 @@ let build_cmd : int Cmd.t =
       code_coverage
       backends
       build_objects
-      (ninja_flags : string list) =
+      (ninja_flags : string list)
+      trace =
     let backends =
       if backends = [] then [`OCaml; `C; `Python; `Java] else backends
     in
@@ -1042,9 +1043,9 @@ let build_cmd : int Cmd.t =
     let enabled_backends = backends_to_config backends in
     let targets, info =
       Clerk_rules.run_ninja ~code_coverage ~config ~enabled_backends
-        ~trace:false
+        ~trace:(trace <> None)
         ~default:(empty_targets, Module_graph.empty_info)
-        ~ninja_flags ~autotest:false ~clean_up_env:false
+        ~ninja_flags ~autotest ~clean_up_env:false
       @@ fun nin_ppf items info ->
       let targets =
         if target_args = [] then default_targets ~config info items
@@ -1102,8 +1103,7 @@ let build_cmd : int Cmd.t =
       $ Cli.backends
       $ Cli.objects
       $ Cli.ninja_flags
-      $ Catala_utils.Cli.Flags.trace
-      $ Catala_utils.Cli.Flags.trace_format)
+      $ Catala_utils.Cli.Flags.trace)
 
 let run_cmd =
   let run

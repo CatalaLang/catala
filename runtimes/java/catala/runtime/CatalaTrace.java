@@ -10,7 +10,7 @@ public class CatalaTrace {
     public List<TraceNode> rootNodes;
     public Boolean exceptionHandled;
 
-    private static CatalaTrace instance = new CatalaTrace();
+    private static ThreadLocal<CatalaTrace> instance = ThreadLocal.withInitial(CatalaTrace::new);
 
     private CatalaTrace() {
         this.rootNodes = new ArrayList<>();
@@ -18,19 +18,19 @@ public class CatalaTrace {
     }
 
     public static void begin(TraceKind k, CatalaPosition pos) {
-        instance.beginTrace(k, pos);
+        instance.get().beginTrace(k, pos);
     }
 
     public static void end(CatalaValue<?> v) {
-        instance.endTrace(v);
+        instance.get().endTrace(v);
     }
 
     public static void end() {
-        instance.endTrace();
+        instance.get().endTrace();
     }
 
     public static void single(TraceKind k, CatalaPosition pos) {
-        instance.singleTrace(k, pos);
+        instance.get().singleTrace(k, pos);
     }
 
     public static void error(CatalaError.Error err, CatalaPosition pos,
@@ -61,14 +61,14 @@ public class CatalaTrace {
     }
 
     public static void reset() {
-        instance = new CatalaTrace();
+        instance.set(new CatalaTrace());
     }
 
     public static CatalaTrace retrieve() {
-        while (instance.currentNode != null) {
+        while (instance.get().currentNode != null) {
             end();
         }
-        return instance;
+        return instance.get();
     }
 
     private void beginTrace(TraceKind k, CatalaPosition pos) {
