@@ -1762,3 +1762,417 @@ void* catala_do(void* (*f)(void))
   has_jump_buffer = 0;
   return retval;
 }
+
+/* ---- Deep copy helpers ---- */
+
+/* Free */
+
+void catala_free_unit (CATALA_UNIT u) {
+  free((void*)u);
+  return;
+}
+
+void catala_free_bool (CATALA_BOOL b) {
+  free((void*)b);
+  return;
+}
+
+void catala_free_int (CATALA_INT i) {
+  mpz_clear((mpz_ptr)i);
+  return;
+}
+
+void catala_free_dec (CATALA_DEC d) {
+  mpq_clear((mpq_ptr)d);
+  return;
+}
+
+void catala_free_money (CATALA_MONEY m) {
+  mpz_clear((mpz_ptr)m);
+  return;  
+}
+
+void catala_free_date(CATALA_DATE d) {
+  free((dc_date*)d);
+  return;
+}
+
+void catala_free_duration(CATALA_DURATION d) {
+  free((dc_period*)d);
+  return;
+}
+
+void catala_free_position(CATALA_POSITION p) {
+  free((char*)p->filename);
+  free((catala_code_position*)p);
+  return;
+}
+
+void catala_free_ext(struct catala_texternal* v) {
+  free((char*)v->name);
+  free(v);
+  return;
+}
+
+void catala_deep_free(catala_value x) {
+  if (!x.v) return;
+  switch (x.t.kind) {
+  case UNINITIALIZED: { break; }
+  case UNIT: {
+    catala_free_unit(x.v);
+    break;
+  }
+  case BOOL: {
+    catala_free_bool(x.v);
+    break;
+  }
+  case INTEGER: {
+    catala_free_int(x.v);
+    break;
+  }
+  case MONEY: {
+    catala_free_money(x.v);
+    break;
+  }
+  case DECIMAL: {
+    catala_free_dec(x.v);
+    break;
+  }
+  case DATE: {
+    catala_free_date(x.v);
+    break;
+  }
+  case DURATION: {
+    catala_free_duration(x.v);
+    break;
+  }
+  case POSITION: {
+    catala_free_position(x.v);
+    break;
+  }
+  case ARRAY: {
+    const catala_type* elts_typ = x.t.contents.tarray;
+    catala_array* v = (catala_array*)x.v;
+    int i;
+    for(i = 0; i < v->size; i++) {
+      catala_deep_free(embed(*elts_typ, v->elements[i]));
+    }
+    free(v->elements);
+    free(v);
+    break;
+  }
+  case TUPLE: {
+    const int size = x.t.contents.ttuple.size;
+    tuple_element* v = (tuple_element*) x.v;
+    int i;
+    for (i = 0; i < size; i++) {
+      const catala_type* elt_typ = x.t.contents.ttuple.elements[i];
+      catala_deep_free(embed(*elt_typ, v[i].content));
+    }
+    free(v);
+    break;
+  }
+  case STRUCT: {
+    const int size = x.t.contents.tstruct.size;
+    void** v = (void**)x.v;
+    int i;
+    for (i = 0; i < size; i++) {
+      catala_deep_free(embed(x.t.contents.tstruct.fields[i].ty, v[i]));
+    }
+    free(v);
+    break;
+  }
+  case ENUM: {
+    struct catala_enum* v = (struct catala_enum*) x.v; 
+    const int code = v->code;
+    const catala_type t = x.t.contents.tenum.cases[code].ty;
+    catala_deep_free(embed(t, v->payload));
+    free(v);
+    break;
+  }
+  case EXTERNAL: {
+    struct catala_texternal* v = (struct catala_texternal*) x.v;
+    catala_free_ext(v);
+    break;
+  }
+  case FUNCTION:
+  case POLY:
+  default:
+    break;
+  }
+  return;
+}
+
+/* Copy */
+
+#define FAIL_COPY(ret) do { \
+    *ret = NULL;       \
+    return 0;	       \
+  } while(0)
+
+int catala_copy_unit (void **ret, CATALA_UNIT u) {
+  if (!u) { *ret = NULL; return 1; }
+  *ret = (void*)CATALA_UNITVAL;
+  return 1;
+}
+
+int catala_copy_bool (int **ret, CATALA_BOOL b) {
+  if (!b) { ret = NULL; return 1; }
+  *ret = malloc(sizeof(CATALA_BOOL));
+  if (!*ret) FAIL_COPY(ret); 
+  **ret = *b;
+  return 1;
+}
+
+int catala_copy_int (mpz_ptr *ret, const CATALA_INT i) {
+  *ret = malloc(sizeof(__mpz_struct));
+  if (!*ret) FAIL_COPY(ret);
+  mpz_init_set(*ret, i);
+  return 1;
+}
+
+int catala_copy_dec (mpq_ptr *ret, const CATALA_DEC d) {
+  *ret = malloc(sizeof(__mpq_struct));
+  if (!ret) FAIL_COPY(ret);
+  mpq_init(*ret);
+  mpq_set(*ret, d);
+  return 1;  
+}
+
+int catala_copy_money (mpz_ptr *ret, const CATALA_MONEY m) {
+  *ret = malloc(sizeof(__mpz_struct));
+  if (!*ret) FAIL_COPY(ret);
+  mpz_init_set(*ret, m);
+  return 1;
+}
+
+int catala_copy_date(dc_date **ret, CATALA_DATE d)
+{
+  int success;
+  if (!d) { *ret = NULL; return 1; }
+  *ret = malloc(sizeof(dc_date));
+  if (!*ret) FAIL_COPY(ret);
+  success = dc_make_date(*ret, dc_date_year(d), dc_date_month(d), dc_date_day(d));
+  if (!success) {
+    free(*ret);
+    FAIL_COPY(ret);
+  }
+  return 1;
+}
+
+int catala_copy_duration(dc_period **ret, CATALA_DURATION d)
+{
+  if (!d) { *ret = NULL; return 1; }
+  *ret = malloc(sizeof(dc_period));
+  if (!*ret) FAIL_COPY(ret); 
+  dc_make_period(*ret, dc_period_years(d),dc_period_months(d),dc_period_days(d));
+  return 1;
+}
+
+
+int catala_copy_position(catala_code_position **ret, CATALA_POSITION p) {
+  char* filename;
+  if (!p) { *ret = NULL; return 1; }
+  *ret = (catala_code_position*)malloc(sizeof(catala_code_position));
+  if (!*ret) FAIL_COPY(ret);
+  filename = (char*)malloc(sizeof(char*) * strlen(p->filename));
+  if (!filename) {
+    free(*ret);
+    FAIL_COPY(ret);
+  }
+  strcpy(filename, p->filename);
+  (*ret)->filename = filename;
+  (*ret)->start_line = p->start_line;
+  (*ret)->start_column = p->start_column;
+  (*ret)->end_line = p->end_line;
+  (*ret)->end_column = p->end_column;
+  return 1;
+}
+
+int catala_copy_ext(struct catala_texternal** ret, const struct catala_texternal* v) {
+  char* name;
+  *ret = malloc(sizeof(struct catala_texternal));
+  if (!ret) FAIL_COPY(ret);
+  name = (char*)malloc(sizeof(char*) * strlen(v->name));
+  if (!name) {
+    free(*ret);
+    FAIL_COPY(ret);
+  }
+  strcpy(name, v->name);
+  (*ret)->name = name;
+  (*ret)->compare = v->compare;
+  (*ret)->compare = v->compare;
+  (*ret)->print = v->print;
+  (*ret)->to_json = v->to_json;
+  (*ret)->from_json = v->from_json;
+  return 1;
+}
+
+int catala_deep_copy_void(void** ret, const catala_value x) {
+  switch (x.t.kind) {
+  case UNINITIALIZED: { *ret = NULL; break; }
+  case UNIT: {
+    if (!x.v || !catala_copy_unit(ret, x.v))
+      FAIL_COPY(ret);
+    break;
+  }
+  case BOOL: {
+    if (!x.v || !catala_copy_bool((int**)ret, x.v))
+      FAIL_COPY(ret);
+    break;
+  }
+  case INTEGER: {
+    if (!x.v || !catala_copy_int((mpz_ptr *)ret, x.v))
+      FAIL_COPY(ret);
+    break;
+  }
+  case MONEY: {
+    if (!x.v || !catala_copy_money((mpz_ptr *)ret, x.v))
+      FAIL_COPY(ret);
+    break;
+  }
+  case DECIMAL: {
+    if (!x.v || !catala_copy_dec ((mpq_ptr *)ret, x.v))
+      FAIL_COPY(ret);
+    break;
+  }
+  case DATE: {
+    if (!x.v || !catala_copy_date((dc_date **)ret, x.v))
+      FAIL_COPY(ret);
+    break;
+  }
+  case DURATION: {
+    if (!x.v || !catala_copy_duration((dc_period **)ret, x.v))
+      FAIL_COPY(ret);
+    break;
+  }
+  case POSITION: {
+    if (!x.v || !catala_copy_position((catala_code_position **)ret, x.v))
+      FAIL_COPY(ret);
+    break;
+  }
+  case ARRAY: {
+    const catala_type* elts_typ = x.t.contents.tarray;
+    const catala_array* v = (catala_array*)x.v;
+    catala_array* arr;
+    int size, i, j;
+    void** elts;
+    if (!v) FAIL_COPY(ret);
+    size = v->size;
+    if (!(v->elements) && size > 0) FAIL_COPY(ret);
+    arr = (catala_array*)malloc(sizeof(catala_array));
+    if (!arr) FAIL_COPY(ret);
+    elts = (void**)malloc(sizeof(void*) * size);
+    if (!elts && size > 0) {
+      free(arr);
+      FAIL_COPY(ret);
+    }
+    for (i = 0; i < size; i++) {
+      int success = catala_deep_copy_void(&elts[i],embed(*elts_typ, v->elements[i]));
+      if (!success) {
+	for (j = 0; j < i; j++) {
+	  catala_deep_free(embed(*elts_typ, elts[j]));
+	}
+	free(elts);
+	free(arr);
+	FAIL_COPY(ret);
+      }
+    }
+    arr->size = size;
+    arr->elements = (const void **)elts;
+    *ret = (void*)arr;
+    break;
+  }
+  case TUPLE: {
+    const int size = x.t.contents.ttuple.size;
+    const tuple_element* v = (tuple_element*) x.v;
+    const catala_type* elt_typ;
+    tuple_element* tup;
+    int i, j;
+    if (!v) FAIL_COPY(ret);
+    if (size < 0) FAIL_COPY(ret);
+    tup = malloc(size * sizeof(tuple_element));
+    if (!tup && size > 0) FAIL_COPY(ret);
+    for (i = 0; i < size; i++) {
+      int success;
+      void* content;
+      elt_typ = x.t.contents.ttuple.elements[i];
+      success = catala_deep_copy_void(&content,embed(*elt_typ, v[i].content));
+      if (!success) {
+	for (j = 0; j < i; j++) {
+	  catala_value to_free;
+	  elt_typ = x.t.contents.ttuple.elements[j];
+	  catala_deep_free(embed(*elt_typ, content));
+	}
+	free(tup);
+	FAIL_COPY(ret);	
+      }
+      tup[i].content = content;
+    }
+    *ret = (void*)tup;
+    break;
+  }
+  case STRUCT: {
+    const int size = x.t.contents.tstruct.size;
+    const void* const* v = x.v;
+    void** str;
+    int i, j;
+    if (!v) FAIL_COPY(ret);
+    str = (void**) malloc(sizeof(void*) * size);
+    if (!str && size > 0) FAIL_COPY(ret);
+    for (i = 0; i < size; i++) {
+      int success = catala_deep_copy_void(&str[i],embed(x.t.contents.tstruct.fields[i].ty, v[i]));
+      if (!success) {
+	for (j = 0; j < i; j++) {
+	  catala_deep_free(embed(x.t.contents.tstruct.fields[j].ty, str[j]));
+	}
+	free(str);
+        FAIL_COPY(ret);
+      }
+    }
+    *ret = str;
+    break;
+  }
+  case ENUM: {
+    int success;
+    const struct catala_enum* v = (struct catala_enum*)x.v; 
+    struct catala_enum *e;
+    if (!v) FAIL_COPY(ret);
+    e = (struct catala_enum*)malloc(sizeof(struct catala_enum));
+    if (!e) FAIL_COPY(ret);
+    e->code = v->code;
+    success = catala_deep_copy_void(
+      &(e->payload),
+      embed(x.t.contents.tenum.cases[v->code].ty, v->payload)
+    );
+    if (!success) {
+      free(e);
+      FAIL_COPY(ret);
+    }
+    *ret = e;
+    break;
+  }
+  case EXTERNAL: {
+    int success;
+    if (!x.v) FAIL_COPY(ret);
+    success = catala_copy_ext((struct catala_texternal **)ret, x.v);
+    if (!success) FAIL_COPY(ret);
+    break;
+  }
+  case FUNCTION:
+  case POLY:
+  default:
+    *ret = NULL;
+    break;
+  }
+  return 1;
+}
+
+catala_value catala_deep_copy(const catala_value x) {
+  void* v;
+  catala_value ret = {0};
+  catala_deep_copy_void(&v, x);
+  ret.v = v;
+  ret.t = x.t;
+  return ret;
+}
