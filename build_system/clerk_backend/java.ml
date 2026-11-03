@@ -45,8 +45,7 @@ module Spec : Sig.Spec = struct
   let m2_repo_dir () =
     match Sys.getenv_opt "M2_REPO" with
     | Some dir -> dir
-    | None ->
-      Filename.concat (Filename.concat (Sys.getenv "HOME") ".m2") "repository"
+    | None -> Sys.getenv "HOME" / ".m2" / "repository"
 
   let resolve_maven_lib_path ~project_name (dep_name : string) : string =
     (* Allow local files/directories to bypass Maven coordinate lookup if they exist *)
@@ -60,18 +59,17 @@ module Spec : Sig.Spec = struct
       in
       let jar_name = Printf.sprintf "%s-%s.jar" artifact_id version in
       let jar_path =
-        List.fold_left Filename.concat (m2_repo_dir ())
-          [group_relpath; artifact_id; version; jar_name]
+        (* TODO: lookup into CLASS_PATH, if it has been overriden, as well ? *)
+        m2_repo_dir () / group_relpath / artifact_id / version / jar_name
       in
-      (if not (Sys.file_exists jar_path) then
-         let coord = Printf.sprintf "%s:%s:%s" group_id artifact_id version in
-         let cmd =
-           Printf.sprintf "mvn dependency:get -Dartifact=%s -q"
-             (Filename.quote coord)
-         in
-         if Sys.command cmd <> 0 then
-           Message.error "Could not resolve Maven dependency: %s" coord);
-      jar_path
+      if Sys.file_exists jar_path then jar_path
+      else
+        Message.error
+          "@[<v>Missing Java dependency @{<yellow>%s@}@,\
+           @{<bold>Hint:@} you may want to install it using:@,\
+          \  @{<underline>mvn dependency:get -Dartifact=%s:%s:%s -q@}@]"
+          (* ... or alternatively, use `--vars 'CLASS_PATH=...:${CLASS_PATH}'` *)
+          dep_name group_id artifact_id version
 
   let get_resolved_libs config =
     let project_name =
@@ -94,7 +92,6 @@ module Spec : Sig.Spec = struct
         ~accepts_closure_conversion:true ~trace
     in
     let def v x = Var.def ~overrides:config.Clerk_cli.file.variables v x in
-    let resolved_use_libs = get_resolved_libs config in
     let word w = Ninja_utils.Expr.Word w in
     [
       def catala_flags_java catala_flags;
@@ -105,7 +102,7 @@ module Spec : Sig.Spec = struct
       def class_path
         (lazy
           (let base_cp = Backend_paths.classpath ~backend:name include_dirs in
-           match resolved_use_libs with
+           match get_resolved_libs config with
            | [] -> base_cp
            | jars ->
              base_cp ^ Path.list_sep () ^ String.concat (Path.list_sep ()) jars));
@@ -359,15 +356,16 @@ module Spec : Sig.Spec = struct
         output_string oc (Backend_paths.jar_argfile_content entries));
     Var.get var_bindings jar @ ["--create"; "--file"; jar_target; "@" ^ argfile]
 
-  let run_artifact ~config ~var_bindings ~test ~trace:_ ?scope ?quiet src =
+  let run_artifact ~config:_ ~var_bindings ~test ~trace:_ ?scope ?quiet src =
     let target_main = File.remove_extension (Filename.basename src) in
-    let resolved_libs = get_resolved_libs config in
-    let runtime_cp =
-      String.concat (Path.list_sep ()) ((src -.- "jar") :: resolved_libs)
-    in
     let cmd =
       Var.get var_bindings java
-      @ ["-cp"; runtime_cp; target_main]
+      @ [
+          "-cp";
+          Var.expand var_bindings
+            ((src -.- "jar") ^ Path.list_sep () ^ !class_path);
+          target_main;
+        ]
       @ Option.to_list scope
       @ (if test && not Global.options.debug then ["--test"] else [])
       @ if Global.options.output_format = JSON then ["--json"] else []
