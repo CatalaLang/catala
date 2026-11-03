@@ -61,7 +61,7 @@ public class CatalaError extends RuntimeException {
     }
 
     public static CatalaError error(Error err) {
-        if (CatalaGlobals.tracing) {
+        if (CatalaGlobals.tracing()) {
             CatalaTrace.error(err, CatalaPosition.empty);
         }
         return new CatalaError(err);
@@ -73,7 +73,7 @@ public class CatalaError extends RuntimeException {
     }
 
     public static CatalaError error(Error err, String note) {
-        if (CatalaGlobals.tracing) {
+        if (CatalaGlobals.tracing()) {
             CatalaTrace.error(err, null, null, note);
         }
         return new CatalaError(err, note);
@@ -85,7 +85,7 @@ public class CatalaError extends RuntimeException {
     }
 
     public static CatalaError error(Error err, CatalaPosition pos) {
-        if (CatalaGlobals.tracing) {
+        if (CatalaGlobals.tracing()) {
             CatalaTrace.error(err, pos);
         }
         if (pos == null || pos == CatalaPosition.empty) {
@@ -101,7 +101,7 @@ public class CatalaError extends RuntimeException {
     }
 
     public static CatalaError error(Error err, CatalaPosition pos, String note) {
-        if (CatalaGlobals.tracing) {
+        if (CatalaGlobals.tracing()) {
             CatalaTrace.error(err, pos, null, note);
         }
         if (pos == null || pos == CatalaPosition.empty) {
@@ -119,7 +119,7 @@ public class CatalaError extends RuntimeException {
     }
 
     public static CatalaError error(Error err, List<CatalaPosition> lpos) {
-        if (CatalaGlobals.tracing) {
+        if (CatalaGlobals.tracing()) {
             CatalaTrace.error(err, lpos);
         }
         return new CatalaError(err, lpos);

@@ -18,42 +18,54 @@ public class CatalaTrace {
     }
 
     public static void begin(TraceKind k, CatalaPosition pos) {
-        instance.get().beginTrace(k, pos);
+        if (CatalaGlobals.tracing()) {
+            instance.get().beginTrace(k, pos);
+        }
     }
 
     public static void end(CatalaValue<?> v) {
-        instance.get().endTrace(v);
+        if (CatalaGlobals.tracing()) {
+            instance.get().endTrace(v);
+        }
     }
 
     public static void end() {
-        instance.get().endTrace();
+        if (CatalaGlobals.tracing()) {
+            instance.get().endTrace();
+        }
     }
 
     public static void single(TraceKind k, CatalaPosition pos) {
-        instance.get().singleTrace(k, pos);
+        if (CatalaGlobals.tracing()) {
+            instance.get().singleTrace(k, pos);
+        }
     }
 
     public static void error(CatalaError.Error err, CatalaPosition pos,
             CatalaPosition[] relatedPos, String message) {
-        if (message == null){
-            single(new Error(err, relatedPos), pos);
-        } else {
-            single(new Error(err, relatedPos, message), pos);
+        if (CatalaGlobals.tracing()) {
+            if (message == null) {
+                single(new Error(err, relatedPos), pos);
+            } else {
+                single(new Error(err, relatedPos, message), pos);
+            }
         }
     }
 
     public static void error(CatalaError.Error e, List<CatalaPosition> lpos) {
-        final CatalaPosition pos;
-        CatalaPosition[] relatedPos = null;
-        if (lpos.isEmpty()) {
-            pos = CatalaPosition.empty;
-        } else {
-            pos = lpos.get(0);
-            if (lpos.size() > 1) {
-                relatedPos = (CatalaPosition[]) (lpos.subList(1, lpos.size()).toArray());
+        if (CatalaGlobals.tracing()) {
+            final CatalaPosition pos;
+            CatalaPosition[] relatedPos = null;
+            if (lpos.isEmpty()) {
+                pos = CatalaPosition.empty;
+            } else {
+                pos = lpos.get(0);
+                if (lpos.size() > 1) {
+                    relatedPos = (CatalaPosition[]) (lpos.subList(1, lpos.size()).toArray());
+                }
             }
+            error(e, pos, relatedPos, null);
         }
-        error(e, pos, relatedPos, null);
     }
 
     public static void error(CatalaError.Error e, CatalaPosition pos) {

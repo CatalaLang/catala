@@ -1067,7 +1067,7 @@ let format_tests ctx ppf p =
        fprintf ppf "boolean test_mode = false;";
        fprintf ppf "@,boolean json_mode = false;";
        if Global.options.trace <> None then
-         fprintf ppf "@,CatalaGlobals.tracing = true;";
+         fprintf ppf "@,CatalaGlobals.setTracing(true);";
        fprintf ppf
          "@,\
           java.util.Set<String> enabled_tests = new \
