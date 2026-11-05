@@ -45,8 +45,8 @@ type keywords = {
   option : string;
   or_ <json name="or"> : string;
   or_if_list_empty : string;
-  order_ascending : string;
-  order_descending : string;
+  order_increasing : string;
+  order_decreasing : string;
   output : string;
   rule : string;
   scope : string;

@@ -121,8 +121,8 @@ let format_lang_macro_file ppf (language : Language_t.language) =
       "OPTION", kwds.option;
       "OR", kwds.or_;
       "OR_IF_LIST_EMPTY", kwds.or_if_list_empty;
-      "ORDER_ASCENDING", kwds.order_ascending;
-      "ORDER_DESCENDING", kwds.order_descending;
+      "ORDER_INCREASING", kwds.order_increasing;
+      "ORDER_DECREASING", kwds.order_decreasing;
       "OUTPUT", kwds.output;
       "RULE", kwds.rule;
       "SCOPE", kwds.scope;

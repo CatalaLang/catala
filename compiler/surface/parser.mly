@@ -480,8 +480,8 @@ let list_body :=
 | e = expression ; { [e] }
 
 let sort_order ==
-| ORDER_ASCENDING ; { `Asc }
-| ORDER_DESCENDING ; { `Desc }
+| ORDER_INCREASING ; { `Asc }
+| ORDER_DECREASING ; { `Desc }
 
 let ordering_criteria :=
 | e1 = expression ; AND_THEN ; e2 = ordering_criteria ; {

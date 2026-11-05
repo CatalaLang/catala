@@ -81,8 +81,8 @@ let () =
         "option", kwds.option;
         "or_", kwds.or_;
         "or_if_list_empty", kwds.or_if_list_empty;
-        "order_ascending", kwds.order_ascending;
-        "order_descending", kwds.order_descending;
+        "order_increasing", kwds.order_increasing;
+        "order_decreasing", kwds.order_decreasing;
         "output", kwds.output;
         "rule", kwds.rule;
         "scope", kwds.scope;

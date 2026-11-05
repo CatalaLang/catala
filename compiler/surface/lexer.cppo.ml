@@ -190,11 +190,11 @@ module R = Re.Pcre
 #ifndef MR_SORT
   #define MR_SORT MS_SORT
 #endif
-#ifndef MR_ORDER_ASCENDING
-  #define MR_ORDER_ASCENDING MS_ORDER_ASCENDING
+#ifndef MR_ORDER_INCREASING
+  #define MR_ORDER_INCREASING MS_ORDER_INCREASING
 #endif
-#ifndef MR_ORDER_DESCENDING
-  #define MR_ORDER_DESCENDING MS_ORDER_DESCENDING
+#ifndef MR_ORDER_DECREASING
+  #define MR_ORDER_DECREASING MS_ORDER_DECREASING
 #endif
 #ifndef MR_AND_THEN
   #define MR_AND_THEN MS_AND_THEN
@@ -322,8 +322,8 @@ let token_list : (string * token) list =
     (MS_SUCH, SUCH);
     (MS_THAT, THAT);
     (MS_SORT, SORT);
-    (MS_ORDER_ASCENDING, ORDER_ASCENDING);
-    (MS_ORDER_DESCENDING, ORDER_DESCENDING);
+    (MS_ORDER_INCREASING, ORDER_INCREASING);
+    (MS_ORDER_DECREASING, ORDER_DECREASING);
     (MS_AND_THEN, AND_THEN);
     (MS_AND, AND);
     (MS_OR, OR);
@@ -629,12 +629,12 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_SORT ->
     L.update_acc lexbuf;
     SORT
-  | MR_ORDER_ASCENDING ->
+  | MR_ORDER_INCREASING ->
     L.update_acc lexbuf;
-    ORDER_ASCENDING
-  | MR_ORDER_DESCENDING ->
+    ORDER_INCREASING
+  | MR_ORDER_DECREASING ->
     L.update_acc lexbuf;
-    ORDER_DESCENDING
+    ORDER_DECREASING
   | MR_AND_THEN ->
     L.update_acc lexbuf;
     AND_THEN
