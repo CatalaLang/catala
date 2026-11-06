@@ -481,6 +481,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       L.update_acc lexbuf;
       DATA
   | MR_DEPENDS ->
+      L.check_keyword_boundary lexbuf (Pos.from_lpos prev_pos) prev_lexeme;
       L.update_acc lexbuf;
       DEPENDS
   | MR_DECLARATION ->
@@ -508,9 +509,11 @@ let rec lex_code (lexbuf : lexbuf) : token =
       L.update_acc lexbuf;
       OF
   | MR_LIST ->
+      L.check_keyword_boundary lexbuf (Pos.from_lpos prev_pos) prev_lexeme;
       L.update_acc lexbuf;
       LIST
   | MR_OPTION ->
+      L.check_keyword_boundary lexbuf (Pos.from_lpos prev_pos) prev_lexeme;
       L.update_acc lexbuf;
       OPTION
   | MR_CONTAINS ->
@@ -547,6 +550,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       L.update_acc lexbuf;
       MATCH
   | MR_WITH ->
+      L.check_keyword_boundary lexbuf (Pos.from_lpos prev_pos) prev_lexeme;
       L.update_acc lexbuf;
       WITH
   | MR_WILDCARD ->
@@ -559,6 +563,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       L.update_acc lexbuf;
       EXTERNAL
   | MR_UNDER_CONDITION ->
+      L.check_keyword_boundary lexbuf (Pos.from_lpos prev_pos) prev_lexeme;
       L.update_acc lexbuf;
       UNDER_CONDITION
   | MR_IF ->
@@ -595,6 +600,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       L.update_acc lexbuf;
       ALL
   | MR_WE_HAVE ->
+      L.check_keyword_boundary lexbuf (Pos.from_lpos prev_pos) prev_lexeme;
       L.update_acc lexbuf;
       WE_HAVE
   | MR_RULE ->
@@ -616,6 +622,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       L.update_acc lexbuf;
       COMBINE
   | MR_MAP_EACH ->
+      L.check_keyword_boundary lexbuf (Pos.from_lpos prev_pos) prev_lexeme;
       L.update_acc lexbuf;
       MAP_EACH
   | MR_TO ->
@@ -637,6 +644,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
     L.update_acc lexbuf;
     ORDER_DESCENDING
   | MR_AND_THEN ->
+    L.check_keyword_boundary lexbuf (Pos.from_lpos prev_pos) prev_lexeme;
     L.update_acc lexbuf;
     AND_THEN
   | MR_AND ->
@@ -661,9 +669,11 @@ let rec lex_code (lexbuf : lexbuf) : token =
       L.update_acc lexbuf;
       IS
   | MR_OR_IF_LIST_EMPTY ->
+      L.check_keyword_boundary lexbuf (Pos.from_lpos prev_pos) prev_lexeme;
       L.update_acc lexbuf;
       OR_IF_LIST_EMPTY
   | MR_BUT_REPLACE ->
+      L.check_keyword_boundary lexbuf (Pos.from_lpos prev_pos) prev_lexeme;
       L.update_acc lexbuf;
       BUT_REPLACE
   | MR_INITIALLY ->
