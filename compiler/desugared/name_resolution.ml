@@ -1262,7 +1262,7 @@ let process_name_item
         if typedef_path use = [] then
           raise_already_defined_error (typedef_info use) name pos "struct")
       (Ident.Map.find_opt name ctxt.local.typedefs);
-    let s_uid = StructName.fresh path sdecl.struct_decl_name in
+    let s_uid = StructName.fresh path (name, pos) in
     let typedefs =
       Ident.Map.add
         (Mark.remove sdecl.struct_decl_name)
