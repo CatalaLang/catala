@@ -1762,7 +1762,7 @@ let process_topdef
     (ctxt : Name_resolution.context)
     (modul : Ast.modul)
     (is_public : bool)
-    (is_module_external : bool)
+    (is_external : bool)
     (def : S.top_def) : Ast.modul =
   let id =
     Ident.Map.find
@@ -1825,7 +1825,7 @@ let process_topdef
     TopdefName.Map.update id
       (fun def0 ->
         match def0, expr_opt with
-        | None, Some _ when is_module_external ->
+        | None, Some _ when is_external ->
           err "Unexpected definition contents in an external module"
         | None, eopt ->
           Some
@@ -1834,7 +1834,7 @@ let process_topdef
               topdef_visibility;
               topdef_type = typ;
               topdef_arg_names;
-              topdef_external = is_module_external;
+              topdef_is_external = is_external;
             }
         | Some def0, eopt -> (
           if not (Type.equal def0.Ast.topdef_type typ) then
@@ -1855,7 +1855,7 @@ let process_topdef
                   topdef_visibility;
                   topdef_type = typ;
                   topdef_arg_names;
-                  topdef_external = false;
+                  topdef_is_external = false;
                 }
             | None, (Some _ as topdef_expr) ->
               Some { def0 with Ast.topdef_expr; topdef_visibility }))
@@ -2061,7 +2061,7 @@ let translate_program
                 topdef_visibility;
                 topdef_type;
                 topdef_arg_names = [];
-                topdef_external = mctx.is_external;
+                topdef_is_external = mctx.is_external;
               }
               acc)
           mctx.topdefs TopdefName.Map.empty
@@ -2163,13 +2163,13 @@ let translate_program
   let program_module_name =
     surface.Surface.Ast.program_module
     |> Option.map
-       @@ fun { Surface.Ast.module_name; module_external } ->
+       @@ fun { Surface.Ast.module_name; module_is_external } ->
        let mname = ModuleName.fresh module_name in
        let hash_placeholder = Hash.raw 0 in
        ( mname,
          {
            hash = hash_placeholder;
-           is_external = module_external;
+           is_external = module_is_external;
            is_stdlib = false;
          } )
   in
@@ -2201,8 +2201,8 @@ let translate_program
       fold_left_catch_errors
         (fun modul child -> process_structure ctxt modul child)
         modul children
-    | S.CodeBlock (block, _, is_meta) ->
-      process_code_block ctxt modul ~is_meta block
+    | S.CodeBlock { code; is_metadata; _ } ->
+      process_code_block ctxt modul ~is_meta:is_metadata code
     | S.ModuleDef _ | S.LawInclude _ | S.LawText _ | S.ModuleUse _ -> modul
   in
   let desugared =
@@ -2276,7 +2276,7 @@ let translate_program
                   {
                     topdef with
                     Ast.topdef_expr = Some expr;
-                    topdef_external = false;
+                    topdef_is_external = false;
                   })
                 desugared.program_root.module_topdefs;
           };

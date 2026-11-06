@@ -133,7 +133,7 @@ type topdef = {
   topdef_visibility : visibility;
       (** Necessarily [Public] outside of the root module (unless in
           whole_program mode) *)
-  topdef_external : bool;
+  topdef_is_external : bool;
 }
 
 type modul = {

@@ -418,12 +418,10 @@ and expand_includes
               "Multiple definitions of the module name"
         in
         match command with
-        | Ast.ModuleDef (id, is_external) ->
+        | Ast.ModuleDef m ->
           {
             acc with
-            Ast.program_module =
-              join_module_names
-                (Some { module_name = id; module_external = is_external });
+            Ast.program_module = join_module_names (Some m);
             Ast.program_items = command :: acc.Ast.program_items;
           }
         | Ast.ModuleUse (mod_use_name, alias) ->
@@ -546,7 +544,7 @@ let load_source_file ?default_module_name ~is_stdlib source_file content_builder
     | None, Some n ->
       {
         module_name = n, Pos.from_file (Global.input_src_file source_file);
-        module_external = false;
+        module_is_external = false;
       }
     | None, None ->
       Message.error ~kind:Parsing
@@ -579,7 +577,7 @@ let load_interface ?default_module_name ~is_stdlib source_file =
           }
           :: req,
           acc )
-      | Ast.CodeBlock (code, _, is_metadata) ->
+      | Ast.CodeBlock { code; is_metadata; _ } ->
         (* Non-metadata blocks are ignored ; except for types that can
            automatically get exported if required by public or test items *)
         ( req,
