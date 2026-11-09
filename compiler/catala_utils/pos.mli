@@ -38,10 +38,14 @@ val equal : t -> t -> bool
     ignored. *)
 
 type attr = ..
-(** Extensible type of attributes that can be attached to positions. Other
-    modules extend it to carry their own metadata along with a position (e.g.
-    user-written attributes in [Shared_ast.Definitions], or plugins). Attributes
-    are compared with structural equality by {!has_attr}. *)
+(** Extensible type of attributes attached to a position.
+
+    Other modules extend it to carry their own metadata along with a position
+    (e.g. user-written attributes in [Shared_ast.Definitions], or plugins).
+    Attributes are compared with structural equality by {!has_attr}.
+
+    A position holds a list of them, in no specific order: use
+    {!get_attrs_sorted} when the order matters. *)
 
 type attr +=
   | Law_pos of string list
@@ -84,7 +88,9 @@ val get_file : t -> string
 (**{3 Attributes} *)
 
 val attrs : t -> attr list
-(** All attributes attached to the position, including {!Law_pos} *)
+(** All attributes attached to the position, including {!Law_pos}. Attributes
+    are in no specific order, see {!get_attrs_sorted} if you need them sorted.
+*)
 
 val set_attrs : t -> attr list -> t
 (** Replaces all the attributes of the position *)
@@ -112,14 +118,21 @@ val take_attr : t -> (attr -> 'a option) -> 'a option * t
     are left in place. *)
 
 val get_attrs : t -> (attr -> 'a option) -> 'a list
-(** Returns the results of [f] on all attributes for which it returns [Some _]
-*)
+(** Returns the results of [f] on all attributes for which it returns [Some _].
+    Attributes are returned in no specific order. See {!get_attrs_sorted} if you
+    need them sorted. *)
+
+val get_attrs_sorted : t -> (attr -> (t * 'a) option) -> 'a list
+(** Like [get_attrs], but the function also returns the position of each
+    attribute, and the results are sorted by these positions. Use this to get
+    attributes in source order. *)
 
 (**{3 Combining positions} *)
 
 val join : t -> t -> t
 (** Returns the smallest range including both supplied ranges. Attributes are
-    merged ; law info is taken from the earliest position.
+    merged, in no specific order, except law info which is taken from the
+    earliest position.
 
     Void positions (filename = "") are ignored. Raises [Invalid_argument] if
     they don't belong to the same file. *)
