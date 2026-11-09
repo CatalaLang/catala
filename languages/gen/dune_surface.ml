@@ -1,0 +1,46 @@
+open Language_t
+
+let langs = Languages.languages () |> List.map (fun (_, l) -> l)
+let lang_codes = List.map (fun l -> l.code) langs
+
+let surface_lib =
+  Printf.sprintf
+    {dune|(library
+ (name surface)
+ (public_name catala.surface)
+ (libraries catala_utils menhirLib sedlex re zarith shared_ast)
+ (preprocess
+  (per_module
+   ((pps sedlex.ppx)
+    %s
+))))|dune}
+    (String.concat " " (List.map (fun c -> "lexer_" ^ c) lang_codes))
+
+let action fmt lang =
+  Format.fprintf fmt
+    "@[<v>(write-file lexer_%s.mli \"include Lexer_common.LocalisedLexer\")@ \
+     @[<v 1>(with-stdout-to@  lexer_%s.cppo.ml@ @[<h>(run \
+     %%{exe:../../languages/gen/macros.exe} \
+     %%{dep:../../languages/%s.json})@])@]@ @[<v 1>(with-stdout-to@  \
+     lexer_%s.ml@ @[<h>(run %%{bin:cppo} lexer_%s.cppo.ml \
+     %%{dep:lexer.cppo.ml})@])@]@]@]@\n"
+    lang.code lang.code lang.name lang.code lang.code
+
+let () =
+  print_endline surface_lib;
+  Format.printf
+    {dune|
+(rule
+ (targets @[<h>%s@])
+ (mode (promote (only %s)))
+ (action
+  (progn|dune}
+    (List.map
+       (fun c -> Format.sprintf "lexer_%s.ml lexer_%s.mli" c c)
+       lang_codes
+    |> String.concat " ")
+    (List.map (fun c -> Format.sprintf "lexer_%s.mli" c) lang_codes
+    |> String.concat " ");
+
+  List.iter (Format.printf "@[<v 4>   %a@]" action) langs;
+  print_endline ")))"

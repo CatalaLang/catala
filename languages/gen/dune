@@ -9,3 +9,8 @@
  (name ocaml)
  (modules ocaml)
  (libraries utils atd_language))
+
+(executable
+ (name dune_surface)
+ (modules dune_surface)
+ (libraries catala.languages))
