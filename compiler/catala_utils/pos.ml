@@ -15,7 +15,12 @@
    the License. *)
 
 type attr = ..
-type t = { code_pos : Lexing.position * Lexing.position; attr : attr list }
+
+type t = {
+  code_pos : Lexing.position * Lexing.position;
+  attr : attr list;  (** In no specific order, see [get_attrs_sorted] *)
+}
+
 type attr += Law_pos of string list
 
 let from_lpos (p : Lexing.position * Lexing.position) : t =
@@ -39,6 +44,11 @@ let add_attr t attr = { t with attr = attr :: t.attr }
 let add_attrs t attrs = List.fold_left add_attr t attrs
 let rem_attr t attr = { t with attr = List.filter (fun a -> a <> attr) t.attr }
 let get_attrs t f = List.filter_map f t.attr
+
+let get_attrs_sorted t f =
+  get_attrs t f
+  |> List.sort (fun (p1, _) (p2, _) -> compare p1 p2)
+  |> List.map snd
 
 let get_attr t f =
   match get_attrs t f with

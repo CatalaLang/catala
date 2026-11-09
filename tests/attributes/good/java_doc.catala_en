@@ -18,7 +18,10 @@ declaration structure S:
   #[doc="Contains something else"]
   data x2 content integer
 
-#[doc="A structure documented with an attribute"]
+## A structure following another one,
+# something irrelevant
+## documented with comments
+#[doc="and an attribute"]
 declaration structure U:
   ## Contains an integer
   data y content integer
@@ -64,21 +67,21 @@ public class AnonymousClass {
         public static final CatalaArray<CatalaPosition> loc =
             new CatalaArray<CatalaPosition>
              (new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 40, 10, 40, 11),
+               ("tests/attributes/good/java_doc.catala_en", 43, 10, 43, 11),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 42, 10, 42, 11),
+               ("tests/attributes/good/java_doc.catala_en", 45, 10, 45, 11),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 45, 23, 45, 24),
+               ("tests/attributes/good/java_doc.catala_en", 48, 23, 48, 24),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 46, 23, 46, 24),
+               ("tests/attributes/good/java_doc.catala_en", 49, 23, 49, 24),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 48, 5, 48, 79),
+               ("tests/attributes/good/java_doc.catala_en", 51, 5, 51, 79),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 48, 53, 48, 54),
+               ("tests/attributes/good/java_doc.catala_en", 51, 53, 51, 54),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 48, 57, 48, 58),
+               ("tests/attributes/good/java_doc.catala_en", 51, 57, 51, 58),
               new CatalaPosition
-               ("tests/attributes/good/java_doc.catala_en", 49, 23, 49, 36));
+               ("tests/attributes/good/java_doc.catala_en", 52, 23, 52, 36));
     }
     
     /**
@@ -108,7 +111,9 @@ public class AnonymousClass {
     }
     
     /**
-     * A structure documented with an attribute
+     * A structure following another one,
+     * documented with comments
+     * and an attribute
      */
     public static class U extends CatalaStruct {
         
@@ -118,7 +123,9 @@ public class AnonymousClass {
         public final CatalaInteger y;
         
         /**
-         * A structure documented with an attribute
+         * A structure following another one,
+         * documented with comments
+         * and an attribute
          
          * @param y Contains an integer
          */
