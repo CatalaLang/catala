@@ -47,6 +47,8 @@ depends: [
   "odoc" {with-doc}
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.29.0"}
   "obelisk" {?cataladevmode & cataladevmode}
+  "atdgen" {?cataladevmode & cataladevmode}
+  "atdgen-runtime" {?cataladevmode & cataladevmode}
   "conf-ninja" {post | with-test}
   # --- the following are "optional runtime dependencies" ---
   # they're listed here mostly for documentation ; one can export
