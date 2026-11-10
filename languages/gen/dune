@@ -2,11 +2,13 @@
 
 (executable
  (name macros)
+ (flags (:standard -warn-error +a))
  (modules macros)
  (libraries utils full_atd))
 
 (executable
  (name ocaml)
+ (flags (:standard -warn-error +a))
  (modules ocaml)
  (libraries utils full_atd))
 
