@@ -56,6 +56,10 @@ val var_debug : Format.formatter -> 'e Var.t -> unit
 val attr : Format.formatter -> Pos.attr -> unit
 val attrs : Format.formatter -> Pos.t -> unit
 
+val src_attr_name : Format.formatter -> Pos.attr -> unit
+(** How an attribute was written ([Src] or [Src_doc]), for messages: e.g.
+    "attribute #[test]" or "doc comment" *)
+
 val expr : ?debug:bool -> unit -> Format.formatter -> ('a, 'm) gexpr -> unit
 (** Expression printer.
 
