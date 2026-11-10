@@ -464,6 +464,8 @@ type Pos.attr +=
   | DebugPrint of { label : string option }
   | Test
   | Doc of string * Pos.t
+        (** A piece of a docstring: one per [##] line, or one per [#[doc]]
+            attribute. *)
   | ImplicitPosArg
   | ErrorMessage of string
   | JsonPayload of string

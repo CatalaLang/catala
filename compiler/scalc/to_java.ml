@@ -31,51 +31,76 @@ let pp_print_list_padded ?pp_sep pp ppf l =
     pp_skip_line ppf ();
     (pp_print_list ?pp_sep pp) ppf l)
 
+(** Docstrings are text where, as in Markdown, a line break is a soft break and
+    blank lines separate paragraphs; there is no other markup. Javadoc is HTML,
+    so the text is escaped, and every paragraph but the first starts with [<p>].
+    Line breaks, blank lines and indentation are otherwise kept as written, HTML
+    ignores them. The text is cut into lines only to print each of them behind
+    the [*] of the comment. *)
+let javadoc_lines (pos : Pos.t) : string list =
+  let escape line =
+    let buf = Buffer.create (String.length line) in
+    String.iteri
+      (fun i c ->
+        match c with
+        | '<' -> Buffer.add_string buf "&lt;"
+        | '>' -> Buffer.add_string buf "&gt;"
+        | '&' -> Buffer.add_string buf "&amp;"
+        (* Would start a Javadoc tag *)
+        | '@' -> Buffer.add_string buf "&#64;"
+        (* Would end the comment *)
+        | '/' when i > 0 && line.[i - 1] = '*' -> Buffer.add_string buf "&#47;"
+        | c -> Buffer.add_char buf c)
+      line;
+    Buffer.contents buf
+  in
+  let is_blank line = String.trim line = "" in
+  (* Leading and trailing blank lines separate no paragraphs *)
+  let drop_blank_ends lines =
+    let rec drop_leading = function
+      | line :: l when is_blank line -> drop_leading l
+      | l -> l
+    in
+    lines |> drop_leading |> List.rev |> drop_leading |> List.rev
+  in
+  let mark_paragraph after_blank line =
+    if is_blank line then true, line
+    else false, if after_blank then "<p>" ^ line else line
+  in
+  Pos.get_attrs_sorted pos (function Doc (s, p) -> Some (p, s) | _ -> None)
+  |> List.concat_map (String.split_on_char '\n')
+  |> drop_blank_ends
+  |> List.map escape
+  |> List.fold_left_map mark_paragraph false
+  |> snd
+
 let format_doc
     ?(params : (string * Pos.t) list option)
     (get_pos : 'a -> Pos.t)
     ppf
     (v : 'a) =
-  let param_to_text (n, d) =
-    let d = String.trim d in
-    let s = Format.asprintf "@[<hov>%a@]" pp_print_text d in
-    asprintf "@@param %s @[<hov>%a@]" n pp_print_text s
+  let doc = javadoc_lines (get_pos v) in
+  let params =
+    List.concat_map
+      (fun (name, pos) ->
+        match javadoc_lines pos with
+        | [] -> []
+        | first :: others -> ("@param " ^ name ^ " " ^ first) :: others)
+      (Option.value ~default:[] params)
   in
-  let pp_content ppf s =
-    let s = Format.asprintf "@[<hov>%a@]" pp_print_text s in
-    let l = String.split_on_char '\n' s |> List.map (fun l -> "* " ^ l) in
-    let pp_item ppf s = fprintf ppf "@[<h>%s@]" s in
-    Format.pp_open_vbox ppf 0;
-    (pp_print_list ~pp_sep:pp_print_cut pp_item) ppf l;
-    Format.pp_close_box ppf ()
+  let lines =
+    match doc, params with
+    | [], _ | _, [] -> doc @ params
+    | _ -> doc @ ("" :: params)
   in
-  let get_doc_attrs p =
-    Pos.get_attrs_sorted p (function Doc (d, p) -> Some (p, d) | _ -> None)
-    |> function
-    | [] -> None
-    | l -> Some (String.concat "\n" (List.map String.trim l))
+  let pp_line ppf = function
+    | "" -> pp_print_string ppf "*"
+    | line -> fprintf ppf "* %s" line
   in
-  let pos = get_pos v in
-  let doc_opt = get_doc_attrs pos in
-  let params_with_doc =
-    Option.map
-      (List.filter_map (fun (n, p) ->
-           get_doc_attrs p |> Option.map (fun d -> param_to_text (n, d))))
-      params
-    |> function Some [] -> None | o -> o
-  in
-  match doc_opt, params_with_doc with
-  | None, None -> ()
-  | Some d, (None | Some []) ->
-    fprintf ppf "@[<v 1>/**@\n%a@]@\n */@\n" pp_content (String.trim d)
-  | None, Some params ->
-    fprintf ppf "@[<hov 1>/**@\n%a@]@\n */@\n"
-      (pp_print_list ~pp_sep:pp_print_cut pp_content)
-      params
-  | Some d, Some params ->
-    fprintf ppf "@[<v 1>/**@\n%a@\n@\n%a@]@\n */@\n" pp_content (String.trim d)
-      (pp_print_list ~pp_sep:pp_print_cut pp_content)
-      params
+  if lines <> [] then
+    fprintf ppf "@[<v 1>/**@\n%a@]@\n */@\n"
+      (pp_print_list ~pp_sep:pp_print_cut pp_line)
+      lines
 
 type context = {
   decl_ctx : decl_ctx;
