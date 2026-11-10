@@ -1,4 +1,4 @@
-open Language_t
+open Locale
 
 let langs = Languages.languages () |> List.map (fun (_, l) -> l)
 let lang_codes = List.map (fun l -> l.code) langs

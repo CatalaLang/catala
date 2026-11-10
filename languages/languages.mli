@@ -16,7 +16,7 @@
 
 type t = ..
 type code = t
-type lang = Language_t.language
+type lang = Locale.language
 
 val register_language : code * lang -> unit
 val languages : unit -> (code * lang) list

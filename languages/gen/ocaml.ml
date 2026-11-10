@@ -27,7 +27,7 @@ let () =
     pp_print_newline ppf ();
     pp_print_newline ppf ()
   in
-  fprintf ppf "open Language_t";
+  fprintf ppf "open Locale";
   dl ();
   let format_field_def ppf (name, s) = fprintf ppf "%s = %S" name s in
   let format_keywords ppf =

@@ -3,12 +3,12 @@
 (executable
  (name macros)
  (modules macros)
- (libraries utils atd_language))
+ (libraries utils full_atd))
 
 (executable
  (name ocaml)
  (modules ocaml)
- (libraries utils atd_language))
+ (libraries utils full_atd))
 
 (executable
  (name dune_surface)
