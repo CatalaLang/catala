@@ -98,7 +98,7 @@ type context = {
   local : module_context;
       (** Module being currently analysed (at the end: the root module) *)
 }
-(** Global context used throughout {!module: Surface.Desugaring} *)
+(** Global context used throughout {!module: Desugared.From_surface} *)
 
 (** {1 Attribute resolution handling} *)
 type attribute_context =
