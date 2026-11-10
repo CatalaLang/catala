@@ -9,6 +9,13 @@
     dune.inc
    (run %{exe:../../languages/gen/dune_surface.exe}))))
 
+(library
+ (name surface)
+ (public_name catala.surface)
+ (library_flags -linkall)
+ (libraries catala_utils menhirLib sedlex re zarith shared_ast localised_lexers)
+ (modules parser parser_errors parser_state parser_driver print surface))
+
 (rule
  (copy ast.mli ast.ml))
 

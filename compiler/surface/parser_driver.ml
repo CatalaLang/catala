@@ -321,24 +321,29 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       Incremental.source_file lexbuf
 end
 
-module Parser_En = ParserAux (Lexer_en)
-module Parser_Fr = ParserAux (Lexer_fr)
-module Parser_Pl = ParserAux (Lexer_pl)
+module type LocalisedParser = sig
+  val commands_or_includes : lexbuf -> Ast.source_file
+end
 
 let localised_parser : Global.backend_lang -> lexbuf -> Ast.source_file =
-  function
-  | French.T -> Parser_Fr.commands_or_includes
-  | Polish.T -> Parser_Pl.commands_or_includes
-  | English.T | _ -> Parser_En.commands_or_includes
+  let all_parsers =
+    List.map
+      (fun (c, (module Lexer : Lexer_common.LocalisedLexer)) ->
+        c, (module ParserAux (Lexer) : LocalisedParser))
+      (Lexer_common.lexers ())
+  in
+  fun lang ->
+    match List.assoc_opt lang all_parsers with
+    | None -> Message.error "No registered lexer for the given language"
+    | Some (module Parser) -> Parser.commands_or_includes
 
 (** Lightweight lexer for dependency *)
 
 let lines (file : File.t) (language : Global.backend_lang) =
   let lex_line =
-    match language with
-    | French.T -> Lexer_fr.lex_line
-    | Polish.T -> Lexer_pl.lex_line
-    | English.T | _ -> Lexer_en.lex_line
+    match List.assoc_opt language (Lexer_common.lexers ()) with
+    | None -> Message.error "No registered lexer for the given language"
+    | Some (module Lexer) -> Lexer.lex_line
   in
   let input = open_in file in
   try
