@@ -42,7 +42,7 @@
 
   let move_attrs ~from =
     let moved_attrs, kept_attrs =
-      List.partition Shared_ast.(function Src _ | Doc _ -> true | _ -> false)
+      List.partition Shared_ast.(function Src _ -> true | _ -> false)
         (Pos.attrs from)
     in
     let set_attrs target =
@@ -176,7 +176,8 @@ let attribute :=
   Shared_ast.Src (tag, Option.value ~default:Shared_ast.Unit value, get_pos $loc)
 }
 | s = DOCSTRING ; {
-  Shared_ast.Doc (s, get_pos $loc)
+  let pos = get_pos $loc in
+  Shared_ast.Src ((["doc"], pos), Shared_ast.String (s, pos), pos)
 }
 
 let attr(x) ==

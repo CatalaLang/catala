@@ -100,7 +100,7 @@ public class AnonymousClass {
         
         /**
          * A not-so-much complex structure
-         
+         *
          * @param x1 Contains something
          * @param x2 Contains something else
          */
@@ -126,7 +126,7 @@ public class AnonymousClass {
          * A structure following another one,
          * documented with comments
          * and an attribute
-         
+         *
          * @param y Contains an integer
          */
         public U (final CatalaInteger y) {
@@ -140,8 +140,7 @@ public class AnonymousClass {
      * another small line
      * Nunc eleifend leo vitae magna. In id erat non orci commodo lobortis.
      * Sed diam. Praesent fermentum tempor tellus. Nullam tempus.
-     * Phasellus purus. Pellentesque tristique imperdiet tortor. Nam euismod tellus
-     * id erat.
+     * Phasellus purus. Pellentesque tristique imperdiet tortor. Nam euismod tellus id erat.
      */
     @SuppressWarnings("unchecked")
     public static class E extends CatalaEnum {
@@ -285,10 +284,10 @@ public class AnonymousClass {
         
         /**
          * A simple scope named T
-         
+         *
          * @param x_in An integer input
          * @param e_in An enum input
-         *             named e
+         * named e
          * @param c_in A context variable
          */
         public T

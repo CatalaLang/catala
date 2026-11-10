@@ -316,10 +316,7 @@ let translate_attr ~context = function
         Message.warning ~pos "Unrecognised attribute \"%s\"" p1;
         None)
       else handle_extra_attributes context plugin ps v ppos)
-  | attr ->
-    (* Docstrings (`## ` comments) end up here as they are `Doc` attributes
-       already. No check that they are in a relevant spot is done, though. *)
-    Some attr
+  | attr -> Some attr
 
 let translate_pos context pos =
   Pos.attrs pos

@@ -452,12 +452,15 @@ let rec lex_code (lexbuf : lexbuf) : token =
       lex_code lexbuf
   | "#[" -> ATTR_START
   | '"' -> lex_string (Buffer.create 73) lexbuf
-  | Plus("##", Star any_but_eol, eol) ->
-      (* Docstring comment *)
-      let s = Utf8.lexeme lexbuf in
-      let re_sep = Re.(compile @@ seq [alt [bos; seq [opt (char '\r'); char '\n']];
-                                       str "##"; opt (char ' ')]) in
-      let s = String.re_split_delim re_sep s |> String.concat "\n" in
+  | "##", Star any_but_eol, eol ->
+      (* Docstring comment: one token per line, holding the text of the line
+         without the leading "##" and at most one space. Consecutive lines are
+         joined back when the docstring is read (see [Shared_ast.Doc]). *)
+      let s =
+        String.trim_end (Utf8.lexeme lexbuf)
+        |> String.remove_prefix ~prefix:"##"
+        |> String.remove_prefix ~prefix:" "
+      in
       L.update_acc lexbuf;
       DOCSTRING s
   | '#', eol ->
