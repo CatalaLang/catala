@@ -14,7 +14,11 @@
    implied. See the License for the specific language governing
    permissions and limitations under the License. *)
 
+(** This file generates preprocessor directives that will populate the tokens of
+    'compiler/surface/lexer.cppo.ml' *)
+
 open Utils
+open Language_t
 
 type re_kind = Str of string | Space | Unicode of Uchar.t
 
@@ -60,7 +64,97 @@ let format_macro ppf (tok_name, s) =
     Format.pp_print_newline ppf ();
     format_regexp_macro ppf (tok_name, re)
 
-let format_lang_macro_file ppf (language : Language_t.language) =
+let format_lang_macro_file ppf (language : language) =
+  (* Expanding all records for exhaustivity check *)
+  let { name; code = _; keywords; specific_delimiters; builtins; directives } =
+    language
+  in
+  (* keywords *)
+  let {
+    all;
+    among;
+    and_;
+    and_then;
+    assertion;
+    but_replace;
+    combine;
+    condition;
+    consequence;
+    contains;
+    content;
+    context;
+    data;
+    day;
+    declaration;
+    decreasing;
+    defined_as;
+    definition;
+    depends;
+    else_;
+    enum;
+    exception_;
+    exists;
+    false_;
+    filled;
+    for_;
+    if_;
+    in_;
+    increasing;
+    initially;
+    input;
+    internal;
+    is;
+    label;
+    let_;
+    list;
+    map_each;
+    match_;
+    maximum;
+    minimum;
+    month;
+    not_;
+    of_;
+    option;
+    or_;
+    or_if_list_empty;
+    order_increasing;
+    order_decreasing;
+    output;
+    rule;
+    scope;
+    sort;
+    state;
+    struct_;
+    such;
+    sum;
+    that;
+    then_;
+    to_;
+    true_;
+    type_;
+    under_condition;
+    we_have;
+    wildcard;
+    with_;
+    with_v;
+    xor;
+    year;
+  } =
+    keywords
+  in
+  (* builtins *)
+  let { types; optionals; functions } = builtins in
+  let { boolean; date; decimal; duration; integer; money; position } = types in
+  let { present; absent } = optionals in
+  let { round; impossible; cardinal } = functions in
+  (* specific_delimiters *)
+  let { decimal_separator; money_unit; money_unit_position; money_delim } =
+    specific_delimiters
+  in
+  (* directives *)
+  let { external_; law_include; module_alias; module_def; module_use } =
+    directives
+  in
   let open Format in
   let dl () =
     pp_print_newline ppf ();
@@ -68,128 +162,121 @@ let format_lang_macro_file ppf (language : Language_t.language) =
   in
   fprintf ppf {|(* This file has been generated, do not edit manually. *)|};
   dl ();
-  fprintf ppf {|(* Defining the lexer macros for %s *)|} language.name;
+  fprintf ppf {|(* Defining the lexer macros for %s *)|} name;
   dl ();
-  fprintf ppf {|#define LEXER_MODULE_NAME %s |}
-    (String.capitalize_ascii language.name);
+  fprintf ppf {|#define LEXER_MODULE_NAME %s |} (String.capitalize_ascii name);
   dl ();
   fprintf ppf {|(* Keywords *)|};
   dl ();
   let lp =
-    let kwds = language.keywords in
     [
-      "ALL", kwds.all;
-      "AMONG", kwds.among;
-      "AND", kwds.and_;
-      "AND_THEN", kwds.and_then;
-      "ASSERTION", kwds.assertion;
-      "BUT_REPLACE", kwds.but_replace;
-      "COMBINE", kwds.combine;
-      "CONDITION", kwds.condition;
-      "CONSEQUENCE", kwds.consequence;
-      "CONTAINS", kwds.contains;
-      "CONTENT", kwds.content;
-      "CONTEXT", kwds.context;
-      "DATA", kwds.data;
-      "DAY", kwds.day;
-      "DECLARATION", kwds.declaration;
-      "DECREASING", kwds.decreasing;
-      "DEFINED_AS", kwds.defined_as;
-      "DEFINITION", kwds.definition;
-      "DEPENDS", kwds.depends;
-      "ELSE", kwds.else_;
-      "ENUM", kwds.enum;
-      "EXCEPTION", kwds.exception_;
-      "EXISTS", kwds.exists;
-      "FALSE", kwds.false_;
-      "FILLED", kwds.filled;
-      "FOR", kwds.for_;
-      "IF", kwds.if_;
-      "IN", kwds.in_;
-      "INCREASING", kwds.increasing;
-      "INITIALLY", kwds.initially;
-      "INPUT", kwds.input;
-      "INTERNAL", kwds.internal;
-      "IS", kwds.is;
-      "LABEL", kwds.label;
-      "LET", kwds.let_;
-      "LIST", kwds.list;
-      "MAP_EACH", kwds.map_each;
-      "MATCH", kwds.match_;
-      "MAXIMUM", kwds.maximum;
-      "MINIMUM", kwds.minimum;
-      "MONTH", kwds.month;
-      "NOT", kwds.not_;
-      "OF", kwds.of_;
-      "OPTION", kwds.option;
-      "OR", kwds.or_;
-      "OR_IF_LIST_EMPTY", kwds.or_if_list_empty;
-      "ORDER_INCREASING", kwds.order_increasing;
-      "ORDER_DECREASING", kwds.order_decreasing;
-      "OUTPUT", kwds.output;
-      "RULE", kwds.rule;
-      "SCOPE", kwds.scope;
-      "SORT", kwds.sort;
-      "STATE", kwds.state;
-      "STRUCT", kwds.struct_;
-      "SUCH", kwds.such;
-      "SUM", kwds.sum;
-      "THAT", kwds.that;
-      "THEN", kwds.then_;
-      "TO", kwds.to_;
-      "TRUE", kwds.true_;
-      "TYPE", kwds.type_;
-      "UNDER_CONDITION", kwds.under_condition;
-      "WE_HAVE", kwds.we_have;
-      "WILDCARD", kwds.wildcard;
-      "WITH", kwds.with_;
-      "WITH_V", kwds.with_v;
-      "XOR", kwds.xor;
-      "YEAR", kwds.year;
+      "ALL", all;
+      "AMONG", among;
+      "AND", and_;
+      "AND_THEN", and_then;
+      "ASSERTION", assertion;
+      "BUT_REPLACE", but_replace;
+      "COMBINE", combine;
+      "CONDITION", condition;
+      "CONSEQUENCE", consequence;
+      "CONTAINS", contains;
+      "CONTENT", content;
+      "CONTEXT", context;
+      "DATA", data;
+      "DAY", day;
+      "DECLARATION", declaration;
+      "DECREASING", decreasing;
+      "DEFINED_AS", defined_as;
+      "DEFINITION", definition;
+      "DEPENDS", depends;
+      "ELSE", else_;
+      "ENUM", enum;
+      "EXCEPTION", exception_;
+      "EXISTS", exists;
+      "FALSE", false_;
+      "FILLED", filled;
+      "FOR", for_;
+      "IF", if_;
+      "IN", in_;
+      "INCREASING", increasing;
+      "INITIALLY", initially;
+      "INPUT", input;
+      "INTERNAL", internal;
+      "IS", is;
+      "LABEL", label;
+      "LET", let_;
+      "LIST", list;
+      "MAP_EACH", map_each;
+      "MATCH", match_;
+      "MAXIMUM", maximum;
+      "MINIMUM", minimum;
+      "MONTH", month;
+      "NOT", not_;
+      "OF", of_;
+      "OPTION", option;
+      "OR", or_;
+      "OR_IF_LIST_EMPTY", or_if_list_empty;
+      "ORDER_INCREASING", order_increasing;
+      "ORDER_DECREASING", order_decreasing;
+      "OUTPUT", output;
+      "RULE", rule;
+      "SCOPE", scope;
+      "SORT", sort;
+      "STATE", state;
+      "STRUCT", struct_;
+      "SUCH", such;
+      "SUM", sum;
+      "THAT", that;
+      "THEN", then_;
+      "TO", to_;
+      "TRUE", true_;
+      "TYPE", type_;
+      "UNDER_CONDITION", under_condition;
+      "WE_HAVE", we_have;
+      "WILDCARD", wildcard;
+      "WITH", with_;
+      "WITH_V", with_v;
+      "XOR", xor;
+      "YEAR", year;
     ]
   in
   (pp_print_list ~pp_sep:pp_print_newline format_macro) ppf lp;
   dl ();
   fprintf ppf {|(* Specific delimiters *)|};
   dl ();
-  let sd = language.specific_delimiters in
-  fprintf ppf "#define MC_DECIMAL_SEPARATOR '%c'" sd.decimal_separator.[0];
+  fprintf ppf "#define MC_DECIMAL_SEPARATOR '%c'" decimal_separator.[0];
   pp_print_newline ppf ();
-  fprintf ppf "#define MR_MONEY_DELIM '%c'" sd.money_delim.[0];
+  fprintf ppf "#define MR_MONEY_DELIM '%c'" money_delim.[0];
   pp_print_newline ppf ();
-  format_macro ppf ("MONEY_OP_SUFFIX", sd.money_unit);
+  format_macro ppf ("MONEY_OP_SUFFIX", money_unit);
   pp_print_newline ppf ();
-  if sd.money_unit_position = `Right then
+  if money_unit_position = `Right then
     fprintf ppf "#define MR_MONEY_PREFIX \"\""
   else
     fprintf ppf "#define MR_MONEY_PREFIX %a, Star hspace" format_regexp
-      (string_to_regexp sd.money_unit);
+      (string_to_regexp money_unit);
   pp_print_newline ppf ();
-  if sd.money_unit_position = `Left then
-    fprintf ppf "#define MR_MONEY_SUFFIX \"\""
+  if money_unit_position = `Left then fprintf ppf "#define MR_MONEY_SUFFIX \"\""
   else
     fprintf ppf "#define MR_MONEY_SUFFIX Star hspace, %a" format_regexp
-      (string_to_regexp sd.money_unit);
+      (string_to_regexp money_unit);
   dl ();
   fprintf ppf {|(* Builtins *)|};
   dl ();
   let bt =
-    let t = language.builtins.types in
-    let o = language.builtins.optionals in
-    let f = language.builtins.functions in
     [
-      "BOOLEAN", t.boolean;
-      "DATE", t.date;
-      "DECIMAL", t.decimal;
-      "DURATION", t.duration;
-      "INTEGER", t.integer;
-      "MONEY", t.money;
-      "POSITION", t.position;
-      "PRESENT", o.present;
-      "ABSENT", o.absent;
-      "ROUND", f.round;
-      "IMPOSSIBLE", f.impossible;
-      "CARDINAL", f.cardinal;
+      "BOOLEAN", boolean;
+      "DATE", date;
+      "DECIMAL", decimal;
+      "DURATION", duration;
+      "INTEGER", integer;
+      "MONEY", money;
+      "POSITION", position;
+      "PRESENT", present;
+      "ABSENT", absent;
+      "ROUND", round;
+      "IMPOSSIBLE", impossible;
+      "CARDINAL", cardinal;
     ]
   in
   (pp_print_list ~pp_sep:pp_print_newline format_macro) ppf bt;
@@ -197,13 +284,12 @@ let format_lang_macro_file ppf (language : Language_t.language) =
   fprintf ppf {|(* Directives *)|};
   dl ();
   let dt =
-    let d = language.directives in
     [
-      "EXTERNAL", d.external_;
-      "LAW_INCLUDE", d.law_include;
-      "MODULE_ALIAS", d.module_alias;
-      "MODULE_DEF", d.module_def;
-      "MODULE_USE", d.module_use;
+      "EXTERNAL", external_;
+      "LAW_INCLUDE", law_include;
+      "MODULE_ALIAS", module_alias;
+      "MODULE_DEF", module_def;
+      "MODULE_USE", module_use;
     ]
     |> List.map (fun (n, s) -> n, string_to_regexp s)
   in
