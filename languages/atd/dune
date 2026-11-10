@@ -1,19 +1,29 @@
 (rule
  (targets language_j.ml language_j.mli)
- (deps language.atd)
+ (deps language.atd language_t.ml language_t.mli)
  (action
-  (run atdgen -j -j-std %{deps})))
+  (run atdgen -j -j-std language.atd)))
 
 (rule
- (targets language_t.ml language_t.mli)
+ (targets language_t.ml language_t.mli
+          locale.ml locale.mli)
  (deps language.atd)
  (action
-  (run atdgen -t %{deps})))
+  (no-infer
+   (progn
+    (run atdgen -t language.atd)
+    (copy language_t.ml locale.ml)
+    (copy language_t.mli locale.mli)))))
 
 (library
- (name atd_language)
- (public_name catala.atd-language)
- (modules language_j language_t)
+ (name full_atd)
  (wrapped false)
- (libraries atdgen-runtime)
+ (modules language_t language_j)
+ (libraries locale atdgen-runtime))
+
+(library
+ (name locale)
+ (public_name catala.locale)
+ (wrapped false)
+ (modules locale)
 )

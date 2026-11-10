@@ -22,7 +22,7 @@ module G = Global
 
 (** Associates a {!type: Global.backend_lang} with its string represtation. *)
 let languages =
-  List.map (fun (c, l) -> l.Language_t.code, c) (Languages.languages ())
+  List.map (fun (c, l) -> l.Locale.code, c) (Languages.languages ())
 
 let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in

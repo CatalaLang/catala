@@ -16,7 +16,7 @@
 
 type t = ..
 type code = t
-type lang = Language_t.language
+type lang = Locale.language
 
 let langs : (code * lang) list ref = ref []
 let register_language (kind, lang) = langs := (kind, lang) :: !langs
