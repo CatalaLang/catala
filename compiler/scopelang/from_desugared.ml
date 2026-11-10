@@ -1028,16 +1028,16 @@ let translate_program
               D.topdef_expr = Some e;
               topdef_type = ty;
               topdef_visibility = vis;
-              topdef_external = ext;
+              topdef_is_external = ext;
               _;
             } ->
             let ty = untag_implicit_args_arrow ty in
             Some (Expr.unbox (translate_expr ctx e), ty, vis, ext)
-          | { D.topdef_expr = None; topdef_external = true; _ } -> None
+          | { D.topdef_expr = None; topdef_is_external = true; _ } -> None
           | {
               D.topdef_expr = None;
               topdef_type = _, pos;
-              topdef_external = false;
+              topdef_is_external = false;
               _;
             } ->
             Message.error ~pos "No definition found for %a" TopdefName.format id)
