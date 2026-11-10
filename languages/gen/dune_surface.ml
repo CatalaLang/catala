@@ -6,9 +6,12 @@ let lang_codes = List.map (fun l -> l.code) langs
 let surface_lib =
   Printf.sprintf
     {dune|(library
- (name surface)
- (public_name catala.surface)
+ (name localised_lexers)
+ (public_name catala.localised_lexers)
+ (library_flags -linkall)
  (libraries catala_utils menhirLib sedlex re zarith shared_ast)
+ (modules (:standard \ parser parser_errors parser_state parser_driver print surface))
+ (wrapped false)
  (preprocess
   (per_module
    ((pps sedlex.ppx)

@@ -70,6 +70,9 @@ let format_lang_macro_file ppf (language : Language_t.language) =
   dl ();
   fprintf ppf {|(* Defining the lexer macros for %s *)|} language.name;
   dl ();
+  fprintf ppf {|#define LEXER_MODULE_NAME %s |}
+    (String.capitalize_ascii language.name);
+  dl ();
   fprintf ppf {|(* Keywords *)|};
   dl ();
   let lp =

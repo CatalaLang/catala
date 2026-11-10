@@ -272,186 +272,187 @@ module R = Re.Pcre
   #define MR_ABSENT MS_ABSENT
 #endif
 
-let token_list : (string * token) list =
-  [
-    (MS_SCOPE, SCOPE);
-    (MS_CONSEQUENCE, CONSEQUENCE);
-    (MS_DATA, DATA);
-    (MS_DEPENDS, DEPENDS);
-    (MS_DECLARATION, DECLARATION);
-    (MS_CONTEXT, CONTEXT);
-    (MS_DECREASING, DECREASING);
-    (MS_INCREASING, INCREASING);
-    (MS_OF, OF);
-    (MS_LIST, LIST);
-    (MS_OPTION, OPTION);
-    (MS_CONTAINS, CONTAINS);
-    (MS_ENUM, ENUM);
-    (MS_DATE, DATE);
-    (MS_SUM, SUM);
-    (MS_FILLED, FILLED);
-    (MS_DEFINITION, DEFINITION);
-    (MS_STATE, STATE);
-    (MS_LABEL, LABEL);
-    (MS_EXCEPTION, EXCEPTION);
-    (MS_DEFINED_AS, DEFINED_AS);
-    (MS_MATCH, MATCH);
-    (MS_WILDCARD, WILDCARD);
-    (MS_TYPE, TYPE);
-    (MS_WITH, WITH);
-    (MS_UNDER_CONDITION, UNDER_CONDITION);
-    (MS_IF, IF);
-    (MS_THEN, THEN);
-    (MS_ELSE, ELSE);
-    (MS_CONDITION, CONDITION);
-    (MS_CONTENT, CONTENT);
-    (MS_STRUCT, STRUCT);
-    (MS_ASSERTION, ASSERTION);
-    (MS_WITH_V, WITH_V);
-    (MS_FOR, FOR);
-    (MS_ALL, ALL);
-    (MS_WE_HAVE, WE_HAVE);
-    (MS_RULE, RULE);
-    (MS_LET, LET);
-    (MS_EXISTS, EXISTS);
-    (MS_IN, IN);
-    (MS_AMONG, AMONG);
-    (MS_COMBINE, COMBINE);
-    (MS_MAP_EACH, MAP_EACH);
-    (MS_TO, TO);
-    (MS_SUCH, SUCH);
-    (MS_THAT, THAT);
-    (MS_SORT, SORT);
-    (MS_ORDER_INCREASING, ORDER_INCREASING);
-    (MS_ORDER_DECREASING, ORDER_DECREASING);
-    (MS_AND_THEN, AND_THEN);
-    (MS_AND, AND);
-    (MS_OR, OR);
-    (MS_XOR, XOR);
-    (MS_NOT, NOT);
-    (MS_MAXIMUM, MAXIMUM);
-    (MS_MINIMUM, MINIMUM);
-    (MS_IS, IS);
-    (MS_OR_IF_LIST_EMPTY, OR_IF_LIST_EMPTY);
-    (MS_BUT_REPLACE, BUT_REPLACE);
-    (MS_INITIALLY, INITIALLY);
-    (MS_YEAR, YEAR);
-    (MS_MONTH, MONTH);
-    (MS_DAY, DAY);
-    (MS_TRUE, TRUE);
-    (MS_FALSE, FALSE);
-    (MS_INPUT, INPUT);
-    (MS_OUTPUT, OUTPUT);
-    (MS_INTERNAL, INTERNAL)
-  ]
-  @ L.token_list_language_agnostic
+module Lexer = struct
+  let token_list : (string * token) list =
+    [
+      (MS_SCOPE, SCOPE);
+      (MS_CONSEQUENCE, CONSEQUENCE);
+      (MS_DATA, DATA);
+      (MS_DEPENDS, DEPENDS);
+      (MS_DECLARATION, DECLARATION);
+      (MS_CONTEXT, CONTEXT);
+      (MS_DECREASING, DECREASING);
+      (MS_INCREASING, INCREASING);
+      (MS_OF, OF);
+      (MS_LIST, LIST);
+      (MS_OPTION, OPTION);
+      (MS_CONTAINS, CONTAINS);
+      (MS_ENUM, ENUM);
+      (MS_DATE, DATE);
+      (MS_SUM, SUM);
+      (MS_FILLED, FILLED);
+      (MS_DEFINITION, DEFINITION);
+      (MS_STATE, STATE);
+      (MS_LABEL, LABEL);
+      (MS_EXCEPTION, EXCEPTION);
+      (MS_DEFINED_AS, DEFINED_AS);
+      (MS_MATCH, MATCH);
+      (MS_WILDCARD, WILDCARD);
+      (MS_TYPE, TYPE);
+      (MS_WITH, WITH);
+      (MS_UNDER_CONDITION, UNDER_CONDITION);
+      (MS_IF, IF);
+      (MS_THEN, THEN);
+      (MS_ELSE, ELSE);
+      (MS_CONDITION, CONDITION);
+      (MS_CONTENT, CONTENT);
+      (MS_STRUCT, STRUCT);
+      (MS_ASSERTION, ASSERTION);
+      (MS_WITH_V, WITH_V);
+      (MS_FOR, FOR);
+      (MS_ALL, ALL);
+      (MS_WE_HAVE, WE_HAVE);
+      (MS_RULE, RULE);
+      (MS_LET, LET);
+      (MS_EXISTS, EXISTS);
+      (MS_IN, IN);
+      (MS_AMONG, AMONG);
+      (MS_COMBINE, COMBINE);
+      (MS_MAP_EACH, MAP_EACH);
+      (MS_TO, TO);
+      (MS_SUCH, SUCH);
+      (MS_THAT, THAT);
+      (MS_SORT, SORT);
+      (MS_ORDER_INCREASING, ORDER_INCREASING);
+      (MS_ORDER_DECREASING, ORDER_DECREASING);
+      (MS_AND_THEN, AND_THEN);
+      (MS_AND, AND);
+      (MS_OR, OR);
+      (MS_XOR, XOR);
+      (MS_NOT, NOT);
+      (MS_MAXIMUM, MAXIMUM);
+      (MS_MINIMUM, MINIMUM);
+      (MS_IS, IS);
+      (MS_OR_IF_LIST_EMPTY, OR_IF_LIST_EMPTY);
+      (MS_BUT_REPLACE, BUT_REPLACE);
+      (MS_INITIALLY, INITIALLY);
+      (MS_YEAR, YEAR);
+      (MS_MONTH, MONTH);
+      (MS_DAY, DAY);
+      (MS_TRUE, TRUE);
+      (MS_FALSE, FALSE);
+      (MS_INPUT, INPUT);
+      (MS_OUTPUT, OUTPUT);
+      (MS_INTERNAL, INTERNAL)
+    ]
+    @ L.token_list_language_agnostic
 
-(** Localised builtin functions (takes an lident) *)
-let lex_builtin (s : string) : Ast.builtin_expression option =
-  let lexbuf = Utf8.from_string s in
-  match%sedlex lexbuf with
-  | MR_IMPOSSIBLE, eof -> Some Impossible
-  | MR_CARDINAL, eof -> Some Cardinal
-  | MR_ROUND, eof -> Some Round
-  | MR_INTEGER, eof -> Some ToInteger
-  | MR_DECIMAL, eof -> Some ToDecimal
-  | MR_MONEY, eof -> Some ToMoney
-  | _ -> None
+  (** Localised builtin functions (takes an lident) *)
+  let lex_builtin (s : string) : Ast.builtin_expression option =
+    let lexbuf = Utf8.from_string s in
+    match%sedlex lexbuf with
+    | MR_IMPOSSIBLE, eof -> Some Impossible
+    | MR_CARDINAL, eof -> Some Cardinal
+    | MR_ROUND, eof -> Some Round
+    | MR_INTEGER, eof -> Some ToInteger
+    | MR_DECIMAL, eof -> Some ToDecimal
+    | MR_MONEY, eof -> Some ToMoney
+    | _ -> None
 
-let lex_primitive_type (s : string) : Ast.primitive_typ option =
-  let lexbuf = Utf8.from_string s in
-  match%sedlex lexbuf with
-  | MR_INTEGER, eof -> Some Integer
-  | MR_DECIMAL, eof -> Some Decimal
-  | MR_BOOLEAN, eof -> Some Boolean
-  | MR_MONEY, eof -> Some Money
-  | MR_DURATION, eof -> Some Duration
-  | MR_DATE, eof -> Some Date
-  | MR_POSITION, eof -> Some Position
-  | _ -> None
+  let lex_primitive_type (s : string) : Ast.primitive_typ option =
+    let lexbuf = Utf8.from_string s in
+    match%sedlex lexbuf with
+    | MR_INTEGER, eof -> Some Integer
+    | MR_DECIMAL, eof -> Some Decimal
+    | MR_BOOLEAN, eof -> Some Boolean
+    | MR_MONEY, eof -> Some Money
+    | MR_DURATION, eof -> Some Duration
+    | MR_DATE, eof -> Some Date
+    | MR_POSITION, eof -> Some Position
+    | _ -> None
 
-let lex_builtin_constr (s : string) : Ast.builtin_constr option =
-  let lexbuf = Utf8.from_string s in
-  match%sedlex lexbuf with
-  | MR_PRESENT, eof -> Some Present
-  | MR_ABSENT, eof -> Some Absent
-  | _ -> None
+  let lex_builtin_constr (s : string) : Ast.builtin_constr option =
+    let lexbuf = Utf8.from_string s in
+    match%sedlex lexbuf with
+    | MR_PRESENT, eof -> Some Present
+    | MR_ABSENT, eof -> Some Absent
+    | _ -> None
 
-(** Regexp matching any digit character.
+  (** Regexp matching any digit character.
 
-    @note can not be used outside the current module (@see <
-    https://github.com/ocaml-community/sedlex#lexer-specifications >). *)
-let digit = [%sedlex.regexp? '0' .. '9']
+      @note can not be used outside the current module (@see <
+      https://github.com/ocaml-community/sedlex#lexer-specifications >). *)
+  let digit = [%sedlex.regexp? '0' .. '9']
 
-(** Regexp matching at least one space. *)
-let space_plus = [%sedlex.regexp? Plus white_space]
+  (** Regexp matching at least one space. *)
+  let space_plus = [%sedlex.regexp? Plus white_space]
 
-(** characters that can be present in idents (excluding first char) *)
-let idchar = [%sedlex.regexp? uppercase | lowercase | digit | '_' | '\'']
+  (** characters that can be present in idents (excluding first char) *)
+  let idchar = [%sedlex.regexp? uppercase | lowercase | digit | '_' | '\'']
 
-(** Regexp matching white space but not newlines *)
-let hspace = [%sedlex.regexp? Sub (white_space, Chars "\n\r")]
+  (** Regexp matching white space but not newlines *)
+  let hspace = [%sedlex.regexp? Sub (white_space, Chars "\n\r")]
 
-(** Operator explicit typing suffix chars *)
-let op_kind_re = [%sedlex.regexp? "" | MR_MONEY_OP_SUFFIX | Chars "!.@^"]
+  (** Operator explicit typing suffix chars *)
+  let op_kind_re = [%sedlex.regexp? "" | MR_MONEY_OP_SUFFIX | Chars "!.@^"]
 
-(** Regexp matching every character except newlines *)
-let any_but_eol = [%sedlex.regexp? (Sub (any, Chars "\n\r"))]
+  (** Regexp matching every character except newlines *)
+  let any_but_eol = [%sedlex.regexp? (Sub (any, Chars "\n\r"))]
 
-(** Regexp matching newlines *)
-let eol = [%sedlex.regexp? Opt '\r', '\n' ]
+  (** Regexp matching newlines *)
+  let eol = [%sedlex.regexp? Opt '\r', '\n' ]
 
-let op_kind = function
-  | "" -> Ast.KPoly
-  | "!" -> Ast.KInt
-  | "." -> Ast.KDec
-  | MS_MONEY_OP_SUFFIX -> Ast.KMoney
-  | "@" -> Ast.KDate
-  | "^" -> Ast.KDuration
-  | _ -> invalid_arg "op_kind"
+  let op_kind = function
+    | "" -> Ast.KPoly
+    | "!" -> Ast.KInt
+    | "." -> Ast.KDec
+    | MS_MONEY_OP_SUFFIX -> Ast.KMoney
+    | "@" -> Ast.KDate
+    | "^" -> Ast.KDuration
+    | _ -> invalid_arg "op_kind"
 
-let check_fence_space =
-  let trail_re =
-    Re.(compile @@ alt [ seq [bol; space]; seq [blank; opt (char '\r') ; eol] ])
-  in
-  fun lexbuf ->
-  let txt = Utf8.lexeme lexbuf in
-  if Re.execp trail_re txt then
-    Message.warning ~pos:(Pos.from_lpos (lexing_positions lexbuf))
-      "Extra leading or trailing space"
+  let check_fence_space =
+    let trail_re =
+      Re.(compile @@ alt [ seq [bol; space]; seq [blank; opt (char '\r') ; eol] ])
+    in
+    fun lexbuf ->
+      let txt = Utf8.lexeme lexbuf in
+      if Re.execp trail_re txt then
+        Message.warning ~pos:(Pos.from_lpos (lexing_positions lexbuf))
+          "Extra leading or trailing space"
 
-let rec lex_string buf lexbuf : token =
-  match%sedlex lexbuf with
-  | Plus (Compl (Chars "\\\"")) ->
-    Buffer.add_string buf (Utf8.lexeme lexbuf);
-    lex_string buf lexbuf
-  | '\\', eol, Star hspace ->
-    lex_string buf lexbuf
-  | '\\', 'n' ->
-    Buffer.add_char buf '\n';
-    lex_string buf lexbuf
-  | '\\', 't' ->
-    Buffer.add_char buf '\t';
-    lex_string buf lexbuf
-  | '\\', any_but_eol ->
-    let s = Utf8.lexeme lexbuf in
-    Buffer.add_substring buf s 1 (String.length s - 1);
-    lex_string buf lexbuf
-  | '"' -> STRING (Buffer.contents buf)
-  | _ -> invalid_arg "lex_string"
+  let rec lex_string buf lexbuf : token =
+    match%sedlex lexbuf with
+    | Plus (Compl (Chars "\\\"")) ->
+      Buffer.add_string buf (Utf8.lexeme lexbuf);
+      lex_string buf lexbuf
+    | '\\', eol, Star hspace ->
+      lex_string buf lexbuf
+    | '\\', 'n' ->
+      Buffer.add_char buf '\n';
+      lex_string buf lexbuf
+    | '\\', 't' ->
+      Buffer.add_char buf '\t';
+      lex_string buf lexbuf
+    | '\\', any_but_eol ->
+      let s = Utf8.lexeme lexbuf in
+      Buffer.add_substring buf s 1 (String.length s - 1);
+      lex_string buf lexbuf
+    | '"' -> STRING (Buffer.contents buf)
+    | _ -> invalid_arg "lex_string"
 
-(** Main lexing function used in code blocks *)
-let rec lex_code (lexbuf : lexbuf) : token =
-  let prev_lexeme = Utf8.lexeme lexbuf in
-  let prev_pos = lexing_positions lexbuf in
-  match%sedlex lexbuf with
-  | white_space ->
+  (** Main lexing function used in code blocks *)
+  let rec lex_code (lexbuf : lexbuf) : token =
+    let prev_lexeme = Utf8.lexeme lexbuf in
+    let prev_pos = lexing_positions lexbuf in
+    match%sedlex lexbuf with
+    | white_space ->
       (* Whitespaces *)
       L.update_acc lexbuf;
       lex_code lexbuf
-  | "#[" -> ATTR_START
-  | '"' -> lex_string (Buffer.create 73) lexbuf
-  | Plus("##", Star any_but_eol, eol) ->
+    | "#[" -> ATTR_START
+    | '"' -> lex_string (Buffer.create 73) lexbuf
+    | Plus("##", Star any_but_eol, eol) ->
       (* Docstring comment *)
       let s = Utf8.lexeme lexbuf in
       let re_sep = Re.(compile @@ seq [alt [bos; seq [opt (char '\r'); char '\n']];
@@ -459,579 +460,586 @@ let rec lex_code (lexbuf : lexbuf) : token =
       let s = String.re_split_delim re_sep s |> String.concat "\n" in
       L.update_acc lexbuf;
       DOCSTRING s
-  | '#', eol ->
+    | '#', eol ->
       (* Comments *)
       L.update_acc lexbuf;
       lex_code lexbuf
-  | '#', Sub (any_but_eol, '['), Star any_but_eol, eol ->
+    | '#', Sub (any_but_eol, '['), Star any_but_eol, eol ->
       (* Comments *)
       L.update_acc lexbuf;
       lex_code lexbuf
-  | Star hspace, "```", Star hspace, (eol | eof) ->
+    | Star hspace, "```", Star hspace, (eol | eof) ->
       check_fence_space lexbuf;
       (* End of code section *)
       L.context := Law;
       L.context_start_pos := lexing_positions lexbuf;
       END_CODE (L.flush_acc ())
-  | MR_SCOPE ->
+    | MR_SCOPE ->
       L.update_acc lexbuf;
       SCOPE
-  | MR_DATA ->
+    | MR_DATA ->
       L.update_acc lexbuf;
       DATA
-  | MR_DEPENDS ->
+    | MR_DEPENDS ->
       L.update_acc lexbuf;
       DEPENDS
-  | MR_DECLARATION ->
+    | MR_DECLARATION ->
       L.update_acc lexbuf;
       DECLARATION
-  | MR_CONTEXT ->
+    | MR_CONTEXT ->
       L.update_acc lexbuf;
       CONTEXT
-  | MR_INPUT ->
+    | MR_INPUT ->
       L.update_acc lexbuf;
       INPUT
-  | MR_OUTPUT ->
+    | MR_OUTPUT ->
       L.update_acc lexbuf;
       OUTPUT
-  | MR_INTERNAL ->
+    | MR_INTERNAL ->
       L.update_acc lexbuf;
       INTERNAL
-  | MR_DECREASING ->
+    | MR_DECREASING ->
       L.update_acc lexbuf;
       DECREASING
-  | MR_INCREASING ->
+    | MR_INCREASING ->
       L.update_acc lexbuf;
       INCREASING
-  | MR_OF ->
+    | MR_OF ->
       L.update_acc lexbuf;
       OF
-  | MR_LIST ->
+    | MR_LIST ->
       L.update_acc lexbuf;
       LIST
-  | MR_OPTION ->
+    | MR_OPTION ->
       L.update_acc lexbuf;
       OPTION
-  | MR_CONTAINS ->
+    | MR_CONTAINS ->
       L.update_acc lexbuf;
       CONTAINS
-  | MR_ENUM ->
+    | MR_ENUM ->
       L.update_acc lexbuf;
       ENUM
-  | MR_DATE ->
+    | MR_DATE ->
       L.update_acc lexbuf;
       DATE
-  | MR_SUM ->
+    | MR_SUM ->
       L.update_acc lexbuf;
       SUM
-  | MR_FILLED ->
+    | MR_FILLED ->
       L.update_acc lexbuf;
       FILLED
-  | MR_DEFINITION ->
+    | MR_DEFINITION ->
       L.update_acc lexbuf;
       DEFINITION
-  | MR_STATE ->
+    | MR_STATE ->
       L.update_acc lexbuf;
       STATE
-  | MR_LABEL ->
+    | MR_LABEL ->
       L.update_acc lexbuf;
       LABEL
-  | MR_EXCEPTION ->
+    | MR_EXCEPTION ->
       L.update_acc lexbuf;
       EXCEPTION
-  | MR_DEFINED_AS ->
+    | MR_DEFINED_AS ->
       L.update_acc lexbuf;
       DEFINED_AS
-  | MR_MATCH ->
+    | MR_MATCH ->
       L.update_acc lexbuf;
       MATCH
-  | MR_WITH ->
+    | MR_WITH ->
       L.update_acc lexbuf;
       WITH
-  | MR_WILDCARD ->
+    | MR_WILDCARD ->
       L.update_acc lexbuf;
       WILDCARD
-  | MR_TYPE ->
+    | MR_TYPE ->
       L.update_acc lexbuf;
       TYPE
-  | MR_EXTERNAL ->
+    | MR_EXTERNAL ->
       L.update_acc lexbuf;
       EXTERNAL
-  | MR_UNDER_CONDITION ->
+    | MR_UNDER_CONDITION ->
       L.update_acc lexbuf;
       UNDER_CONDITION
-  | MR_IF ->
+    | MR_IF ->
       L.update_acc lexbuf;
       IF
-  | MR_CONSEQUENCE ->
+    | MR_CONSEQUENCE ->
       L.update_acc lexbuf;
       CONSEQUENCE
-  | MR_THEN ->
+    | MR_THEN ->
       L.update_acc lexbuf;
-      THEN
-  | MR_ELSE ->
+        THEN
+    | MR_ELSE ->
+        L.update_acc lexbuf;
+        ELSE
+    | MR_CONDITION ->
+        L.update_acc lexbuf;
+        CONDITION
+    | MR_CONTENT ->
+        L.update_acc lexbuf;
+        CONTENT
+    | MR_STRUCT ->
+        L.update_acc lexbuf;
+        STRUCT
+    | MR_ASSERTION ->
+        L.update_acc lexbuf;
+        ASSERTION
+    | MR_WITH_V ->
+        L.update_acc lexbuf;
+        WITH_V
+    | MR_FOR ->
+        L.update_acc lexbuf;
+        FOR
+    | MR_ALL ->
+        L.update_acc lexbuf;
+        ALL
+    | MR_WE_HAVE ->
+        L.update_acc lexbuf;
+        WE_HAVE
+    | MR_RULE ->
+        L.update_acc lexbuf;
+        RULE
+    | MR_LET ->
+        L.update_acc lexbuf;
+        LET
+    | MR_EXISTS ->
+        L.update_acc lexbuf;
+        EXISTS
+    | MR_IN ->
+        L.update_acc lexbuf;
+        IN
+    | MR_AMONG ->
+        L.update_acc lexbuf;
+        AMONG
+    | MR_COMBINE ->
+        L.update_acc lexbuf;
+        COMBINE
+    | MR_MAP_EACH ->
+        L.update_acc lexbuf;
+        MAP_EACH
+    | MR_TO ->
+        L.update_acc lexbuf;
+        TO
+    | MR_SUCH ->
+        L.update_acc lexbuf;
+        SUCH
+    | MR_THAT ->
+        L.update_acc lexbuf;
+        THAT
+    | MR_SORT ->
       L.update_acc lexbuf;
-      ELSE
-  | MR_CONDITION ->
+      SORT
+    | MR_ORDER_INCREASING ->
       L.update_acc lexbuf;
-      CONDITION
-  | MR_CONTENT ->
+      ORDER_INCREASING
+    | MR_ORDER_DECREASING ->
       L.update_acc lexbuf;
-      CONTENT
-  | MR_STRUCT ->
+      ORDER_DECREASING
+    | MR_AND_THEN ->
       L.update_acc lexbuf;
-      STRUCT
-  | MR_ASSERTION ->
+      AND_THEN
+    | MR_AND ->
+        L.update_acc lexbuf;
+        AND
+    | MR_OR ->
+        L.update_acc lexbuf;
+        OR
+    | MR_XOR ->
+        L.update_acc lexbuf;
+        XOR
+    | MR_NOT ->
+        L.update_acc lexbuf;
+        NOT
+    | MR_MAXIMUM ->
+        L.update_acc lexbuf;
+        MAXIMUM
+    | MR_MINIMUM ->
+        L.update_acc lexbuf;
+        MINIMUM
+    | MR_IS ->
+        L.update_acc lexbuf;
+        IS
+    | MR_OR_IF_LIST_EMPTY ->
+        L.update_acc lexbuf;
+        OR_IF_LIST_EMPTY
+    | MR_BUT_REPLACE ->
+        L.update_acc lexbuf;
+        BUT_REPLACE
+    | MR_INITIALLY ->
+        L.update_acc lexbuf;
+        INITIALLY
+    | MR_TRUE ->
+        L.update_acc lexbuf;
+        TRUE
+    | MR_FALSE ->
+        L.update_acc lexbuf;
+        FALSE
+    | MR_YEAR ->
+        L.update_acc lexbuf;
+        YEAR
+    | MR_MONTH ->
+        L.update_acc lexbuf;
+        MONTH
+    | MR_DAY ->
+        L.update_acc lexbuf;
+        DAY
+    | Opt '-', MR_MONEY_PREFIX, digit, Opt (Star (digit | MR_MONEY_DELIM), digit), Opt (MC_DECIMAL_SEPARATOR,
+                                                                               Rep (digit, 1 .. 2)), MR_MONEY_SUFFIX ->
+        let s = Utf8.lexeme lexbuf in
+        let sign = s.[0] <> '-' in
+        let units = Buffer.create (String.length s) in
+        let cents = Buffer.create 2 in
+        let buf = ref units in
+        for i = 0 to String.length s - 1 do
+          match s.[i] with
+          | '0'..'9' as c -> Buffer.add_char !buf c
+          | MC_DECIMAL_SEPARATOR -> buf := cents
+          | _ -> ()
+        done;
+        (* If the user has written $0.3 it means 30 cents so we have to pad
+             with a 0 *)
+        Buffer.add_string cents (String.make (2 - Buffer.length cents) '0');
+        L.update_acc lexbuf;
+        MONEY_AMOUNT (sign, Buffer.contents units, Buffer.contents cents)
+    | '|', Rep (digit, 4), '-', Rep (digit, 2), '-', Rep (digit, 2), '|' ->
       L.update_acc lexbuf;
-      ASSERTION
-  | MR_WITH_V ->
+      let rex =
+        Re.(compile @@ whole_string @@ seq [
+            char '|';
+            group (repn digit 4 None);
+            char '-';
+            group (repn digit 2 None);
+            char '-';
+            group (repn digit 2 None);
+            char '|';
+          ])
+      in
+      let date_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
+      DATE_LITERAL (
+        int_of_string (date_parts 1),
+        int_of_string (date_parts 2),
+        int_of_string (date_parts 3)
+      )
+    | Opt '-', Plus digit, MC_DECIMAL_SEPARATOR, Plus digit ->
+      let rex =
+        Re.(compile @@ whole_string @@ seq [
+            group (seq [opt (char '-') ; rep1 digit]);
+            char MC_DECIMAL_SEPARATOR;
+            group (rep digit)
+          ]) in
+      let dec_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      WITH_V
-  | MR_FOR ->
-      L.update_acc lexbuf;
-      FOR
-  | MR_ALL ->
-      L.update_acc lexbuf;
-      ALL
-  | MR_WE_HAVE ->
-      L.update_acc lexbuf;
-      WE_HAVE
-  | MR_RULE ->
-      L.update_acc lexbuf;
-      RULE
-  | MR_LET ->
-      L.update_acc lexbuf;
-      LET
-  | MR_EXISTS ->
-      L.update_acc lexbuf;
-      EXISTS
-  | MR_IN ->
-      L.update_acc lexbuf;
-      IN
-  | MR_AMONG ->
-      L.update_acc lexbuf;
-      AMONG
-  | MR_COMBINE ->
-      L.update_acc lexbuf;
-      COMBINE
-  | MR_MAP_EACH ->
-      L.update_acc lexbuf;
-      MAP_EACH
-  | MR_TO ->
-      L.update_acc lexbuf;
-      TO
-  | MR_SUCH ->
-      L.update_acc lexbuf;
-      SUCH
-  | MR_THAT ->
-      L.update_acc lexbuf;
-      THAT
-  | MR_SORT ->
-    L.update_acc lexbuf;
-    SORT
-  | MR_ORDER_INCREASING ->
-    L.update_acc lexbuf;
-    ORDER_INCREASING
-  | MR_ORDER_DECREASING ->
-    L.update_acc lexbuf;
-    ORDER_DECREASING
-  | MR_AND_THEN ->
-    L.update_acc lexbuf;
-    AND_THEN
-  | MR_AND ->
-      L.update_acc lexbuf;
-      AND
-  | MR_OR ->
-      L.update_acc lexbuf;
-      OR
-  | MR_XOR ->
-      L.update_acc lexbuf;
-      XOR
-  | MR_NOT ->
-      L.update_acc lexbuf;
-      NOT
-  | MR_MAXIMUM ->
-      L.update_acc lexbuf;
-      MAXIMUM
-  | MR_MINIMUM ->
-      L.update_acc lexbuf;
-      MINIMUM
-  | MR_IS ->
-      L.update_acc lexbuf;
-      IS
-  | MR_OR_IF_LIST_EMPTY ->
-      L.update_acc lexbuf;
-      OR_IF_LIST_EMPTY
-  | MR_BUT_REPLACE ->
-      L.update_acc lexbuf;
-      BUT_REPLACE
-  | MR_INITIALLY ->
-      L.update_acc lexbuf;
-      INITIALLY
-  | MR_TRUE ->
-      L.update_acc lexbuf;
-      TRUE
-  | MR_FALSE ->
-      L.update_acc lexbuf;
-      FALSE
-  | MR_YEAR ->
-      L.update_acc lexbuf;
-      YEAR
-  | MR_MONTH ->
-      L.update_acc lexbuf;
-      MONTH
-  | MR_DAY ->
-      L.update_acc lexbuf;
-      DAY
-  | Opt '-', MR_MONEY_PREFIX, digit, Opt (Star (digit | MR_MONEY_DELIM), digit), Opt (MC_DECIMAL_SEPARATOR,
-                                                                             Rep (digit, 1 .. 2)), MR_MONEY_SUFFIX ->
-      let s = Utf8.lexeme lexbuf in
-      let sign = s.[0] <> '-' in
-      let units = Buffer.create (String.length s) in
-      let cents = Buffer.create 2 in
-      let buf = ref units in
-      for i = 0 to String.length s - 1 do
-        match s.[i] with
-        | '0'..'9' as c -> Buffer.add_char !buf c
-        | MC_DECIMAL_SEPARATOR -> buf := cents
-        | _ -> ()
-      done;
-      (* If the user has written $0.3 it means 30 cents so we have to pad
-           with a 0 *)
-      Buffer.add_string cents (String.make (2 - Buffer.length cents) '0');
-      L.update_acc lexbuf;
-      MONEY_AMOUNT (sign, Buffer.contents units, Buffer.contents cents)
-  | '|', Rep (digit, 4), '-', Rep (digit, 2), '-', Rep (digit, 2), '|' ->
-    L.update_acc lexbuf;
-    let rex =
-      Re.(compile @@ whole_string @@ seq [
-          char '|';
-          group (repn digit 4 None);
-          char '-';
-          group (repn digit 2 None);
-          char '-';
-          group (repn digit 2 None);
-          char '|';
-        ])
-    in
-    let date_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
-    DATE_LITERAL (
-      int_of_string (date_parts 1),
-      int_of_string (date_parts 2),
-      int_of_string (date_parts 3)
-    )
-  | Opt '-', Plus digit, MC_DECIMAL_SEPARATOR, Plus digit ->
-    let rex =
-      Re.(compile @@ whole_string @@ seq [
-          group (seq [opt (char '-') ; rep1 digit]);
-          char MC_DECIMAL_SEPARATOR;
-          group (rep digit)
-        ]) in
-    let dec_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
-    L.update_acc lexbuf;
-    DECIMAL_LITERAL
-      (dec_parts 1, dec_parts 2)
-  | "<=", op_kind_re ->
-      let k = op_kind (String.remove_prefix ~prefix:"<=" (Utf8.lexeme lexbuf)) in
-      L.update_acc lexbuf;
-      LESSER_EQUAL k
-  | "<", op_kind_re ->
-      let k = op_kind (String.remove_prefix ~prefix:"<" (Utf8.lexeme lexbuf)) in
-      L.update_acc lexbuf;
-      LESSER k
-  | ">=", op_kind_re ->
-      let k = op_kind (String.remove_prefix ~prefix:">=" (Utf8.lexeme lexbuf)) in
-      L.update_acc lexbuf;
-      GREATER_EQUAL k
-  | ">", op_kind_re ->
-      let k = op_kind (String.remove_prefix ~prefix:">" (Utf8.lexeme lexbuf)) in
-      L.update_acc lexbuf;
-      GREATER k
-  | "-", op_kind_re ->
-      let k = op_kind (String.remove_prefix ~prefix:"-" (Utf8.lexeme lexbuf)) in
-      L.update_acc lexbuf;
-      MINUS k
-  | "+", op_kind_re ->
-      let k = op_kind (String.remove_prefix ~prefix:"+" (Utf8.lexeme lexbuf)) in
-      L.update_acc lexbuf;
-      PLUS k
-  | "*", op_kind_re ->
-      let k = op_kind (String.remove_prefix ~prefix:"*" (Utf8.lexeme lexbuf)) in
-      L.update_acc lexbuf;
-      MULT k
-  | '/', op_kind_re ->
-      let k = op_kind (String.remove_prefix ~prefix:"/" (Utf8.lexeme lexbuf)) in
-      L.update_acc lexbuf;
-      DIV k
-  | "!=" ->
-      L.update_acc lexbuf;
-      NOT_EQUAL
-  | '=' ->
-      L.update_acc lexbuf;
-      EQUAL
-  | '%' ->
-      L.update_acc lexbuf;
-      PERCENT
-  | '(' ->
-      L.update_acc lexbuf;
-      LPAREN
-  | ')' ->
-      L.update_acc lexbuf;
-      RPAREN
-  | '{' ->
-      L.update_acc lexbuf;
-      LBRACE
-  | '}' ->
-      L.update_acc lexbuf;
-      RBRACE
-  | '[' ->
-      L.update_acc lexbuf;
-      LBRACKET
-  | ']' ->
-      L.update_acc lexbuf;
-      RBRACKET
-  | ':' ->
-      L.update_acc lexbuf;
-      COLON
-  | ';' ->
-      L.update_acc lexbuf;
-      SEMICOLON
-  | "--" ->
-      L.update_acc lexbuf;
-      ALT
-  | "++" ->
-      L.update_acc lexbuf;
-      PLUSPLUS
-  | '.' ->
-      L.update_acc lexbuf;
-      DOT
-  | ',' ->
-      L.update_acc lexbuf;
-      COMMA
-  | uppercase, Star idchar ->
-      (* Name of constructor *)
-      L.update_acc lexbuf;
-      UIDENT (Utf8.lexeme lexbuf)
-  | lowercase, Star idchar ->
-      (* Name of variable *)
-      L.update_acc lexbuf;
-      LIDENT (Utf8.lexeme lexbuf)
-  | Opt '-', Plus digit ->
-      (* Integer literal*)
-      L.update_acc lexbuf;
-      INT_LITERAL (Utf8.lexeme lexbuf)
-  | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
+      DECIMAL_LITERAL
+        (dec_parts 1, dec_parts 2)
+    | "<=", op_kind_re ->
+        let k = op_kind (String.remove_prefix ~prefix:"<=" (Utf8.lexeme lexbuf)) in
+        L.update_acc lexbuf;
+        LESSER_EQUAL k
+    | "<", op_kind_re ->
+        let k = op_kind (String.remove_prefix ~prefix:"<" (Utf8.lexeme lexbuf)) in
+        L.update_acc lexbuf;
+        LESSER k
+    | ">=", op_kind_re ->
+        let k = op_kind (String.remove_prefix ~prefix:">=" (Utf8.lexeme lexbuf)) in
+        L.update_acc lexbuf;
+        GREATER_EQUAL k
+    | ">", op_kind_re ->
+        let k = op_kind (String.remove_prefix ~prefix:">" (Utf8.lexeme lexbuf)) in
+        L.update_acc lexbuf;
+        GREATER k
+    | "-", op_kind_re ->
+        let k = op_kind (String.remove_prefix ~prefix:"-" (Utf8.lexeme lexbuf)) in
+        L.update_acc lexbuf;
+        MINUS k
+    | "+", op_kind_re ->
+        let k = op_kind (String.remove_prefix ~prefix:"+" (Utf8.lexeme lexbuf)) in
+        L.update_acc lexbuf;
+        PLUS k
+    | "*", op_kind_re ->
+        let k = op_kind (String.remove_prefix ~prefix:"*" (Utf8.lexeme lexbuf)) in
+        L.update_acc lexbuf;
+        MULT k
+    | '/', op_kind_re ->
+        let k = op_kind (String.remove_prefix ~prefix:"/" (Utf8.lexeme lexbuf)) in
+        L.update_acc lexbuf;
+        DIV k
+    | "!=" ->
+        L.update_acc lexbuf;
+        NOT_EQUAL
+    | '=' ->
+        L.update_acc lexbuf;
+        EQUAL
+    | '%' ->
+        L.update_acc lexbuf;
+        PERCENT
+    | '(' ->
+        L.update_acc lexbuf;
+        LPAREN
+    | ')' ->
+        L.update_acc lexbuf;
+        RPAREN
+    | '{' ->
+        L.update_acc lexbuf;
+        LBRACE
+    | '}' ->
+        L.update_acc lexbuf;
+        RBRACE
+    | '[' ->
+        L.update_acc lexbuf;
+        LBRACKET
+    | ']' ->
+        L.update_acc lexbuf;
+        RBRACKET
+    | ':' ->
+        L.update_acc lexbuf;
+        COLON
+    | ';' ->
+        L.update_acc lexbuf;
+        SEMICOLON
+    | "--" ->
+        L.update_acc lexbuf;
+        ALT
+    | "++" ->
+        L.update_acc lexbuf;
+        PLUSPLUS
+    | '.' ->
+        L.update_acc lexbuf;
+        DOT
+    | ',' ->
+        L.update_acc lexbuf;
+        COMMA
+    | uppercase, Star idchar ->
+        (* Name of constructor *)
+        L.update_acc lexbuf;
+        UIDENT (Utf8.lexeme lexbuf)
+    | lowercase, Star idchar ->
+        (* Name of variable *)
+        L.update_acc lexbuf;
+        LIDENT (Utf8.lexeme lexbuf)
+    | Opt '-', Plus digit ->
+        (* Integer literal*)
+        L.update_acc lexbuf;
+        INT_LITERAL (Utf8.lexeme lexbuf)
+    | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
-let rec lex_directive_args (lexbuf : lexbuf) : token =
-  let prev_lexeme = Utf8.lexeme lexbuf in
-  let prev_pos = lexing_positions lexbuf in
-  match%sedlex lexbuf with
-  | '@', Star hspace, "p.", Star hspace, Plus digit ->
-      let s = Utf8.lexeme lexbuf in
-      let i = String.index s '.' in
-      AT_PAGE (int_of_string (String.trim (String.sub s i (String.length s - i))))
-  | MR_MODULE_ALIAS -> MODULE_ALIAS
-  | MR_EXTERNAL -> EXTERNAL
-  | Plus (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
-  | Plus hspace -> lex_directive_args lexbuf
-  | eol | eof ->
-      L.context := Law;
-      L.context_start_pos := lexing_positions lexbuf;
-      END_DIRECTIVE
-  | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
-
-let rec lex_directive (lexbuf : lexbuf) : token =
-  let prev_lexeme = Utf8.lexeme lexbuf in
-  let prev_pos = lexing_positions lexbuf in
-  match%sedlex lexbuf with
-  | Plus hspace -> lex_directive lexbuf
-  | MR_LAW_INCLUDE -> LAW_INCLUDE
-  | MR_MODULE_DEF ->
-      L.context := Directive_args;
-      L.context_start_pos := lexing_positions lexbuf;
-      MODULE_DEF
-  | MR_MODULE_USE ->
-      L.context := Directive_args;
-      L.context_start_pos := lexing_positions lexbuf;
-      MODULE_USE
-  | ":" ->
-      L.context := Directive_args;
-      L.context_start_pos := lexing_positions lexbuf;
-      COLON
-  | eol | eof ->
-      L.context := Law;
-      L.context_start_pos := lexing_positions lexbuf;
-      END_DIRECTIVE
-  | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
-
-let lex_raw (lexbuf : lexbuf) : token =
-  let prev_lexeme = Utf8.lexeme lexbuf in
-  let ((_, start_pos) as prev_pos) = lexing_positions lexbuf in
-  let at_bol = Lexing.(start_pos.pos_bol = start_pos.pos_cnum) in
-  if at_bol then
+  let rec lex_directive_args (lexbuf : lexbuf) : token =
+    let prev_lexeme = Utf8.lexeme lexbuf in
+    let prev_pos = lexing_positions lexbuf in
     match%sedlex lexbuf with
-    | eof -> EOF
-    | Star hspace, "```", Star hspace, (eol | eof) ->
-        check_fence_space lexbuf;
+    | '@', Star hspace, "p.", Star hspace, Plus digit ->
+        let s = Utf8.lexeme lexbuf in
+        let i = String.index s '.' in
+        AT_PAGE (int_of_string (String.trim (String.sub s i (String.length s - i))))
+    | MR_MODULE_ALIAS -> MODULE_ALIAS
+    | MR_EXTERNAL -> EXTERNAL
+    | Plus (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
+    | Plus hspace -> lex_directive_args lexbuf
+    | eol | eof ->
         L.context := Law;
-      L.context_start_pos := lexing_positions lexbuf;
-        LAW_TEXT (Utf8.lexeme lexbuf)
-    | _ -> (
-        (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
-           sub-match at the same point *)
-        match%sedlex lexbuf with
-        | Star (any_but_eol), (eol | eof) ->
+        L.context_start_pos := lexing_positions lexbuf;
+        END_DIRECTIVE
+    | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
+
+  let rec lex_directive (lexbuf : lexbuf) : token =
+    let prev_lexeme = Utf8.lexeme lexbuf in
+    let prev_pos = lexing_positions lexbuf in
+    match%sedlex lexbuf with
+    | Plus hspace -> lex_directive lexbuf
+    | MR_LAW_INCLUDE -> LAW_INCLUDE
+    | MR_MODULE_DEF ->
+        L.context := Directive_args;
+        L.context_start_pos := lexing_positions lexbuf;
+        MODULE_DEF
+    | MR_MODULE_USE ->
+        L.context := Directive_args;
+        L.context_start_pos := lexing_positions lexbuf;
+        MODULE_USE
+    | ":" ->
+        L.context := Directive_args;
+        L.context_start_pos := lexing_positions lexbuf;
+        COLON
+    | eol | eof ->
+        L.context := Law;
+        L.context_start_pos := lexing_positions lexbuf;
+        END_DIRECTIVE
+    | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
+
+  let lex_raw (lexbuf : lexbuf) : token =
+    let prev_lexeme = Utf8.lexeme lexbuf in
+    let ((_, start_pos) as prev_pos) = lexing_positions lexbuf in
+    let at_bol = Lexing.(start_pos.pos_bol = start_pos.pos_cnum) in
+    if at_bol then
+      match%sedlex lexbuf with
+      | eof -> EOF
+      | Star hspace, "```", Star hspace, (eol | eof) ->
+          check_fence_space lexbuf;
+          L.context := Law;
+        L.context_start_pos := lexing_positions lexbuf;
           LAW_TEXT (Utf8.lexeme lexbuf)
-        | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)
-  else
-    match%sedlex lexbuf with
-    | eof -> EOF
-    | Star any_but_eol, (eol | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
-    | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
+      | _ -> (
+          (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
+             sub-match at the same point *)
+          match%sedlex lexbuf with
+          | Star (any_but_eol), (eol | eof) ->
+            LAW_TEXT (Utf8.lexeme lexbuf)
+          | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)
+    else
+      match%sedlex lexbuf with
+      | eof -> EOF
+      | Star any_but_eol, (eol | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
+      | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 
-(** Main lexing function used outside code blocks *)
-let lex_law (lexbuf : lexbuf) : token =
-  let prev_lexeme = Utf8.lexeme lexbuf in
-  let ((_, start_pos) as prev_pos) = lexing_positions lexbuf in
-  let at_bol = Lexing.(start_pos.pos_bol = start_pos.pos_cnum) in
-  if at_bol then
-    match%sedlex lexbuf with
-    | eof -> EOF
-    | Star hspace, "```catala", Star hspace, (eol | eof) ->
-        check_fence_space lexbuf;
-        L.context := Code;
-        L.context_start_pos := lexing_positions lexbuf;
-        BEGIN_CODE
-    | Star hspace, "```catala-metadata", Star hspace, (eol | eof) ->
-        check_fence_space lexbuf;
-        L.context := Code;
-        L.context_start_pos := lexing_positions lexbuf;
-        BEGIN_METADATA
-    | Star hspace, "```", Star (idchar | '-') ->
-        check_fence_space lexbuf;
-        L.context := Raw;
-        L.context_start_pos := lexing_positions lexbuf;
-        LAW_TEXT (Utf8.lexeme lexbuf)
-    | '>' ->
-        L.context := Directive;
-        L.context_start_pos := lexing_positions lexbuf;
-        BEGIN_DIRECTIVE
-    | Plus '#', Star hspace, Plus any_but_eol, Star hspace, (eol | eof) ->
-        L.get_law_heading lexbuf
-    | Plus eol -> LINESKIP
-    | _ -> (
-        (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
-           sub-match at the same point *)
-        match%sedlex lexbuf with
-        | Star any_but_eol, (eol | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
-        | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)
-  else
-    match%sedlex lexbuf with
-    | eof -> EOF
-    | Star any_but_eol, (eol | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
-    | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
+  (** Main lexing function used outside code blocks *)
+  let lex_law (lexbuf : lexbuf) : token =
+    let prev_lexeme = Utf8.lexeme lexbuf in
+    let ((_, start_pos) as prev_pos) = lexing_positions lexbuf in
+    let at_bol = Lexing.(start_pos.pos_bol = start_pos.pos_cnum) in
+    if at_bol then
+      match%sedlex lexbuf with
+      | eof -> EOF
+      | Star hspace, "```catala", Star hspace, (eol | eof) ->
+          check_fence_space lexbuf;
+          L.context := Code;
+          L.context_start_pos := lexing_positions lexbuf;
+          BEGIN_CODE
+      | Star hspace, "```catala-metadata", Star hspace, (eol | eof) ->
+          check_fence_space lexbuf;
+          L.context := Code;
+          L.context_start_pos := lexing_positions lexbuf;
+          BEGIN_METADATA
+      | Star hspace, "```", Star (idchar | '-') ->
+          check_fence_space lexbuf;
+          L.context := Raw;
+          L.context_start_pos := lexing_positions lexbuf;
+          LAW_TEXT (Utf8.lexeme lexbuf)
+      | '>' ->
+          L.context := Directive;
+          L.context_start_pos := lexing_positions lexbuf;
+          BEGIN_DIRECTIVE
+      | Plus '#', Star hspace, Plus any_but_eol, Star hspace, (eol | eof) ->
+          L.get_law_heading lexbuf
+      | Plus eol -> LINESKIP
+      | _ -> (
+          (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
+             sub-match at the same point *)
+          match%sedlex lexbuf with
+          | Star any_but_eol, (eol | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
+          | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)
+    else
+      match%sedlex lexbuf with
+      | eof -> EOF
+      | Star any_but_eol, (eol | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
+      | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
-(** Entry point of the lexer, distributes to {!val: lex_code} or {!val:lex_law}
-    depending of the current {!val: Surface.Lexer_common.context}. *)
-let lexer (lexbuf : lexbuf) : token =
-  match !L.context with
-  | Law -> lex_law lexbuf
-  | Raw -> lex_raw lexbuf
-  | Code -> lex_code lexbuf
-  | Directive -> lex_directive lexbuf
-  | Directive_args -> lex_directive_args lexbuf
-  | Inactive ->
-    Message.error ~internal:true "Lexer started outside of an initialised context."
+  (** Entry point of the lexer, distributes to {!val: lex_code} or {!val:lex_law}
+      depending of the current {!val: Surface.Lexer_common.context}. *)
+  let lexer (lexbuf : lexbuf) : token =
+    match !L.context with
+    | Law -> lex_law lexbuf
+    | Raw -> lex_raw lexbuf
+    | Code -> lex_code lexbuf
+    | Directive -> lex_directive lexbuf
+    | Directive_args -> lex_directive_args lexbuf
+    | Inactive ->
+      Message.error ~internal:true "Lexer started outside of an initialised context."
 
-(* -- Shallow lexing for dependency extraction -- *)
+  (* -- Shallow lexing for dependency extraction -- *)
 
-let line_dir_arg_re =
-  Re.(compile @@ seq [
-      bos; char '>'; rep space; rep1 alpha;
-      rep1 any;
-      alt [space; char ':'];
-      group (rep1 (diff any space));
-      eol
-    ])
+  let line_dir_arg_re =
+    Re.(compile @@ seq [
+        bos; char '>'; rep space; rep1 alpha;
+        rep1 any;
+        alt [space; char ':'];
+        group (rep1 (diff any space));
+        eol
+      ])
 
-(* This is a bit cheap, but we don't want a full-fledged parser to handle these
-   trivial line directives. Here we extract the first uppercase argument of a
-   directive line, which is guaranteed to match the module name we are
-   interested in and nothing else (e.g. in French, the module usage "keywords"
-   are multiple words) *)
-let line_dir_arg_upcase_re =
-  Re.(compile @@ seq [
-      bos; char '>'; rep space; rep1 alpha;
-      rep (alt [space; lower]); space;
-      group (seq [rep1 upper; rep (diff any space)]);
-      rep any;
-      eol
-    ])
+  (* This is a bit cheap, but we don't want a full-fledged parser to handle these
+     trivial line directives. Here we extract the first uppercase argument of a
+     directive line, which is guaranteed to match the module name we are
+     interested in and nothing else (e.g. in French, the module usage "keywords"
+     are multiple words) *)
+  let line_dir_arg_upcase_re =
+    Re.(compile @@ seq [
+        bos; char '>'; rep space; rep1 alpha;
+        rep (alt [space; lower]); space;
+        group (seq [rep1 upper; rep (diff any space)]);
+        rep any;
+        eol
+      ])
 
-let lex_line ~context (lexbuf : lexbuf) : (string * L.line_token) option =
-  match !context with
-  | `Law ->
-    (match%sedlex lexbuf with
-     | "```catala", Opt ("-metadata"), Star hspace, (eol | eof) ->
-       context := `Code;
-       Some (Utf8.lexeme lexbuf, LINE_ANY)
-     | "```catala-test-cli", Star hspace, (eol | eof) ->
-       context := `Test;
-       Some (Utf8.lexeme lexbuf, LINE_INLINE_TEST)
-     | "```", Star any_but_eol, (eol | eof) ->
-       Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
-     | '>', Star hspace, MR_LAW_INCLUDE, Star hspace, ':', Plus any_but_eol,
-       (eol | eof)  ->
-       let str = Utf8.lexeme lexbuf in
-       (try
-          let file = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
-          Some (str, LINE_INCLUDE file)
-        with Not_found -> Some (str, LINE_ANY))
-     | '>', Star hspace, MR_MODULE_DEF, Plus hspace,
-       uppercase, Star (Compl white_space), Plus hspace,
-       MR_EXTERNAL, Star hspace, (eol | eof)  ->
-       let str = Utf8.lexeme lexbuf in
-       (try
-          let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
-          Some (str, LINE_MODULE_DEF (mdl, true))
-        with Not_found -> Some (str, LINE_ANY))
-     | '>', Star hspace, MR_MODULE_DEF, Plus hspace, uppercase, Star any_but_eol,
-       (eol | eof)  ->
-       let str = Utf8.lexeme lexbuf in
-       (try
-          let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
-          Some (str, LINE_MODULE_DEF (mdl, false))
-        with Not_found -> Some (str, LINE_ANY))
-     | '>', Star hspace, MR_MODULE_USE, Plus hspace, uppercase, Star (any_but_eol),
-       (eol | eof)  ->
-       let str = Utf8.lexeme lexbuf in
-       (try
-          let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
-          Some (str, LINE_MODULE_USE mdl)
-        with Not_found -> Some (str, LINE_ANY))
-     | eof -> None
-     | Star any_but_eol, (eol | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)
-     | _ -> assert false)
-  | `Code ->
-    (match%sedlex lexbuf with
-     | "```", Star hspace, (eol | eof) ->
-       context := `Law;
-       Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
-     | Star (Sub (any_but_eol, "#") | "#[", Star (Sub (any_but_eol, ']'), ']')),
-       "#[", Star hspace, "test", Chars " \t\n]", Star any_but_eol, (eol | eof) ->
-       (* test directives can be anywhere on the line, but must not be in a comment. Fixme: we don't handle the case where it would be within another multi-line attribute or a string *)
-       Some (Utf8.lexeme lexbuf, LINE_TEST_ATTRIBUTE)
-     | eof -> None
-     | Star any_but_eol, (eol | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)
-     | _ -> assert false)
-  | `Raw | `Test ->
-    (match%sedlex lexbuf with
-     | "```", Star hspace, (eol | eof) ->
-       context := `Law;
-       Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
-     | eof -> None
-     | Star any_but_eol, (eol | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)
-     | _ -> assert false)
+  let lex_line ~context (lexbuf : lexbuf) : (string * L.line_token) option =
+    match !context with
+    | `Law ->
+      (match%sedlex lexbuf with
+       | "```catala", Opt ("-metadata"), Star hspace, (eol | eof) ->
+         context := `Code;
+         Some (Utf8.lexeme lexbuf, LINE_ANY)
+       | "```catala-test-cli", Star hspace, (eol | eof) ->
+         context := `Test;
+         Some (Utf8.lexeme lexbuf, LINE_INLINE_TEST)
+       | "```", Star any_but_eol, (eol | eof) ->
+         Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
+       | '>', Star hspace, MR_LAW_INCLUDE, Star hspace, ':', Plus any_but_eol,
+         (eol | eof)  ->
+         let str = Utf8.lexeme lexbuf in
+         (try
+            let file = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
+            Some (str, LINE_INCLUDE file)
+          with Not_found -> Some (str, LINE_ANY))
+       | '>', Star hspace, MR_MODULE_DEF, Plus hspace,
+         uppercase, Star (Compl white_space), Plus hspace,
+         MR_EXTERNAL, Star hspace, (eol | eof)  ->
+         let str = Utf8.lexeme lexbuf in
+         (try
+            let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
+            Some (str, LINE_MODULE_DEF (mdl, true))
+          with Not_found -> Some (str, LINE_ANY))
+       | '>', Star hspace, MR_MODULE_DEF, Plus hspace, uppercase, Star any_but_eol,
+         (eol | eof)  ->
+         let str = Utf8.lexeme lexbuf in
+         (try
+            let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
+            Some (str, LINE_MODULE_DEF (mdl, false))
+          with Not_found -> Some (str, LINE_ANY))
+       | '>', Star hspace, MR_MODULE_USE, Plus hspace, uppercase, Star (any_but_eol),
+         (eol | eof)  ->
+         let str = Utf8.lexeme lexbuf in
+         (try
+            let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
+            Some (str, LINE_MODULE_USE mdl)
+          with Not_found -> Some (str, LINE_ANY))
+       | eof -> None
+       | Star any_but_eol, (eol | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)
+       | _ -> assert false)
+    | `Code ->
+      (match%sedlex lexbuf with
+       | "```", Star hspace, (eol | eof) ->
+         context := `Law;
+         Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
+       | Star (Sub (any_but_eol, "#") | "#[", Star (Sub (any_but_eol, ']'), ']')),
+         "#[", Star hspace, "test", Chars " \t\n]", Star any_but_eol, (eol | eof) ->
+         (* test directives can be anywhere on the line, but must not be in a comment. Fixme: we don't handle the case where it would be within another multi-line attribute or a string *)
+         Some (Utf8.lexeme lexbuf, LINE_TEST_ATTRIBUTE)
+       | eof -> None
+       | Star any_but_eol, (eol | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)
+       | _ -> assert false)
+    | `Raw | `Test ->
+      (match%sedlex lexbuf with
+       | "```", Star hspace, (eol | eof) ->
+         context := `Law;
+         Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
+       | eof -> None
+       | Star any_but_eol, (eol | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)
+       | _ -> assert false)
 
-let sum_string = MS_SUM
+  let sum_string = MS_SUM
+end
+
+#ifdef LEXER_MODULE_NAME
+let () = Lexer_common.register_lexer LEXER_MODULE_NAME.T (module Lexer)
+#endif
+
+include Lexer
