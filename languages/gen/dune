@@ -14,3 +14,7 @@
  (name dune_surface)
  (modules dune_surface)
  (libraries catala.languages))
+
+(executable
+ (name dune_language)
+ (modules dune_language))
