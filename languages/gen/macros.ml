@@ -18,7 +18,7 @@
     'compiler/surface/lexer.cppo.ml' *)
 
 open Utils
-open Language_t
+open Locale
 
 type re_kind = Str of string | Space | Unicode of Uchar.t
 
@@ -297,8 +297,8 @@ let format_lang_macro_file ppf (language : language) =
   ()
 
 let () =
-  let c = contents Sys.argv.(1) in
+  let code = Sys.argv.(1) in
   let lang =
-    Lexing.from_string c |> Language_j.read_language (Yojson.init_lexer ())
+    List.find (fun (_, l) -> l.code = code) (Languages.languages ()) |> snd
   in
   format_lang_macro_file Format.std_formatter lang

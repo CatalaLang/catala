@@ -4,7 +4,7 @@
  (name macros)
  (flags (:standard -warn-error +a))
  (modules macros)
- (libraries utils full_atd))
+ (libraries utils catala.languages))
 
 (executable
  (name ocaml)
