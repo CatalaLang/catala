@@ -10,14 +10,9 @@ when:
     evaluate: 'not("REBUILD_IMAGE" in $env)'
 
 variables:
-  - &catala_image registry.gitlab.inria.fr/catala/registry:20260925
+  - &catala_image registry.gitlab.inria.fr/catala/registry:20261110
   - &build_env
-    OCAMLRUNPARAM: b
     DUNE_PROFILE: check
-    CATALA_COLOR: "always"
-    OPAMCOLOR: "always"
-    OPAMUTF8: "always"
-    CLICOLOR_FORCE: "1" # For dune
     COLUMNS: "165"
     # Ensures the side-by-side diff isn't truncated to less than 80 cols
 
@@ -25,7 +20,6 @@ steps:
   - name: build
     image: *catala_image
     environment: *build_env
-    pull: true
     commands:
       - eval $(opam env)
       - ln -s /home/ocaml/catala/_python_venv .
