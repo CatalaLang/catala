@@ -5,15 +5,12 @@
   (run atdgen -j -j-std language.atd)))
 
 (rule
- (targets language_t.ml language_t.mli
-          locale.ml locale.mli)
+ (mode promote)
+ (targets language_t.ml language_t.mli)
  (deps language.atd)
  (action
   (no-infer
-   (progn
-    (run atdgen -t language.atd)
-    (copy language_t.ml locale.ml)
-    (copy language_t.mli locale.mli)))))
+   (run atdgen -t language.atd))))
 
 (library
  (name full_atd)
@@ -21,9 +18,14 @@
  (modules language_t language_j)
  (libraries locale atdgen-runtime))
 
+(rule
+ (action (copy language_t.ml locale.ml)))
+
+(rule
+ (action (copy language_t.mli locale.mli)))
+
 (library
  (name locale)
  (public_name catala.locale)
  (wrapped false)
- (modules locale)
-)
+ (modules locale))

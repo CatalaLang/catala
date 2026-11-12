@@ -19,21 +19,21 @@
    (write-file lexer_en.mli "include Lexer_common.LocalisedLexer")
    (with-stdout-to
      lexer_en.cppo.ml
-    (run %{exe:../../languages/gen/macros.exe} %{dep:../../languages/english.json}))
+    (run %{exe:../../languages/gen/macros.exe} en))
    (with-stdout-to
      lexer_en.ml
     (run %{bin:cppo} lexer_en.cppo.ml %{dep:lexer.cppo.ml}))
    (write-file lexer_fr.mli "include Lexer_common.LocalisedLexer")
    (with-stdout-to
      lexer_fr.cppo.ml
-    (run %{exe:../../languages/gen/macros.exe} %{dep:../../languages/french.json}))
+    (run %{exe:../../languages/gen/macros.exe} fr))
    (with-stdout-to
      lexer_fr.ml
     (run %{bin:cppo} lexer_fr.cppo.ml %{dep:lexer.cppo.ml}))
    (write-file lexer_pl.mli "include Lexer_common.LocalisedLexer")
    (with-stdout-to
      lexer_pl.cppo.ml
-    (run %{exe:../../languages/gen/macros.exe} %{dep:../../languages/polish.json}))
+    (run %{exe:../../languages/gen/macros.exe} pl))
    (with-stdout-to
      lexer_pl.ml
     (run %{bin:cppo} lexer_pl.cppo.ml %{dep:lexer.cppo.ml}))

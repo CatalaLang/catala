@@ -23,11 +23,10 @@ let action fmt lang =
   Format.fprintf fmt
     "@[<v>(write-file lexer_%s.mli \"include Lexer_common.LocalisedLexer\")@ \
      @[<v 1>(with-stdout-to@  lexer_%s.cppo.ml@ @[<h>(run \
-     %%{exe:../../languages/gen/macros.exe} \
-     %%{dep:../../languages/%s.json})@])@]@ @[<v 1>(with-stdout-to@  \
+     %%{exe:../../languages/gen/macros.exe} %s)@])@]@ @[<v 1>(with-stdout-to@  \
      lexer_%s.ml@ @[<h>(run %%{bin:cppo} lexer_%s.cppo.ml \
      %%{dep:lexer.cppo.ml})@])@]@]@]@\n"
-    lang.code lang.code lang.name lang.code lang.code
+    lang.code lang.code lang.code lang.code lang.code
 
 let () =
   print_endline surface_lib;
