@@ -18,5 +18,5 @@
  (libraries catala.languages))
 
 (executable
- (name dune_language)
- (modules dune_language))
+ (name dune_lib)
+ (modules dune_lib))

@@ -1,0 +1,9 @@
+(include dune.inc)
+
+(rule
+ (mode promote)
+ (targets dune.inc)
+ (deps (glob_files ../*.json))
+ (action
+  (with-stdout-to %{targets}
+   (run %{exe:../gen/dune_lib.exe} %{deps}))))

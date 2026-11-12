@@ -4,23 +4,26 @@ let () =
   let lang_names =
     List.map
       (fun fname ->
-        match Filename.chop_suffix_opt ~suffix:".json" fname with
+        match
+          Filename.chop_suffix_opt ~suffix:".json" (Filename.basename fname)
+        with
         | None ->
           Printf.ksprintf failwith
             "Unexpected file: %s - expected a '<lang_name>.json' file" fname
-        | Some n -> n)
+        | Some n -> fname, n)
       syntax_files
   in
-  let ocaml_module_rule lang_name =
+  let ocaml_module_rule (json_file, lang_name) =
     Printf.printf
       {dune|(rule
+ (mode promote)
  (action
   (with-stdout-to %s.ml
    (pipe-stdout
-    (run %%{exe:gen/ocaml.exe} %%{dep:%s.json})
+    (run %%{exe:../gen/ocaml.exe} %%{dep:%s})
     (run ocamlformat - --impl)))))
 |dune}
-      lang_name lang_name
+      lang_name json_file
   in
   let languages_library () =
     Printf.printf
@@ -31,7 +34,7 @@ let () =
  (flags (:standard -linkall))
  (wrapped false)
  (modules languages %s))|dune}
-      (String.concat " " lang_names)
+      (String.concat " " (List.map snd lang_names))
   in
   List.iter
     (fun l ->

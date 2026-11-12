@@ -1,22 +1,25 @@
 (rule
+ (mode promote)
  (action
   (with-stdout-to english.ml
    (pipe-stdout
-    (run %{exe:gen/ocaml.exe} %{dep:english.json})
+    (run %{exe:../gen/ocaml.exe} %{dep:../english.json})
     (run ocamlformat - --impl)))))
 
 (rule
+ (mode promote)
  (action
   (with-stdout-to french.ml
    (pipe-stdout
-    (run %{exe:gen/ocaml.exe} %{dep:french.json})
+    (run %{exe:../gen/ocaml.exe} %{dep:../french.json})
     (run ocamlformat - --impl)))))
 
 (rule
+ (mode promote)
  (action
   (with-stdout-to polish.ml
    (pipe-stdout
-    (run %{exe:gen/ocaml.exe} %{dep:polish.json})
+    (run %{exe:../gen/ocaml.exe} %{dep:../polish.json})
     (run ocamlformat - --impl)))))
 
 (library
