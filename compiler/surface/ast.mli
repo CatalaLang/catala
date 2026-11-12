@@ -149,8 +149,10 @@ type literal =
   | LMoneyAmount of money_amount
   | LDate of literal_date
 
+and match_case_column = ColConstr of match_case_pattern | ColWildCard
+
 and explicit_match_case = {
-  match_case_pattern : match_case_pattern Mark.pos;
+  match_case_patterns : match_case_column Mark.pos list Mark.pos;
   match_case_expr : expression;
 }
 

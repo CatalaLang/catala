@@ -1,0 +1,55 @@
+## Article
+
+```catala
+déclaration énumération Situation:
+  -- Marié contenu entier
+  -- Célibataire
+
+déclaration champ d'application A:
+  entrée s contenu Situation
+  entrée i contenu optionnel de entier
+  résultat o1 contenu entier
+  résultat o2 contenu entier
+
+champ d'application A:
+  définition o1 égal à
+    selon s, i sous forme
+    -- Marié contenu n, Présent contenu m : n
+    -- Célibataire : 3
+    -- n'importe quel : 4
+
+  définition o2 égal à
+    selon s, i, s sous forme
+    -- Marié contenu n, n'importe quel : n
+    -- n'importe quel : 4
+```
+
+```catala-test-cli
+$ catala Typecheck
+┌─[ERROR]─ 1/2 ─
+│
+│  This pattern has 1 column, while the previous patterns have 2.
+│
+├─➤ tests/enum/bad/multi_column_count_fr.catala_fr:18.8-19:
+│    │
+│ 18 │     -- Célibataire : 3
+│    │        ‾‾‾‾‾‾‾‾‾‾‾
+├─ Article
+│
+│ Previous pattern:
+├─➤ tests/enum/bad/multi_column_count_fr.catala_fr:17.8-42:
+│    │
+│ 17 │     -- Marié contenu n, Présent contenu m : n
+│    │        ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
+┌─[ERROR]─ 2/2 ─
+│
+│  This tuple has 3 elements, while the patterns have 2 columns.
+│
+├─➤ tests/enum/bad/multi_column_count_fr.catala_fr:22.10-18:
+│    │
+│ 22 │     selon s, i, s sous forme
+│    │          ‾‾‾‾‾‾‾‾
+└─ Article
+#return code 123#
+```

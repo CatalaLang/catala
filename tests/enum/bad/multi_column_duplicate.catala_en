@@ -1,0 +1,40 @@
+## Article
+
+```catala
+declaration enumeration Situation:
+  -- Married content integer
+  -- Single
+
+declaration scope A:
+  input s content Situation
+  input i content optional of integer
+  output o content integer
+
+scope A:
+  definition o equals
+    match s, i with pattern
+    -- Married content n, Present content m : n
+    -- Married content n, Absent : 1
+    -- Married content k, Present content m : k
+    -- Single, anything : 3
+```
+
+```catala-test-cli
+$ catala Typecheck
+┌─[ERROR]─
+│
+│  This combination of constructors has been matched twice.
+│
+├─➤ tests/enum/bad/multi_column_duplicate.catala_en:18.47-48:
+│    │
+│ 18 │     -- Married content k, Present content m : k
+│    │                                               ‾
+├─ Article
+│
+├─➤ tests/enum/bad/multi_column_duplicate.catala_en:16.47-48:
+│    │
+│ 16 │     -- Married content n, Present content m : n
+│    │                                               ‾
+└─ Article
+#return code 123#
+```

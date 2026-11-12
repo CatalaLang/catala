@@ -1,0 +1,37 @@
+## Article
+
+```catala
+declaration enumeration Situation:
+  -- Married content integer
+  -- Single
+
+declaration scope A:
+  input s content Situation
+  input i content optional of integer
+  output o content integer
+
+scope A:
+  definition o equals
+    match s, i with pattern
+    -- Married content n, Present content m : n
+    -- Single, anything : 3
+```
+
+```catala-test-cli
+$ catala Typecheck
+┌─[ERROR]─
+│
+│  This pattern matching is not exhaustive, the following case is not covered:
+│  Married, Absent
+│
+├─➤ tests/enum/bad/multi_column_not_exhaustive.catala_en:15.5-17.28:
+│    │
+│ 15 │     match s, i with pattern
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 16 │     -- Married content n, Present content m : n
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 17 │     -- Single, anything : 3
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
+#return code 123#
+```

@@ -126,9 +126,9 @@ declaration x content integer equals
   let x equals let x equals 36 - 5 in 0
   in
   let x equals
-    match expr with pattern
-       -- Case1 content x : 0
-       -- Case2 : 0
+    match expr1, expr2 with pattern
+       -- Case11 content x, Case21 : 0
+       -- Case12, anything : 0
        -- anything : 0
   in
   let x equals #[error.message = "err"] impossible in

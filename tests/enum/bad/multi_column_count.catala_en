@@ -1,0 +1,55 @@
+## Article
+
+```catala
+declaration enumeration Situation:
+  -- Married content integer
+  -- Single
+
+declaration scope A:
+  input s content Situation
+  input i content optional of integer
+  output o1 content integer
+  output o2 content integer
+
+scope A:
+  definition o1 equals
+    match s, i with pattern
+    -- Married content n, Present content m : n
+    -- Single : 3
+    -- anything : 4
+
+  definition o2 equals
+    match s, i, s with pattern
+    -- Married content n, anything : n
+    -- anything : 4
+```
+
+```catala-test-cli
+$ catala Typecheck
+┌─[ERROR]─ 1/2 ─
+│
+│  This pattern has 1 column, while the previous patterns have 2.
+│
+├─➤ tests/enum/bad/multi_column_count.catala_en:18.8-14:
+│    │
+│ 18 │     -- Single : 3
+│    │        ‾‾‾‾‾‾
+├─ Article
+│
+│ Previous pattern:
+├─➤ tests/enum/bad/multi_column_count.catala_en:17.8-44:
+│    │
+│ 17 │     -- Married content n, Present content m : n
+│    │        ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
+┌─[ERROR]─ 2/2 ─
+│
+│  This tuple has 3 elements, while the patterns have 2 columns.
+│
+├─➤ tests/enum/bad/multi_column_count.catala_en:22.10-18:
+│    │
+│ 22 │     match s, i, s with pattern
+│    │          ‾‾‾‾‾‾‾‾
+└─ Article
+#return code 123#
+```

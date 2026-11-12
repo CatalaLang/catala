@@ -1,0 +1,52 @@
+## Article
+
+```catala
+déclaration énumération Situation:
+  -- Marié contenu entier
+  -- Célibataire
+
+déclaration champ d'application A:
+  entrée s contenu Situation
+  entrée i contenu optionnel de entier
+  résultat o1 contenu entier
+  résultat o2 contenu entier
+
+champ d'application A:
+  définition o1 égal à
+    selon s, i sous forme
+    -- Marié contenu n, n'importe quel : n
+    -- Marié contenu n, Absent : 1
+    -- Célibataire, n'importe quel : 3
+
+  définition o2 égal à
+    selon s, i sous forme
+    -- Marié contenu n, n'importe quel : n
+    -- Célibataire, n'importe quel : 3
+    -- n'importe quel : 4
+```
+
+```catala-test-cli
+$ catala Typecheck
+┌─[WARNING]─
+│
+│  Unreachable match case, it is already covered by the previous cases.
+│
+├─➤ tests/enum/bad/multi_column_unreachable_fr.catala_fr:18.5-35:
+│    │
+│ 18 │     -- Marié contenu n, Absent : 1
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
+┌─[WARNING]─
+│
+│  Unreachable match case, all combinations of constructors are already
+│  specified.
+│
+├─➤ tests/enum/bad/multi_column_unreachable_fr.catala_fr:25.5-26:
+│    │
+│ 25 │     -- n'importe quel : 4
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```

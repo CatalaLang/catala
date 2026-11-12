@@ -3,6 +3,8 @@
 One line per change, be concise and explicit. Document only external changes
 in behavior visible for the end-users of the tooling.
 
+* [#1167](https://github.com/CatalaLang/catala/pull/1167) Tuple pattern matching
+
 * [#1152](https://github.com/CatalaLang/catala/pull/1152) Fixes:
   - `clerk build` ignoring the `--trace` option;
   - Makes trace mechanism reentrant in the java backend.
