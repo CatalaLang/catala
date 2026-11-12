@@ -42,7 +42,8 @@
 
   let move_attrs ~from =
     let moved_attrs, kept_attrs =
-      List.partition Shared_ast.(function Src _ | Doc _ -> true | _ -> false)
+      List.partition
+        Shared_ast.(function Src _ | Src_doc _ -> true | _ -> false)
         (Pos.attrs from)
     in
     let set_attrs target =
@@ -50,11 +51,29 @@
     in
     Pos.set_attrs from kept_attrs, set_attrs
 
+  (* Attributes after the last element of a block (e.g. the fields of a
+     structure) can't be told apart from attributes of the next declaration,
+     and are given to the latter. Warn when their indentation suggests that
+     they were meant for the element above: on a line of their own, and indented
+    more than the declaration. *)
+  let warn_misaligned_attrs ~item_pos pending_attrs =
+    List.iter (function
+        | Shared_ast.(Src (_, _, pos) | Src_doc (_, _, pos)) as attr
+          when Pos.get_start_line pos < Pos.get_start_line item_pos
+               && Pos.get_start_column pos > Pos.get_start_column item_pos ->
+          Message.warning ~pos
+            "This %a is indented@ as@ if@ it@ belonged@ \
+             to@ the@ element@ above,@ but@ it@ applies@ to@ the@ \
+             declaration@ that@ follows."
+            Shared_ast.Print.src_attr_name attr
+        | _ -> ())
+      pending_attrs
+
   let no_trailing_attrs (x, pending_attrs) =
     (match pending_attrs with
-     | Shared_ast.Src ((path, _), _, pos) :: _ ->
-       Message.delayed_error () "Unattached trailing atttribute #[%s] ignored"
-         ~pos (String.concat "." path)
+     | (Shared_ast.(Src (_, _, pos) | Src_doc (_, _, pos)) as attr) :: _ ->
+       Message.delayed_error () "Unattached trailing %a ignored"
+         ~pos Shared_ast.Print.src_attr_name attr
      | _ -> ());
     x
 
@@ -173,10 +192,14 @@ let attribute :=
   tag = addpos(separated_nonempty_list(DOT,LIDENT)) ;
   value = option(preceded(EQUAL, attribute_value)) ;
   RBRACKET ; {
-  Shared_ast.Src (tag, Option.value ~default:Shared_ast.Unit value, get_pos $loc)
+  let value = Option.value ~default:Shared_ast.Unit value in
+  match tag with
+  | ["doc"], _ -> Shared_ast.(Src_doc (Doc_attribute, value, get_pos $loc))
+  | _ -> Shared_ast.Src (tag, value, get_pos $loc)
 }
 | s = DOCSTRING ; {
-  Shared_ast.Doc (s, get_pos $loc)
+  let pos = get_pos $loc in
+  Shared_ast.(Src_doc (Doc_comment, String (s, pos), pos))
 }
 
 let attr(x) ==
@@ -957,6 +980,7 @@ let code ==
   let items = no_trailing_attrs items in
   List.rev @@ no_trailing_attrs @@
   List.fold_left (fun (acc, pending_attrs) ((item, trailing_attrs), pos) ->
+    warn_misaligned_attrs ~item_pos:pos pending_attrs;
     let pos = Pos.add_attrs pos pending_attrs in
     let pos_noattr, set_attrs = move_attrs ~from:pos in
     let item =

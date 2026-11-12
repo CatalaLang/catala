@@ -219,26 +219,11 @@ let translate_attr ~context = function
         Message.warning ~pos:ppos "Unknown error sub-attribute \"%s\""
           (String.concat "." ps);
         None)
-    | "doc" -> (
-      match ps with
-      | [] -> (
-        match context with
-        | Expression _ ->
-          Message.warning ~pos
-            "Attribute @{<magenta>#[doc]@} is not allowed in this context";
-          None
-        | _ -> (
-          match v with
-          | String (s, pos) -> Some (Doc (s, pos))
-          | _ ->
-            Message.warning ~pos
-              "Invalid value for the @{<magenta>#[doc]@} attribute: expecting \
-               a string";
-            None))
-      | ps ->
-        Message.warning ~pos:ppos "Unknown doc sub-attribute \"%s\""
-          (String.concat "." ps);
-        None)
+    | "doc" ->
+      (* [#[doc]] itself is parsed as [Src_doc] *)
+      Message.warning ~pos:ppos "Unknown doc sub-attribute \"%s\""
+        (String.concat "." ps);
+      None
     | "implicit_position_argument" -> (
       match ps with
       | [] ->
@@ -316,10 +301,21 @@ let translate_attr ~context = function
         Message.warning ~pos "Unrecognised attribute \"%s\"" p1;
         None)
       else handle_extra_attributes context plugin ps v ppos)
-  | attr ->
-    (* Docstrings (`## ` comments) end up here as they are `Doc` attributes
-       already. No check that they are in a relevant spot is done, though. *)
-    Some attr
+  | Src_doc (_, v, pos) as attr -> (
+    match context with
+    | Expression _ ->
+      Message.warning ~pos "This %a is not allowed in this context"
+        Print.src_attr_name attr;
+      None
+    | _ -> (
+      match v with
+      | String (s, pos) -> Some (Doc (s, pos))
+      | _ ->
+        Message.warning ~pos
+          "Invalid value for the @{<magenta>#[doc]@} attribute: expecting a \
+           string";
+        None))
+  | attr -> Some attr
 
 let translate_pos context pos =
   Pos.attrs pos
@@ -1578,7 +1574,9 @@ let process_use_item
   | ScopeUse suse -> (
     let pos = Mark.get suse.scope_use_name in
     match
-      Pos.get_attrs pos (function Src (_, _, pos) -> Some pos | _ -> None)
+      Pos.get_attrs pos (function
+        | Src (_, _, pos) | Src_doc (_, _, pos) -> Some pos
+        | _ -> None)
     with
     | pos :: _ ->
       Message.error ~pos "%a" Format.pp_print_text
