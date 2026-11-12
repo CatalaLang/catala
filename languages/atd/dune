@@ -19,10 +19,12 @@
  (libraries locale atdgen-runtime))
 
 (rule
- (action (copy language_t.ml locale.ml)))
+ (action
+  (copy language_t.ml locale.ml)))
 
 (rule
- (action (copy language_t.mli locale.mli)))
+ (action
+  (copy language_t.mli locale.mli)))
 
 (library
  (name locale)

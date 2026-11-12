@@ -1,14 +1,18 @@
-(library (name utils) (modules utils))
+(library
+ (name utils)
+ (modules utils))
 
 (executable
  (name macros)
- (flags (:standard -warn-error +a))
+ (flags
+  (:standard -warn-error +a))
  (modules macros)
  (libraries utils catala.languages))
 
 (executable
  (name ocaml)
- (flags (:standard -warn-error +a))
+ (flags
+  (:standard -warn-error +a))
  (modules ocaml)
  (libraries utils full_atd))
 
