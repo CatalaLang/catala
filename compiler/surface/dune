@@ -3,17 +3,25 @@
 (rule
  (mode promote)
  (targets dune.inc)
- (deps (glob_files ../../languages/*.json))
+ (deps
+  (glob_files ../../languages/*.json))
  (action
   (with-stdout-to
-    dune.inc
+   dune.inc
    (run %{exe:../../languages/gen/dune_surface.exe}))))
 
 (library
  (name surface)
  (public_name catala.surface)
  (library_flags -linkall)
- (libraries catala_utils menhirLib sedlex re zarith shared_ast localised_lexers)
+ (libraries
+  catala_utils
+  menhirLib
+  sedlex
+  re
+  zarith
+  shared_ast
+  localised_lexers)
  (modules parser parser_errors parser_state parser_driver print surface))
 
 (rule
