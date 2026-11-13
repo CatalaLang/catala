@@ -6,7 +6,7 @@
 # STAGE 1: setup an opam switch with all dependencies installed
 #
 # (only depends on the opam files)
-FROM registry.gitlab.inria.fr/catala/registry/ocaml:alpine-5 AS dev-build-context
+FROM registry.gitlab.inria.fr/catala/registry/ocaml:alpine-8 AS dev-build-context
 
 RUN mkdir catala
 WORKDIR catala

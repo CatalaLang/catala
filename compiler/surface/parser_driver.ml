@@ -321,24 +321,29 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       Incremental.source_file lexbuf
 end
 
-module Parser_En = ParserAux (Lexer_en)
-module Parser_Fr = ParserAux (Lexer_fr)
-module Parser_Pl = ParserAux (Lexer_pl)
+module type LocalisedParser = sig
+  val commands_or_includes : lexbuf -> Ast.source_file
+end
 
 let localised_parser : Global.backend_lang -> lexbuf -> Ast.source_file =
-  function
-  | `En -> Parser_En.commands_or_includes
-  | `Fr -> Parser_Fr.commands_or_includes
-  | `Pl -> Parser_Pl.commands_or_includes
+  let all_parsers =
+    List.map
+      (fun (c, (module Lexer : Lexer_common.LocalisedLexer)) ->
+        c, (module ParserAux (Lexer) : LocalisedParser))
+      (Lexer_common.lexers ())
+  in
+  fun lang ->
+    match List.assoc_opt lang all_parsers with
+    | None -> Message.error "No registered lexer for the given language"
+    | Some (module Parser) -> Parser.commands_or_includes
 
 (** Lightweight lexer for dependency *)
 
 let lines (file : File.t) (language : Global.backend_lang) =
   let lex_line =
-    match language with
-    | `En -> Lexer_en.lex_line
-    | `Fr -> Lexer_fr.lex_line
-    | `Pl -> Lexer_pl.lex_line
+    match List.assoc_opt language (Lexer_common.lexers ()) with
+    | None -> Message.error "No registered lexer for the given language"
+    | Some (module Lexer) -> Lexer.lex_line
   in
   let input = open_in file in
   try
@@ -649,11 +654,9 @@ let load_module ~allow_notmodules ~is_stdlib options f =
 type module_candidates =
   (ModuleName.t * Ast.module_content) Lazy.t File.Map.t Ident.Map.t
 
-let check_and_chop_catala_ext =
-  let exts = String.Set.of_list (List.map fst Catala_utils.Cli.extensions) in
-  fun s ->
-    let full_ext = File.extension s in
-    if String.Set.mem full_ext exts then Some File.(s -.- "") else None
+let check_and_chop_catala_ext s =
+  Languages.file_lang s
+  |> function None -> None | Some _ -> Some File.(s -.- "")
 
 let load_modules_candidates
     (includes : File.Set.t)
@@ -750,7 +753,7 @@ let load_modules_with_candidates options ~stdlib module_candidates program :
     ModuleName.t Ident.Map.t
     * (Ast.module_content * ModuleName.t Ident.Map.t) ModuleName.Map.t =
   let stdlib_root_module lang =
-    let lang = if Global.has_localised_stdlib lang then lang else `En in
+    let lang = if Global.has_localised_stdlib lang then lang else English.T in
     "Stdlib_" ^ Cli.language_code lang
   in
   let stdlib_use file =

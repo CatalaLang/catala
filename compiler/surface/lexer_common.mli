@@ -105,3 +105,9 @@ module type LocalisedLexer = sig
   val sum_string : string
   (** Temporary hack while the "sum" keyword is being deprecated *)
 end
+
+val register_lexer : Languages.t -> (module LocalisedLexer) -> unit
+(** Registers a lexer for a given language. *)
+
+val lexers : unit -> (Languages.t * (module LocalisedLexer)) list
+(** Retrieves all registered lexers. *)

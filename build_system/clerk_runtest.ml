@@ -364,8 +364,8 @@ let run_tests
     filename =
   let module L = Surface.Lexer_common in
   let lang =
-    match Scan.get_lang filename with
-    | Some l -> l
+    match Languages.file_lang filename with
+    | Some (l, _) -> l
     | None ->
       Message.error "Can't infer catala dialect from file extension of %a"
         File.format filename

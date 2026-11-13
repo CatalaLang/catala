@@ -173,3 +173,10 @@ module type LocalisedLexer = sig
   val sum_string : string
   (** Temporary hack while the "sum" keyword is being deprecated *)
 end
+
+let lexers : (Languages.t * (module LocalisedLexer)) list ref = ref []
+
+let register_lexer code (module Lexer : LocalisedLexer) =
+  lexers := (code, (module Lexer : LocalisedLexer)) :: !lexers
+
+let lexers () = !lexers

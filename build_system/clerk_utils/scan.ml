@@ -30,11 +30,6 @@ type item = {
 
 let libcatala = "libcatala"
 
-let catala_suffix_regex =
-  Re.(
-    compile
-      (seq [str ".catala_"; group (seq [alpha; alpha]); opt (str ".md"); eos]))
-
 let test_command_args =
   let open Re in
   let re =
@@ -53,14 +48,12 @@ let test_command_args =
   fun str ->
     exec_opt re str |> Option.map (fun g -> String.trim (Re.Group.get g 1))
 
-let get_lang file =
-  Option.bind (Re.exec_opt catala_suffix_regex file)
-  @@ fun g -> List.assoc_opt (Re.Group.get g 1) Catala_utils.Cli.languages
-
 let rec has_test_scope ~lang file =
   (* Note: if efficiency becomes a problem, this could rely on a cached index of
      file items *)
-  let lang = Option.value (get_lang file) ~default:lang in
+  let lang =
+    Option.value (Option.map fst (Languages.file_lang file)) ~default:lang
+  in
   let rec scan lines =
     match Seq.uncons lines with
     | Some ((_, L.LINE_TEST_ATTRIBUTE, _), _) -> true
@@ -75,7 +68,9 @@ let rec has_test_scope ~lang file =
 let rec count_test_scopes ~lang file =
   (* Note: if efficiency becomes a problem, this could rely on a cached index of
      file items *)
-  let lang = Option.value (get_lang file) ~default:lang in
+  let lang =
+    Option.value (Option.map fst (Languages.file_lang file)) ~default:lang
+  in
   let rec scan lines =
     match Seq.uncons lines with
     | Some ((_, L.LINE_TEST_ATTRIBUTE, _), lines) -> 1 + scan lines
@@ -147,9 +142,9 @@ let catala_file (file : File.t) (lang : Catala_utils.Global.backend_lang) : item
 let dir d : item list =
   File.scan_dir d
   |> List.filter_map (fun f ->
-      match get_lang f with
+      match Languages.file_lang f with
       | None -> None
-      | Some lang -> Some (catala_file f lang))
+      | Some (lang, _) -> Some (catala_file f lang))
 
 let tree (root : File.t) ?(includes : File.Set.t option) :
     (File.t * File.t list * item list) Seq.t =
@@ -179,9 +174,9 @@ let tree (root : File.t) ?(includes : File.Set.t option) :
           | Some inc -> File.(Set.mem (dirname f) inc))
       then None
       else
-        match get_lang f with
+        match Languages.file_lang f with
         | None -> None
-        | Some lang -> Some (catala_file f lang))
+        | Some (lang, _) -> Some (catala_file f lang))
     ~filter_dirs root
 
 let target_basename t =
@@ -213,7 +208,7 @@ let include_dirs ~config =
       in
       let seen = String.Set.add d seen in
       let acc =
-        if Seq.exists (fun f -> get_lang f <> None) files then
+        if Seq.exists (fun f -> Languages.file_lang f <> None) files then
           String.Set.add d acc
         else acc
       in

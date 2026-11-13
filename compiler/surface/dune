@@ -1,31 +1,31 @@
+(include dune.inc)
+
+(rule
+ (mode promote)
+ (targets dune.inc)
+ (deps
+  (glob_files ../../languages/*.json))
+ (action
+  (with-stdout-to
+   dune.inc
+   (run %{exe:../../languages/gen/dune_surface.exe}))))
+
 (library
  (name surface)
  (public_name catala.surface)
- (libraries catala_utils menhirLib sedlex re zarith shared_ast)
- (preprocess
-  (per_module
-   ((pps sedlex.ppx)
-    lexer_en
-    lexer_fr
-    lexer_pl))))
+ (library_flags -linkall)
+ (libraries
+  catala_utils
+  menhirLib
+  sedlex
+  re
+  zarith
+  shared_ast
+  localised_lexers)
+ (modules parser parser_errors parser_state parser_driver print surface))
 
 (rule
  (copy ast.mli ast.ml))
-
-(rule
- (with-stdout-to
-  lexer_en.ml
-  (run %{bin:cppo} %{dep:lexer_en.cppo.ml} %{dep:lexer.cppo.ml})))
-
-(rule
- (with-stdout-to
-  lexer_fr.ml
-  (run %{bin:cppo} %{dep:lexer_fr.cppo.ml} %{dep:lexer.cppo.ml})))
-
-(rule
- (with-stdout-to
-  lexer_pl.ml
-  (run %{bin:cppo} %{dep:lexer_pl.cppo.ml} %{dep:lexer.cppo.ml})))
 
 (menhir
  (modules tokens)
