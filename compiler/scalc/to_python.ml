@@ -331,7 +331,7 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
         let rec aux = function
           | EAppOp { op = op1; args = [arg2; arg3]; _ }, _
             when Mark.equal Operator.equal op op1 ->
-            arg2 :: aux arg3
+            aux arg2 @ [arg3]
           | a -> [a]
         in
         aux arg1 @ [arg2]

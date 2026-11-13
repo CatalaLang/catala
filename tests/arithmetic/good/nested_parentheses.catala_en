@@ -1,0 +1,15 @@
+```catala
+#[test] declaration scope A:
+  output x content integer
+
+scope A:
+  definition x equals (4 - (2 - 2)) - 1
+  assertion x = 3
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[RESULT]─ A ─
+│ x = 3
+└─
+```
