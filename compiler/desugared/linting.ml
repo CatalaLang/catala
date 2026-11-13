@@ -324,10 +324,61 @@ let detect_unused_local_variables (p : program) : unit =
       aux e)
     ~init:() p
 
+module DependencyPath = Graph.Path.Check (Dependency.ScopeDependencies)
+
+(** A variable state that doesn't depend on the previous state discards it,
+    which is probably a mistake. *)
+let detect_states_ignoring_previous (p : program) : unit =
+  ScopeName.Map.iter
+    (fun scope_name scope ->
+      let scope_dependencies = Dependency.build_scope_dependencies scope in
+      let path = DependencyPath.create scope_dependencies in
+      let check_state var prev state =
+        let scope_def =
+          ScopeDef.Map.find
+            ((var, Pos.void), ScopeDef.Var (Some state))
+            scope.scope_defs
+        in
+        let prev_vertex = Dependency.Vertex.Var (var, Some prev) in
+        let state_vertex = Dependency.Vertex.Var (var, Some state) in
+        (* Skip undefined states and unused previous states, already reported
+           by [detect_empty_definitions] and [detect_dead_code] *)
+        let is_defined =
+          not (RuleName.Map.is_empty scope_def.scope_def_rules)
+        in
+        let prev_is_used =
+          Dependency.ScopeDependencies.succ scope_dependencies prev_vertex <> []
+        in
+        if
+          is_defined
+          && prev_is_used
+          && not (DependencyPath.check_path path prev_vertex state_vertex)
+        then
+          Message.warning
+            ~pos:(Mark.get (StateName.get_info state))
+            "In scope \"%a\",@ %a@ never@ uses@ the@ previous@ state@ %a.@ Did \
+             you forget something?"
+            ScopeName.format scope_name Dependency.Vertex.format state_vertex
+            Dependency.Vertex.format prev_vertex
+      in
+      (* Check each pair of consecutive states: (s1, s2), (s2, s3) ... *)
+      let rec check_states var = function
+        | prev :: (state :: _ as states) ->
+          check_state var prev state;
+          check_states var states
+        | _ -> ()
+      in
+      ScopeVar.Map.iter
+        (fun var -> function
+          | WholeVar -> () | States states -> check_states var states)
+        scope.scope_vars)
+    p.program_root.module_scopes
+
 let lint_program (p : program) : unit =
   detect_empty_definitions p;
   detect_dead_code p;
   detect_unused_struct_fields p;
   detect_unused_enum_constructors p;
   detect_identical_rules p;
-  detect_unused_local_variables p
+  detect_unused_local_variables p;
+  detect_states_ignoring_previous p
