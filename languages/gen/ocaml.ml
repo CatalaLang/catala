@@ -280,8 +280,15 @@ let () =
   dl ();
   fprintf ppf "type Languages.t += T";
   fprintf ppf "@\n";
+  let runtime_variant_cstr =
+    (* FIXME: this is used for the runtime value printer. Currently,
+       the runtime doesn't support the rest. *)
+    match String.capitalize_ascii code with
+    | ("En" | "Fr" | "Pl") as x -> x
+    | _ -> "En"
+  in
   fprintf ppf "let runtime_lang : Catala_runtime.Print.lang = `%s"
-    (String.capitalize_ascii code);
+    runtime_variant_cstr;
   fprintf ppf "@\n";
   fprintf ppf "let () = Languages.register_language (T, language)";
   fprintf ppf "@\n"
