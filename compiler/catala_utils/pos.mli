@@ -24,6 +24,9 @@ val compare : t -> t -> int
 val equal : t -> t -> bool
 
 type attr = ..
+(** Attributes attached to a position. A position holds a list of them, in no
+    specific order: use {!get_attrs_sorted} when the order matters. *)
+
 type attr += Law_pos of string list
 
 (**{2 Constructor and getters}*)
@@ -38,7 +41,10 @@ val get_start_column : t -> int
 val get_end_line : t -> int
 val get_end_column : t -> int
 val get_file : t -> string
+
 val attrs : t -> attr list
+(** In no specific order, see {!get_attrs_sorted} *)
+
 val set_attrs : t -> attr list -> t
 val add_attr : t -> attr -> t
 val add_attrs : t -> attr list -> t
@@ -53,10 +59,17 @@ val take_attr : t -> (attr -> 'a option) -> 'a option * t
 (** Removes the found attribute if it is present *)
 
 val get_attrs : t -> (attr -> 'a option) -> 'a list
+(** In no specific order, see {!get_attrs_sorted} *)
+
+val get_attrs_sorted : t -> (attr -> (t * 'a) option) -> 'a list
+(** Like [get_attrs], but the function also returns the position of each
+    attribute, and the results are sorted by these positions. Use this to get
+    attributes in source order. *)
 
 val join : t -> t -> t
 (** Returns the smallest range including both supplied ranges. Attributes are
-    merged ; law info is taken from the earliest position.
+    merged, in no specific order, except law info which is taken from the
+    earliest position.
 
     Void positions (filename = "") are ignored. Raises [Invalid_argument] if
     they don't belong to the same file. *)

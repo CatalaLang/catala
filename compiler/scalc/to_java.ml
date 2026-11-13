@@ -50,10 +50,10 @@ let format_doc
     Format.pp_close_box ppf ()
   in
   let get_doc_attrs p =
-    Pos.get_attrs p (function Doc (d, _p) -> Some d | _ -> None)
+    Pos.get_attrs_sorted p (function Doc (d, p) -> Some (p, d) | _ -> None)
     |> function
     | [] -> None
-    | l -> Some (String.concat "\n" (List.rev_map String.trim l))
+    | l -> Some (String.concat "\n" (List.map String.trim l))
   in
   let pos = get_pos v in
   let doc_opt = get_doc_attrs pos in
