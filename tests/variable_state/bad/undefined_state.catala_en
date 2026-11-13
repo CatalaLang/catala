@@ -1,0 +1,28 @@
+```catala
+declaration scope A:
+  output foo content integer
+    state s1
+    state s2
+  output x content integer
+
+scope A:
+  definition foo state s1 equals 1
+  definition x equals foo state s1
+```
+
+```catala-test-cli
+$ catala Typecheck
+┌─[WARNING]─
+│
+│  In scope "A", the variable "foo@s2" is declared but never defined;
+│  did you forget something?
+│
+├─➤ tests/variable_state/bad/undefined_state.catala_en:3.10-13:
+│   │
+│ 3 │   output foo content integer
+│   │          ‾‾‾
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
