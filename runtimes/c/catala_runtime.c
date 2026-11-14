@@ -577,7 +577,7 @@ int catala_compare_values (const catala_code_position* pos, const catala_value x
   }
 }
 
-const void* stdflush() {
+const void* stdflush(void) {
   puts("");
   fflush(stdout);
   return NULL;
@@ -590,7 +590,7 @@ void stdprintf(const char * fmt, ...) {
 }
 struct catala_buf catala_stdbuf = { &stdprintf, 0, &stdflush };
 
-const void* errflush() {
+const void* errflush(void) {
   fputs("", stderr);
   fflush(stderr);
   return NULL;
@@ -605,7 +605,7 @@ struct catala_buf catala_errbuf = { &errprintf, 0, &errflush };
 
 __thread char* strbuf = NULL;
 __thread int strbufsize = 0;
-const void* strflush() {
+const void* strflush(void) {
   void* ret = strbuf;
   if (ret == NULL) return ((const void*)"");
   strbuf = NULL;
@@ -729,7 +729,7 @@ void catala_print (struct catala_buf buf, const catala_value x) {
       case Catala_lang_Fr: buf.printf("an"); break;
       case Catala_lang_Pl: buf.printf("rok"); break;
       };
-      if (abs(dc_period_years(x.v)) > 1 && catala_language != Catala_lang_Pl)
+      if (labs(dc_period_years(x.v)) > 1 && catala_language != Catala_lang_Pl)
         buf.printf("s");
       if (dc_period_months(x.v) ||  dc_period_days(x.v))
         buf.printf(", ");
@@ -741,7 +741,7 @@ void catala_print (struct catala_buf buf, const catala_value x) {
       case Catala_lang_Fr: buf.printf("mois"); break;
       case Catala_lang_Pl: buf.printf("miesiac"); break;
       };
-      if (abs(dc_period_months(x.v)) > 1 && catala_language == Catala_lang_En)
+      if (labs(dc_period_months(x.v)) > 1 && catala_language == Catala_lang_En)
         buf.printf("s");
       if (dc_period_days(x.v))
         buf.printf(", ");
@@ -754,7 +754,7 @@ void catala_print (struct catala_buf buf, const catala_value x) {
       case Catala_lang_Fr: buf.printf("jour"); break;
       case Catala_lang_Pl: buf.printf("dzien"); break;
       };
-      if (abs(dc_period_days(x.v)) > 1 && catala_language != Catala_lang_Pl)
+      if (labs(dc_period_days(x.v)) > 1 && catala_language != Catala_lang_Pl)
         buf.printf("s");
     }
     buf.printf("]");

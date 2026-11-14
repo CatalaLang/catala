@@ -226,7 +226,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
         fields
         (StructName.base struct_name);
     let size = List.length fields in
-    pp ppfs "@,const catala_type catala_type__%s()"
+    pp ppfs "@,const catala_type catala_type__%s(void)"
       (StructName.base struct_name);
     pp (List.tl ppfs) ";";
     Format.fprintf ppc "@,@[<v 2>{@,";
@@ -289,7 +289,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
              typ))
       cases (EnumName.base enum_name);
     let size = List.length cases in
-    pp ppfs "@,const catala_type catala_type__%s()" (EnumName.base enum_name);
+    pp ppfs "@,const catala_type catala_type__%s(void)" (EnumName.base enum_name);
     pp (List.tl ppfs) ";";
     Format.fprintf ppc "@,@[<v 2>{@,";
     Format.fprintf ppc "static catala_type ty = {UNINITIALIZED};@,";
@@ -371,7 +371,7 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
       id id;
 
     pp ppfs "@,@,/* This should be left unchanged */";
-    pp ppfs "@,const catala_type catala_type__%s()" (AbstractType.base tid);
+    pp ppfs "@,const catala_type catala_type__%s(void)" (AbstractType.base tid);
     pp (List.tl ppfs) ";";
     Format.fprintf ppc "@,@[<v 2>{";
     Format.fprintf ppc "@,static catala_type ty = {UNINITIALIZED};";
@@ -1159,7 +1159,7 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
          Format.pp_print_string ppf
            (String.quote (ScopeName.original_base name))))
     tests;
-  Format.fprintf fmt "@,@[<v 2>void* run_tests ()@;<0 -2>{";
+  Format.fprintf fmt "@,@[<v 2>void* run_tests (void)@;<0 -2>{";
   (if tests = [] then
      Message.warning
        "%a@{<magenta>#[test]@}@ attribute@ above@ their@ declaration."
