@@ -15,29 +15,64 @@
    the License. *)
 
 type attr = ..
-type t = { code_pos : Lexing.position * Lexing.position; attr : attr list }
+
+type t = {
+  file : string;
+  start_line : int;
+  start_col : int;
+  end_line : int;
+  end_col : int;
+  attr : attr list;
+}
+(* Lines and columns are 1-based, columns are counted in code points and
+   [end_col] is exclusive. *)
+
+let get_start_line (pos : t) : int = pos.start_line
+let get_start_column (pos : t) : int = pos.start_col
+let get_end_line (pos : t) : int = pos.end_line
+let get_end_column (pos : t) : int = pos.end_col
+let get_file (pos : t) : string = pos.file
+
 type attr += Law_pos of string list
 
-let from_lpos (p : Lexing.position * Lexing.position) : t =
-  { code_pos = p; attr = [] }
+let from_info
+    (file : string)
+    (start_line : int)
+    (start_col : int)
+    (end_line : int)
+    (end_col : int) : t =
+  { file; start_line; start_col; end_line; end_col; attr = [] }
 
-let lex_pos_compare lp1 lp2 =
-  match String.compare lp1.Lexing.pos_fname lp2.Lexing.pos_fname with
-  | 0 -> Int.compare lp1.Lexing.pos_cnum lp2.Lexing.pos_cnum
+let from_lpos ((s, e) : Lexing.position * Lexing.position) : t =
+  let open Lexing in
+  from_info s.pos_fname s.pos_lnum
+    (s.pos_cnum - s.pos_bol + 1)
+    e.pos_lnum
+    (e.pos_cnum - e.pos_bol + 1)
+
+let compare_start p1 p2 =
+  match Int.compare p1.start_line p2.start_line with
+  | 0 -> Int.compare p1.start_col p2.start_col
+  | n -> n
+
+let compare_end p1 p2 =
+  match Int.compare p1.end_line p2.end_line with
+  | 0 -> Int.compare p1.end_col p2.end_col
   | n -> n
 
 let compare p1 p2 =
-  let p1beg, p1end = p1.code_pos and p2beg, p2end = p2.code_pos in
-  match lex_pos_compare p1beg p2beg with
-  | 0 -> lex_pos_compare p1end p2end
-  | n -> n
+  let ( |>| ) n f = match n with 0 -> f p1 p2 | n -> n in
+  String.compare p1.file p2.file |>| compare_start |>| compare_end
 
-let equal p1 p2 = p1.code_pos = p2.code_pos
+let equal p1 p2 = compare p1 p2 = 0
 let attrs t = t.attr
 let set_attrs t attr = { t with attr }
 let add_attr t attr = { t with attr = attr :: t.attr }
-let add_attrs t attrs = List.fold_left add_attr t attrs
-let rem_attr t attr = { t with attr = List.filter (fun a -> a <> attr) t.attr }
+
+let add_attrs t attrs =
+  { t with attr = List.fold_left (fun xs x -> x :: xs) t.attr attrs }
+
+let filter_attr t f = { t with attr = List.filter f t.attr }
 let get_attrs t f = List.filter_map f t.attr
 
 let get_attr t f =
@@ -65,47 +100,24 @@ let join_attr a1 a2 =
   else a1 @ a2
 
 let join (p1 : t) (p2 : t) : t =
-  let f1 = (fst p1.code_pos).Lexing.pos_fname in
-  let f2 = (fst p2.code_pos).Lexing.pos_fname in
-  if f1 = "" then p2
-  else if f2 = "" then p1
-  else if f1 <> f2 then invalid_arg "Pos.join"
+  if p1.file = "" then p2
+  else if p2.file = "" then p1
+  else if p1.file <> p2.file then invalid_arg "Pos.join"
   else
-    let beg1, end1 = p1.code_pos in
-    let beg2, end2 = p2.code_pos in
-    let first, second =
-      if lex_pos_compare beg1 beg2 <= 0 then p1, p2 else p2, p1
+    (* We must keep latest start for join_attr which guarantees
+    that the Law of the earliest position is selected*)
+    let earliest_start, latest_start =
+      if compare_start p1 p2 <= 0 then p1, p2 else p2, p1
     in
+    let latest_end = if compare_end p1 p2 <= 0 then p2 else p1 in
     {
-      code_pos =
-        ( fst first.code_pos,
-          if lex_pos_compare end1 end2 <= 0 then end2 else end1 );
-      attr = join_attr first.attr second.attr;
+      file = p1.file;
+      start_line = earliest_start.start_line;
+      start_col = earliest_start.start_col;
+      end_line = latest_end.end_line;
+      end_col = latest_end.end_col;
+      attr = join_attr earliest_start.attr latest_start.attr;
     }
-
-let from_info
-    (file : string)
-    (sline : int)
-    (scol : int)
-    (eline : int)
-    (ecol : int) : t =
-  let spos =
-    {
-      Lexing.pos_fname = file;
-      Lexing.pos_lnum = sline;
-      Lexing.pos_cnum = scol;
-      Lexing.pos_bol = 1;
-    }
-  in
-  let epos =
-    {
-      Lexing.pos_fname = file;
-      Lexing.pos_lnum = eline;
-      Lexing.pos_cnum = ecol;
-      Lexing.pos_bol = 1;
-    }
-  in
-  { code_pos = spos, epos; attr = [] }
 
 let from_file name : t = from_info name 0 0 0 0
 
@@ -121,56 +133,35 @@ let get_law_info (pos : t) : string list =
   Option.value ~default:[]
   @@ List.find_map (function Law_pos l -> Some l | _ -> None) pos.attr
 
-let get_start_line (pos : t) : int =
-  let s, _ = pos.code_pos in
-  s.Lexing.pos_lnum
-
-let get_start_column (pos : t) : int =
-  let s, _ = pos.code_pos in
-  s.Lexing.pos_cnum - s.Lexing.pos_bol + 1
-
-let get_end_line (pos : t) : int =
-  let _, e = pos.code_pos in
-  e.Lexing.pos_lnum
-
-let get_end_column (pos : t) : int =
-  let _, e = pos.code_pos in
-  e.Lexing.pos_cnum - e.Lexing.pos_bol + 1
-
-let get_file (pos : t) : string = (fst pos.code_pos).Lexing.pos_fname
-
 let to_string (pos : t) : string =
-  let s, e = pos.code_pos in
-  Printf.sprintf "in file %s, from %d:%d to %d:%d" s.Lexing.pos_fname
-    s.Lexing.pos_lnum
-    (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
-    e.Lexing.pos_lnum
-    (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
+  Printf.sprintf "in file %s, from %d:%d to %d:%d" pos.file pos.start_line
+    pos.start_col pos.end_line pos.end_col
 
-let range_to_string { code_pos = s, e; _ } =
-  let open Lexing in
-  if s.pos_lnum = e.pos_lnum then
-    if s.pos_cnum = s.pos_bol then Printf.sprintf "%d" s.pos_lnum
-    else if s.pos_cnum - s.pos_bol = e.pos_cnum - e.pos_bol then
-      Printf.sprintf "%d.%d" s.pos_lnum (e.pos_cnum - e.pos_bol + 1)
+let range_to_string pos =
+  if pos.start_line = pos.end_line then
+    (* range is on a single line *)
+    if pos.start_col = 1 then
+      (* range starts at the begining of the line *)
+      Printf.sprintf "%d" pos.start_line
+    else if pos.start_col = pos.end_col then
+      (* range is a single column wide *)
+      Printf.sprintf "%d.%d" pos.start_line pos.end_col
     else
-      Printf.sprintf "%d.%d-%d" s.pos_lnum
-        (s.pos_cnum - s.pos_bol + 1)
-        (e.pos_cnum - e.pos_bol + 1)
-  else if s.pos_cnum = s.pos_bol then
-    Printf.sprintf "%d-%d" s.pos_lnum e.pos_lnum
+      (* range is on a single line but non degenerate *)
+      Printf.sprintf "%d.%d-%d" pos.start_line pos.start_col pos.end_col
+  else if pos.start_col = 1 then
+    (* range is several lines, but starts on the first column of the first line *)
+    Printf.sprintf "%d-%d" pos.start_line pos.end_line
   else
-    Printf.sprintf "%d.%d-%d.%d" s.pos_lnum
-      (s.pos_cnum - s.pos_bol + 1)
-      e.pos_lnum
-      (e.pos_cnum - e.pos_bol + 1)
+    (* Several lines: "3.5-7.2" *)
+    Printf.sprintf "%d.%d-%d.%d" pos.start_line pos.start_col pos.end_line
+      pos.end_col
 
 let to_string_short (pos : t) : string =
-  Printf.sprintf "%s:%s" (fst pos.code_pos).Lexing.pos_fname
-    (range_to_string pos)
+  Printf.sprintf "%s:%s" pos.file (range_to_string pos)
 
 let to_string_shorter (pos : t) : string =
-  let f = (fst pos.code_pos).Lexing.pos_fname in
+  let f = pos.file in
   let f =
     if Filename.extension f = ".md" then
       Filename.(remove_extension (remove_extension (basename f)))
@@ -342,25 +333,12 @@ let format_loc_text ?pp_file () ppf t =
       pr_legal;
     Format.pp_close_box ppf ()
 
-let void : t =
-  let zero_pos =
-    {
-      Lexing.pos_fname = "";
-      Lexing.pos_lnum = 0;
-      Lexing.pos_cnum = 0;
-      Lexing.pos_bol = 0;
-    }
-  in
-  { code_pos = zero_pos, zero_pos; attr = [] }
+let void : t = from_info "" 0 1 0 1
 
 module Ord = struct
   type nonrec t = t
 
-  let compare t1 t2 =
-    match lex_pos_compare (fst t1.code_pos) (fst t2.code_pos) with
-    | 0 -> lex_pos_compare (snd t1.code_pos) (snd t2.code_pos)
-    | n -> n
-
+  let compare = compare
   let format ppf t = Format.pp_print_string ppf (to_string_short t)
 end
 

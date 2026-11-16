@@ -46,7 +46,10 @@ type ctx = {
 (* Once implicit arguments have been inserted, the tag should be removed because
    it changes the behaviour of the typer on function applications *)
 let untag_implicit_args targs =
-  List.map (Mark.map_mark (fun pos -> Pos.rem_attr pos ImplicitPosArg)) targs
+  let remove_implicit_attr_in_pos pos =
+    Pos.filter_attr pos (function ImplicitPosArg -> false | _ -> true)
+  in
+  List.map (Mark.map_mark remove_implicit_attr_in_pos) targs
 
 let untag_implicit_args_arrow = function
   | TArrow (targs, tret), pos -> TArrow (untag_implicit_args targs, tret), pos
