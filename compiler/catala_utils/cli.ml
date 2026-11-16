@@ -241,6 +241,25 @@ module Flags = struct
       & info ["disable-warnings"]
           ~doc:"Disable all the warnings emitted by the compiler."
 
+    let lints =
+      let names flag ~doc =
+        Term.(
+          const List.flatten
+          $ (value & opt_all (list string) [] & info [flag] ~docv:"LINT" ~doc))
+      in
+      (* Disabling takes precedence *)
+      let make enable disable =
+        List.map (fun n -> n, true) enable
+        @ List.map (fun n -> n, false) disable
+      in
+      Term.(
+        const make
+        $ names "enable-lint" ~doc:"Enable the given lints."
+        $ names "disable-lint"
+            ~doc:
+              "Disable the given lints. Takes precedence over \
+               $(b,--enable-lint).")
+
     let max_prec_digits =
       value
       & opt int 20
@@ -330,6 +349,7 @@ module Flags = struct
           output_format
           plugins_dirs
           disable_warnings
+          lints
           max_prec_digits
           directory
           stop_on_error
@@ -378,7 +398,7 @@ module Flags = struct
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
-          ~trace_format ~output_format ~plugins_dirs ~disable_warnings
+          ~trace_format ~output_format ~plugins_dirs ~disable_warnings ~lints
           ~max_prec_digits ~path_rewrite ~stop_on_error ~no_fail_on_assert
           ~whole_program ~bin_dir ~gen_external ~dynlink ()
       in
@@ -393,6 +413,7 @@ module Flags = struct
         $ output_format
         $ plugins_dirs
         $ disable_warnings
+        $ lints
         $ max_prec_digits
         $ directory
         $ stop_on_error

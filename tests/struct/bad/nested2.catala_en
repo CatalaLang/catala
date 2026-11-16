@@ -17,21 +17,21 @@ declaration scope A:
 $ catala test-scope A
 ┌─[WARNING]─
 │
-│  The structure "S" is never used; maybe it's unnecessary?
-│
-├─➤ tests/struct/bad/nested2.catala_en:4.23-24:
-│   │
-│ 4 │ declaration structure S:
-│   │                       ‾
-└─ Article
-┌─[WARNING]─
-│
 │  The enumeration "E" is never used; maybe it's unnecessary?
 │
 ├─➤ tests/struct/bad/nested2.catala_en:8.25-26:
 │   │
 │ 8 │ declaration enumeration E:
 │   │                         ‾
+└─ Article
+┌─[WARNING]─
+│
+│  The structure "S" is never used; maybe it's unnecessary?
+│
+├─➤ tests/struct/bad/nested2.catala_en:4.23-24:
+│   │
+│ 4 │ declaration structure S:
+│   │                       ‾
 └─ Article
 ┌─[ERROR]─
 │

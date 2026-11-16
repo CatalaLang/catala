@@ -249,7 +249,7 @@ module Reachability =
       let analyze _ x = x
     end)
 
-let detect_dead_code (p : program) deps : unit =
+let detect_dead_code deps (p : program) : unit =
   (* Dead code detection for scope variables based on an intra-scope dependency
      analysis. *)
   ScopeName.Map.iter
@@ -328,7 +328,7 @@ module DependencyPath = Graph.Path.Check (Dependency.ScopeDependencies)
 
 (** A variable state that doesn't depend on the previous state discards it,
     which is probably a mistake. *)
-let detect_states_ignoring_previous (p : program) deps : unit =
+let detect_states_ignoring_previous deps (p : program) : unit =
   ScopeName.Map.iter
     (fun scope_name scope ->
       let scope_dependencies = ScopeName.Map.find scope_name deps in
@@ -379,10 +379,25 @@ let lint_program (p : program) : unit =
     ScopeName.Map.map Dependency.build_scope_dependencies
       p.program_root.module_scopes
   in
-  detect_empty_definitions p;
-  detect_dead_code p deps;
-  detect_unused_struct_fields p;
-  detect_unused_enum_constructors p;
-  detect_identical_rules p;
-  detect_unused_local_variables p;
-  detect_states_ignoring_previous p deps
+  (* All available lints: name -> (enabled by default, function) *)
+  let lints =
+    String.Map.of_list
+      [
+        "empty-definition", (true, detect_empty_definitions);
+        "unused-variable", (true, detect_dead_code deps);
+        "unused-struct-field", (true, detect_unused_struct_fields);
+        "unused-enum-constructor", (true, detect_unused_enum_constructors);
+        "identical-rules", (true, detect_identical_rules);
+        "unused-local-variable", (true, detect_unused_local_variables);
+        "state-ignores-previous", (true, detect_states_ignoring_previous deps);
+      ]
+  in
+  let set lints (name, enabled) =
+    if not (String.Map.mem name lints) then
+      Message.error "Unknown lint@ \"%s\".@ Available lints:@ %a" name
+        (String.Map.format_keys ~pp_sep:Format.pp_print_space)
+        lints;
+    String.Map.update name (Option.map (fun (_, lint) -> enabled, lint)) lints
+  in
+  List.fold_left set lints Global.options.lints
+  |> String.Map.iter (fun _ (enabled, lint) -> if enabled then lint p)
