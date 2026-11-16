@@ -29,10 +29,17 @@ Next, clone the
 repository. Then:
 
 - Run `dune build` twice: once to generate the meta-build files and
-  twice to build using the newly generated configurations.
+  twice to build using the newly generated configurations (syntax
+  highlighting grammars).
 
-  **Hint** If the new version of Catala with the language is detected,
-  you should see several new files appearing in the `git` diff
+- Run `dune runtest`. It fails, showing the entries for your language
+  that are missing from `package.json` (language, grammar,
+  breakpoints, debugger, editor defaults). Run `dune promote` to add
+  them; `dune runtest` then passes.
+
+  **Hint** `package.json` is otherwise edited as usual, by hand or by
+  `npm install`: only these per-language entries are generated, and
+  `dune runtest` checks that they are up to date.
 
 - Commit your changes, run `make` to build the VScode extension and,
   running VScode in development mode, test that writing a Catala file
@@ -94,3 +101,7 @@ complex, we currently reject upstreaming localized stdlibs.
 The GUI comes with its own localized messages and snippets which are
 not generated. It is, however, possible to add a translation of these
 files if desired.
+
+Snippets are written by hand, one file per language
+(`snippets/catala_XX.json`). Once you add one, `dune runtest` shows
+the `package.json` entry it needs and `dune promote` adds it.
