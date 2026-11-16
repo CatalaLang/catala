@@ -1,0 +1,30 @@
+```catala
+#[test] declaration scope A:
+  output foo content integer
+    state s1
+    state s2
+  output x content integer
+
+scope A:
+  definition foo state s1 equals 1
+  definition foo state s2 equals 2
+  definition x equals foo state s1
+```
+
+```catala-test-cli
+$ catala test-scope A
+┌─[WARNING]─
+│
+│  In scope "A", foo@s2 never uses the previous state foo@s1.
+│  Did you forget something?
+│
+├─➤ tests/variable_state/bad/state_ignores_previous.catala_en:5.11-13:
+│   │
+│ 5 │     state s2
+│   │           ‾‾
+└─
+┌─[RESULT]─ A ─
+│ foo = 2
+│ x = 1
+└─
+```
