@@ -42,6 +42,44 @@ module Spec : Sig.Spec = struct
   let all_obj_extensions = ["class"]
   let stdlib_subdir = "catala" / "stdlib"
 
+  let m2_repo_dir () =
+    match Sys.getenv_opt "M2_REPO" with
+    | Some dir -> dir
+    | None -> Sys.getenv "HOME" / ".m2" / "repository"
+
+  let resolve_maven_lib_path ~project_name (dep_name : string) : string =
+    (* Allow local files/directories to bypass Maven coordinate lookup if they exist *)
+    if Sys.file_exists dep_name then dep_name
+    else
+      let group_id, artifact_id, version =
+        resolve_coord_parts ~project_name dep_name
+      in
+      let group_relpath =
+        String.split_on_char '.' group_id |> String.concat Filename.dir_sep
+      in
+      let jar_name = Printf.sprintf "%s-%s.jar" artifact_id version in
+      let jar_path =
+        (* TODO: lookup into CLASS_PATH, if it has been overriden, as well ? *)
+        m2_repo_dir () / group_relpath / artifact_id / version / jar_name
+      in
+      if Sys.file_exists jar_path then jar_path
+      else
+        Message.error
+          "@[<v>Missing Java dependency @{<yellow>%s@}@,\
+           @{<bold>Hint:@} you may want to install it using:@,\
+          \  @{<underline>mvn dependency:get -Dartifact=%s:%s:%s -q@}@]"
+          (* ... or alternatively, use `--vars 'CLASS_PATH=...:${CLASS_PATH}'` *)
+          dep_name group_id artifact_id version
+
+  let get_resolved_libs config =
+    let project_name =
+      config.Clerk_cli.file.global.project_name
+      |> Option.value ~default:"default-project"
+    in
+    List.map
+      (resolve_maven_lib_path ~project_name)
+      config.Clerk_cli.file.backends_conf.java.use_libs
+
   let var_defs
       ~config
       ~autotest
@@ -63,8 +101,11 @@ module Spec : Sig.Spec = struct
       def javac_flags (lazy [word "-implicit:none"]);
       def class_path
         (lazy
-          (Backend_paths.classpath ~backend:name
-             (include_dirs @ config.Clerk_cli.file.backends_conf.java.use_libs)));
+          (let base_cp = Backend_paths.classpath ~backend:name include_dirs in
+           match get_resolved_libs config with
+           | [] -> base_cp
+           | jars ->
+             base_cp ^ Path.list_sep () ^ String.concat (Path.list_sep ()) jars));
     ]
 
   let[@ocamlformat "disable"] rules =
@@ -260,7 +301,7 @@ module Spec : Sig.Spec = struct
       in
       let (h : (string, string list) Hashtbl.t) = Hashtbl.create 5 in
       (* 'javac' generates one file per inner class. Sadly, we do generate a lot
-       of those. We need to pack those in the jar as well. *)
+         of those. We need to pack those in the jar as well. *)
       let fetch_inner_classes class_file =
         let basename = File.(remove_extension (basename class_file)) in
         let dirname = Filename.dirname class_file in
@@ -319,7 +360,12 @@ module Spec : Sig.Spec = struct
     let target_main = File.remove_extension (Filename.basename src) in
     let cmd =
       Var.get var_bindings java
-      @ ["-cp"; src -.- "jar"; target_main]
+      @ [
+          "-cp";
+          Var.expand var_bindings
+            ((src -.- "jar") ^ Path.list_sep () ^ !class_path);
+          target_main;
+        ]
       @ Option.to_list scope
       @ (if test && not Global.options.debug then ["--test"] else [])
       @ if Global.options.output_format = JSON then ["--json"] else []
