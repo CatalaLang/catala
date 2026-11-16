@@ -1190,17 +1190,31 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
                (ScopeName.Map.find name ctx.decl_ctx.ctx_scopes).out_struct_name,
              Pos.void )
          in
+         let pp_embed fmt =
+           Format.fprintf fmt "embed(%a, %a)" format_rtyp ty VarName.format var
+         in
          Format.fprintf fmt
            "@,\
             @[<v 2>if (!catala_test_mode) {@,\
             @[<v 2>if (catala_json_mode)@,\
-            catala_tojson(catala_stdbuf, embed(%a, %a));@]@,\
+            catala_tojson(catala_stdbuf, %t);@]@,\
             @[<v 2>else@,\
-            catala_print(catala_stdbuf, embed(%a, %a));@]@,\
+            catala_print(catala_stdbuf, %t);@]@,\
             catala_stdbuf.flush();@;\
             <1 -2>}@]@;\
+            else {@[@;\
+            catala_value v, copy;@,\
+            v = %t;@,\
+            copy = catala_deep_copy(v);@,\
+            if ((v.v && !copy.v) || !catala_equal(v.t, NULL, v.v, copy.v)) { @,\
+            fprintf (stderr,\"Error: copied value differ from original \
+            value.\");@,\
+            abort ();@,\
+            }@,\
+            catala_deep_free(copy);@,\
+            @]}@;\
             <1 -2>}@]"
-           format_rtyp ty VarName.format var format_rtyp ty VarName.format var)
+           pp_embed pp_embed pp_embed)
        tests);
   Format.fprintf fmt "@,return (void*)1;@;<1 -2>}@]@,";
   Format.fprintf fmt "@,@[<v 2>int main (int argc, char** argv)@;<0 -2>{";
