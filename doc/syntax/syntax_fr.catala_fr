@@ -125,8 +125,9 @@ déclaration x contenu entier égal à
   soit x égal à soit x égal à 36 - 5 dans 0
   dans
   soit x égal à
-    selon expr sous forme
-    -- Cas1 contenu x : 0
+    selon expr1, expr2 sous forme
+    -- Cas11 contenu x, Cas21 : 0
+    -- Cas12, n'importe quel : 0
     -- n'importe quel : 0
   dans
   soit x égal à #[error.message = "err"] impossible dans
@@ -292,18 +293,18 @@ $ catala typecheck
 │
 │  "Chp1": this scope has not been declared anywhere, is it a typo?
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:175.21-25:
+├─➤ doc/syntax/syntax_fr.catala_fr:176.21-25:
 │     │
-│ 175 │ champ d'application Chp1:
+│ 176 │ champ d'application Chp1:
 │     │                     ‾‾‾‾
 └─ Définition de champ d'application
 ┌─[ERROR]─ 3/3 ─
 │
 │  "Chp1": this scope has not been declared anywhere, is it a typo?
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:178.21-25:
+├─➤ doc/syntax/syntax_fr.catala_fr:179.21-25:
 │     │
-│ 178 │ champ d'application Chp1
+│ 179 │ champ d'application Chp1
 │     │                     ‾‾‾‾
 └─ Définition de champ d'application
 #return code 123#

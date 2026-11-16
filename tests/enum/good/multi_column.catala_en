@@ -1,0 +1,124 @@
+## Article
+
+```catala
+declaration enumeration Situation:
+  -- Married content integer
+  -- Single
+
+declaration enumeration Shape:
+  -- Circle content decimal
+  -- Rectangle content (decimal, decimal)
+
+declaration scope A:
+  input s content Situation
+  input i content optional of integer
+  input sh content Shape
+  output without_parens content integer
+  output with_parens content integer
+  output tuple_value content integer
+  output three_columns content decimal
+
+scope A:
+  definition without_parens equals
+    match s, i with pattern
+    -- Married content n, Present content m : n + m
+    -- Single, Absent : 2
+    -- Single, anything : 3
+    -- anything : 4
+
+  definition with_parens equals
+    match (s, i) with pattern
+    -- anything, Absent : 10
+    -- Married content n, anything : n
+    -- Single, Present content m : m
+
+  definition tuple_value equals
+    let pair equals (i, s) in
+    match pair with pattern
+    -- Present content m, Married content n : m + n
+    -- anything : 200
+
+  definition three_columns equals
+    match s, sh, i with pattern
+    -- Married content n, Rectangle content (w, h), Present content m :
+      w * h
+    -- Married content n, Circle content r, anything : r
+    -- Single, anything, anything : 0.0
+    -- anything : 1.0
+
+#[test] declaration scope Test:
+  output married_present content A
+  output married_absent content A
+  output single_present content A
+  output single_absent content A
+
+scope Test:
+  definition married_present equals
+    output of A with {
+      -- s: Married content 7
+      -- i: Present content 5
+      -- sh: Rectangle content (2.0, 3.0)
+    }
+  definition married_absent equals
+    output of A with {
+      -- s: Married content 7
+      -- i: Absent
+      -- sh: Circle content 1.5
+    }
+  definition single_present equals
+    output of A with {
+      -- s: Single
+      -- i: Present content 5
+      -- sh: Circle content 1.5
+    }
+  definition single_absent equals
+    output of A with {
+      -- s: Single
+      -- i: Absent
+      -- sh: Circle content 1.5
+    }
+```
+
+```catala-test-cli
+$ catala Typecheck --check-invariants
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[RESULT]─ Test ─
+│ married_present =
+│   A {
+│     -- without_parens: 12
+│     -- with_parens: 7
+│     -- tuple_value: 12
+│     -- three_columns: 6.0
+│   }
+│ married_absent =
+│   A {
+│     -- without_parens: 4
+│     -- with_parens: 10
+│     -- tuple_value: 200
+│     -- three_columns: 1.5
+│   }
+│ single_present =
+│   A {
+│     -- without_parens: 3
+│     -- with_parens: 5
+│     -- tuple_value: 200
+│     -- three_columns: 0.0
+│   }
+│ single_absent =
+│   A {
+│     -- without_parens: 2
+│     -- with_parens: 10
+│     -- tuple_value: 200
+│     -- three_columns: 0.0
+│   }
+└─
+```

@@ -125,6 +125,8 @@ end>
 %type<Ast.unop> unop
 %type<Ast.binop> binop
 %type<Ast.match_case_pattern> constructor_binding
+%type<Ast.match_case_column> match_column
+%type<Ast.expression list * Lexing.position> match_args
 %type<Ast.match_case> match_arm
 %type<Ast.expression> condition_consequence
 %type<Ast.scope_var Mark.pos * Ast.lident Mark.pos list Mark.pos option> rule_expr
@@ -392,9 +394,12 @@ let naked_expression ==
   WE_HAVE ; f = expression ; {
   Binop ((ListForall, pos), (Lambda(i, f), get_pos $loc), detuplify_collection i coll)
 } %prec let_expr
-| MATCH ; e = expression ;
-  WITH ;
+| MATCH ; es = match_args ;
   arms = addpos(nonempty_list(addpos(preceded(ALT, match_arm)))) ; {
+  let e = match es with
+    | [e], _ -> e
+    | es, end_pos -> Tuple es, get_pos ($startpos(es), end_pos)
+  in
   MatchWith (e, arms)
 }
 | IF ; e1 = expression ;
@@ -583,15 +588,24 @@ let constructor_binding :=
   ([constr], [])
 }
 
+let match_args :=
+| e = expression ; WITH ; { [e], $endpos(e) }
+| e = expression ; COMMA ; es = match_args ; { e :: fst es, snd es }
+
+let match_column :=
+| WILDCARD ; { ColWildCard }
+| ~ = constructor_binding ; <ColConstr>
+
 let match_arm :=
-| WILDCARD ; COLON ; ~ = expression ; <WildCard>
-  %prec ALT
-| pat = addpos(constructor_binding) ;
+| pats = addpos(separated_nonempty_list(COMMA, addpos(match_column))) ;
   COLON ; e = expression ; {
-  MatchCase {
-    match_case_pattern = pat;
-    match_case_expr = e;
-  }
+  match pats with
+  | [ColWildCard, _], _ -> WildCard e
+  | pats ->
+    MatchCase {
+      match_case_patterns = pats;
+      match_case_expr = e;
+    }
 } %prec ALT
 
 let condition_consequence :=

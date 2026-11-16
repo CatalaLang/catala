@@ -1,0 +1,40 @@
+## Article
+
+```catala
+déclaration énumération Situation:
+  -- Marié contenu entier
+  -- Célibataire
+
+déclaration champ d'application A:
+  entrée s contenu Situation
+  entrée i contenu optionnel de entier
+  résultat o contenu entier
+
+champ d'application A:
+  définition o égal à
+    selon s, i sous forme
+    -- Marié contenu n, Présent contenu m : n
+    -- Marié contenu n, Absent : 1
+    -- Marié contenu k, Présent contenu m : k
+    -- Célibataire, n'importe quel : 3
+```
+
+```catala-test-cli
+$ catala Typecheck
+┌─[ERROR]─
+│
+│  This combination of constructors has been matched twice.
+│
+├─➤ tests/enum/bad/multi_column_duplicate_fr.catala_fr:18.45-46:
+│    │
+│ 18 │     -- Marié contenu k, Présent contenu m : k
+│    │                                             ‾
+├─ Article
+│
+├─➤ tests/enum/bad/multi_column_duplicate_fr.catala_fr:16.45-46:
+│    │
+│ 16 │     -- Marié contenu n, Présent contenu m : n
+│    │                                             ‾
+└─ Article
+#return code 123#
+```

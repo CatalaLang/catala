@@ -1,0 +1,37 @@
+## Article
+
+```catala
+déclaration énumération Situation:
+  -- Marié contenu entier
+  -- Célibataire
+
+déclaration champ d'application A:
+  entrée s contenu Situation
+  entrée i contenu optionnel de entier
+  résultat o contenu entier
+
+champ d'application A:
+  définition o égal à
+    selon s, i sous forme
+    -- Marié contenu n, Présent contenu m : n
+    -- Célibataire, n'importe quel : 3
+```
+
+```catala-test-cli
+$ catala Typecheck
+┌─[ERROR]─
+│
+│  This pattern matching is not exhaustive, the following case is not covered:
+│  Marié, Absent
+│
+├─➤ tests/enum/bad/multi_column_not_exhaustive_fr.catala_fr:15.5-17.39:
+│    │
+│ 15 │     selon s, i sous forme
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 16 │     -- Marié contenu n, Présent contenu m : n
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│ 17 │     -- Célibataire, n'importe quel : 3
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
+#return code 123#
+```

@@ -1,0 +1,124 @@
+## Article
+
+```catala
+déclaration énumération Situation:
+  -- Marié contenu entier
+  -- Célibataire
+
+déclaration énumération Forme:
+  -- Cercle contenu décimal
+  -- Rectangle contenu (décimal, décimal)
+
+déclaration champ d'application A:
+  entrée s contenu Situation
+  entrée i contenu optionnel de entier
+  entrée f contenu Forme
+  résultat sans_parenthèses contenu entier
+  résultat avec_parenthèses contenu entier
+  résultat valeur_n_uplet contenu entier
+  résultat trois_colonnes contenu décimal
+
+champ d'application A:
+  définition sans_parenthèses égal à
+    selon s, i sous forme
+    -- Marié contenu n, Présent contenu m : n + m
+    -- Célibataire, Absent : 2
+    -- Célibataire, n'importe quel : 3
+    -- n'importe quel : 4
+
+  définition avec_parenthèses égal à
+    selon (s, i) sous forme
+    -- n'importe quel, Absent : 10
+    -- Marié contenu n, n'importe quel : n
+    -- Célibataire, Présent contenu m : m
+
+  définition valeur_n_uplet égal à
+    soit paire égal à (i, s) dans
+    selon paire sous forme
+    -- Présent contenu m, Marié contenu n : m + n
+    -- n'importe quel : 200
+
+  définition trois_colonnes égal à
+    selon s, f, i sous forme
+    -- Marié contenu n, Rectangle contenu (l, h), Présent contenu m :
+      l * h
+    -- Marié contenu n, Cercle contenu r, n'importe quel : r
+    -- Célibataire, n'importe quel, n'importe quel : 0,0
+    -- n'importe quel : 1,0
+
+#[test] déclaration champ d'application Test:
+  résultat marié_présent contenu A
+  résultat marié_absent contenu A
+  résultat célibataire_présent contenu A
+  résultat célibataire_absent contenu A
+
+champ d'application Test:
+  définition marié_présent égal à
+    résultat de A avec {
+      -- s: Marié contenu 7
+      -- i: Présent contenu 5
+      -- f: Rectangle contenu (2,0, 3,0)
+    }
+  définition marié_absent égal à
+    résultat de A avec {
+      -- s: Marié contenu 7
+      -- i: Absent
+      -- f: Cercle contenu 1,5
+    }
+  définition célibataire_présent égal à
+    résultat de A avec {
+      -- s: Célibataire
+      -- i: Présent contenu 5
+      -- f: Cercle contenu 1,5
+    }
+  définition célibataire_absent égal à
+    résultat de A avec {
+      -- s: Célibataire
+      -- i: Absent
+      -- f: Cercle contenu 1,5
+    }
+```
+
+```catala-test-cli
+$ catala Typecheck --check-invariants
+┌─[RESULT]─
+│ All invariant checks passed
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[RESULT]─ Test ─
+│ marié_présent =
+│   A {
+│     -- sans_parenthèses: 12
+│     -- avec_parenthèses: 7
+│     -- valeur_n_uplet: 12
+│     -- trois_colonnes: 6,0
+│   }
+│ marié_absent =
+│   A {
+│     -- sans_parenthèses: 4
+│     -- avec_parenthèses: 10
+│     -- valeur_n_uplet: 200
+│     -- trois_colonnes: 1,5
+│   }
+│ célibataire_présent =
+│   A {
+│     -- sans_parenthèses: 3
+│     -- avec_parenthèses: 5
+│     -- valeur_n_uplet: 200
+│     -- trois_colonnes: 0,0
+│   }
+│ célibataire_absent =
+│   A {
+│     -- sans_parenthèses: 2
+│     -- avec_parenthèses: 10
+│     -- valeur_n_uplet: 200
+│     -- trois_colonnes: 0,0
+│   }
+└─
+```

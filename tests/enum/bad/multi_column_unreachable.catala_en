@@ -1,0 +1,52 @@
+## Article
+
+```catala
+declaration enumeration Situation:
+  -- Married content integer
+  -- Single
+
+declaration scope A:
+  input s content Situation
+  input i content optional of integer
+  output o1 content integer
+  output o2 content integer
+
+scope A:
+  definition o1 equals
+    match s, i with pattern
+    -- Married content n, anything : n
+    -- Married content n, Absent : 1
+    -- Single, anything : 3
+
+  definition o2 equals
+    match s, i with pattern
+    -- Married content n, anything : n
+    -- Single, anything : 3
+    -- anything : 4
+```
+
+```catala-test-cli
+$ catala Typecheck
+┌─[WARNING]─
+│
+│  Unreachable match case, it is already covered by the previous cases.
+│
+├─➤ tests/enum/bad/multi_column_unreachable.catala_en:18.5-37:
+│    │
+│ 18 │     -- Married content n, Absent : 1
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
+┌─[WARNING]─
+│
+│  Unreachable match case, all combinations of constructors are already
+│  specified.
+│
+├─➤ tests/enum/bad/multi_column_unreachable.catala_en:25.5-20:
+│    │
+│ 25 │     -- anything : 4
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Article
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```

@@ -27,7 +27,7 @@ let fold_left_catch_errors f init l =
       Message.wrap_to_delayed_error ~kind:Parsing acc @@ fun () -> f acc e)
     init l
 
-(** Translation from {!module: Surface.Ast} to {!module: Desugaring.Ast}.
+(** Translation from {!module: Surface.Ast} to {!module: Desugared.Ast}.
 
     - Removes syntactic sugars
     - Separate code from legislation *)
@@ -685,7 +685,13 @@ let rec translate_expr
        with P x -> e' | _ -> false] *)
     let cases =
       [
-        ( S.MatchCase { match_case_pattern = pattern; match_case_expr = e2 },
+        ( S.MatchCase
+            {
+              match_case_patterns =
+                ( [S.ColConstr (Mark.remove pattern), Mark.get pattern],
+                  Mark.get pattern );
+              match_case_expr = e2;
+            },
           Mark.get pattern );
         ( S.WildCard (S.Literal (S.LBool false), Mark.get pattern),
           Mark.get pattern );
@@ -1096,12 +1102,8 @@ let rec translate_expr
         Message.error ~pos "Enum %s does not contain case %s."
           (Mark.remove enum) (Mark.remove constructor)))
   | MatchWith (e1, (cases, _cases_pos)) ->
-    let e1 = Expr.etag BranchingCondition @@ rec_helper e1 in
-    let cases_d, e_uid =
-      disambiguate_match_and_build_expression scope inside_definition_of ctxt
-        local_vars ~no_wildcard_warning cases
-    in
-    Expr.ematch ~e:e1 ~name:e_uid ~cases:cases_d emark
+    translate_match scope inside_definition_of ctxt local_vars
+      ~no_wildcard_warning e1 cases emark
   | TestMatchCase (e1, pattern) ->
     (match snd (Mark.remove pattern) with
     | [] -> ()
@@ -1112,7 +1114,9 @@ let rec translate_expr
       [
         ( S.MatchCase
             {
-              match_case_pattern = pattern;
+              match_case_patterns =
+                ( [S.ColConstr (Mark.remove pattern), Mark.get pattern],
+                  Mark.get pattern );
               match_case_expr = S.Literal (S.LBool true), Mark.get pattern;
             },
           Mark.get pattern );
@@ -1210,184 +1214,129 @@ let rec translate_expr
          (Expr.eassert (rec_helper e1) (Untyped { pos })))
       (rec_helper e2) apos
 
-and disambiguate_match_and_build_expression
+and translate_match
     (scope : ScopeName.t option)
     (inside_definition_of : Ast.ScopeDef.t Mark.pos option)
     (ctxt : Name_resolution.context)
     (local_vars : Ast.expr Var.t Ident.Map.t)
-    ?(no_wildcard_warning = false)
-    (cases : S.match_case Mark.pos list) :
-    Ast.expr boxed EnumConstructor.Map.t * EnumName.t =
-  let create_var local_vars = function
-    | None -> local_vars, Var.make "_"
-    | Some param ->
-      let param_var = Var.make param in
-      Ident.Map.add param param_var local_vars, param_var
+    ~(no_wildcard_warning : bool)
+    (e1 : S.expression)
+    (cases : S.match_case Mark.pos list)
+    (emark : untyped mark) : Ast.expr boxed =
+  let aux local_vars e =
+    translate_expr scope inside_definition_of ctxt local_vars e
   in
-  let bind_case_body
-      (c_uid : EnumConstructor.t)
-      (e_uid : EnumName.t)
-      (ctxt : Name_resolution.context)
-      case_body
-      e_binder
-      pos_binder =
-    let cell_type =
-      EnumConstructor.Map.find c_uid
-        (fst (EnumName.Map.find e_uid ctxt.Name_resolution.enums))
-    in
-    let arity = List.length pos_binder in
-    match cell_type with
-    | TTuple tl, _ when arity > 1 ->
-      (* Matching a n-uple payload to a n-ary function : we de-tuplify the payload to have a one-argument function as expected by the match construct *)
-      if List.length tl <> arity then
-        Message.error
-          ~pos:(List.fold_left Pos.join Pos.void pos_binder)
-          "This pattern has %d arguments, while %d are expected by \
-           constructor@ %a."
-          arity (List.length tl) EnumConstructor.format c_uid;
-      nary_binder_to_tuple_function cell_type (Expr.pos case_body) e_binder
-        "payload" pos_binder
-    | TForAll _, _ when arity > 1 ->
-      assert (Type.is_universal cell_type);
-      (* Matching a polymorphic payload (ie we are in an option) to a n-ary function: we assume a n-uple and will let the typer validate it *)
-      nary_binder_to_tuple_function
-        ( TTuple (List.map Type.fresh_var pos_binder),
-          List.fold_left Pos.join Pos.void pos_binder )
-        (Expr.pos case_body) e_binder "payload" pos_binder
-    | t ->
-      (* It's allowed to match the tuple into a single variable (TTuple but arity = 1). We will let the type-checker report the error in case of mismatch *)
-      Expr.eabs e_binder pos_binder [t] (Mark.get case_body)
-  in
-  let bind_match_cases (cases_d, e_uid, curr_index) (case, case_pos) =
-    match case with
-    | S.MatchCase case ->
-      let constructor, binding = Mark.remove case.S.match_case_pattern in
-      let e_uid', c_uid =
-        disambiguate_constructor ctxt constructor
-          (Mark.get case.S.match_case_pattern)
-      in
-      let e_uid =
-        match e_uid with
-        | None -> e_uid'
-        | Some e_uid ->
-          if EnumName.equal e_uid e_uid' then e_uid
-          else
+  let pos = Expr.mark_pos emark in
+  let nb_cases = List.length cases in
+  let ncols =
+    List.fold_left
+      (fun acc (case, _) ->
+        match case, acc with
+        | S.WildCard _, _ -> acc
+        | S.MatchCase { match_case_patterns = cols, cols_pos; _ }, None ->
+          Some (List.length cols, cols_pos)
+        | ( S.MatchCase { match_case_patterns = cols, cols_pos; _ },
+            Some (n, prev_pos) ) ->
+          let ncols = List.length cols in
+          if ncols <> n then
             Message.error
-              ~pos:(Mark.get case.S.match_case_pattern)
-              "This case matches a constructor of enumeration@ %a@ but@ \
-               previous@ cases@ were@ matching@ constructors@ of@ enumeration@ \
-               %a."
-              EnumName.format e_uid EnumName.format e_uid'
+              ~extra_pos:["", cols_pos; "Previous pattern:", prev_pos]
+              "This pattern has %d column%s, while the previous patterns have \
+               %d."
+              ncols
+              (if ncols = 1 then "" else "s")
+              n;
+          acc)
+      None cases
+  in
+  let ncols = Option.fold ~none:1 ~some:fst ncols in
+  let translate_column local_vars (col, col_pos) =
+    match col with
+    | S.ColWildCard -> local_vars, None
+    | S.ColConstr (constructor, binding) ->
+      let col_enum, col_constr =
+        disambiguate_constructor ctxt constructor col_pos
       in
-      (match EnumConstructor.Map.find_opt c_uid cases_d with
-      | None -> ()
-      | Some e_case ->
-        Message.error
-          ~extra_pos:["", Mark.get case.match_case_expr; "", Expr.pos e_case]
-          "The constructor %a@ has@ been@ matched@ twice."
-          EnumConstructor.format c_uid);
-      let binding = match binding with [] -> ["_", Pos.void] | bnd -> bnd in
-      let local_vars, param_var =
+      let local_vars, col_vars =
         List.fold_left_map
-          (fun local_vars b -> create_var local_vars (Some (Mark.remove b)))
+          (fun local_vars (name, var_pos) ->
+            let v = Var.make name in
+            Ident.Map.add name v local_vars, (v, var_pos))
           local_vars binding
       in
-      let case_body =
-        Expr.etag
-          (Branching (Some (EnumConstructor.to_string c_uid)))
-          (translate_expr scope inside_definition_of ctxt local_vars
-             case.S.match_case_expr)
-      in
-      let e_binder = Expr.bind (Array.of_list param_var) case_body in
-      let pos_binder =
-        match binding with
-        | [] -> [Pos.void]
-        | binding -> List.map Mark.get binding
-      in
-      let case_expr =
-        bind_case_body c_uid e_uid ctxt case_body e_binder pos_binder
-      in
-      ( EnumConstructor.Map.add c_uid case_expr cases_d,
-        Some e_uid,
-        curr_index + 1 )
-    | S.WildCard match_case_expr -> (
-      let nb_cases = List.length cases in
-      let raise_wildcard_not_last_case_err () =
-        Message.error
-          ~extra_pos:
-            [
-              "Not ending wildcard:", case_pos;
-              ( "Next reachable case:",
-                curr_index + 1 |> List.nth cases |> Mark.get );
-            ]
-          "Wildcard must be the last match case."
-      in
-      match e_uid with
-      | None ->
-        if 1 = nb_cases then
-          Message.error ~pos:case_pos "%a" Format.pp_print_text
-            "Couldn't infer the enumeration name from lonely wildcard \
-             (wildcard cannot be used as single match case)."
-        else raise_wildcard_not_last_case_err ()
-      | Some e_uid ->
-        if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
-        let missing_constructors =
-          EnumName.Map.find e_uid ctxt.Name_resolution.enums
-          |> fst
-          |> EnumConstructor.Map.filter_map (fun c_uid _ ->
-              match EnumConstructor.Map.find_opt c_uid cases_d with
-              | Some _ -> None
-              | None -> Some c_uid)
-        in
-        if
-          EnumConstructor.Map.is_empty missing_constructors
-          && not no_wildcard_warning
-        then
-          Message.warning ~pos:case_pos
-            "Unreachable match case, all constructors of the enumeration@ %a@ \
-             are@ already@ specified."
-            EnumName.format e_uid;
-        (* The current used strategy is to replace the wildcard branch:
-               match foo with
-               | Case1 x -> x
-               | _ -> 1
-           with:
-               let wildcard_payload = 1 in
-               match foo with
-               | Case1 x -> x
-               | Case2 -> wildcard_payload
-                ...
-               | CaseN -> wildcard_payload *)
-        (* Creates the wildcard payload *)
-        let local_vars, payload_var = create_var local_vars None in
-        let case_body =
-          translate_expr scope inside_definition_of ctxt local_vars
-            match_case_expr
-        in
-        let e_binder = Expr.bind [| payload_var |] case_body in
-        let pos_binder = [Pos.void] in
-        (* For each missing cases, binds the wildcard payload. *)
-        EnumConstructor.Map.fold
-          (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
-            let case_body =
-              Expr.etag
-                (Branching (Some (EnumConstructor.to_string c_uid)))
-                case_body
-            in
-            let case_expr =
-              bind_case_body c_uid e_uid ctxt case_body e_binder pos_binder
-            in
-            ( EnumConstructor.Map.add c_uid case_expr cases_d,
-              e_uid_opt,
-              curr_index + 1 ))
-          missing_constructors
-          (cases_d, Some e_uid, curr_index))
+      ( local_vars,
+        Some { Match_compilation.col_enum; col_constr; col_vars; col_pos } )
   in
-  let naked_expr, e_name, _ =
-    List.fold_left bind_match_cases (EnumConstructor.Map.empty, None, 0) cases
+  let rows =
+    List.mapi
+      (fun i (case, case_pos) ->
+        match case with
+        | S.WildCard body ->
+          if nb_cases = 1 then
+            Message.error ~pos:case_pos "%a" Format.pp_print_text
+              "Couldn't infer the enumeration name from lonely wildcard \
+               (wildcard cannot be used as single match case).";
+          if i < nb_cases - 1 then
+            Message.error
+              ~extra_pos:
+                [
+                  "Not ending wildcard:", case_pos;
+                  "Next reachable case:", Mark.get (List.nth cases (i + 1));
+                ]
+              "Wildcard must be the last match case.";
+          {
+            Match_compilation.row_cols = List.init ncols (fun _ -> None);
+            row_body = aux local_vars body;
+            row_pos = case_pos;
+          }
+        | S.MatchCase { match_case_patterns = cols, _; match_case_expr } ->
+          let local_vars, row_cols =
+            List.fold_left_map translate_column local_vars cols
+          in
+          {
+            Match_compilation.row_cols;
+            row_body = aux local_vars match_case_expr;
+            row_pos = case_pos;
+          })
+      cases
   in
-  naked_expr, Option.get e_name
-[@@ocamlformat "wrap-comments=false"]
+  let tag e = Expr.etag BranchingCondition e in
+  let with_lets, scrutinees =
+    if ncols = 1 then Fun.id, [tag (aux local_vars e1)]
+    else
+      match Mark.remove e1 with
+      | S.Tuple es when List.length es = ncols ->
+        let vars =
+          List.mapi
+            (fun j e ->
+              Var.make ("match_arg_" ^ string_of_int (j + 1)), Mark.get e)
+            es
+        in
+        ( (fun body ->
+            Expr.make_multiple_let_in
+              (List.map (fun (v, _) -> v, Pos.void) vars)
+              (List.map (fun (_, p) -> Type.any p) vars)
+              (List.map (fun e -> tag (aux local_vars e)) es)
+              body pos),
+          List.map (fun (v, p) -> Expr.evar v (Untyped { pos = p })) vars )
+      | S.Tuple es ->
+        Message.error ~pos:(Mark.get e1)
+          "This tuple has %d elements, while the patterns have %d column%s."
+          (List.length es) ncols
+          (if ncols = 1 then "" else "s")
+      | _ ->
+        let v = Var.make "match_arg" in
+        let m = Untyped { pos = Mark.get e1 } in
+        ( (fun body ->
+            Expr.make_let_in (v, Pos.void)
+              (Type.any (Mark.get e1))
+              (tag (aux local_vars e1))
+              body pos),
+          List.init ncols (fun index ->
+              Expr.etupleaccess ~e:(Expr.evar v m) ~index ~size:ncols m) )
+  in
+  with_lets
+    (Match_compilation.compile ctxt ~scrutinees ~no_wildcard_warning emark rows)
 
 (** {1 Translating scope definitions} *)
 
