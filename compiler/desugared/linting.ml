@@ -393,11 +393,18 @@ let lint_program (p : program) : unit =
       ]
   in
   let set lints (name, enabled) =
-    if not (String.Map.mem name lints) then
+    let set_enabled (_, lint) = enabled, lint in
+    if String.equal name "all" then String.Map.map set_enabled lints
+    else if String.Map.mem name lints then
+      String.Map.update name (Option.map set_enabled) lints
+    else
       Message.error "Unknown lint@ \"%s\".@ Available lints:@ %a" name
         (String.Map.format_keys ~pp_sep:Format.pp_print_space)
-        lints;
-    String.Map.update name (Option.map (fun (_, lint) -> enabled, lint)) lints
+        lints
   in
-  List.fold_left set lints Global.options.lints
+  (* "all" is applied first, so that lints given by name override it *)
+  let all, named =
+    List.partition (fun (n, _) -> String.equal n "all") Global.options.lints
+  in
+  List.fold_left set lints (all @ named)
   |> String.Map.iter (fun _ (enabled, lint) -> if enabled then lint p)

@@ -247,18 +247,20 @@ module Flags = struct
           const List.flatten
           $ (value & opt_all (list string) [] & info [flag] ~docv:"LINT" ~doc))
       in
-      (* Disabling takes precedence *)
+      (* Disabling comes last, so that it takes precedence *)
       let make enable disable =
         List.map (fun n -> n, true) enable
         @ List.map (fun n -> n, false) disable
       in
       Term.(
         const make
-        $ names "enable-lint" ~doc:"Enable the given lints."
+        $ names "enable-lint"
+            ~doc:"Enable the given lints, or $(b,all) of them."
         $ names "disable-lint"
             ~doc:
-              "Disable the given lints. Takes precedence over \
-               $(b,--enable-lint).")
+              "Disable the given lints, or $(b,all) of them. Takes precedence \
+               over $(b,--enable-lint), and named lints take precedence over \
+               $(b,all).")
 
     let max_prec_digits =
       value
