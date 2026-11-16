@@ -18,13 +18,13 @@
 #include <Decimal_en.h>
 typedef char* Text_Text;
 
-const catala_type catala_type__Text_Text();
+const catala_type catala_type__Text_Text(void);
 
-const Text_Text* Text__foo ();
+const Text_Text* Text__foo (void);
 
-const Text_Text* Text__bar ();
+const Text_Text* Text__bar (void);
 
-const Text_Text* Text__fortytwo ();
+const Text_Text* Text__fortytwo (void);
 
 const Text_Text* Text__of_int (CATALA_INT x);
 

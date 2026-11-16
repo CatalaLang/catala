@@ -27,7 +27,7 @@ typedef struct Text_dict_dict {
   const struct Text_dict_dict * rest;
 } Text_dict_Text_dict;
 
-const Text_dict_Text_dict * TextDict__empty () {
+const Text_dict_Text_dict * TextDict__empty (void) {
   return NULL;
 }
 

@@ -118,7 +118,7 @@ const Text_Text catala_type__Text_Text_from_json(const catala_code_position* pos
   buf[i] = '\0';
   return buf;
 }
-const catala_type catala_type__Text_Text()
+const catala_type catala_type__Text_Text(void)
 {
   static catala_type ty = {UNINITIALIZED};
   if (ty.kind != UNINITIALIZED) return ty;
@@ -149,15 +149,15 @@ const catala_code_position Text__loc[][1] = {
   {{"tests/modules/good/text.catala_en", 11, 13, 11, 19}}
 };
 
-const Text_Text Text__foo () {
+const Text_Text Text__foo (void) {
   return "foo\\";
 }
 
-const Text_Text Text__bar () {
+const Text_Text Text__bar (void) {
   return "bąr";
 }
 
-const Text_Text Text__fortytwo () {
+const Text_Text Text__fortytwo (void) {
   return "42";
 }
 

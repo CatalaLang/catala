@@ -289,7 +289,8 @@ let format_ctx (type_ordering : TypeIdent.t list) ~ppc ~pph (ctx : ctx) : unit =
              typ))
       cases (EnumName.base enum_name);
     let size = List.length cases in
-    pp ppfs "@,const catala_type catala_type__%s(void)" (EnumName.base enum_name);
+    pp ppfs "@,const catala_type catala_type__%s(void)"
+      (EnumName.base enum_name);
     pp (List.tl ppfs) ";";
     Format.fprintf ppc "@,@[<v 2>{@,";
     Format.fprintf ppc "static catala_type ty = {UNINITIALIZED};@,";
@@ -1054,15 +1055,19 @@ let format_func ~ppc ~pph ctx env var func visibility =
          Format.pp_print_space fmt ();
          FuncName.format fmt var))
     func_return_typ
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-       (fun fmt (var, typ) ->
-         Format.pp_open_hovbox fmt 2;
-         (format_typ ~const:true ctx.decl_ctx (fun fmt ->
-              Format.pp_print_space fmt ();
-              VarName.format fmt (Mark.remove var)))
-           fmt typ;
-         Format.pp_close_box fmt ()))
+    (fun fmt -> function
+      | [] -> Format.pp_print_string fmt "void"
+      | params ->
+        Format.pp_print_list
+          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+          (fun fmt (var, typ) ->
+            Format.pp_open_hovbox fmt 2;
+            (format_typ ~const:true ctx.decl_ctx (fun fmt ->
+                 Format.pp_print_space fmt ();
+                 VarName.format fmt (Mark.remove var)))
+              fmt typ;
+            Format.pp_close_box fmt ())
+          fmt params)
     func_params;
   pp pp_intf "@];@,";
   pp [ppc] "@;<1 -2>{%a@]@,}@,"
@@ -1096,9 +1101,9 @@ let format_code_item ctx ~ppc ~pph env = function
     }
   | SVar { var; expr; typ; visibility } ->
     (* Global variables are turned into inline functions without parameters that
-       perform lazy evaluation: {[ inline foo_type foo() { static foo_type foo =
-       NULL; return (foo ? foo : foo = foo_init()); } ]} NOTE: "inline" is not
-       defined in C89 *)
+       perform lazy evaluation: {[ inline foo_type foo(void) { static foo_type
+       foo = NULL; return (foo ? foo : foo = foo_init()); } ]} NOTE: "inline" is
+       not defined in C89 *)
     let pp_intf = if visibility = Public then [pph] else [] in
     pp (ppc :: pp_intf) "@,@[<v 2>@[<hov 4>%s%a"
       (if visibility = Public then "" else "static ")
@@ -1106,8 +1111,8 @@ let format_code_item ctx ~ppc ~pph env = function
            Format.pp_print_space fmt ();
            VarName.format fmt var))
       typ;
-    pp pp_intf " ();@]@]@,";
-    pp [ppc] " () {@]@,";
+    pp pp_intf " (void);@]@]@,";
+    pp [ppc] " (void) {@]@,";
     pp [ppc] "@[<hov 2>static %a = NULL;@]@,"
       (format_typ ~const:true ctx.decl_ctx (fun fmt ->
            Format.pp_print_space fmt ();
