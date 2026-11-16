@@ -59,6 +59,7 @@ type options = private {
   mutable output_format : format_enum;
   mutable plugins_dirs : file list;
   mutable disable_warnings : bool;
+  mutable lints : (string * bool) list;
   mutable max_prec_digits : int;
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
@@ -88,6 +89,7 @@ val enforce_options :
   ?output_format:format_enum ->
   ?plugins_dirs:file list ->
   ?disable_warnings:bool ->
+  ?lints:(string * bool) list ->
   ?max_prec_digits:int ->
   ?path_rewrite:(raw_file -> file) ->
   ?stop_on_error:bool ->
