@@ -324,9 +324,18 @@ let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
           | a -> [a]
         in
         arg1 :: aux arg2
-      | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dur_dur | Sub_int_int
-      | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dur_dur | Mult_int_int
-      | Mult_rat_rat | Div_rat_rat ->
+      | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dur_dur | Mult_int_int
+      | Mult_rat_rat ->
+        (* associative *)
+        let rec aux = function
+          | EAppOp { op = op1; args = [arg2; arg3]; _ }, _
+            when Mark.equal Operator.equal op op1 ->
+            aux arg2 @ aux arg3
+          | a -> [a]
+        in
+        aux arg1 @ aux arg2
+      | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dur_dur
+      | Div_rat_rat ->
         (* left-associative *)
         let rec aux = function
           | EAppOp { op = op1; args = [arg2; arg3]; _ }, _
