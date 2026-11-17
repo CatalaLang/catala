@@ -26,9 +26,9 @@ typedef struct Text_dict_dict {
 } Text_dict_Text_dict;
 
 /* This should be left unchanged */
-const catala_type catala_type__Text_dict_Text_dict();
+const catala_type catala_type__Text_dict_Text_dict(void);
 
-const Text_dict_Text_dict* TextDict__empty ();
+const Text_dict_Text_dict* TextDict__empty (void);
 
 const Text_dict_Text_dict* TextDict__store
     (const Text_dict_Text_dict* dict,

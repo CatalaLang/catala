@@ -21,7 +21,7 @@ typedef struct dict {
   struct dict * rest;
 } Dictionnary_ext_Dictionnary;
 
-const Dictionnary_ext_Dictionnary* DictionnaryExt__empty ();
+const Dictionnary_ext_Dictionnary* DictionnaryExt__empty (void);
 
 const Dictionnary_ext_Dictionnary* DictionnaryExt__store
     (const Dictionnary_ext_Dictionnary* dict,

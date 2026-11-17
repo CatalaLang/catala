@@ -51,7 +51,7 @@ typedef struct Foo {
   CATALA_BOOL x;
   CATALA_DEC y;
 } Foo;
-const catala_type catala_type__Foo()
+const catala_type catala_type__Foo(void)
 {
   static catala_type ty = {UNINITIALIZED};
   static struct catala_label_type fields[2];
@@ -73,7 +73,7 @@ typedef struct Bar {
     const Foo* Bar__YES;
   } payload;
 } Bar;
-const catala_type catala_type__Bar()
+const catala_type catala_type__Bar(void)
 {
   static catala_type ty = {UNINITIALIZED};
   static struct catala_label_type cases[2];
@@ -87,7 +87,7 @@ typedef struct Baz {
   CATALA_DEC b;
   const CATALA_ARRAY(CATALA_DEC) c;
 } Baz;
-const catala_type catala_type__Baz()
+const catala_type catala_type__Baz(void)
 {
   static catala_type ty = {UNINITIALIZED};
   static struct catala_label_type fields[2];
@@ -100,7 +100,7 @@ const catala_type catala_type__Baz()
 typedef struct Baz_in {
   const CATALA_OPTION(CATALA_TUPLE(Bar*;CATALA_POSITION)) a_in;
 } Baz_in;
-const catala_type catala_type__Baz_in()
+const catala_type catala_type__Baz_in(void)
 {
   static catala_type ty = {UNINITIALIZED};
   static struct catala_label_type fields[1];
