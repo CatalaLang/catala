@@ -10,7 +10,7 @@ when:
     evaluate: 'not("REBUILD_IMAGE" in $env)'
 
 variables:
-  - &catala_image registry.gitlab.inria.fr/catala/registry:20261110
+  - &catala_image registry.gitlab.inria.fr/catala/registry:1794503989
   - &build_env
     DUNE_PROFILE: check
     COLUMNS: "165"

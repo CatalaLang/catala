@@ -37,9 +37,6 @@ val libcatala : File.t
 (** Subdirectory of the build directory holding the runtime and standard library
     and its built artifacts *)
 
-val get_lang : File.t -> Global.backend_lang option
-(** Guesses Catala dialect from file-name and global options *)
-
 val catala_file : File.t -> Global.backend_lang -> item
 (** Scans a single Catala file into an item *)
 

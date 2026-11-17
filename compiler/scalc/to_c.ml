@@ -1235,7 +1235,7 @@ let format_main ctx env (fmt : Format.formatter) (p : Ast.program) =
   Format.fprintf fmt " for (i = 0; i < %d; i++) catala_tests_enabled[i] = 1;"
     ntests;
   Format.fprintf fmt "@,catala_set_lang(Catala_lang_%s);"
-    (match p.lang with `En -> "En" | `Fr -> "Fr" | _ -> "En");
+    (match p.lang with French.T -> "Fr" | English.T | _ -> "En");
   Format.fprintf fmt "@,result = catala_do(&run_tests);";
 
   Format.fprintf fmt "@,return !result;@;<1 -2>}@]"
