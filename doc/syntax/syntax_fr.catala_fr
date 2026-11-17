@@ -139,6 +139,9 @@ déclaration x contenu entier égal à
     expr sous forme Cas1
   dans
   soit x égal à
+    expr sous forme (Cas1 ou Cas2)
+  dans
+  soit x égal à
     expr sous forme Cas1 de x
          et x >= 2
   dans
@@ -293,18 +296,18 @@ $ catala typecheck
 │
 │  "Chp1": this scope has not been declared anywhere, is it a typo?
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:176.21-25:
+├─➤ doc/syntax/syntax_fr.catala_fr:179.21-25:
 │     │
-│ 176 │ champ d'application Chp1:
+│ 179 │ champ d'application Chp1:
 │     │                     ‾‾‾‾
 └─ Définition de champ d'application
 ┌─[ERROR]─ 3/3 ─
 │
 │  "Chp1": this scope has not been declared anywhere, is it a typo?
 │
-├─➤ doc/syntax/syntax_fr.catala_fr:179.21-25:
+├─➤ doc/syntax/syntax_fr.catala_fr:182.21-25:
 │     │
-│ 179 │ champ d'application Chp1
+│ 182 │ champ d'application Chp1
 │     │                     ‾‾‾‾
 └─ Définition de champ d'application
 #return code 123#

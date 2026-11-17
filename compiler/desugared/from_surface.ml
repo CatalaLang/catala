@@ -743,15 +743,15 @@ let rec translate_expr
   in
   match Mark.remove expr with
   | Paren e -> rec_helper (Mark.set (Pos.join pos (Mark.get e)) e)
-  | Binop ((S.And, _), (TestMatchCase (e1_sub, pattern), pos_e1), e2) ->
+  | Binop ((S.And, _), (TestMatchCase (e1_sub, (patterns, pat_pos)), pos_e1), e2)
+    ->
     (* This sugar corresponds to [e is P x && e'] and should desugar to [match e
        with P x -> e' | _ -> false] *)
     let cases =
       [
-        ( S.MatchCase { match_case_pattern = [pattern]; match_case_expr = e2 },
-          Mark.get pattern );
-        ( S.WildCard (S.Literal (S.LBool false), Mark.get pattern),
-          Mark.get pattern );
+        ( S.MatchCase { match_case_pattern = patterns; match_case_expr = e2 },
+          pat_pos );
+        S.WildCard (S.Literal (S.LBool false), pat_pos), pat_pos;
       ]
     in
     rec_helper ~no_wildcard_warning:true
@@ -1165,8 +1165,8 @@ let rec translate_expr
         local_vars ~no_wildcard_warning cases
     in
     Expr.ematch ~e:e1 ~name:e_uid ~cases:cases_d emark
-  | TestMatchCase (e1, pattern) ->
-    (match snd (Mark.remove pattern) with
+  | TestMatchCase (e1, (patterns, pat_pos)) ->
+    (match List.concat_map (fun p -> snd (Mark.remove p)) patterns with
     | [] -> ()
     | binding :: _ ->
       Message.warning ~pos:(Mark.get binding)
@@ -1175,12 +1175,11 @@ let rec translate_expr
       [
         ( S.MatchCase
             {
-              match_case_pattern = [pattern];
-              match_case_expr = S.Literal (S.LBool true), Mark.get pattern;
+              match_case_pattern = patterns;
+              match_case_expr = S.Literal (S.LBool true), pat_pos;
             },
-          Mark.get pattern );
-        ( S.WildCard (S.Literal (S.LBool false), Mark.get pattern),
-          Mark.get pattern );
+          pat_pos );
+        S.WildCard (S.Literal (S.LBool false), pat_pos), pat_pos;
       ]
     in
     rec_helper ~no_wildcard_warning:true (S.MatchWith (e1, (cases, pos)), pos)

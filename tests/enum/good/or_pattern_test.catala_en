@@ -1,0 +1,92 @@
+# Or-patterns in pattern tests
+
+```catala-metadata
+declaration enumeration SchoolStatus:
+  -- Before
+  -- During
+  -- After
+
+declaration structure Child:
+  data status content SchoolStatus
+  data age content integer
+
+declaration enumeration Payment:
+  -- ByCheck content money
+  -- ByTransfer content money
+  -- InKind
+
+#[test]
+declaration scope S:
+  internal children content list of Child
+  internal payments content list of Payment
+  output before_or_during content list of boolean
+  output combined content list of boolean
+  output large_payment content list of boolean
+  output with_binding content list of boolean
+```
+
+```catala
+scope S:
+  definition children equals [
+    Child { -- status: Before -- age: 5 };
+    Child { -- status: During -- age: 10 };
+    Child { -- status: After -- age: 17 };
+    Child { -- status: After -- age: 15 }
+  ]
+  definition payments equals
+    [ByCheck content $500; ByTransfer content $2,000; InKind]
+
+  definition before_or_during equals
+    map each child among children to
+      child.status with pattern (Before or During)
+
+  definition combined equals
+    map each child among children to
+      child.status with pattern (Before or During) or child.age >= 16
+
+  definition large_payment equals
+    map each payment among payments to
+      payment with pattern (ByCheck content amount or ByTransfer content amount)
+      and amount > $1,000
+
+  definition with_binding equals
+    map each payment among payments to
+      payment with pattern (ByCheck content amount or ByTransfer content amount)
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[WARNING]─
+│
+│  This binding will be ignored (remove it to suppress this warning).
+│
+├─➤ tests/enum/good/or_pattern_test.catala_en:54.45-51:
+│    │
+│ 54 │       payment with pattern (ByCheck content amount or ByTransfer content amount)
+│    │                                             ‾‾‾‾‾‾
+└─ Or-patterns in pattern tests
+┌─[RESULT]─ S ─
+│ before_or_during = [
+│                      true;
+│                      true;
+│                      false;
+│                      false;
+│                    ]
+│ combined = [
+│              true;
+│              true;
+│              true;
+│              false;
+│            ]
+│ large_payment = [
+│                   false;
+│                   true;
+│                   false;
+│                 ]
+│ with_binding = [
+│                  true;
+│                  true;
+│                  false;
+│                ]
+└─
+```

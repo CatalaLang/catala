@@ -323,7 +323,13 @@ let naked_expression ==
 }
 | e = noattr_expression ;
   WITH ; c = constructor_binding ; {
-  TestMatchCase (e, (c, get_pos $sloc))
+  TestMatchCase (e, ([c, get_pos $sloc], get_pos $sloc))
+}
+| e = noattr_expression ;
+  WITH ; LPAREN ;
+  cs = separated_nonempty_list(OR, addpos(constructor_binding)) ;
+  RPAREN ; {
+  TestMatchCase (e, (cs, get_pos $sloc))
 }
 | e = noattr_expression ;
   BUT_REPLACE ;

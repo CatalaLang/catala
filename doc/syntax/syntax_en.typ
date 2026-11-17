@@ -212,6 +212,9 @@ expr with pattern Case1
           content x and x >= 2
 ```, [Pattern test\ (optional: var. binding)],
 ```catala-en-code
+expr with pattern (Case1 or Case2)
+```, [Or-pattern test],
+```catala-en-code
 struc1 but replace { -- fld2: 8% }
 ```, [Field replacement],
 ```catala-en-code
