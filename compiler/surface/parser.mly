@@ -586,10 +586,10 @@ let constructor_binding :=
 let match_arm :=
 | WILDCARD ; COLON ; ~ = expression ; <WildCard>
   %prec ALT
-| pat = addpos(constructor_binding) ;
+| pats = separated_nonempty_list(OR, addpos(constructor_binding)) ;
   COLON ; e = expression ; {
   MatchCase {
-    match_case_pattern = pat;
+    match_case_pattern = pats;
     match_case_expr = e;
   }
 } %prec ALT

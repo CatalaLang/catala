@@ -1,0 +1,39 @@
+## Constructor of an or-pattern already matched by a previous case
+
+```catala
+declaration enumeration E:
+  -- A
+  -- B
+  -- F
+
+declaration scope S:
+  context e content E
+  output o content integer
+
+scope S:
+  definition e equals A
+  definition o equals match e with pattern
+    -- A: 0
+    -- B or A: 1
+    -- F: 2
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[ERROR]─
+│
+│  The constructor A has been matched twice.
+│
+├─➤ tests/enum/bad/or_pattern_already_matched.catala_en:17.13-14:
+│    │
+│ 17 │     -- B or A: 1
+│    │             ‾
+├─ Constructor of an or-pattern already matched by a previous case
+│
+├─➤ tests/enum/bad/or_pattern_already_matched.catala_en:16.8-9:
+│    │
+│ 16 │     -- A: 0
+│    │        ‾
+└─ Constructor of an or-pattern already matched by a previous case
+#return code 123#
+```

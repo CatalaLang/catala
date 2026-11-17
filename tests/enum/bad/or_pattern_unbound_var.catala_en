@@ -1,0 +1,38 @@
+## Variable not bound in every alternative
+
+```catala
+declaration enumeration E:
+  -- A content integer
+  -- B content integer
+  -- F
+
+declaration scope S:
+  context e content E
+  output o content integer
+
+scope S:
+  definition e equals A content 1
+  definition o equals match e with pattern
+    -- A content x or F: x
+    -- B content y: y
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[ERROR]─
+│
+│  The variable x is bound in pattern A but not in pattern F.
+│
+├─➤ tests/enum/bad/or_pattern_unbound_var.catala_en:16.18-19:
+│    │
+│ 16 │     -- A content x or F: x
+│    │                  ‾
+├─ Variable not bound in every alternative
+│
+├─➤ tests/enum/bad/or_pattern_unbound_var.catala_en:16.23-24:
+│    │
+│ 16 │     -- A content x or F: x
+│    │                       ‾
+└─ Variable not bound in every alternative
+#return code 123#
+```

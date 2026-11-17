@@ -1,0 +1,90 @@
+# Motifs alternatifs dans le filtrage
+
+```catala-metadata
+déclaration énumération E:
+  -- A contenu entier
+  -- B contenu entier
+  -- C contenu (entier, argent)
+  -- D contenu (argent, entier)
+  -- F
+  -- G
+
+#[test]
+déclaration champ d'application S:
+  interne valeurs contenu liste de E
+  résultat sans_liaison contenu liste de entier
+  résultat liaison_partagee contenu liste de entier
+  résultat liaison_inversee contenu liste de entier
+  résultat avec_joker contenu liste de entier
+```
+
+```catala
+champ d'application S:
+  définition valeurs égal à
+    [A contenu 1; B contenu 2; C contenu (3, 4 €); D contenu (5 €, 6); F; G]
+
+  définition sans_liaison égal à
+    transforme chaque v parmi valeurs en
+      selon v sous forme
+      -- A ou B: 1
+      -- C ou D: 2
+      -- F ou G: 3
+
+  définition liaison_partagee égal à
+    transforme chaque v parmi valeurs en
+      selon v sous forme
+      -- A contenu x ou B contenu x: x
+      -- C ou D ou F: 0
+      -- G: 100
+
+  définition liaison_inversee égal à
+    transforme chaque v parmi valeurs en
+      selon v sous forme
+      -- C contenu (x, y) ou D contenu (y, x): x * 10 + entier de y
+      -- A contenu x ou B contenu x: x
+      -- F ou G: 0
+
+  définition avec_joker égal à
+    transforme chaque v parmi valeurs en
+      selon v sous forme
+      -- A contenu x ou B contenu x: x
+      -- n'importe quel: 0
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[RESULT]─ S ─
+│ sans_liaison = [
+│                  1;
+│                  1;
+│                  2;
+│                  2;
+│                  3;
+│                  3;
+│                ]
+│ liaison_partagee = [
+│                      1;
+│                      2;
+│                      0;
+│                      0;
+│                      0;
+│                      100;
+│                    ]
+│ liaison_inversee = [
+│                      1;
+│                      2;
+│                      34;
+│                      65;
+│                      0;
+│                      0;
+│                    ]
+│ avec_joker = [
+│                1;
+│                2;
+│                0;
+│                0;
+│                0;
+│                0;
+│              ]
+└─
+```

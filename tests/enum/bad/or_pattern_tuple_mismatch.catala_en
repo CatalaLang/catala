@@ -1,0 +1,36 @@
+## Tuple variables with different types in the alternatives
+
+```catala
+declaration enumeration E:
+  -- C content (integer, money)
+  -- D content (money, integer)
+
+declaration scope S:
+  context e content E
+  output o content integer
+
+scope S:
+  definition e equals C content (1, $2)
+  definition o equals match e with pattern
+    -- C content (x, y) or D content (x, y): x
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[ERROR]─
+│
+│  The variable x has type money in pattern D but type integer in pattern C.
+│
+├─➤ tests/enum/bad/or_pattern_tuple_mismatch.catala_en:15.39-40:
+│    │
+│ 15 │     -- C content (x, y) or D content (x, y): x
+│    │                                       ‾
+├─ Tuple variables with different types in the alternatives
+│
+├─➤ tests/enum/bad/or_pattern_tuple_mismatch.catala_en:15.19-20:
+│    │
+│ 15 │     -- C content (x, y) or D content (x, y): x
+│    │                   ‾
+└─ Tuple variables with different types in the alternatives
+#return code 123#
+```

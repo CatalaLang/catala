@@ -1,0 +1,36 @@
+## Variable with different types in the alternatives
+
+```catala
+declaration enumeration E:
+  -- A content integer
+  -- B content money
+
+declaration scope S:
+  context e content E
+  output o content boolean
+
+scope S:
+  definition e equals A content 1
+  definition o equals match e with pattern
+    -- A content x or B content x: x = x
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[ERROR]─
+│
+│  The variable x has type money in pattern B but type integer in pattern A.
+│
+├─➤ tests/enum/bad/or_pattern_type_mismatch.catala_en:15.33-34:
+│    │
+│ 15 │     -- A content x or B content x: x = x
+│    │                                 ‾
+├─ Variable with different types in the alternatives
+│
+├─➤ tests/enum/bad/or_pattern_type_mismatch.catala_en:15.18-19:
+│    │
+│ 15 │     -- A content x or B content x: x = x
+│    │                  ‾
+└─ Variable with different types in the alternatives
+#return code 123#
+```

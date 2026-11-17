@@ -150,7 +150,7 @@ type literal =
   | LDate of literal_date
 
 and explicit_match_case = {
-  match_case_pattern : match_case_pattern Mark.pos;
+  match_case_pattern : match_case_pattern Mark.pos list;
   match_case_expr : expression;
 }
 

@@ -653,6 +653,69 @@ let nary_binder_to_tuple_function arg_ty pos binder argname pos_binder =
     [List.fold_left Pos.join Pos.void pos_binder]
     [arg_ty] m
 
+let check_or_pattern_bindings
+    (ctxt : Name_resolution.context)
+    (e_uid : EnumName.t)
+    (alternatives : (EnumConstructor.t * S.lident Mark.pos list * Pos.t) list) :
+    unit =
+  let constructors = fst (EnumName.Map.find e_uid ctxt.Name_resolution.enums) in
+  let binding_types c_uid binding =
+    let cell_type = EnumConstructor.Map.find c_uid constructors in
+    let types =
+      match binding, cell_type with
+      | [_], _ -> [Some cell_type]
+      | _, (TTuple tl, _) when List.length tl = List.length binding ->
+        List.map Option.some tl
+      | _ -> List.map (fun _ -> None) binding
+    in
+    List.fold_left2
+      (fun acc (name, pos) ty ->
+        (match Ident.Map.find_opt name acc with
+        | None -> ()
+        | Some (prev_pos, _) ->
+          Message.error
+            ~extra_pos:["", pos; "", prev_pos]
+            "The variable %s@ is@ bound@ several@ times@ in@ this@ pattern."
+            name);
+        Ident.Map.add name (pos, ty) acc)
+      Ident.Map.empty binding types
+  in
+  match alternatives with
+  | [] -> ()
+  | (c_uid0, binding0, pat_pos0) :: others ->
+    let not_bound name pos c_uid other_pos other_c_uid =
+      Message.error
+        ~extra_pos:["", pos; "", other_pos]
+        "The variable %s@ is@ bound@ in@ pattern@ %a@ but@ not@ in@ pattern@ \
+         %a."
+        name EnumConstructor.format c_uid EnumConstructor.format other_c_uid
+    in
+    let bnds0 = binding_types c_uid0 binding0 in
+    List.iter
+      (fun (c_uid, binding, pat_pos) ->
+        let bnds = binding_types c_uid binding in
+        Ident.Map.iter
+          (fun name (pos, ty) ->
+            match Ident.Map.find_opt name bnds0 with
+            | None -> not_bound name pos c_uid pat_pos0 c_uid0
+            | Some (pos0, ty0) -> (
+              match ty, ty0 with
+              | Some ty, Some ty0 when not (Type.equal ty ty0) ->
+                Message.error
+                  ~extra_pos:["", pos; "", pos0]
+                  "The variable %s@ has@ type@ %a@ in@ pattern@ %a@ but@ type@ \
+                   %a@ in@ pattern@ %a."
+                  name Type.format ty EnumConstructor.format c_uid Type.format
+                  ty0 EnumConstructor.format c_uid0
+              | _ -> ()))
+          bnds;
+        Ident.Map.iter
+          (fun name (pos0, _) ->
+            if not (Ident.Map.mem name bnds) then
+              not_bound name pos0 c_uid0 pat_pos c_uid)
+          bnds0)
+      others
+
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
@@ -685,7 +748,7 @@ let rec translate_expr
        with P x -> e' | _ -> false] *)
     let cases =
       [
-        ( S.MatchCase { match_case_pattern = pattern; match_case_expr = e2 },
+        ( S.MatchCase { match_case_pattern = [pattern]; match_case_expr = e2 },
           Mark.get pattern );
         ( S.WildCard (S.Literal (S.LBool false), Mark.get pattern),
           Mark.get pattern );
@@ -1112,7 +1175,7 @@ let rec translate_expr
       [
         ( S.MatchCase
             {
-              match_case_pattern = pattern;
+              match_case_pattern = [pattern];
               match_case_expr = S.Literal (S.LBool true), Mark.get pattern;
             },
           Mark.get pattern );
@@ -1261,55 +1324,83 @@ and disambiguate_match_and_build_expression
   let bind_match_cases (cases_d, e_uid, curr_index) (case, case_pos) =
     match case with
     | S.MatchCase case ->
-      let constructor, binding = Mark.remove case.S.match_case_pattern in
-      let e_uid', c_uid =
-        disambiguate_constructor ctxt constructor
-          (Mark.get case.S.match_case_pattern)
+      let rec resolve_alternatives ?e_uid ?names alternatives patterns =
+        match e_uid, names, patterns with
+        | Some e_uid, Some names, [] -> e_uid, names, List.rev alternatives
+        | _, _, [] -> Message.error ~pos:case_pos "This match case is empty."
+        | _, _, ((constructor, binding), pat_pos) :: rest ->
+          let e_uid', c_uid =
+            disambiguate_constructor ctxt constructor pat_pos
+          in
+          let e_uid =
+            match e_uid with
+            | None -> e_uid'
+            | Some e_uid ->
+              if EnumName.equal e_uid e_uid' then e_uid
+              else
+                Message.error ~pos:pat_pos
+                  "This case matches a constructor of enumeration@ %a@ but@ \
+                   previous@ cases@ were@ matching@ constructors@ of@ \
+                   enumeration@ %a."
+                  EnumName.format e_uid EnumName.format e_uid'
+          in
+          let names = Option.value ~default:binding names in
+          resolve_alternatives ~e_uid ~names
+            ((c_uid, binding, pat_pos) :: alternatives)
+            rest
       in
-      let e_uid =
-        match e_uid with
-        | None -> e_uid'
-        | Some e_uid ->
-          if EnumName.equal e_uid e_uid' then e_uid
-          else
-            Message.error
-              ~pos:(Mark.get case.S.match_case_pattern)
-              "This case matches a constructor of enumeration@ %a@ but@ \
-               previous@ cases@ were@ matching@ constructors@ of@ enumeration@ \
-               %a."
-              EnumName.format e_uid EnumName.format e_uid'
+      let e_uid, names, alternatives =
+        resolve_alternatives ?e_uid [] case.S.match_case_pattern
       in
-      (match EnumConstructor.Map.find_opt c_uid cases_d with
-      | None -> ()
-      | Some e_case ->
-        Message.error
-          ~extra_pos:["", Mark.get case.match_case_expr; "", Expr.pos e_case]
-          "The constructor %a@ has@ been@ matched@ twice."
-          EnumConstructor.format c_uid);
-      let binding = match binding with [] -> ["_", Pos.void] | bnd -> bnd in
-      let local_vars, param_var =
-        List.fold_left_map
-          (fun local_vars b -> create_var local_vars (Some (Mark.remove b)))
-          local_vars binding
+      ignore
+        (List.fold_left
+           (fun seen (c_uid, _, pat_pos) ->
+             (match EnumConstructor.Map.find_opt c_uid seen with
+             | None -> ()
+             | Some prev_pos ->
+               Message.error
+                 ~extra_pos:["", pat_pos; "", prev_pos]
+                 "The constructor %a@ has@ been@ matched@ twice."
+                 EnumConstructor.format c_uid);
+             EnumConstructor.Map.add c_uid pat_pos seen)
+           (EnumConstructor.Map.map snd cases_d)
+           alternatives);
+      check_or_pattern_bindings ctxt e_uid alternatives;
+      let local_vars, vars =
+        List.fold_left
+          (fun (local_vars, vars) (name, _) ->
+            let v = Var.make name in
+            Ident.Map.add name v local_vars, Ident.Map.add name v vars)
+          (local_vars, Ident.Map.empty)
+          names
       in
       let case_body =
-        Expr.etag
-          (Branching (Some (EnumConstructor.to_string c_uid)))
-          (translate_expr scope inside_definition_of ctxt local_vars
-             case.S.match_case_expr)
+        translate_expr scope inside_definition_of ctxt local_vars
+          case.S.match_case_expr
       in
-      let e_binder = Expr.bind (Array.of_list param_var) case_body in
-      let pos_binder =
-        match binding with
-        | [] -> [Pos.void]
-        | binding -> List.map Mark.get binding
+      let cases_d =
+        List.fold_left
+          (fun cases_d (c_uid, binding, pat_pos) ->
+            let case_body =
+              Expr.etag
+                (Branching (Some (EnumConstructor.to_string c_uid)))
+                case_body
+            in
+            let param_var, pos_binder =
+              match binding with
+              | [] -> [Var.make "_"], [Pos.void]
+              | binding ->
+                ( List.map (fun (name, _) -> Ident.Map.find name vars) binding,
+                  List.map Mark.get binding )
+            in
+            let e_binder = Expr.bind (Array.of_list param_var) case_body in
+            let case_expr =
+              bind_case_body c_uid e_uid ctxt case_body e_binder pos_binder
+            in
+            EnumConstructor.Map.add c_uid (case_expr, pat_pos) cases_d)
+          cases_d alternatives
       in
-      let case_expr =
-        bind_case_body c_uid e_uid ctxt case_body e_binder pos_binder
-      in
-      ( EnumConstructor.Map.add c_uid case_expr cases_d,
-        Some e_uid,
-        curr_index + 1 )
+      cases_d, Some e_uid, curr_index + 1
     | S.WildCard match_case_expr -> (
       let nb_cases = List.length cases in
       let raise_wildcard_not_last_case_err () =
@@ -1377,7 +1468,7 @@ and disambiguate_match_and_build_expression
             let case_expr =
               bind_case_body c_uid e_uid ctxt case_body e_binder pos_binder
             in
-            ( EnumConstructor.Map.add c_uid case_expr cases_d,
+            ( EnumConstructor.Map.add c_uid (case_expr, case_pos) cases_d,
               e_uid_opt,
               curr_index + 1 ))
           missing_constructors
@@ -1386,7 +1477,7 @@ and disambiguate_match_and_build_expression
   let naked_expr, e_name, _ =
     List.fold_left bind_match_cases (EnumConstructor.Map.empty, None, 0) cases
   in
-  naked_expr, Option.get e_name
+  EnumConstructor.Map.map fst naked_expr, Option.get e_name
 [@@ocamlformat "wrap-comments=false"]
 
 (** {1 Translating scope definitions} *)

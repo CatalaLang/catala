@@ -128,7 +128,7 @@ declaration x content integer equals
   let x equals
     match expr with pattern
        -- Case1 content x : 0
-       -- Case2 : 0
+       -- Case2 or Case3 : 0
        -- anything : 0
   in
   let x equals #[error.message = "err"] impossible in
