@@ -1,0 +1,36 @@
+## Alternatives binding different variables
+
+```catala
+declaration enumeration E:
+  -- A content integer
+  -- B content integer
+
+declaration scope S:
+  context e content E
+  output o content integer
+
+scope S:
+  definition e equals A content 1
+  definition o equals match e with pattern
+    -- A content x or B content y: x
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[ERROR]─
+│
+│  The variable y is bound in pattern B but not in pattern A.
+│
+├─➤ tests/enum/bad/or_pattern_different_vars.catala_en:15.33-34:
+│    │
+│ 15 │     -- A content x or B content y: x
+│    │                                 ‾
+├─ Alternatives binding different variables
+│
+├─➤ tests/enum/bad/or_pattern_different_vars.catala_en:15.8-19:
+│    │
+│ 15 │     -- A content x or B content y: x
+│    │        ‾‾‾‾‾‾‾‾‾‾‾
+└─ Alternatives binding different variables
+#return code 123#
+```

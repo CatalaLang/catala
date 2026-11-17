@@ -1,0 +1,36 @@
+## Wildcard made useless by or-patterns
+
+```catala
+declaration enumeration E:
+  -- A
+  -- B
+  -- F
+
+declaration scope S:
+  context e content E
+  output o content integer
+
+scope S:
+  definition e equals A
+  definition o equals match e with pattern
+    -- A or B: 1
+    -- F: 2
+    -- anything: 3
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[WARNING]─
+│
+│  Unreachable match case, all constructors of the enumeration E are already
+│  specified.
+│
+├─➤ tests/enum/bad/or_pattern_useless_wildcard.catala_en:18.5-19:
+│    │
+│ 18 │     -- anything: 3
+│    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─ Wildcard made useless by or-patterns
+┌─[RESULT]─ S ─
+│ o = 1
+└─
+```

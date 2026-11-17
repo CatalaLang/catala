@@ -323,7 +323,13 @@ let naked_expression ==
 }
 | e = noattr_expression ;
   WITH ; c = constructor_binding ; {
-  TestMatchCase (e, (c, get_pos $sloc))
+  TestMatchCase (e, ([c, get_pos $sloc], get_pos $sloc))
+}
+| e = noattr_expression ;
+  WITH ; LPAREN ;
+  cs = separated_nonempty_list(OR, addpos(constructor_binding)) ;
+  RPAREN ; {
+  TestMatchCase (e, (cs, get_pos $sloc))
 }
 | e = noattr_expression ;
   BUT_REPLACE ;
@@ -586,10 +592,10 @@ let constructor_binding :=
 let match_arm :=
 | WILDCARD ; COLON ; ~ = expression ; <WildCard>
   %prec ALT
-| pat = addpos(constructor_binding) ;
+| pats = separated_nonempty_list(OR, addpos(constructor_binding)) ;
   COLON ; e = expression ; {
   MatchCase {
-    match_case_pattern = pat;
+    match_case_pattern = pats;
     match_case_expr = e;
   }
 } %prec ALT

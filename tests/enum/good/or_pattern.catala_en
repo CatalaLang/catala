@@ -1,0 +1,90 @@
+# Or-patterns in match cases
+
+```catala-metadata
+declaration enumeration E:
+  -- A content integer
+  -- B content integer
+  -- C content (integer, money)
+  -- D content (money, integer)
+  -- F
+  -- G
+
+#[test]
+declaration scope S:
+  internal values content list of E
+  output no_binding content list of integer
+  output shared_binding content list of integer
+  output swapped_binding content list of integer
+  output with_wildcard content list of integer
+```
+
+```catala
+scope S:
+  definition values equals
+    [A content 1; B content 2; C content (3, $4); D content ($5, 6); F; G]
+
+  definition no_binding equals
+    map each v among values to
+      match v with pattern
+      -- A or B: 1
+      -- C or D: 2
+      -- F or G: 3
+
+  definition shared_binding equals
+    map each v among values to
+      match v with pattern
+      -- A content x or B content x: x
+      -- C or D or F: 0
+      -- G: 100
+
+  definition swapped_binding equals
+    map each v among values to
+      match v with pattern
+      -- C content (x, y) or D content (y, x): x * 10 + integer of y
+      -- A content x or B content x: x
+      -- F or G: 0
+
+  definition with_wildcard equals
+    map each v among values to
+      match v with pattern
+      -- A content x or B content x: x
+      -- anything: 0
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[RESULT]─ S ─
+│ no_binding = [
+│                1;
+│                1;
+│                2;
+│                2;
+│                3;
+│                3;
+│              ]
+│ shared_binding = [
+│                    1;
+│                    2;
+│                    0;
+│                    0;
+│                    0;
+│                    100;
+│                  ]
+│ swapped_binding = [
+│                     1;
+│                     2;
+│                     34;
+│                     65;
+│                     0;
+│                     0;
+│                   ]
+│ with_wildcard = [
+│                   1;
+│                   2;
+│                   0;
+│                   0;
+│                   0;
+│                   0;
+│                 ]
+└─
+```

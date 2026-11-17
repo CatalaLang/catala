@@ -1,0 +1,73 @@
+# Motifs alternatifs dans les tests de filtrage
+
+```catala-metadata
+déclaration énumération StatutScolaire:
+  -- Avant
+  -- Pendant
+  -- Après
+
+déclaration structure Enfant:
+  donnée statut contenu StatutScolaire
+  donnée âge contenu entier
+
+déclaration énumération Paiement:
+  -- ParChèque contenu argent
+  -- ParVirement contenu argent
+  -- EnNature
+
+#[test]
+déclaration champ d'application S:
+  interne enfants contenu liste de Enfant
+  interne paiements contenu liste de Paiement
+  résultat avant_ou_pendant contenu liste de booléen
+  résultat combiné contenu liste de booléen
+  résultat gros_paiement contenu liste de booléen
+```
+
+```catala
+champ d'application S:
+  définition enfants égal à [
+    Enfant { -- statut: Avant -- âge: 5 };
+    Enfant { -- statut: Pendant -- âge: 10 };
+    Enfant { -- statut: Après -- âge: 17 };
+    Enfant { -- statut: Après -- âge: 15 }
+  ]
+  définition paiements égal à
+    [ParChèque contenu 500 €; ParVirement contenu 2000 €; EnNature]
+
+  définition avant_ou_pendant égal à
+    transforme chaque enfant parmi enfants en
+      enfant.statut sous forme (Avant ou Pendant)
+
+  définition combiné égal à
+    transforme chaque enfant parmi enfants en
+      enfant.statut sous forme (Avant ou Pendant) ou enfant.âge >= 16
+
+  définition gros_paiement égal à
+    transforme chaque paiement parmi paiements en
+      paiement sous forme (ParChèque contenu montant ou ParVirement contenu montant)
+      et montant > 1000 €
+```
+
+```catala-test-cli
+$ catala test-scope S
+┌─[RESULT]─ S ─
+│ avant_ou_pendant = [
+│                      vrai;
+│                      vrai;
+│                      faux;
+│                      faux;
+│                    ]
+│ combiné = [
+│             vrai;
+│             vrai;
+│             vrai;
+│             faux;
+│           ]
+│ gros_paiement = [
+│                   faux;
+│                   vrai;
+│                   faux;
+│                 ]
+└─
+```

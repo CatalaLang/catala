@@ -128,7 +128,7 @@ declaration x content integer equals
   let x equals
     match expr with pattern
        -- Case1 content x : 0
-       -- Case2 : 0
+       -- Case2 or Case3 : 0
        -- anything : 0
   in
   let x equals #[error.message = "err"] impossible in
@@ -138,6 +138,9 @@ declaration x content integer equals
   let x equals #[debug.print = "message"] 0 in
   let x equals
     expr with pattern Case1
+  in
+  let x equals
+    expr with pattern (Case1 or Case2)
   in
   let x equals
     expr with pattern Case1 content x
@@ -291,18 +294,18 @@ $ catala typecheck
 │
 │  "x": unknown identifier for a variable of scope Scope1
 │
-├─➤ doc/syntax/syntax_en.catala_en:177.14-15:
+├─➤ doc/syntax/syntax_en.catala_en:180.14-15:
 │     │
-│ 177 │   definition x equals 0
+│ 180 │   definition x equals 0
 │     │              ‾
 └─ Scope definition
 ┌─[ERROR]─ 3/3 ─
 │
 │  "var1": unknown identifier for a variable of scope Scope1
 │
-├─➤ doc/syntax/syntax_en.catala_en:182.14-18:
+├─➤ doc/syntax/syntax_en.catala_en:185.14-18:
 │     │
-│ 182 │   definition var1 equals 0
+│ 185 │   definition var1 equals 0
 │     │              ‾‾‾‾
 └─ Scope definition
 #return code 123#

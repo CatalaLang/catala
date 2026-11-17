@@ -24,16 +24,16 @@ $ catala test-scope A
 │
 │  The constructor Case3 has been matched twice.
 │
-├─➤ tests/enum/bad/duplicate_case.catala_en:18.16-20:
+├─➤ tests/enum/bad/duplicate_case.catala_en:18.8-13:
 │    │
 │ 18 │     -- Case3 : true
-│    │                ‾‾‾‾
+│    │        ‾‾‾‾‾
 ├─ Article
 │
-├─➤ tests/enum/bad/duplicate_case.catala_en:17.16-21:
+├─➤ tests/enum/bad/duplicate_case.catala_en:17.8-13:
 │    │
 │ 17 │     -- Case3 : false
-│    │                ‾‾‾‾‾
+│    │        ‾‾‾‾‾
 └─ Article
 #return code 123#
 ```

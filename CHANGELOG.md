@@ -2,3 +2,5 @@
 
 One line per change, be concise and explicit. Document only external changes
 in behavior visible for the end-users of the tooling.
+
+* [#1176](https://github.com/CatalaLang/catala/pull/1176) Or-patterns
