@@ -17,7 +17,15 @@
 
 (** Common code for handling the IO of all proof backends supported *)
 
+open Catala_utils
 open Shared_ast
+
+exception Unsupported of Pos.t option * string
+(** Raised when a backend cannot encode part of a VC. Carries the position of
+    the VC part, if any, and an error message. *)
+
+val unsupported : ?pos:Pos.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+(** [unsupported ~pos fmt] raises [Unsupported] with a formatted message. *)
 
 module type Backend = sig
   val init_backend : unit -> unit
@@ -63,7 +71,7 @@ module type BackendIO = sig
 
   type vc_encoding_result =
     | Success of vc_encoding * backend_context
-    | Fail of string
+    | Fail of Pos.t option * string
 
   val print_negative_result :
     Conditions.verification_condition ->

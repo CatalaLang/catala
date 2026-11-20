@@ -190,7 +190,8 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
 
     Format.asprintf "%s { %s }" (StructName.base name) fields_str
   | TTuple _ ->
-    failwith "[Z3 model]: Pretty-printing of unnamed structs not supported"
+    Io.unsupported
+      "[Z3 model]: Pretty-printing of unnamed structs not supported"
   | TEnum name ->
     (* The value associated to the enum is a single argument *)
     let e' = List.hd (Expr.get_args e) in
@@ -208,18 +209,20 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
 
     Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx (snd case) e')
   | TAbstract _ ->
-    failwith "[Z3 model]: Pretty-printing of abstract types not supported"
-  | TOption _ -> failwith "[Z3 model]: Pretty-printing of options not supported"
-  | TArrow _ -> failwith "[Z3 model]: Pretty-printing of arrows not supported"
+    Io.unsupported "[Z3 model]: Pretty-printing of abstract types not supported"
+  | TOption _ ->
+    Io.unsupported "[Z3 model]: Pretty-printing of options not supported"
+  | TArrow _ ->
+    Io.unsupported "[Z3 model]: Pretty-printing of arrows not supported"
   | TArray _ ->
     (* For now, only the length of arrays is modeled *)
     Format.asprintf "(length = %s)" (Expr.to_string e)
   | TForAll _ | TVar _ ->
-    failwith "[Z3 model]: Pretty-printing of Any not supported"
+    Io.unsupported "[Z3 model]: Pretty-printing of Any not supported"
   | TClosureEnv ->
-    failwith "[Z3 model]: Pretty-printing of closure_env not supported"
+    Io.unsupported "[Z3 model]: Pretty-printing of closure_env not supported"
   | TDefault _ ->
-    failwith "[Z3 model]: Pretty-printing of default terms not supported"
+    Io.unsupported "[Z3 model]: Pretty-printing of default terms not supported"
   | TError -> assert false
 
 (** [print_model] pretty prints a Z3 model, used to exhibit counter examples
@@ -238,7 +241,7 @@ let print_model (ctx : context) (model : Model.model) : string =
            match Model.get_const_interp model d with
            (* TODO: Better handling of this case *)
            | None ->
-             failwith
+             Io.unsupported
                "[Z3 model]: A variable does not have an associated Z3 solution"
            (* Print "name : value\n" *)
            | Some e -> (
@@ -254,7 +257,7 @@ let print_model (ctx : context) (model : Model.model) : string =
            match Model.get_func_interp model d with
            (* TODO: Better handling of this case *)
            | None ->
-             failwith
+             Io.unsupported
                "[Z3 model]: A variable does not have an associated Z3 solution"
            (* Print "name : value\n" *)
            | Some f ->
@@ -286,19 +289,20 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
   match t with
   | TLit t -> ctx, translate_typ_lit ctx t
   | TStruct name -> find_or_create_struct ctx name
-  | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
+  | TTuple _ -> Io.unsupported "[Z3 encoding] TTuple type not supported"
   | TEnum e -> find_or_create_enum ctx e
-  | TAbstract _ -> failwith "[Z3 encoding] TAbstract type not supported"
-  | TOption _ -> failwith "[Z3 encoding] TOption type not supported"
-  | TDefault _ -> failwith "[Z3 encoding] TDefault type not supported"
-  | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
+  | TAbstract _ -> Io.unsupported "[Z3 encoding] TAbstract type not supported"
+  | TOption _ -> Io.unsupported "[Z3 encoding] TOption type not supported"
+  | TDefault _ -> Io.unsupported "[Z3 encoding] TDefault type not supported"
+  | TArrow _ -> Io.unsupported "[Z3 encoding] TArrow type not supported"
   | TArray _ ->
     (* For now, we are only encoding the (symbolic) length of an array.
        Ultimately, the type of an array should also contain its elements *)
     ctx, Arithmetic.Integer.mk_sort ctx.ctx_z3
-  | TVar _ | TForAll _ -> failwith "[Z3 encoding] TForAll type not supported"
-  | TClosureEnv -> failwith "[Z3 encoding] TClosureEnv type not supported"
-  | TError -> failwith "[Z3 encoding] TError type not supported"
+  | TVar _ | TForAll _ ->
+    Io.unsupported "[Z3 encoding] TForAll type not supported"
+  | TClosureEnv -> Io.unsupported "[Z3 encoding] TClosureEnv type not supported"
+  | TError -> Io.unsupported "[Z3 encoding] TError type not supported"
 
 (** [find_or_create_enum] attempts to retrieve the Z3 sort corresponding to the
     Catala enumeration [enum]. If no such sort exists yet, it constructs it by
@@ -405,7 +409,7 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   | LDuration d ->
     let y, m, d = Runtime.duration_to_years_months_days d in
     if y <> 0 || m <> 0 then
-      failwith
+      Io.unsupported
         "[Z3 encoding]: Duration literals containing years or months not \
          supported";
     Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 d
@@ -431,11 +435,11 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
       let ctx = add_z3var name v ty ctx in
       ctx, fd
     | TVar _ | TForAll _ ->
-      failwith
+      Io.unsupported
         "[Z3 Encoding] A function being applied has type TForAll, the type was \
          not fully inferred"
     | _ ->
-      failwith
+      Io.unsupported
         "[Z3 Encoding] Ill-formed VC, a function application does not have a \
          function type")
 
@@ -448,8 +452,8 @@ let rec translate_op :
     context -> dcalc operator Mark.pos -> 'm expr list -> context * Expr.expr =
  fun ctx (op, pos) args ->
   let ill_formed () =
-    Format.kasprintf failwith
-      "[Z3 encoding] Ill-formed operator application: %a" Shared_ast.Expr.format
+    Io.unsupported ~pos "[Z3 encoding] Ill-formed operator application: %a"
+      Shared_ast.Expr.format
       (Shared_ast.Expr.eappop ~op:(op, pos)
          ~args:(List.map Shared_ast.Expr.untype args)
          ~tys:[]
@@ -468,7 +472,8 @@ let rec translate_op :
   in
   match op, args with
   | Fold, _ ->
-    failwith "[Z3 encoding] ternary operator application not supported"
+    Io.unsupported ~pos
+      "[Z3 encoding] ternary operator application not supported"
   (* Special case for GetYear comparisons *)
   (* FIXME: getYear is no longer an operator but an stdlib function*)
   (* | ( Lt_int_int, [(EAppOp { op = GetYear, _; args = [e1]; _ }, _); (ELit
@@ -527,11 +532,14 @@ let rec translate_op :
   | Gte, _ -> app2 Arithmetic.mk_ge
   | Eq, _ -> app2 Boolean.mk_eq
   | Map, _ ->
-    failwith "[Z3 encoding] application of binary operator Map not supported"
+    Io.unsupported ~pos
+      "[Z3 encoding] application of binary operator Map not supported"
   | Concat, _ ->
-    failwith "[Z3 encoding] application of binary operator Concat not supported"
+    Io.unsupported ~pos
+      "[Z3 encoding] application of binary operator Concat not supported"
   | Filter, _ ->
-    failwith "[Z3 encoding] application of binary operator Filter not supported"
+    Io.unsupported ~pos
+      "[Z3 encoding] application of binary operator Filter not supported"
   | Not, _ -> app1 Boolean.mk_not
   (* Omitting the log from the VC *)
   | Tag _, [e1] -> translate_expr ctx e1
@@ -539,18 +547,18 @@ let rec translate_op :
     (* For now, an array is only its symbolic length. We simply return it *)
     translate_expr ctx e1
   | ToRat_int, _ ->
-    failwith
+    Io.unsupported ~pos
       "[Z3 encoding] application of unary operator ToRat_int not supported"
   | ToRat_mon, _ ->
-    failwith
+    Io.unsupported ~pos
       "[Z3 encoding] application of unary operator ToRat_mon not supported"
   | ToMoney_rat, _ ->
-    failwith
+    Io.unsupported ~pos
       "[Z3 encoding] application of unary operator ToMoney_rat not supported"
   | Round_rat, _ ->
-    failwith "[Z3 encoding] Round_rat operator  not implemented yet"
+    Io.unsupported ~pos "[Z3 encoding] Round_rat operator  not implemented yet"
   | Round_mon, _ ->
-    failwith "[Z3 encoding] Round_mon operator  not implemented yet"
+    Io.unsupported ~pos "[Z3 encoding] Round_mon operator  not implemented yet"
   | _ -> ill_formed ()
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
@@ -577,7 +585,9 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
       let body = Bindlib.msubst binder [| fresh_e |] in
       translate_expr ctx body
     (* Invariant: Catala match arms are always lambda*)
-    | _ -> failwith "[Z3 encoding] : Arms branches inside VCs should be lambdas"
+    | _ ->
+      Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+        "[Z3 encoding] : Arms branches inside VCs should be lambdas"
   in
 
   match Mark.remove vc with
@@ -608,8 +618,12 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
          of a match. It actually corresponds to applying an accessor to an enum,
          the corresponding Z3 expression was previously stored in the context *)
       ctx, e)
-  | EExternal _ -> failwith "[Z3 encoding] EExternal unsupported"
-  | EStruct _ -> failwith "[Z3 encoding] EStruct unsupported"
+  | EExternal _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] EExternal unsupported"
+  | EStruct _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] EStruct unsupported"
   | EStructAccess { e; field; name } ->
     let ctx, z3_struct = find_or_create_struct ctx name in
     (* This datatype should have only one constructor, corresponding to
@@ -623,8 +637,12 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     in
     let ctx, s = translate_expr ctx e in
     ctx, Expr.mk_app ctx.ctx_z3 accessor [s]
-  | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
-  | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
+  | ETuple _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] ETuple unsupported"
+  | ETupleAccess _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] ETupleAccess unsupported"
   | EInj { e; cons; name } ->
     (* This node corresponds to creating a value for the enumeration [en], by
        calling the [idx]-th constructor of enum [en], with argument [e] *)
@@ -677,9 +695,13 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     (* Add the definition of z3_var to the hypotheses *)
     let ctx = add_z3constraint (Boolean.mk_and ctx.ctx_z3 z3_arms) ctx in
     ctx, z3_var
-  | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
+  | EArray _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] EArray unsupported"
   | ELit l -> ctx, translate_lit ctx l
-  | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
+  | EAbs _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] EAbs unsupported"
   | EAppOp { op; args; _ } -> translate_op ctx op args
   | EApp { f = head; args; _ } -> (
     match Mark.remove head with
@@ -699,19 +721,26 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     | EAbs { binder; _ } ->
       let vars, _ = Bindlib.unmbind binder in
       if Array.length vars != 1 || List.length args != 1 then
-        failwith "[Z3 encoding] EAbs not supported beyond let_in"
+        Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+          "[Z3 encoding] EAbs not supported beyond let_in"
       else
         let arg = List.hd args in
         let expr = Bindlib.msubst binder [| Mark.remove arg |] in
         translate_expr ctx expr
     | _ ->
-      failwith
+      Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
         "[Z3 encoding] EApp node: Catala function calls should only include \
          operators or function names")
   | EAssert e -> translate_expr ctx e
-  | EFatalError _ -> failwith "[Z3 encoding] EFatalError unsupported"
-  | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
-  | EPureDefault _ -> failwith "[Z3 encoding] EPureDefault unsupported"
+  | EFatalError _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] EFatalError unsupported"
+  | EDefault _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] EDefault unsupported"
+  | EPureDefault _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] EPureDefault unsupported"
   | EIfThenElse { cond = e_if; etrue = e_then; efalse = e_else } ->
     (* We rely on Z3's native encoding for ite to encode this node. There might
        be some interesting optimization in the future about when to split this
@@ -720,10 +749,18 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let ctx, z3_then = translate_expr ctx e_then in
     let ctx, z3_else = translate_expr ctx e_else in
     ctx, Boolean.mk_ite ctx.ctx_z3 z3_if z3_then z3_else
-  | EEmpty -> failwith "[Z3 encoding] 'Empty' literals not supported"
-  | EErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
-  | EPos _ -> failwith "[Z3 encoding] EPos unsupported"
-  | EBad -> failwith "[Z3 encoding] EBad unsupported"
+  | EEmpty ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] 'Empty' literals not supported"
+  | EErrorOnEmpty _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] ErrorOnEmpty unsupported"
+  | EPos _ ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] EPos unsupported"
+  | EBad ->
+    Io.unsupported ~pos:(Shared_ast.Expr.pos vc)
+      "[Z3 encoding] EBad unsupported"
   | _ -> .
 
 (** [create_z3unit] creates a Z3 sort and expression corresponding to the unit
