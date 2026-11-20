@@ -18,6 +18,11 @@
 open Catala_utils
 open Shared_ast
 
+exception Unsupported of Pos.t option * string
+
+let unsupported ?pos fmt =
+  Format.kasprintf (fun msg -> raise (Unsupported (pos, msg))) fmt
+
 module type Backend = sig
   val init_backend : unit -> unit
 
@@ -62,7 +67,7 @@ module type BackendIO = sig
 
   type vc_encoding_result =
     | Success of vc_encoding * backend_context
-    | Fail of string
+    | Fail of Pos.t option * string
 
   val print_negative_result :
     Conditions.verification_condition ->
@@ -90,7 +95,7 @@ module MakeBackendIO (B : Backend) = struct
 
   type vc_encoding_result =
     | Success of B.vc_encoding * B.backend_context
-    | Fail of string
+    | Fail of Pos.t option * string
 
   let print_negative_result
       (vc : Conditions.verification_condition)
@@ -127,11 +132,15 @@ module MakeBackendIO (B : Backend) = struct
           if B.is_model_empty model then None
           else
             Some
-              (Format.asprintf
-                 "The solver generated the following counterexample to explain \
-                  the faulty behavior:\n\
-                  %s"
-                 (B.print_model ctx model))
+              (match B.print_model ctx model with
+              | m ->
+                "The solver generated the following counterexample to explain \
+                 the faulty behavior:\n"
+                ^ m
+              | exception Unsupported (_, msg) ->
+                "The solver generated a counterexample that could not be \
+                 printed: "
+                ^ msg)
     in
     var_and_pos
     ^
@@ -167,11 +176,14 @@ module MakeBackendIO (B : Backend) = struct
         Message.warning "%s" (print_negative_result vc backend_ctx model);
         false
       | Unknown -> failwith "The solver failed at proving or disproving the VC")
-    | Fail msg ->
+    | Fail (pos, msg) ->
       Message.warning
-        "@[<v>@{<yellow>[%a.%s]@} The translation to Z3 failed:@,%s@]"
+        "@[<v>@{<yellow>[%a.%s]@} The translation to Z3 failed:@,%s%a@]"
         ScopeName.format vc.vc_scope
         (Bindlib.name_of (Mark.remove vc.vc_variable))
-        msg;
+        msg
+        (Format.pp_print_option (fun fmt p ->
+             Format.fprintf fmt "@,%a" (Pos.format_loc_text ()) p))
+        pos;
       false
 end

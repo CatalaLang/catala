@@ -31,12 +31,22 @@ $ catala proof --plugin-dir=_build/default/compiler/plugins/ --disable-counterex
 │
 │  [A.y] The translation to Z3 failed:
 │  [Z3 encoding] EApp node: Catala function calls should only include operators or function names
+│  ─➤ tests-extra/proof/good/dates_get_year.catala_en:11.32-50:
+│     │
+│  11 │   definition y under condition Date.get_year of x >= 2010 and Date.get_year of x < 2015 consequence equals false
+│     │                                ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│  Test
 │
 └─
 ┌─[WARNING]─
 │
 │  [A.y] The translation to Z3 failed:
 │  [Z3 encoding] EApp node: Catala function calls should only include operators or function names
+│  ─➤ tests-extra/proof/good/dates_get_year.catala_en:11.32-50:
+│     │
+│  11 │   definition y under condition Date.get_year of x >= 2010 and Date.get_year of x < 2015 consequence equals false
+│     │                                ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│  Test
 │
 └─
 ```
