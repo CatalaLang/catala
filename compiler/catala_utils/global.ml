@@ -137,3 +137,7 @@ let enforce_options
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
 let raw_file f = f
 let has_localised_stdlib = function `En | `Fr -> true | _ -> false
+
+let lint_setting settings l =
+  let last l = List.assoc_opt l (List.rev settings) in
+  match last l with None -> last All | s -> s

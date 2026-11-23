@@ -125,3 +125,7 @@ val raw_file : string -> raw_file
 val has_localised_stdlib : backend_lang -> bool
 (** Returns true for languages which should use a specialised stdlib ; when
     false, the English stdlib must be used as fallback. *)
+
+val lint_setting : (lint * bool) list -> lint -> bool option
+(** [lint_setting settings l] is the last setting for [l] (or for [All]), or
+    [None] if neither is set *)

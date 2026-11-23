@@ -32,6 +32,7 @@ type global = {
   target_dir : File.t;
   catala_exe : File.t option;
   catala_opts : string list;
+  lints : (Global.lint * bool) list;
   default_targets : string list;
   include_sources : bool;
 }

@@ -56,6 +56,20 @@ let all_lints =
 let lint_of_string s =
   List.find_opt (fun l -> String.equal (lint_name l) s) all_lints
 
+let lint_args lints =
+  let enabled, disabled =
+    List.partition_map
+      (fun (l, b) ->
+        let name = lint_name l in
+        if b then Left name else Right name)
+      lints
+  in
+  let arg flag = function
+    | [] -> []
+    | names -> [Format.sprintf "--%s=%s" flag (String.concat "," names)]
+  in
+  arg "enable-lint" enabled @ arg "disable-lint" disabled
+
 open Cmdliner
 
 (* Arg converters for our custom types *)

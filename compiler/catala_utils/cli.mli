@@ -33,6 +33,16 @@ val extensions : (string * backend_lang) list
 (** {2 CLI flags and options} *)
 
 val when_opt : when_enum Cmdliner.Arg.conv
+val lint_opt : lint Cmdliner.Arg.conv
+val lint_name : lint -> string
+
+val all_lints : lint list
+(** All lints, [All] included *)
+
+val lint_args : (lint * bool) list -> string list
+(** Turns lint settings back into catala arguments, e.g.
+    [[UnusedVariable, true; IdenticalRules, false]] gives
+    [["--enable-lint=unused-variable"; "--disable-lint=identical-rules"]] *)
 
 module Flags : sig
   open Cmdliner
@@ -46,6 +56,8 @@ module Flags : sig
 
     val options : options Term.t
     (** [flags] plus an additional positional argument for the input file *)
+
+    val lints : (lint * bool) list Term.t
   end
 
   (** Parsers for all flags and options that commands can use *)

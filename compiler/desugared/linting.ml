@@ -391,15 +391,8 @@ let lint_program (p : program) : unit =
       UnusedVariable, true, detect_dead_code deps;
     ]
   in
-  (* the last setting wins, and a named lint takes precedence over [All] *)
-  let settings = List.rev Global.options.lints in
-  let setting l = List.assoc_opt l settings in
   List.iter
     (fun (l, default, lint) ->
-      let enabled =
-        match setting l with
-        | Some b -> b
-        | None -> Option.value ~default (setting All)
-      in
-      if enabled then lint p)
+      let setting = Global.lint_setting Global.options.lints l in
+      if Option.value ~default setting then lint p)
     lints

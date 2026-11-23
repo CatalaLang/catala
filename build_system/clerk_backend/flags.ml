@@ -88,7 +88,8 @@ let default ~code_coverage ~(trace : bool) ~inplace ~config ~include_dirs =
         else Expr.Word ("--stdlib=" ^ File.(Var.(!builddir) / Scan.libcatala)))
        :: Expr.Word ("--directory=" ^ Var.(!builddir))
        :: (if trace then [Expr.Word "--trace"] else [])
-      @ List.map word options.global.catala_opts)
+      @ List.map word options.global.catala_opts
+      @ List.map word (Cli.lint_args options.global.lints))
   in
   let includes = lazy (List.map word (includes include_dirs)) in
   let test_flags = config.Clerk_cli.test_flags in

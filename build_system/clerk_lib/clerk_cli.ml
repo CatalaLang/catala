@@ -568,6 +568,7 @@ let init
     ninja_file
     catala_exe
     catala_opts
+    lints
     build_dir
     target_dir
     include_dirs
@@ -646,6 +647,19 @@ let init
       let _ = Global.enforce_options ~output_format:JSON () in
       ["--output-format"; "json"] @ catala_opts
   in
+  let lints =
+    List.filter_map
+      (function
+        | Global.All -> None
+        | l ->
+          let setting =
+            match Global.lint_setting lints l with
+            | None -> Global.lint_setting config.global.lints l
+            | s -> s
+          in
+          Option.map (fun b -> l, b) setting)
+      Cli.all_lints
+  in
   (* The command line argument has priority over field in config *)
   let catala_exe =
     match catala_exe with None -> config.global.catala_exe | exe -> exe
@@ -662,6 +676,7 @@ let init
             target_dir;
             catala_exe;
             catala_opts = config.global.catala_opts @ catala_opts;
+            lints;
             include_dirs;
           };
       };
@@ -679,6 +694,7 @@ let init_term0 ~allow_test_flags =
     $ ninja_output
     $ catala_exe
     $ catala_opts
+    $ Cli.Flags.Global.lints
     $ build_dir
     $ target_dir
     $ scan_dirs
