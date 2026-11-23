@@ -8,6 +8,10 @@ in behavior visible for the end-users of the tooling.
   file that has too many tests.
 * [#1175](https://github.com/CatalaLang/catala/pull/1175) Lints can be turned
   on or off with `--enable-lint=NAME` and `--disable-lint=NAME` (or `all`).
+* [#1175](https://github.com/CatalaLang/catala/pull/1175) Lints can be toggled
+  with `--enable-lint`/`--disable-lint` (`catala` and `clerk`),
+  `enable_lints`/`disable_lints` in `clerk.toml`, or locally with the
+  `#[lint.enable]`/`#[lint.disable]` attributes.
 
 * [#1152](https://github.com/CatalaLang/catala/pull/1152) Fixes:
   - `clerk build` ignoring the `--trace` option;
