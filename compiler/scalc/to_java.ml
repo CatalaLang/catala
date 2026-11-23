@@ -1053,7 +1053,49 @@ let format_tests ctx ppf p =
   let closures, tests = p.tests in
   assert (closures = []);
   pp_skip_line ppf ();
-  fprintf ppf "// Automatic Catala tests@\n";
+  fprintf ppf "// Automatic Catala tests";
+  let test_method_of_scope scope_name =
+    Format.asprintf "_catala_test_%a" format_scope scope_name
+  in
+  let format_test ppf (scope_name, var, block) =
+    pp_open_vbox ppf 2;
+    fprintf ppf
+      "if (enabled_tests.isEmpty() || enabled_tests.contains(%s)) {@\n"
+      (java_string (ScopeName.original_base scope_name));
+    pp_open_vbox ppf 2;
+    fprintf ppf "try {@\n";
+    (if Global.options.trace <> None then
+       let scope_pos = Mark.get (ScopeName.get_info scope_name) in
+       fprintf ppf "%a@\n" (format_begin_trace ctx)
+         (ScopeCall scope_name, scope_pos));
+    fprintf ppf "%a@\n" (format_block ~toplevel:true ctx) block;
+    if Global.options.trace <> None then
+      fprintf ppf "CatalaTrace.end(%s);@\n" (VarName.to_string var);
+    fprintf ppf "CatalaGlobals.displayResult(%s, %s, test_mode, json_mode);"
+      (java_string (ScopeName.original_base scope_name))
+      (VarName.to_string var);
+    pp_close_box ppf ();
+    fprintf ppf
+      "@\n\
+       } catch (RuntimeException e) { CatalaGlobals.displayError(%s, e);@\n\
+       throw e; } }"
+      (java_string (ScopeName.original_base scope_name));
+    pp_close_box ppf ()
+  in
+  let format_test_method ppf ((scope_name, _, _) as test) =
+    fprintf ppf
+      "@[<v 4>private static void %s(@[<v>java.util.Set<String> \
+       enabled_tests,@ boolean test_mode,@ boolean json_mode) {@]@,"
+      (test_method_of_scope scope_name);
+    format_test ppf test;
+    fprintf ppf "@]@\n}"
+  in
+  pp_print_list_padded ~pp_sep:pp_skip_line format_test_method ppf tests;
+  pp_skip_line ppf ();
+  let format_test_call ppf (scope_name, _, _) =
+    fprintf ppf "%s(enabled_tests, test_mode, json_mode);"
+      (test_method_of_scope scope_name)
+  in
   fprintf ppf "@[<v 4>public static void main(String[] args) {@,";
   (if tests = [] then
      Message.warning
@@ -1102,32 +1144,7 @@ let format_tests ctx ppf p =
             (fun ppf (s, _, _) -> ScopeName.format ppf s))
          tests
      in
-     let format_test ppf (scope_name, var, block) =
-       pp_open_vbox ppf 2;
-       fprintf ppf
-         "if (enabled_tests.isEmpty() || enabled_tests.contains(%s)) {@\n"
-         (java_string (ScopeName.original_base scope_name));
-       pp_open_vbox ppf 2;
-       fprintf ppf "try {@\n";
-       (if Global.options.trace <> None then
-          let scope_pos = Mark.get (ScopeName.get_info scope_name) in
-          fprintf ppf "%a@\n" (format_begin_trace ctx)
-            (ScopeCall scope_name, scope_pos));
-       fprintf ppf "%a@\n" (format_block ~toplevel:true ctx) block;
-       if Global.options.trace <> None then
-         fprintf ppf "CatalaTrace.end(%s);@\n" (VarName.to_string var);
-       fprintf ppf "CatalaGlobals.displayResult(%s, %s, test_mode, json_mode);"
-         (java_string (ScopeName.original_base scope_name))
-         (VarName.to_string var);
-       pp_close_box ppf ();
-       fprintf ppf
-         "@\n\
-          } catch (RuntimeException e) { CatalaGlobals.displayError(%s, e);@\n\
-          throw e; } }"
-         (java_string (ScopeName.original_base scope_name));
-       pp_close_box ppf ()
-     in
-     pp_print_list ~pp_sep:pp_print_space format_test ppf tests);
+     pp_print_list ~pp_sep:pp_print_space format_test_call ppf tests);
   fprintf ppf "@]@\n}"
 
 let format_scope ctx ppf (sbody : Ast.scope_body) =
