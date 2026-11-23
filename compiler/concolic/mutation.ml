@@ -229,5 +229,5 @@ let mutate_default_at_index
 let create_one_conflict (expr : ((yes, 'c, yes) interpr_kind, 't) gexpr) :
     ((yes, 'c, yes) interpr_kind, 't) gexpr boxed =
   let stats = get_stats expr in
-  let goal = Random.int stats.defaults_with_excepts + 1 in
+  let goal = Random.int (stats.defaults_with_excepts + 1) in
   mutate_default_at_index duplicate_excepts true goal expr
