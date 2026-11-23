@@ -31,11 +31,49 @@ let message_format_opt = ["human", (Human : message_format_enum); "gnu", GNU]
 let trace_format_opt = ["human", (Human : format_enum); "json", JSON]
 let output_format_opt = ["human", (Human : format_enum); "json", JSON]
 
+let lint_name = function
+  | All -> "all"
+  | EmptyDefinition -> "empty-definition"
+  | IdenticalRules -> "identical-rules"
+  | StateIgnoresPrevious -> "state-ignores-previous"
+  | UnusedEnumConstructor -> "unused-enum-constructor"
+  | UnusedLocalVariable -> "unused-local-variable"
+  | UnusedStructField -> "unused-struct-field"
+  | UnusedVariable -> "unused-variable"
+
+let all_lints =
+  [
+    All;
+    EmptyDefinition;
+    IdenticalRules;
+    StateIgnoresPrevious;
+    UnusedEnumConstructor;
+    UnusedLocalVariable;
+    UnusedStructField;
+    UnusedVariable;
+  ]
+
+let lint_of_string s =
+  List.find_opt (fun l -> String.equal (lint_name l) s) all_lints
+
 open Cmdliner
 
 (* Arg converters for our custom types *)
 
 let when_opt = Arg.enum ["auto", Auto; "always", Always; "never", Never]
+
+let lint_opt =
+  let parser s =
+    match lint_of_string s with
+    | Some l -> Ok l
+    | None ->
+      Error
+        (Format.sprintf "unknown lint %S, must be %s" s
+           (Arg.doc_alts ~quoted:true (List.map lint_name all_lints)))
+  in
+  Arg.Conv.make ~docv:"LINT" ~parser
+    ~pp:(fun ppf l -> Format.pp_print_string ppf (lint_name l))
+    ()
 
 let raw_file =
   Arg.conv ~docv:"FILE"
@@ -245,22 +283,26 @@ module Flags = struct
       let names flag ~doc =
         Term.(
           const List.flatten
-          $ (value & opt_all (list string) [] & info [flag] ~docv:"LINT" ~doc))
+          $ (value & opt_all (list lint_opt) [] & info [flag] ~docv:"LINT" ~doc))
       in
       (* Disabling comes last, so that it takes precedence *)
       let make enable disable =
-        List.map (fun n -> n, true) enable
-        @ List.map (fun n -> n, false) disable
+        List.map (fun l -> l, true) enable
+        @ List.map (fun l -> l, false) disable
       in
+      let alts = Arg.doc_alts (List.map lint_name all_lints) in
       Term.(
         const make
         $ names "enable-lint"
-            ~doc:"Enable the given lints, or $(b,all) of them."
+            ~doc:
+              (Format.sprintf "Enable the given lints. $(docv) must be %s." alts)
         $ names "disable-lint"
             ~doc:
-              "Disable the given lints, or $(b,all) of them. Takes precedence \
-               over $(b,--enable-lint), and named lints take precedence over \
-               $(b,all).")
+              (Format.sprintf
+                 "Disable the given lints. $(docv) must be %s. Takes \
+                  precedence over $(b,--enable-lint), and named lints take \
+                  precedence over $(b,all)."
+                 alts))
 
     let max_prec_digits =
       value

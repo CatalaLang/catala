@@ -17,6 +17,17 @@
 type file = string
 type raw_file = file
 type backend_lang = [ `En | `Fr | `Pl ]
+
+type lint =
+  | All
+  | EmptyDefinition
+  | IdenticalRules
+  | StateIgnoresPrevious
+  | UnusedEnumConstructor
+  | UnusedLocalVariable
+  | UnusedStructField
+  | UnusedVariable
+
 type when_enum = Auto | Always | Never
 type message_format_enum = Human | GNU | Lsp
 type format_enum = Human | JSON
@@ -38,7 +49,7 @@ type options = {
   mutable output_format : format_enum;
   mutable plugins_dirs : file list;
   mutable disable_warnings : bool;
-  mutable lints : (string * bool) list;
+  mutable lints : (lint * bool) list;
   mutable max_prec_digits : int;
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;

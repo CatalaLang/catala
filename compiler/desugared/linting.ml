@@ -379,32 +379,27 @@ let lint_program (p : program) : unit =
     ScopeName.Map.map Dependency.build_scope_dependencies
       p.program_root.module_scopes
   in
-  (* All available lints: name -> (enabled by default, function) *)
-  let lints =
-    String.Map.of_list
-      [
-        "empty-definition", (true, detect_empty_definitions);
-        "unused-variable", (true, detect_dead_code deps);
-        "unused-struct-field", (true, detect_unused_struct_fields);
-        "unused-enum-constructor", (true, detect_unused_enum_constructors);
-        "identical-rules", (true, detect_identical_rules);
-        "unused-local-variable", (true, detect_unused_local_variables);
-        "state-ignores-previous", (true, detect_states_ignoring_previous deps);
-      ]
+  (* All available lints, with whether they are enabled by default *)
+  let lints : (Global.lint * bool * (program -> unit)) list =
+    [
+      EmptyDefinition, true, detect_empty_definitions;
+      IdenticalRules, true, detect_identical_rules;
+      StateIgnoresPrevious, true, detect_states_ignoring_previous deps;
+      UnusedEnumConstructor, true, detect_unused_enum_constructors;
+      UnusedLocalVariable, true, detect_unused_local_variables;
+      UnusedStructField, true, detect_unused_struct_fields;
+      UnusedVariable, true, detect_dead_code deps;
+    ]
   in
-  let set lints (name, enabled) =
-    let set_enabled (_, lint) = enabled, lint in
-    if String.equal name "all" then String.Map.map set_enabled lints
-    else if String.Map.mem name lints then
-      String.Map.update name (Option.map set_enabled) lints
-    else
-      Message.error "Unknown lint@ \"%s\".@ Available lints:@ %a" name
-        (String.Map.format_keys ~pp_sep:Format.pp_print_space)
-        lints
-  in
-  (* "all" is applied first, so that lints given by name override it *)
-  let all, named =
-    List.partition (fun (n, _) -> String.equal n "all") Global.options.lints
-  in
-  List.fold_left set lints (all @ named)
-  |> String.Map.iter (fun _ (enabled, lint) -> if enabled then lint p)
+  (* the last setting wins, and a named lint takes precedence over [All] *)
+  let settings = List.rev Global.options.lints in
+  let setting l = List.assoc_opt l settings in
+  List.iter
+    (fun (l, default, lint) ->
+      let enabled =
+        match setting l with
+        | Some b -> b
+        | None -> Option.value ~default (setting All)
+      in
+      if enabled then lint p)
+    lints
