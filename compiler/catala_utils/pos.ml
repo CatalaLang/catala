@@ -22,7 +22,7 @@ type t = {
   start_col : int;
   end_line : int;
   end_col : int;
-  attr : attr list;
+  attr : attr list;  (** In no specific order, see [get_attrs_sorted] *)
 }
 (* Lines and columns are 1-based, columns are counted in code points and
    [end_col] is exclusive. *)
@@ -74,6 +74,11 @@ let add_attrs t attrs =
 
 let filter_attr t f = { t with attr = List.filter f t.attr }
 let get_attrs t f = List.filter_map f t.attr
+
+let get_attrs_sorted t f =
+  get_attrs t f
+  |> List.sort (fun (p1, _) (p2, _) -> compare p1 p2)
+  |> List.map snd
 
 let get_attr t f =
   match get_attrs t f with
