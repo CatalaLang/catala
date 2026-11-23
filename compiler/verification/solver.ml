@@ -38,7 +38,7 @@ let solve_vc
               Z3backend.Io.translate_expr ctx vc.Conditions.vc_guard
             in
             Z3backend.Io.Success (z3_vc, ctx)
-          with Failure msg -> Fail msg ))
+          with Io.Unsupported (pos, msg) -> Fail (pos, msg) ))
       vcs
   in
   let all_proven =
