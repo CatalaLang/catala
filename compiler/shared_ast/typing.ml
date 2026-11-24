@@ -1283,7 +1283,10 @@ let program ?assume_op_types prg =
 let program ?assume_op_types ?(internal_check = false) prg =
   let wrap =
     if internal_check then (fun f ->
-      try f ()
+      try
+        let r = f () in
+        Message.report_delayed_errors_if_any ();
+        r
       with (Message.CompilerError _ | Message.CompilerErrors _) as exc ->
         let bt = Printexc.get_raw_backtrace () in
         let err =
