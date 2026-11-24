@@ -35,26 +35,10 @@ $ catala Interpret -s A
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0.86
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 1 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ───────
+│ {}         │ o = 0.86
 └─
 ```
-

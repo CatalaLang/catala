@@ -52,59 +52,15 @@ let scope A (A_in: A_in): A =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = Case1 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 31
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = Case2
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = Case3
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 31
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 3 tests:
+│         Inputs │ Outputs
+│ ────────── Test #1 ─────
+│ x_in = Case1 0 │ o = 31
+│ ────────── Test #2 ─────
+│ x_in = Case2   │ o = 0
+│ ────────── Test #3 ─────
+│ x_in = Case3   │ o = 31
 └─
 ```
 
@@ -125,58 +81,14 @@ let scope B (B_in: B_in): B =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s B
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = Case1 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = Case2
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = Case3
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 31
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ B ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 3 tests:
+│         Inputs │ Outputs
+│ ────────── Test #1 ─────
+│ x_in = Case1 0 │ o = 0
+│ ────────── Test #2 ─────
+│ x_in = Case2   │ o = 0
+│ ────────── Test #3 ─────
+│ x_in = Case3   │ o = 31
 └─
 ```

@@ -32,62 +32,19 @@ let scope A (A_in: A_in): A =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . t_in = ¤0.00
-└─
-┌─[RESULT]─
-│ . x_in = ¤0.00
-└─
-┌─[RESULT]─
-│ . y_in = ¤0.00
-└─
-┌─[RESULT]─
-│ . z_in = ¤0.00
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = ¤0.00
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . t_in = ¤-0.02
-└─
-┌─[RESULT]─
-│ . x_in = ¤-0.01
-└─
-┌─[RESULT]─
-│ . y_in = ¤-0.02
-└─
-┌─[RESULT]─
-│ . z_in = ¤0.00
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = ¤-1.00
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 2 tests:
+│        Inputs │ Outputs
+│ ───────── Test #1 ─────────
+│ x_in = ¤0.00  │ o = ¤0.00
+│ y_in = ¤0.00  │
+│ z_in = ¤0.00  │
+│ t_in = ¤0.00  │
+│ ───────── Test #2 ─────────
+│ x_in = ¤-0.01 │ o = ¤-1.00
+│ y_in = ¤-0.02 │
+│ z_in = ¤0.00  │
+│ t_in = ¤-0.02 │
 └─
 ```
 

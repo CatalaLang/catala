@@ -26,89 +26,24 @@ let scope A (A_in: A_in): A =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:↯NoValue↯ at except_just_false:6.12-13
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 2
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 3
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 3
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 4
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Empty↯ at tests/concolic/good/except_just_false.catala_en:6.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = -1
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 5 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ─────────────────────────────────────
+│ x_in = 0   │ o = 1
+│ ────── Test #2 ─────────────────────────────────────
+│ x_in = 2   │ o = 2
+│ ────── Test #3 ─────────────────────────────────────
+│ x_in = 3   │ o = 3
+│ ────── Test #4 ─────────────────────────────────────
+│ x_in = 4   │ ↯NoValue↯ at except_just_false:6.12-13
+│ ────── Test #5 ─────────────────────────────────────
+│ x_in = -1  │ o = 0
 └─
 ```
 

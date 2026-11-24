@@ -6,26 +6,37 @@ declaration scope A:
   output o content integer
 
 scope A:
-    definition o equals -1 # never reached
-    exception definition o
-        under condition d<=|1954-06-07|
-        consequence equals 0
-    exception definition o
-        under condition d>|1954-06-07| and d<|2010-01-01|
-        consequence equals 1
-    exception definition o
-        under condition d=|2010-01-01|
-        consequence equals 2
-    exception definition o
-        under condition d>|2010-01-01| and d<|2024-01-15|
-        consequence equals 3
-    exception definition o
-        under condition d>=|2024-01-15|
-        consequence equals 4
+  definition o equals -1
+  # never reached
+  exception
+  definition o
+  under condition d <= |1954-06-07|
+  consequence equals
+    0
+  exception
+  definition o
+  under condition d > |1954-06-07| and d < |2010-01-01|
+  consequence equals
+    1
+  exception
+  definition o
+  under condition d = |2010-01-01|
+  consequence equals
+    2
+  exception
+  definition o
+  under condition d > |2010-01-01| and d < |2024-01-15|
+  consequence equals
+    3
+  exception
+  definition o
+  under condition d >= |2024-01-15|
+  consequence equals
+    4
 ```
 
 ```catala-test-cli
-$ catala DCalc -s A
+$ catala dcalc -s A
 let scope A (A_in: A_in): A =
   let get d : date = A_in.d_in in
   let set o : integer =
@@ -42,90 +53,19 @@ let scope A (A_in: A_in): A =
 ```
 
 ```catala-test-cli
-$ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . d_in = |2010-01-01|
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . d_in = |2010-01-02|
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 3
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . d_in = |2024-01-15|
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 4
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . d_in = |2009-12-31|
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . d_in = |1954-06-07|
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+$ catala concolic --conc-optim=incremental -s A
+┌─[RESULT]─ Concolic execution ─
+│ Executed 5 tests:
+│              Inputs │ Outputs
+│ ─────────────── Test #1 ────
+│ d_in = |2010-01-01| │ o = 2
+│ ─────────────── Test #2 ────
+│ d_in = |2010-01-02| │ o = 3
+│ ─────────────── Test #3 ────
+│ d_in = |2024-01-15| │ o = 4
+│ ─────────────── Test #4 ────
+│ d_in = |2009-12-31| │ o = 1
+│ ─────────────── Test #5 ────
+│ d_in = |1954-06-07| │ o = 0
 └─
 ```
-

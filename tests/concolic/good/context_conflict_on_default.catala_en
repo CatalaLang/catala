@@ -34,65 +34,47 @@ $ catala Concolic --conc-optim=incremental -s A
 │ 10 │     definition x equals 1
 │    │                ‾
 └─ Article
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at context_conflict_on_default:5.20-21
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/context_conflict_on_default.catala_en:9.25-26:
+│        │
+│      9 │     definition x equals 0
+│        │                         ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/context_conflict_on_default.catala_en:10.25-26:
+│         │
+│      10 │     definition x equals 1
+│         │                         ‾
+│      Article
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = ⟨0⟩
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 10
-└─
-┌─[RESULT]─
-│ . x = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = ⟨1⟩
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 20
-└─
-┌─[RESULT]─
-│ . x = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = ∅
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/context_conflict_on_default.catala_en:10.25-26,tests/concolic/good/context_conflict_on_default.catala_en:9.25-26,)↯ at tests/concolic/good/context_conflict_on_default.catala_en:5.20-21
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 3 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ───────────────────────────────────────────────────────────────────────
+│ x_in = ⟨0⟩ │ x = 0
+│            │ o = 10
+│ ────── Test #2 ───────────────────────────────────────────────────────────────────────
+│ x_in = ⟨1⟩ │ x = 1
+│            │ o = 20
+│ ────── Test #3 ───────────────────────────────────────────────────────────────────────
+│ x_in = ∅   │ ↯Conflict↯ at context_conflict_on_default:5.20-21
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/context_conflict_on_default.catala_en:9.25-26:
+│            │     │
+│            │   9 │     definition x equals 0
+│            │     │                         ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/context_conflict_on_default.catala_en:10.25-26:
+│            │      │
+│            │   10 │     definition x equals 1
+│            │      │                         ‾
+│            │   Article
 └─
 ```
 

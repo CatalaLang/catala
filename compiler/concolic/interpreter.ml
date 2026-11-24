@@ -122,28 +122,28 @@ let add_genericerror e =
 (* Coerce a non-error expression into the result type *)
 let make_ok : conc_expr -> conc_result = add_genericerror
 
-let make_error mk symb_expr constraints : conc_result =
+let make_err m symb_expr constraints : conc_result =
   let mark =
     set_conc_info symb_expr constraints
-      mk (* FIXME this loses type information: is it ok? *)
+      m (* FIXME this loses type information: is it ok? *)
   in
   Expr.unbox (Expr.egenericerror mark)
 
-let make_error_emptyerror mk constraints message : conc_result =
-  let symb_expr = SymbExpr.mk_emptyerror message in
-  make_error mk symb_expr constraints
+let empty_err m constraints : conc_result =
+  let symb_expr = SymbExpr.mk_emptyerror (Expr.mark_pos m) in
+  make_err m symb_expr constraints
 
-let make_error_conflicterror mk constraints spans message : conc_result =
-  let symb_expr = SymbExpr.mk_conflicterror message spans in
-  make_error mk symb_expr constraints
+let conflict_err m constraints extra_pos : conc_result =
+  let symb_expr = SymbExpr.mk_conflicterror (Expr.mark_pos m) extra_pos in
+  make_err m symb_expr constraints
 
-let make_error_divisionbyzeroerror mk constraints spans message : conc_result =
-  let symb_expr = SymbExpr.mk_divisionbyzeroerror message spans in
-  make_error mk symb_expr constraints
+let division0_err (m : 'a mark) constraints extra_pos : conc_result =
+  let symb_expr = SymbExpr.mk_divisionbyzeroerror (Expr.mark_pos m) extra_pos in
+  make_err m symb_expr constraints
 
-let make_error_assertionerror mk constraints message : conc_result =
-  let symb_expr = SymbExpr.mk_assertionerror message in
-  make_error mk symb_expr constraints
+let assertion_err m constraints : conc_result =
+  let symb_expr = SymbExpr.mk_assertionerror (Expr.mark_pos m) in
+  make_err m symb_expr constraints
 
 (* Inspired by [Concrete.delcustom] *)
 let del_genericerror e =
@@ -392,7 +392,6 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
   | None ->
     let s_name = Mark.remove (StructName.get_info s) in
     let fields = StructName.Map.find s ctx.ctx_decl.ctx_structs in
-
     let mk_struct_s =
       "mk!" ^ s_name
       (* struct constructor *)
@@ -940,12 +939,7 @@ let handle_division
     add_conc_info_m m symb_expr ~constraints concrete
   with Runtime.(Error (DivisionByZero, _, _)) ->
     let den_zero_pc = PathConstraint.mk_z3 den_zero (Expr.pos e2) true in
-    make_error_divisionbyzeroerror m [den_zero_pc]
-      [
-        Some "The division operator:", Expr.mark_pos m;
-        Some "The null denominator:", Expr.pos e2;
-      ]
-      "division by zero at runtime"
+    division0_err m [den_zero_pc] ["Null denominator", Expr.pos e2]
 
 (* Call-by-value: the arguments are expected to be already evaluated here *)
 let evaluate_operator
@@ -1737,7 +1731,7 @@ let rec evaluate_expr :
             PathConstraint.mk_z3 not_e_symb (Expr.pos e') false
           in
           let constraints = not_e_symb_pc :: e_constraints in
-          make_error_assertionerror m constraints "Assertion failed"
+          assertion_err m constraints
           (* "Assertion failed:@\n%a" (Print.UserFacing.expr lang) e'
              (partially_evaluate_expr_for_assertion_failure_message ctx lang
              (Expr.skip_wrappers e')) *)
@@ -1755,10 +1749,7 @@ let rec evaluate_expr :
       propagate_generic_error (evaluate_expr ctx lang e') []
       @@ fun e' ->
       match e' with
-      | EEmpty, m ->
-        make_error_emptyerror m (get_constraints e')
-          "This variable evaluated to an empty term (no rule that defined it \
-           applied in this situation)"
+      | EEmpty, m -> empty_err m (get_constraints e')
       | e -> make_ok e
       (* just pass along the concrete and symbolic values, and the
          constraints *)
@@ -1898,8 +1889,6 @@ let rec evaluate_expr :
     | EPureDefault e -> evaluate_expr ctx lang e
     | _ -> .
   in
-  (* Message.debug "\teval returns %a | %a"
-     (Print.expr ()) ret SymbExpr.format (get_symb_expr_r ret); *)
   Message.debug "<<< evaluated to %a" SymbExpr.format (get_symb_expr_r ret);
   ret
 
@@ -1986,13 +1975,11 @@ and handle_default ctx lang m pos nonempty_count excepts just cons =
   | _ ->
     (* TODO QU Raphaël: discrepancy with standard interpreter? =>> NON à mon
        avis *)
-    make_error_conflicterror m exc_constraints
+    conflict_err m exc_constraints
       (List.map
          (fun except ->
-           Some "This consequence has a valid justification:", Expr.pos except)
+           "This consequence has a valid justification", Expr.pos except)
          (List.filter (fun sub -> not (Concrete.is_empty_error sub)) excepts))
-      "There is a conflict between multiple valid consequences for assigning \
-       the same variable."
 
 (** The following functions gather methods to generate input values for concolic
     execution, be it from a model or from hardcoded default values. *)
@@ -2085,7 +2072,6 @@ let make_soft_constraints ctx (input_marks : conc_info mark StructField.Map.t) :
 let simplify_program ctx (p : (dcalc, 'm) gexpr program) s : conc_expr =
   Message.debug "[CONC] Make program expression concolic";
   let e = Expr.unbox (Program.to_expr p s) in
-
   Message.debug "[CONC] Pre-compute program concretely";
   let result = Concrete.evaluate_expr ctx.ctx_decl p.lang e in
   init_conc_expr result
@@ -2110,11 +2096,7 @@ let eval_conc_with_input
   Message.debug "...inputs applied...";
   evaluate_expr ctx lang (Expr.unbox to_interpret)
 
-(** Constraint solving *)
-module Solver (Settings : sig
-  val optims : Optimizations.flag list
-end) =
-struct
+module type SOLVER = sig
   type unknown_info = {
     z3reason : string;
     z3stats : Z3.Statistics.statistics;
@@ -2127,43 +2109,43 @@ struct
     | Z3Unsat
     | Z3Unknown of unknown_info
 
-  (* FIXME this is ugly *)
-  let num_unsat = ref 0
-  let num_soft_unsat = ref 0
-  let num_soft_sat = ref 0
+  type model = {
+    model_z3 : Z3.Model.model;
+    model_empty_reentrants : StructField.Set.t;
+  }
 
-  module StringMap = Map.Make (String)
+  type input = PathConstraint.pc_expr list
+  type solver_result = Sat of model option | Unsat | Unknown of unknown_info
 
-  let soft_sats = ref StringMap.empty
-  let soft_unsats = ref StringMap.empty
+  val format_model : Format.formatter -> model -> unit
+  val solve : context -> input -> Stats.t -> Stats.t * solver_result
+  val push : context -> PathConstraint.pc_expr -> unit
+  val pop : context -> PathConstraint.pc_expr -> unit
 
-  let incr_sat group =
-    soft_sats :=
-      StringMap.update group
-        (fun n -> Some (Option.value ~default:0 n + 1))
-        !soft_sats
+  val inputs_of_model :
+    context ->
+    model ->
+    conc_info mark StructField.Map.t ->
+    conc_boxed_expr StructField.Map.t
 
-  let incr_unsat group =
-    soft_unsats :=
-      StringMap.update group
-        (fun n -> Some (Option.value ~default:0 n + 1))
-        !soft_unsats
+  val format_unknown_info : Format.formatter -> unknown_info -> unit
+end
 
-  let print_soft_sats () =
-    let open Format in
-    let seq = StringMap.to_seq !soft_sats in
-    asprintf "sat groups:@[<v>@,%a@]"
-      (pp_print_seq ~pp_sep:pp_print_cut (fun fmt (name, n) ->
-           fprintf fmt "%n %s sat group" n name))
-      seq
+(** Constraint solving *)
+module Solver (Settings : sig
+  val optims : Optimizations.flag list
+end) : SOLVER = struct
+  type unknown_info = {
+    z3reason : string;
+    z3stats : Z3.Statistics.statistics;
+    z3solver_string : string;
+    z3assertions : s_expr list;
+  }
 
-  let print_soft_unsats () =
-    let open Format in
-    let seq = StringMap.to_seq !soft_unsats in
-    asprintf "unsat groups:@[<v>@,%a@]"
-      (pp_print_seq ~pp_sep:pp_print_cut (fun fmt (name, n) ->
-           fprintf fmt "%n %s unsat group" n name))
-      seq
+  type z3_solver_result =
+    | Z3Sat of Z3.Model.model option
+    | Z3Unsat
+    | Z3Unknown of unknown_info
 
   module type Z3SolverModuleType = sig
     type t
@@ -2212,29 +2194,39 @@ struct
 
   module type Z3SolverType = sig
     val solve :
-      Z3.context -> s_expr list -> PathConstraint.soft list -> z3_solver_result
+      Z3.context ->
+      s_expr list ->
+      PathConstraint.soft list ->
+      Stats.t ->
+      Stats.t * z3_solver_result
 
     val push : Z3.context -> s_expr -> unit
     val pop : Z3.context -> unit -> unit
   end
 
   module SimpleZ3Solver (S : Z3SolverModuleType) : Z3SolverType = struct
-    let solve ctx (constraints : s_expr list) (_ : PathConstraint.soft list) :
-        z3_solver_result =
+    let solve
+        ctx
+        (constraints : s_expr list)
+        (_ : PathConstraint.soft list)
+        stats : Stats.t * z3_solver_result =
       let solver = S.make ctx in
       S.add solver constraints;
       Message.debug "@[<hov 2>Solver is:@ %a@]" S.format solver;
       match S.check solver [] with
-      | SATISFIABLE -> Z3Sat (S.get_model solver)
-      | UNSATISFIABLE -> Z3Unsat
+      | SATISFIABLE ->
+        (* TODO: update stats*)
+        stats, Z3Sat (S.get_model solver)
+      | UNSATISFIABLE -> stats, Z3Unsat
       | UNKNOWN ->
-        Z3Unknown
-          {
-            z3reason = S.get_reason_unknown solver;
-            z3stats = S.get_statistics solver;
-            z3solver_string = Format.asprintf "%a" S.format solver;
-            z3assertions = S.get_assertions solver;
-          }
+        ( stats,
+          Z3Unknown
+            {
+              z3reason = S.get_reason_unknown solver;
+              z3stats = S.get_statistics solver;
+              z3solver_string = Format.asprintf "%a" S.format solver;
+              z3assertions = S.get_assertions solver;
+            } )
 
     let push _ _ = ()
     let pop _ () = ()
@@ -2251,7 +2243,7 @@ struct
         s
       | Some s -> s
 
-    let _solve ctx (local_constraints : s_expr list) : z3_solver_result =
+    let solve ctx (local_constraints : s_expr list) : z3_solver_result =
       let solver = get_solver ctx in
       Message.debug "Using incremental Z3 solver";
       S.push solver;
@@ -2285,44 +2277,47 @@ struct
             acc)
         StringMap.empty softs
 
-    let fold_softs ctx name group acc =
+    let fold_softs ctx name group (stats, acc) : Stats.t * _ =
       match acc with
-      | Some _ -> acc
+      | Some _ -> stats, acc
       | None -> begin
         Message.debug "Trying soft group %s" name;
         let soft_exprs =
           List.map (fun (s : PathConstraint.soft) -> s.symb) group
         in
-        let result_soft = _solve ctx soft_exprs in
+        let result_soft = solve ctx soft_exprs in
         match result_soft with
         | Z3Sat _ ->
-          incr num_soft_sat;
-          incr_sat name;
-          Some result_soft
+          let stats =
+            { stats with num_soft_sat = succ stats.num_soft_sat }
+            |> Stats.incr_sat name
+          in
+          stats, Some result_soft
         | Z3Unsat ->
-          incr num_soft_unsat;
-          incr_unsat name;
-          None
-        | Z3Unknown _ as r -> Some r
+          let stats =
+            { stats with num_soft_unsat = succ stats.num_soft_unsat }
+            |> Stats.incr_unsat name
+          in
+          stats, None
+        | Z3Unknown _ as r -> stats, Some r
         end
 
-    let solve ctx _ (softs : PathConstraint.soft list) : z3_solver_result =
+    let solve ctx _ (softs : PathConstraint.soft list) (stats : Stats.t) :
+        Stats.t * z3_solver_result =
       Message.debug "Trying solver without softs...";
-      let result = _solve ctx [] in
+      let result = solve ctx [] in
       match result with
       | Z3Sat _ ->
-        if softs = [] then result
+        if softs = [] then stats, result
         else begin
           Message.debug "Sat without softs, so trying solver with softs";
           let groups = group_softs softs in
-          (* Message.result "%s" (StringMap.to_seq groups |> List.of_seq |>
-             List.map fst |> List.hd); *)
-          let try_softs = StringMap.fold (fold_softs ctx) groups None in
-          Option.value try_softs ~default:result
+          let stats, try_softs =
+            StringMap.fold (fold_softs ctx) groups (stats, None)
+          in
+          stats, Option.value try_softs ~default:result
         end
-      | _ ->
-        incr num_unsat;
-        result
+      | _ -> { stats with num_unsat = succ stats.num_unsat }, result
 
     let push ctx e =
       let solver = get_solver ctx in
@@ -2392,7 +2387,7 @@ struct
     fprintf fmt "reentrant: %s" empty_reentrants_string;
     pp_close_box fmt ()
 
-  let fmt_unknown_info (fmt : Format.formatter) (info : unknown_info) =
+  let format_unknown_info (fmt : Format.formatter) (info : unknown_info) =
     let open Format in
     fprintf fmt "Reason: %s" info.z3reason;
     pp_print_newline fmt ();
@@ -2446,27 +2441,28 @@ struct
         ignore (Unix.alarm 0);
         raise e
 
-  let solve (ctx : context) (constraints : input) =
+  let solve (ctx : context) (constraints : input) stats =
     if Optimizations.check_easy_unsat Settings.optims ctx.ctx_z3 constraints
-    then Unsat
+    then stats, Unsat
     else
       let rec aux retry ctx constraints =
         let z3_constraints, z3_soft_constraints, model_empty_reentrants =
           split_input constraints
         in
         try
-          let status =
+          let stats, status =
             delayed_fun
               (fun () ->
-                Z3Solver.solve ctx.ctx_z3 z3_constraints z3_soft_constraints)
+                Z3Solver.solve ctx.ctx_z3 z3_constraints z3_soft_constraints
+                  stats)
               1
           in
           begin match status with
           | Z3Sat (Some model_z3) ->
-            Sat (Some { model_z3; model_empty_reentrants })
-          | Z3Sat None -> Sat None
-          | Z3Unsat -> Unsat
-          | Z3Unknown info -> Unknown info
+            stats, Sat (Some { model_z3; model_empty_reentrants })
+          | Z3Sat None -> stats, Sat None
+          | Z3Unsat -> stats, Unsat
+          | Z3Unknown info -> stats, Unknown info
           end
         with Timeout ->
           if retry then begin
@@ -2805,125 +2801,309 @@ let format_fields : type a.
   let open Format in
   if StructField.Map.is_empty fields then fprintf fmt "{}"
   else
-    fprintf fmt "@[<v 2>{@ %a@]@\n}"
-      (StructField.Map.format (fun fmt value ->
+    fprintf fmt "@[<v>%a@]"
+      (StructField.Map.format ~pp_sep:Format.pp_print_space (fun fmt value ->
            if not Global.options.debug then (Print.expr ()) fmt value
            else
              fprintf fmt "%a | %a" (Print.expr ()) value SymbExpr.format
                (_get_symb_expr_unsafe value)))
       fields
 
-module Stats = struct
-  (* TODO: quel temps manque ? compter le nombre d'evals *)
-  (* GC: pic mémoire alloué ? Z3 incrémental le dit ? *)
-  type time = float
-  type period = { start : time; stop : time }
-  type step = string * period
+type inputs = conc_boxed_expr StructField.Map.t
+type outputs = (conc_result StructField.Map.t, string) Result.t
 
-  type execution = {
-    steps : step list;
-    total_time : period;
-    num_constraints : int;
-  }
+type step_result = {
+  path : PathConstraint.annotated_path;
+  inputs : inputs;
+  outputs : outputs;
+}
 
-  type t = {
-    total_time : period;
-    steps : step list;
-    executions : execution list;
-  }
+type interp_result = {
+  stats : Stats.t;
+  results : step_result list;
+  incomplete : bool;
+}
 
-  let start_period () : period =
-    let start = Sys.time () in
-    { start; stop = nan }
+let format_side_by_side fmt (max_l, (ll, rl)) =
+  let open Format in
+  let rec loop = function
+    | [], [] -> ()
+    | h :: t, [] ->
+      let pad = String.make (max_l - String.width h) ' ' in
+      fprintf fmt "@[<h>%s%s │@]" h pad;
+      if t <> [] then pp_print_space fmt ();
+      loop (t, [])
+    | [], h :: t ->
+      fprintf fmt "@[<h>%-*s │ %s@]" max_l "" h;
+      if t <> [] then pp_print_space fmt ();
+      loop ([], t)
+    | h :: t, h' :: t' ->
+      let pad = String.make (max_l - String.width h) ' ' in
+      fprintf fmt "@[<h>%s%s │ %s@]" h pad h';
+      if t <> [] || t' <> [] then pp_print_space fmt ();
+      loop (t, t')
+  in
+  pp_open_vbox fmt 0;
+  loop (ll, rl);
+  pp_close_box fmt ()
 
-  let stop_period p : period =
-    let stop = Sys.time () in
-    { p with stop }
-
-  let init () : t =
-    let total_time = start_period () in
-    { total_time; steps = []; executions = [] }
-
-  let start_step message : step = message, start_period ()
-  let stop_step ((msg, p) : step) : step = msg, stop_period p
-
-  let start_exec num_constraints : execution =
-    let total_time = start_period () in
-    { steps = []; total_time; num_constraints }
-
-  let add_exec_step (e : execution) step : execution =
-    { e with steps = step :: e.steps }
-
-  let stop_exec (e : execution) : execution =
-    let total_time = stop_period e.total_time in
-    { e with total_time }
-
-  let add_stat_step (stats : t) (step : step) : t =
-    { stats with steps = step :: stats.steps }
-
-  let add_stat_exec (stats : t) (e : execution) : t =
-    { stats with executions = e :: stats.executions }
-
-  let stop stats : t =
-    let total_time = stop_period stats.total_time in
-    { stats with total_time }
-
-  let running_period stats : period = stop_period stats.total_time
-
-  let fold_execs (execs : execution list) : step list =
-    let f (steps : step list) (exec : execution) =
-      List.map2
-        (fun (s, p) (s', p') ->
-          assert (String.equal s s');
-          s, { p with stop = p.stop +. p'.stop -. p'.start })
-        steps exec.steps
+let print_interp_result
+    ~print_stats
+    ~soft_constraints
+    ~mutation
+    (ast_stats : Mutation.ast_stats_t)
+    { stats; results; incomplete = _ } =
+  let open Format in
+  let format_results fmt =
+    let inputs_outputs_sl =
+      List.mapi
+        (fun i { path = _; inputs; outputs } ->
+          let inputs_s =
+            Format.asprintf "%a" format_fields
+              (StructField.Map.map Expr.unbox inputs)
+          in
+          let outputs_s =
+            match outputs with
+            | Error msg -> msg
+            | Ok outputs -> Format.asprintf "@[<hov>%a@]" format_fields outputs
+          in
+          ( i,
+            ( inputs_s |> String.split_on_char '\n',
+              outputs_s |> String.split_on_char '\n' ) ))
+        results
     in
-    match execs with
-    | [] -> []
-    | { steps; _ } :: execs -> List.fold_left f steps execs
+    let mid =
+      List.fold_left
+        (fun acc (_, (inputs_ls, _)) ->
+          List.fold_left max acc (List.map String.width inputs_ls))
+        (String.length "Test #1234")
+        inputs_outputs_sl
+    in
+    let right =
+      3
+      + List.fold_left
+          (fun acc (_, (_, output_ls)) ->
+            List.fold_left max acc (List.map String.width output_ls))
+          0 inputs_outputs_sl
+    in
+    fprintf fmt "@[<v>Executed %d tests:@ " stats.total_tests;
+    fprintf fmt "%*s │ Outputs@ %a@]" mid "Inputs"
+      (pp_print_list ~pp_sep:pp_print_space (fun fmt (i, (l, r)) ->
+           let s = Format.sprintf " Test #%i " (succ i) in
+           let slen = String.width s in
+           let left_pad =
+             List.init (mid - (slen / 2)) (fun _ -> "─") |> String.concat ""
+           in
+           let right_pad =
+             List.init (right - (slen / 2)) (fun _ -> "─") |> String.concat ""
+           in
+           fprintf fmt "%s%s%s@\n" left_pad s right_pad;
+           format_side_by_side fmt (mid, (l, r))))
+      inputs_outputs_sl
+  in
+  let format_stats =
+    if print_stats then Some (fun fmt -> Stats.print fmt stats) else None
+  in
+  let format_soft_constraints =
+    if print_stats && soft_constraints then
+      Some
+        (fun fmt ->
+          Format.fprintf fmt
+            "@[<v 2>Soft constraints:@ %d hard unsat@ %d soft unsat@ %d soft \
+             sat@ %a@ %a@]"
+            stats.num_unsat stats.num_soft_unsat stats.num_soft_sat
+            Stats.format_soft_sats stats Stats.format_soft_unsats stats)
+    else None
+  in
+  let format_mutations =
+    if print_stats && mutation then
+      Some
+        (fun fmt ->
+          Format.fprintf fmt
+            "@[<v 2>Mutations:@ out of %d defaults (%d non-empty) and %d \
+             excepts...@ excepts removed: %d@ excepts duplicated: %d@ justs \
+             negated: %d@]"
+            ast_stats.defaults ast_stats.defaults_with_excepts
+            (List.fold_left ( + ) 0 ast_stats.excepts_sizes)
+            !Mutation.remove_excepts_n
+            !Mutation.duplicate_excepts_n
+            !Mutation.negate_justs_n)
+    else None
+  in
+  Message.results ~title:"Concolic execution"
+    (format_results
+    :: List.filter_map Fun.id
+         [format_stats; format_soft_constraints; format_mutations])
 
-  module Print = struct
-    open Format
+let concolic_interp
+    (module Solver : SOLVER)
+    ctx
+    optims
+    soft_constraints
+    stats
+    lang
+    input_marks
+    s_in
+    scope_e
+    mark_e : interp_result =
+  let rec concolic_loop
+      (interp_res : interp_result)
+      (current_path : PathConstraint.annotated_path) : interp_result =
+    let stats = interp_res.stats in
+    if Optimizations.tests_vs_time optims then
+      Message.result "time of step: %a" Stats.Print.period
+        (Stats.running_period stats);
+    let exec = Stats.start_exec (List.length current_path) in
+    let s_print_pc = Stats.start_step "print path constraints" in
+    Message.debug "Trying new path constraints:@ @[<v>%a@]"
+      PathConstraint.Print.annotated_path current_path;
+    let exec = Stats.stop_step s_print_pc |> Stats.add_exec_step exec in
+    let s_extract_constraints = Stats.start_step "extract solver constraints" in
+    let solver_constraints = constraint_list_of_path ctx current_path in
+    let solver_constraints = soft_constraints @ solver_constraints in
+    let exec =
+      Stats.stop_step s_extract_constraints |> Stats.add_exec_step exec
+    in
+    let s_solve = Stats.start_step "solve" in
+    let stats, solver_result = Solver.solve ctx solver_constraints stats in
+    let exec = Stats.stop_step s_solve |> Stats.add_exec_step exec in
+    match solver_result with
+    | Solver.Sat (Some m) ->
+      Message.debug "@[<v 2>Solver returned a model:@ %a@]" Solver.format_model
+        m;
+      let s_inputs = Stats.start_step "get inputs from model" in
+      let inputs : inputs = Solver.inputs_of_model ctx m input_marks in
+      if Optimizations.tests_vs_time optims then
+        Message.result "time of test: %a" Stats.Print.period
+          (Stats.running_period stats);
+      let exec = Stats.stop_step s_inputs |> Stats.add_exec_step exec in
+      let s_eval = Stats.start_step "eval" in
+      let res = eval_conc_with_input ctx lang s_in scope_e mark_e inputs in
+      let exec = Stats.stop_step s_eval |> Stats.add_exec_step exec in
+      let outputs : outputs =
+        match Mark.remove res with
+        | EStruct { fields; _ } -> Ok (fields : conc_result StructField.Map.t)
+        | EGenericError ->
+          (* TODO better error messages *)
+          (* TODO test the different cases *)
+          let err = get_symb_expr_r res in
+          Message.warning "@[<hov 2>Output of scope after evaluation:@,%a@]"
+            SymbExpr.format err;
 
-    (* let ms (fmt : formatter) (t : time) = *)
-    (*   let milli : int = int_of_float (t *. 1000.) in *)
-    (*   pp_print_int fmt milli; *)
-    (*   pp_print_string fmt " ms" *)
-
-    let sec (fmt : formatter) (t : time) =
-      fprintf fmt "%.3f" t;
-      pp_print_string fmt " s"
-
-    let period (fmt : formatter) (p : period) = sec fmt (p.stop -. p.start)
-
-    let step (fmt : formatter) ((msg, p) : step) =
-      fprintf fmt "%s: %a" msg period p
-
-    (* let itemize (bullet : string) (ppf : formatter -> 'a -> unit) (fmt :
-       formatter) (x : 'a) = fprintf fmt "%s %a" bullet ppf x *)
-
-    let steps (fmt : formatter) (l : step list) =
-      let l = List.rev l in
-      pp_print_list ~pp_sep:pp_print_cut step fmt l
-
-    let executions (fmt : formatter) (execs : execution list) =
-      let folded = fold_execs execs |> List.rev in
-      let max_constraints =
-        List.fold_left (fun acc exe -> max acc exe.num_constraints) 0 execs
+          Error (Format.asprintf "%a" SymbExpr.format err)
+        | _ ->
+          Message.error ~pos:(Expr.pos scope_e)
+            "The concolic interpretation of a program should always yield a \
+             struct corresponding to the scope variables"
       in
-      pp_print_list ~pp_sep:pp_print_cut step fmt folded;
-      pp_print_cut fmt ();
-      fprintf fmt "max constraints: %n" max_constraints
-  end
+      let r = { path = current_path; inputs; outputs } in
+      let interp_res = { interp_res with results = r :: interp_res.results } in
+      let stats = Stats.incr_tests stats in
+      let incomplete =
+        List.exists PathConstraint.is_incomplete (get_constraints_r res)
+      in
+      if incomplete then begin
+        Message.warning
+          "Concolic@ evaluation@ found@ an@ expression@ that@ cannot@ be@ \
+           encoded@ (a@ list@ or@ a@ date).@ The@ current@ path@ will@ be@ \
+           dropped.";
+        match current_path with
+        | [] ->
+          Message.result
+            "Incomplete execution finished with no more constraints.";
+          (* add empty steps for stats *)
+          let exec =
+            Stats.start_step "choose new path constraints"
+            |> Stats.stop_step
+            |> Stats.add_exec_step exec
+          in
+          let exec =
+            Stats.start_step "apply diff"
+            |> Stats.stop_step
+            |> Stats.add_exec_step exec
+          in
+          let stats = Stats.stop_exec exec |> Stats.add_stat_exec stats in
+          { interp_res with stats }
+        | apc :: new_path_constraints ->
+          let s_new_pc = Stats.start_step "choose new path constraints" in
+          let new_expected_path, diff =
+            PathConstraint.make_expected_path new_path_constraints
+          in
 
-  let print (fmt : Format.formatter) (stats : t) =
-    let open Format in
-    fprintf fmt "General steps:@\n@[<v 2>  %a@]@\n" Print.steps stats.steps;
-    fprintf fmt "After %n execution steps:@\n@[<v 2>  %a@]@\n"
-      (List.length stats.executions)
-      Print.executions stats.executions;
-    fprintf fmt "Total concolic time: %a" Print.period stats.total_time
-end
+          let exec = Stats.stop_step s_new_pc |> Stats.add_exec_step exec in
+
+          let s_diff = Stats.start_step "apply diff" in
+          let diff = PathConstraint.IncrPop apc :: diff in
+          apply_diff ctx Solver.push Solver.pop diff;
+          let exec = Stats.stop_step s_diff |> Stats.add_exec_step exec in
+          let stats = Stats.stop_exec exec |> Stats.add_stat_exec stats in
+          let interp_res = { interp_res with stats; incomplete = true } in
+          if new_expected_path = [] then interp_res
+          else concolic_loop interp_res new_expected_path
+      end
+      else
+        let s_new_pc = Stats.start_step "choose new path constraints" in
+        let res_path_constraints = get_constraints_r res in
+        let res_path_constraints =
+          Optimizations.remove_trivial_constraints optims res_path_constraints
+        in
+        Message.debug "@[<v 2>Path constraints after evaluation:@ %a@]"
+          PathConstraint.Print.naked_path res_path_constraints;
+        (* TODO find a better way than all those revs *)
+        let new_path_constraints, diff_compare =
+          PathConstraint.compare_paths (List.rev current_path)
+            (List.rev res_path_constraints)
+        in
+        let new_path_constraints, diff_expected =
+          PathConstraint.make_expected_path (List.rev new_path_constraints)
+        in
+        let exec = Stats.stop_step s_new_pc |> Stats.add_exec_step exec in
+        let s_diff = Stats.start_step "apply diff" in
+        let diff = diff_compare @ diff_expected in
+        apply_diff ctx Solver.push Solver.pop diff;
+        let exec = Stats.stop_step s_diff |> Stats.add_exec_step exec in
+        let stats = Stats.stop_exec exec |> Stats.add_stat_exec stats in
+        let interp_res = { interp_res with stats } in
+        if new_path_constraints = [] then interp_res
+        else concolic_loop interp_res new_path_constraints
+    | Solver.Unsat -> begin
+      Message.debug "Solver returned Unsat";
+      match current_path with
+      | [] -> failwith "[CONC] Failed to solve without constraints"
+      | apc :: new_path_constraints ->
+        (* add empty steps for stats *)
+        let exec =
+          Stats.start_step "get inputs from model"
+          |> Stats.stop_step
+          |> Stats.add_exec_step exec
+        in
+        let exec =
+          Stats.start_step "eval" |> Stats.stop_step |> Stats.add_exec_step exec
+        in
+        let s_new_pc = Stats.start_step "choose new path constraints" in
+        let new_expected_path, diff =
+          PathConstraint.make_expected_path new_path_constraints
+        in
+        let exec = Stats.stop_step s_new_pc |> Stats.add_exec_step exec in
+        let s_diff = Stats.start_step "apply diff" in
+        let diff = PathConstraint.IncrPop apc :: diff in
+        apply_diff ctx Solver.push Solver.pop diff;
+        let exec = Stats.stop_step s_diff |> Stats.add_exec_step exec in
+        let stats = Stats.stop_exec exec |> Stats.add_stat_exec stats in
+        let interp_res = { interp_res with stats } in
+        if new_expected_path = [] then interp_res
+        else concolic_loop interp_res new_expected_path
+      end
+    | Solver.Sat None ->
+      failwith "[CONC] Constraints satisfiable but no model was produced"
+    | Solver.Unknown info ->
+      Message.error ~internal:true
+        "[CONC] Unknown solver result, debug info:@.%a@."
+        Solver.format_unknown_info info
+  in
+  let init_res = { stats; results = []; incomplete = false } in
+  let res = concolic_loop init_res [] in
+  { res with results = List.rev res.results }
 
 (** Main function *)
 let interpret_program_concolic
@@ -2932,7 +3112,7 @@ let interpret_program_concolic
     (optims : Optimizations.flag list)
     (mutation_seed : int option)
     (p : (dcalc, m) gexpr program)
-    s : (Uid.MarkedString.info * conc_expr) list =
+    s : interp_result =
   Message.debug "=== Start concolic interpretation... ===";
   Optimizations.check_optims_coherent optims;
 
@@ -2948,11 +3128,8 @@ let interpret_program_concolic
   let stats = Stats.stop_step s_context_creation |> Stats.add_stat_step stats in
   let s_simplify = Stats.start_step "simplify" in
   let scope_e = simplify_program ctx p s in
-
   let ast_stats = Mutation.get_stats scope_e in
-
   if Optimizations.mutation optims then Mutation.init mutation_seed;
-
   let scope_e =
     if Optimizations.random_mutations optims then begin
       let mutations =
@@ -2964,35 +3141,31 @@ let interpret_program_concolic
             Optimizations.mutation_negate_justs, Mutation.negate_justs, 0.1;
           ]
       in
-
-      Message.debug "Before random mutations:\n%a" (Print.expr ()) scope_e;
+      Message.debug "@[<v 2>Before random mutations:@ %a@]" (Print.expr ())
+        scope_e;
       let mutated_scope_e =
         Mutation.apply_mutations mutations scope_e |> Expr.unbox
       in
-
-      Message.debug "\nAfter random mutations:\n%a" (Print.expr ())
+      Message.debug "@[<v 2>After random mutations:@ %a@]" (Print.expr ())
         mutated_scope_e;
       mutated_scope_e
     end
     else if Optimizations.mutation_one_conflict optims then begin
-      Message.debug "Before one mutation:\n%a" (Print.expr ()) scope_e;
+      Message.debug "@[<v 2>Before one mutation:@ %a@]" (Print.expr ()) scope_e;
       let mutated_scope_e =
         Mutation.create_one_conflict scope_e |> Expr.unbox
       in
-
-      Message.debug "\nAfter one mutation:\n%a" (Print.expr ()) mutated_scope_e;
+      Message.debug "@[<v 2>After one mutation:@ %a@]" (Print.expr ())
+        mutated_scope_e;
       mutated_scope_e
     end
     else scope_e
   in
-
   let scope_e = Optimizations.optimize_expr optims scope_e in
-
   if Optimizations.ast_stats optims then begin
     Message.result "%a" Mutation.pprint_ast_stats (Mutation.get_stats scope_e);
     exit 0
   end;
-
   let stats = Stats.stop_step s_simplify |> Stats.add_stat_step stats in
   match scope_e with
   | EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e -> begin
@@ -3001,7 +3174,6 @@ let interpret_program_concolic
        type, we provide an empty value. *)
     (* first set of inputs *)
     let taus = StructName.Map.find s_in ctx.ctx_decl.ctx_structs in
-
     (* TODO CONC should it be [mark_e] or something else? *)
     let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
     let soft_constraints =
@@ -3009,251 +3181,35 @@ let interpret_program_concolic
         make_soft_constraints ctx input_marks
       else []
     in
-
     Message.debug "initial soft constraints: [%a]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          PathConstraint.Print.pc_expr)
       soft_constraints;
-
-    let total_tests = ref 0 in
-
     let module Solver = Solver (struct
       let optims = optims
     end) in
     (* add soft constraints to solver if it is incremental *)
     List.iter (Solver.push ctx) soft_constraints;
-
     let found_incomplete = ref false in
-
-    let rec concolic_loop (previous_path : PathConstraint.annotated_path) stats
-        : Stats.t =
-      if Optimizations.tests_vs_time optims then
-        Message.result "time of step: %a" Stats.Print.period
-          (Stats.running_period stats);
-      let exec = Stats.start_exec (List.length previous_path) in
-      let s_print_pc = Stats.start_step "print path constraints" in
-      Message.debug "Trying new path constraints:@ @[<v>%a@]"
-        PathConstraint.Print.annotated_path previous_path;
-      let exec = Stats.stop_step s_print_pc |> Stats.add_exec_step exec in
-      let s_extract_constraints =
-        Stats.start_step "extract solver constraints"
-      in
-      let solver_constraints = constraint_list_of_path ctx previous_path in
-      let solver_constraints = soft_constraints @ solver_constraints in
-      let exec =
-        Stats.stop_step s_extract_constraints |> Stats.add_exec_step exec
-      in
-
-      let s_solve = Stats.start_step "solve" in
-      let solver_result = Solver.solve ctx solver_constraints in
-      let exec = Stats.stop_step s_solve |> Stats.add_exec_step exec in
-      match solver_result with
-      | Solver.Sat (Some m) ->
-        Message.debug "@[<v 2>Solver returned a model:@ %a@]"
-          Solver.format_model m;
-        let s_inputs = Stats.start_step "get inputs from model" in
-        let inputs = Solver.inputs_of_model ctx m input_marks in
-
-        if not Global.options.debug then Message.result "";
-        if Optimizations.tests_vs_time optims then
-          Message.result "time of test: %a" Stats.Print.period
-            (Stats.running_period stats);
-        Message.result "@[<v 2>Evaluating with inputs:@ %a@]" format_fields
-          (StructField.Map.map Expr.unbox inputs);
-
-        let exec = Stats.stop_step s_inputs |> Stats.add_exec_step exec in
-
-        let s_eval = Stats.start_step "eval" in
-        let res = eval_conc_with_input ctx p.lang s_in scope_e mark_e inputs in
-        let exec = Stats.stop_step s_eval |> Stats.add_exec_step exec in
-
-        Message.result "@[<v 2>Output of scope after evaluation:@ %t@]"
-          (fun fmt ->
-            match Mark.remove res with
-            | EStruct { fields; _ } -> format_fields fmt fields
-            | EGenericError ->
-              (* TODO better error messages *)
-              (* TODO test the different cases *)
-              Format.fprintf fmt "Found error %a at %s" SymbExpr.format
-                (get_symb_expr_r res)
-                (Pos.to_string_short (Expr.pos res))
-            | _ ->
-              Message.error ~pos:(Expr.pos scope_e)
-                "The concolic interpretation of a program should always yield \
-                 a struct corresponding to the scope variables");
-        incr total_tests;
-
-        let incomplete =
-          List.exists PathConstraint.is_incomplete (get_constraints_r res)
-        in
-
-        if incomplete then begin
-          found_incomplete := true;
-          Message.warning
-            "Concolic evaluation found an expression that cannot be encoded (a \
-             list or a date). The current\n\
-            \                           path will be dropped.";
-          match previous_path with
-          | [] ->
-            Message.result
-              "Incomplete execution finished with no more constraints.";
-            (* add empty steps for stats *)
-            let exec =
-              Stats.start_step "choose new path constraints"
-              |> Stats.stop_step
-              |> Stats.add_exec_step exec
-            in
-            let exec =
-              Stats.start_step "apply diff"
-              |> Stats.stop_step
-              |> Stats.add_exec_step exec
-            in
-            let stats = Stats.stop_exec exec |> Stats.add_stat_exec stats in
-            stats
-          | apc :: new_path_constraints ->
-            let s_new_pc = Stats.start_step "choose new path constraints" in
-            let new_expected_path, diff =
-              PathConstraint.make_expected_path new_path_constraints
-            in
-
-            let exec = Stats.stop_step s_new_pc |> Stats.add_exec_step exec in
-
-            let s_diff = Stats.start_step "apply diff" in
-            let diff = PathConstraint.IncrPop apc :: diff in
-            apply_diff ctx Solver.push Solver.pop diff;
-            let exec = Stats.stop_step s_diff |> Stats.add_exec_step exec in
-
-            let stats = Stats.stop_exec exec |> Stats.add_stat_exec stats in
-            if new_expected_path = [] then stats
-            else concolic_loop new_expected_path stats
-        end
-        else
-          let s_new_pc = Stats.start_step "choose new path constraints" in
-          let res_path_constraints = get_constraints_r res in
-
-          let res_path_constraints =
-            Optimizations.remove_trivial_constraints optims res_path_constraints
-          in
-
-          Message.debug "@[<v 2>Path constraints after evaluation:@ %a@]"
-            PathConstraint.Print.naked_path res_path_constraints;
-
-          (* TODO find a better way than all those revs *)
-          let new_path_constraints, diff_compare =
-            PathConstraint.compare_paths (List.rev previous_path)
-              (List.rev res_path_constraints)
-          in
-          let new_path_constraints, diff_expected =
-            PathConstraint.make_expected_path (List.rev new_path_constraints)
-          in
-
-          let exec = Stats.stop_step s_new_pc |> Stats.add_exec_step exec in
-          let s_diff = Stats.start_step "apply diff" in
-
-          let diff = diff_compare @ diff_expected in
-          apply_diff ctx Solver.push Solver.pop diff;
-
-          let exec = Stats.stop_step s_diff |> Stats.add_exec_step exec in
-          let stats = Stats.stop_exec exec |> Stats.add_stat_exec stats in
-          if new_path_constraints = [] then stats
-          else concolic_loop new_path_constraints stats
-      | Solver.Unsat -> begin
-        Message.debug "Solver returned Unsat";
-        match previous_path with
-        | [] -> failwith "[CONC] Failed to solve without constraints"
-        | apc :: new_path_constraints ->
-          (* add empty steps for stats *)
-          let exec =
-            Stats.start_step "get inputs from model"
-            |> Stats.stop_step
-            |> Stats.add_exec_step exec
-          in
-          let exec =
-            Stats.start_step "eval"
-            |> Stats.stop_step
-            |> Stats.add_exec_step exec
-          in
-          let s_new_pc = Stats.start_step "choose new path constraints" in
-          let new_expected_path, diff =
-            PathConstraint.make_expected_path new_path_constraints
-          in
-
-          let exec = Stats.stop_step s_new_pc |> Stats.add_exec_step exec in
-          let s_diff = Stats.start_step "apply diff" in
-          let diff = PathConstraint.IncrPop apc :: diff in
-          apply_diff ctx Solver.push Solver.pop diff;
-          let exec = Stats.stop_step s_diff |> Stats.add_exec_step exec in
-          let stats = Stats.stop_exec exec |> Stats.add_stat_exec stats in
-          if new_expected_path = [] then stats
-          else concolic_loop new_expected_path stats
-        end
-      | Solver.Sat None ->
-        failwith "[CONC] Constraints satisfiable but no model was produced"
-      | Solver.Unknown info ->
-        Message.error ~internal:true
-          "[CONC] Unknown solver result, debug info:@.%a@."
-          Solver.fmt_unknown_info info
-    in
-
     let s_loop = Stats.start_step "total loop time" in
-    let stats = concolic_loop [] stats in
+    let ({ stats; _ } as result) =
+      concolic_interp
+        (module Solver : SOLVER)
+        ctx optims soft_constraints stats p.lang input_marks s_in scope_e mark_e
+    in
     let stats = Stats.stop_step s_loop |> Stats.add_stat_step stats in
-    Message.result "";
-
-    Message.result "Concolic interpreter done";
     if !found_incomplete then
       Message.warning
         "Please note that the concolic execution may be incomplete: it could \
          systematically explore the whole program.";
-
     let stats = Stats.stop stats in
-    if print_stats then
-      Message.result
-        "=== Concolic execution statistics ===\n%a\n%d tests\n%s%s======"
-        Stats.print stats !total_tests
-        (* FIXME ugly *)
-        (if Optimizations.soft_constraints optims then
-           "Soft constraints:\n"
-           ^ "  "
-           ^ string_of_int !Solver.num_unsat
-           ^ " hard unsat\n"
-           ^ "  "
-           ^ string_of_int !Solver.num_soft_unsat
-           ^ " soft unsat\n"
-           ^ "  "
-           ^ string_of_int !Solver.num_soft_sat
-           ^ " soft sat\n"
-           ^ "  "
-           ^ Solver.print_soft_sats ()
-           ^ "\n"
-           ^ "  "
-           ^ Solver.print_soft_unsats ()
-           ^ "\n"
-         else "")
-        (if Optimizations.mutation optims then
-           "Mutations:\n"
-           ^ "  out of "
-           ^ string_of_int ast_stats.defaults
-           ^ " defaults"
-           ^ " ("
-           ^ string_of_int ast_stats.defaults_with_excepts
-           ^ " non-empty)"
-           ^ " and "
-           ^ string_of_int (List.fold_left ( + ) 0 ast_stats.excepts_sizes)
-           ^ " excepts...\n"
-           ^ "  "
-           ^ string_of_int !Mutation.remove_excepts_n
-           ^ " excepts removed\n"
-           ^ "  "
-           ^ string_of_int !Mutation.duplicate_excepts_n
-           ^ " excepts duplicated\n"
-           ^ "  "
-           ^ string_of_int !Mutation.negate_justs_n
-           ^ " justs negated\n"
-         else "");
-    (* XXX BROKEN output *)
-    []
+    let full_result = { result with stats } in
+    print_interp_result ~print_stats
+      ~soft_constraints:(Optimizations.soft_constraints optims)
+      ~mutation:(Optimizations.mutation optims)
+      ast_stats full_result;
+    full_result
     end
   | _ ->
     Message.error ~pos:(Expr.pos scope_e)

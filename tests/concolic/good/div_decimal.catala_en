@@ -14,77 +14,36 @@ scope A:
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at div_decimal:12.42-45
+│      Null denominator:
+│      ─➤ tests/concolic/good/div_decimal.catala_en:12.44-45:
+│         │
+│      12 │   exception definition o under condition x/y = d and d>0.5 and d<0.6 and y!=1.0 consequence equals 1
+│         │                                            ‾
+│      Article
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . d_in = 0.
-└─
-┌─[RESULT]─
-│ . x_in = 0.
-└─
-┌─[RESULT]─
-│ . y_in = 0.
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/div_decimal.catala_en:12.44-45,tests/concolic/good/div_decimal.catala_en:12.42-45,)↯ at tests/concolic/good/div_decimal.catala_en:12.42-45
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . d_in = 0.
-└─
-┌─[RESULT]─
-│ . x_in = 0.
-└─
-┌─[RESULT]─
-│ . y_in = 2.
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . d_in = 0.55
-└─
-┌─[RESULT]─
-│ . x_in = -0.0275
-└─
-┌─[RESULT]─
-│ . y_in = -0.05
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 3 tests:
+│         Inputs │ Outputs
+│ ────────── Test #1 ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ x_in = 0.      │ ↯DivisionByZero↯ at div_decimal:12.42-45
+│ y_in = 0.      │   Null denominator:
+│ d_in = 0.      │   ─➤ tests/concolic/good/div_decimal.catala_en:12.44-45:
+│                │      │
+│                │   12 │   exception definition o under condition x/y = d and d>0.5 and d<0.6 and y!=1.0 consequence equals 1
+│                │      │                                            ‾
+│                │   Article
+│ ────────── Test #2 ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ x_in = 0.      │ o = 0
+│ y_in = 2.      │
+│ d_in = 0.      │
+│ ────────── Test #3 ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ x_in = -0.0275 │ o = 1
+│ y_in = -0.05   │
+│ d_in = 0.55    │
 └─
 ```
-

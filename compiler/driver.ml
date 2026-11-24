@@ -1417,15 +1417,20 @@ module Commands = struct
       ~hashf:Hash.(finalise ~monomorphize_types:false)
       prg;
     let scope = get_scope_uid prg.decl_ctx ex_scope in
-    let evaluate () =
-      ( Concolic.Interpreter.interpret_program_concolic stats conc_optims
-          mutation_seed prg scope,
-        None )
-    in
-    let success =
-      print_interpretation_results options evaluate scope prg.decl_ctx
-    in
-    if not success then raise (Cli.Exit_with 123)
+    try
+      Message.debug "Starting interpretation...";
+      let _ =
+        Concolic.Interpreter.interpret_program_concolic stats conc_optims
+          mutation_seed prg scope
+      in
+      Message.debug "End of interpretation"
+    with
+    | Message.CompilerError content ->
+      Message.Content.emit content Error;
+      raise (Cli.Exit_with 123)
+    | Message.CompilerErrors contents ->
+      Message.Content.emit_n contents Error;
+      raise (Cli.Exit_with 123)
 
   let concolic_cmd =
     let f no_typing =

@@ -17,10 +17,25 @@
 
 (** Reference interpreter for the default calculus *)
 
-open Catala_utils
 open Shared_ast
 module Optimizations = Concolic_optimizations
+open Path_constraint
 open Conc_types
+
+type inputs = conc_boxed_expr StructField.Map.t
+type outputs = (conc_result StructField.Map.t, string) Result.t
+
+type step_result = {
+  path : PathConstraint.annotated_path;
+  inputs : inputs;
+  outputs : outputs;
+}
+
+type interp_result = {
+  stats : Stats.t;
+  results : step_result list;
+  incomplete : bool;
+}
 
 val interpret_program_concolic :
   bool ->
@@ -28,5 +43,5 @@ val interpret_program_concolic :
   int option ->
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * conc_expr) list
+  interp_result
 (** Concolic interpreter *)

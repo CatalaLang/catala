@@ -13,67 +13,34 @@ scope A:
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at div_duration:11.42-45
+│      Null denominator:
+│      ─➤ tests/concolic/good/div_duration.catala_en:11.44-45:
+│         │
+│      11 │   exception definition o under condition x/y = 0.5 consequence equals 1
+│         │                                            ‾
+│      Article
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = [0 years, 0 months, 10 days]
-└─
-┌─[RESULT]─
-│ . y_in = [0 years, 0 months, 10 days]
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = [0 years, 0 months, -1 days]
-└─
-┌─[RESULT]─
-│ . y_in = [0 years, 0 months, -2 days]
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = [0 years, 0 months, 10 days]
-└─
-┌─[RESULT]─
-│ . y_in = [0 years, 0 months, 0 days]
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/div_duration.catala_en:11.44-45,tests/concolic/good/div_duration.catala_en:11.42-45,)↯ at tests/concolic/good/div_duration.catala_en:11.42-45
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 3 tests:
+│                              Inputs │ Outputs
+│ ─────────────────────────────── Test #1 ─────────────────────────────────────────────────────────────────────────────
+│ x_in = [0 years, 0 months, 10 days] │ o = 0
+│ y_in = [0 years, 0 months, 10 days] │
+│ ─────────────────────────────── Test #2 ─────────────────────────────────────────────────────────────────────────────
+│ x_in = [0 years, 0 months, -1 days] │ o = 1
+│ y_in = [0 years, 0 months, -2 days] │
+│ ─────────────────────────────── Test #3 ─────────────────────────────────────────────────────────────────────────────
+│ x_in = [0 years, 0 months, 10 days] │ ↯DivisionByZero↯ at div_duration:11.42-45
+│ y_in = [0 years, 0 months, 0 days]  │   Null denominator:
+│                                     │   ─➤ tests/concolic/good/div_duration.catala_en:11.44-45:
+│                                     │      │
+│                                     │   11 │   exception definition o under condition x/y = 0.5 consequence equals 1
+│                                     │      │                                            ‾
+│                                     │   Article
 └─
 ```

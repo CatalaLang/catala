@@ -24,590 +24,618 @@ See below this test block for an example with the optimization.
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 0
-└─
-┌─[RESULT]─
-│ . b_in = 0
-└─
-┌─[RESULT]─
-│ . c_in = 0
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 5
-└─
-┌─[RESULT]─
-│ . c_in = 6
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 4
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 5
-└─
-┌─[RESULT]─
-│ . c_in = 6
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 5
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 3
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 5
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 5
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 3
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 0
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 5
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 5
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 0
-└─
-┌─[RESULT]─
-│ . c_in = 0
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 4
-└─
-┌─[RESULT]─
-│ . c_in = 5
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 4
-└─
-┌─[RESULT]─
-│ . c_in = 5
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 4
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 4
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 4
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 0
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 4
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 4
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│         │
+│      15 │     exception definition o under condition c=3 consequence equals 3
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                                                  ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│         │
+│      14 │     exception definition o under condition b=2 consequence equals 2
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                                                  ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│         │
+│      14 │     exception definition o under condition b=2 consequence equals 2
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│         │
+│      15 │     exception definition o under condition c=3 consequence equals 3
+│         │                                                                   ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│         │
+│      14 │     exception definition o under condition b=2 consequence equals 2
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│         │
+│      15 │     exception definition o under condition c=3 consequence equals 3
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                                                  ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│         │
+│      13 │     exception definition o under condition a=1 consequence equals 1
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                                                  ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│         │
+│      13 │     exception definition o under condition a=1 consequence equals 1
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│         │
+│      15 │     exception definition o under condition c=3 consequence equals 3
+│         │                                                                   ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│         │
+│      13 │     exception definition o under condition a=1 consequence equals 1
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│         │
+│      15 │     exception definition o under condition c=3 consequence equals 3
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                                                  ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│         │
+│      13 │     exception definition o under condition a=1 consequence equals 1
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│         │
+│      14 │     exception definition o under condition b=2 consequence equals 2
+│         │                                                                   ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│         │
+│      13 │     exception definition o under condition a=1 consequence equals 1
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│         │
+│      14 │     exception definition o under condition b=2 consequence equals 2
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                                                  ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│         │
+│      13 │     exception definition o under condition a=1 consequence equals 1
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│         │
+│      14 │     exception definition o under condition b=2 consequence equals 2
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│         │
+│      15 │     exception definition o under condition c=3 consequence equals 3
+│         │                                                                   ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│         │
+│      13 │     exception definition o under condition a=1 consequence equals 1
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│         │
+│      14 │     exception definition o under condition b=2 consequence equals 2
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│         │
+│      15 │     exception definition o under condition c=3 consequence equals 3
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                                                  ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[RESULT]─ Concolic execution ─
+│ Executed 24 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 0   │ o = 0
+│ b_in = 0   │
+│ c_in = 0   │
+│ d_in = 0   │
+│ ────── Test #2 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ o = 4
+│ b_in = 5   │
+│ c_in = 6   │
+│ d_in = 43  │
+│ ────── Test #3 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 5   │   Null denominator:
+│ c_in = 6   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ────── Test #4 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ o = 3
+│ b_in = 5   │
+│ c_in = 3   │
+│ d_in = 0   │
+│ ────── Test #5 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 5   │   This consequence has a valid justification:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│ d_in = 43  │      │
+│            │   15 │     exception definition o under condition c=3 consequence equals 3
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│            │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                                                  ‾
+│            │   Article
+│ ────── Test #6 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 5   │   Null denominator:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ────── Test #7 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 3   │ o = 2
+│ b_in = 2   │
+│ c_in = 0   │
+│ d_in = 0   │
+│ ────── Test #8 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 2   │   This consequence has a valid justification:
+│ c_in = 5   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│ d_in = 43  │      │
+│            │   14 │     exception definition o under condition b=2 consequence equals 2
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│            │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                                                  ‾
+│            │   Article
+│ ────── Test #9 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 2   │   Null denominator:
+│ c_in = 5   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ───── Test #10 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 2   │   This consequence has a valid justification:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│ d_in = 0   │      │
+│            │   14 │     exception definition o under condition b=2 consequence equals 2
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│            │      │
+│            │   15 │     exception definition o under condition c=3 consequence equals 3
+│            │      │                                                                   ‾
+│            │   Article
+│ ───── Test #11 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 2   │   This consequence has a valid justification:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│ d_in = 43  │      │
+│            │   14 │     exception definition o under condition b=2 consequence equals 2
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│            │      │
+│            │   15 │     exception definition o under condition c=3 consequence equals 3
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│            │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                                                  ‾
+│            │   Article
+│ ───── Test #12 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 2   │   Null denominator:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ───── Test #13 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ o = 1
+│ b_in = 0   │
+│ c_in = 0   │
+│ d_in = 0   │
+│ ───── Test #14 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 4   │   This consequence has a valid justification:
+│ c_in = 5   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│ d_in = 43  │      │
+│            │   13 │     exception definition o under condition a=1 consequence equals 1
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│            │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                                                  ‾
+│            │   Article
+│ ───── Test #15 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 4   │   Null denominator:
+│ c_in = 5   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ───── Test #16 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 4   │   This consequence has a valid justification:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│ d_in = 0   │      │
+│            │   13 │     exception definition o under condition a=1 consequence equals 1
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│            │      │
+│            │   15 │     exception definition o under condition c=3 consequence equals 3
+│            │      │                                                                   ‾
+│            │   Article
+│ ───── Test #17 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 4   │   This consequence has a valid justification:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│ d_in = 43  │      │
+│            │   13 │     exception definition o under condition a=1 consequence equals 1
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│            │      │
+│            │   15 │     exception definition o under condition c=3 consequence equals 3
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│            │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                                                  ‾
+│            │   Article
+│ ───── Test #18 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 4   │   Null denominator:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ───── Test #19 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 2   │   This consequence has a valid justification:
+│ c_in = 0   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│ d_in = 0   │      │
+│            │   13 │     exception definition o under condition a=1 consequence equals 1
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│            │      │
+│            │   14 │     exception definition o under condition b=2 consequence equals 2
+│            │      │                                                                   ‾
+│            │   Article
+│ ───── Test #20 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 2   │   This consequence has a valid justification:
+│ c_in = 4   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│ d_in = 43  │      │
+│            │   13 │     exception definition o under condition a=1 consequence equals 1
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│            │      │
+│            │   14 │     exception definition o under condition b=2 consequence equals 2
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│            │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                                                  ‾
+│            │   Article
+│ ───── Test #21 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 2   │   Null denominator:
+│ c_in = 4   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ───── Test #22 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 2   │   This consequence has a valid justification:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│ d_in = 0   │      │
+│            │   13 │     exception definition o under condition a=1 consequence equals 1
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│            │      │
+│            │   14 │     exception definition o under condition b=2 consequence equals 2
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│            │      │
+│            │   15 │     exception definition o under condition c=3 consequence equals 3
+│            │      │                                                                   ‾
+│            │   Article
+│ ───── Test #23 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 2   │   This consequence has a valid justification:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│ d_in = 43  │      │
+│            │   13 │     exception definition o under condition a=1 consequence equals 1
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│            │      │
+│            │   14 │     exception definition o under condition b=2 consequence equals 2
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│            │      │
+│            │   15 │     exception definition o under condition c=3 consequence equals 3
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│            │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                                                  ‾
+│            │   Article
+│ ───── Test #24 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 2   │   Null denominator:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
 └─
 ```
 
@@ -616,374 +644,306 @@ total: 288ms). The type of case mentioned above does not happen anymore.
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=lazy-default --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 0
-└─
-┌─[RESULT]─
-│ . b_in = 0
-└─
-┌─[RESULT]─
-│ . c_in = 0
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 5
-└─
-┌─[RESULT]─
-│ . c_in = 6
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 4
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 5
-└─
-┌─[RESULT]─
-│ . c_in = 6
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 5
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 3
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 5
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 5
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 3
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 0
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 5
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 5
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 4
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 0
-└─
-┌─[RESULT]─
-│ . c_in = 0
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 4
-└─
-┌─[RESULT]─
-│ . c_in = 5
-└─
-┌─[RESULT]─
-│ . d_in = 43
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:16.82-83,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 4
-└─
-┌─[RESULT]─
-│ . c_in = 5
-└─
-┌─[RESULT]─
-│ . d_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/except_conflict_lazy.catala_en:16.54-62,tests/concolic/good/except_conflict_lazy.catala_en:16.50-62,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:16.50-62
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 4
-└─
-┌─[RESULT]─
-│ . c_in = 3
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:15.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = 1
-└─
-┌─[RESULT]─
-│ . b_in = 2
-└─
-┌─[RESULT]─
-│ . c_in = 0
-└─
-┌─[RESULT]─
-│ . d_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/except_conflict_lazy.catala_en:14.67-68,tests/concolic/good/except_conflict_lazy.catala_en:13.67-68,)↯ at tests/concolic/good/except_conflict_lazy.catala_en:9.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│         │
+│      15 │     exception definition o under condition c=3 consequence equals 3
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                                                  ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│         │
+│      14 │     exception definition o under condition b=2 consequence equals 2
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                                                  ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│         │
+│      14 │     exception definition o under condition b=2 consequence equals 2
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│         │
+│      15 │     exception definition o under condition c=3 consequence equals 3
+│         │                                                                   ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│         │
+│      13 │     exception definition o under condition a=1 consequence equals 1
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                                                  ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│      Null denominator:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│         │
+│      16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│         │                                                      ‾‾‾‾‾‾‾‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│         │
+│      13 │     exception definition o under condition a=1 consequence equals 1
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│         │
+│      15 │     exception definition o under condition c=3 consequence equals 3
+│         │                                                                   ‾
+│      Article
+│
+└─
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at except_conflict_lazy:9.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│         │
+│      13 │     exception definition o under condition a=1 consequence equals 1
+│         │                                                                   ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│         │
+│      14 │     exception definition o under condition b=2 consequence equals 2
+│         │                                                                   ‾
+│      Article
+│
+└─
+┌─[RESULT]─ Concolic execution ─
+│ Executed 15 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 0   │ o = 0
+│ b_in = 0   │
+│ c_in = 0   │
+│ d_in = 0   │
+│ ────── Test #2 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ o = 4
+│ b_in = 5   │
+│ c_in = 6   │
+│ d_in = 43  │
+│ ────── Test #3 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 5   │   Null denominator:
+│ c_in = 6   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ────── Test #4 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ o = 3
+│ b_in = 5   │
+│ c_in = 3   │
+│ d_in = 0   │
+│ ────── Test #5 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 5   │   This consequence has a valid justification:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│ d_in = 43  │      │
+│            │   15 │     exception definition o under condition c=3 consequence equals 3
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│            │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                                                  ‾
+│            │   Article
+│ ────── Test #6 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 5   │   Null denominator:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ────── Test #7 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 3   │ o = 2
+│ b_in = 2   │
+│ c_in = 0   │
+│ d_in = 0   │
+│ ────── Test #8 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 2   │   This consequence has a valid justification:
+│ c_in = 5   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│ d_in = 43  │      │
+│            │   14 │     exception definition o under condition b=2 consequence equals 2
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│            │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                                                  ‾
+│            │   Article
+│ ────── Test #9 ────────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 2   │   Null denominator:
+│ c_in = 5   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ───── Test #10 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 4   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 2   │   This consequence has a valid justification:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│ d_in = 0   │      │
+│            │   14 │     exception definition o under condition b=2 consequence equals 2
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│            │      │
+│            │   15 │     exception definition o under condition c=3 consequence equals 3
+│            │      │                                                                   ‾
+│            │   Article
+│ ───── Test #11 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ o = 1
+│ b_in = 0   │
+│ c_in = 0   │
+│ d_in = 0   │
+│ ───── Test #12 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 4   │   This consequence has a valid justification:
+│ c_in = 5   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│ d_in = 43  │      │
+│            │   13 │     exception definition o under condition a=1 consequence equals 1
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.82-83:
+│            │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                                                  ‾
+│            │   Article
+│ ───── Test #13 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯DivisionByZero↯ at except_conflict_lazy:16.50-62
+│ b_in = 4   │   Null denominator:
+│ c_in = 5   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:16.54-62:
+│ d_in = 42  │      │
+│            │   16 │     exception definition o under condition 1.0 = 1 / (d - 42) consequence equals 4
+│            │      │                                                      ‾‾‾‾‾‾‾‾
+│            │   Article
+│ ───── Test #14 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 4   │   This consequence has a valid justification:
+│ c_in = 3   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│ d_in = 0   │      │
+│            │   13 │     exception definition o under condition a=1 consequence equals 1
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:15.67-68:
+│            │      │
+│            │   15 │     exception definition o under condition c=3 consequence equals 3
+│            │      │                                                                   ‾
+│            │   Article
+│ ───── Test #15 ───────────────────────────────────────────────────────────────────────────────────────
+│ a_in = 1   │ ↯Conflict↯ at except_conflict_lazy:9.12-13
+│ b_in = 2   │   This consequence has a valid justification:
+│ c_in = 0   │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:13.67-68:
+│ d_in = 0   │      │
+│            │   13 │     exception definition o under condition a=1 consequence equals 1
+│            │      │                                                                   ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/except_conflict_lazy.catala_en:14.67-68:
+│            │      │
+│            │   14 │     exception definition o under condition b=2 consequence equals 2
+│            │      │                                                                   ‾
+│            │   Article
 └─
 ```
 

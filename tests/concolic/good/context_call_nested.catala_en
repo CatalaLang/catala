@@ -43,85 +43,20 @@ let scope B (B_in: B_in): B =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s B
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = ⟨0⟩
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ . x = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = ⟨30⟩
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 3
-└─
-┌─[RESULT]─
-│ . x = 30
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = ⟨-1⟩
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ . x = -1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = ∅
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ . x = 20
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ B ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 4 tests:
+│      Inputs │ Outputs
+│ ─────── Test #1 ─────
+│ x_in = ⟨0⟩  │ x = 0
+│             │ o = 1
+│ ─────── Test #2 ─────
+│ x_in = ⟨30⟩ │ x = 30
+│             │ o = 3
+│ ─────── Test #3 ─────
+│ x_in = ⟨-1⟩ │ x = -1
+│             │ o = 2
+│ ─────── Test #4 ─────
+│ x_in = ∅    │ x = 20
+│             │ o = 1
 └─
 ```

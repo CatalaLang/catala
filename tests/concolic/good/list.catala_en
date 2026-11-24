@@ -21,100 +21,25 @@ found an error (by discaring the last constraint).
 
 ```catala-test-cli
 $ catala Concolic -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = -1
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = -1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 3
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 20
-└─
 ┌─[WARNING]─
 │
-│  Concolic evaluation found an expression that cannot be encoded (a list or a date). The current
-                           path will be dropped.
+│  Concolic evaluation found an expression that cannot be encoded (a list or
+│  a date). The current path will be dropped.
 │
 └─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 2
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 1
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[WARNING]─
-│
-│  Please note that the concolic execution may be incomplete: it could systematically explore the whole program.
-│
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 5 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ─────
+│ x_in = 0   │ o = 0
+│ ────── Test #2 ─────
+│ x_in = -1  │ o = -1
+│ ────── Test #3 ─────
+│ x_in = 3   │ o = 20
+│ ────── Test #4 ─────
+│ x_in = 2   │ o = 2
+│ ────── Test #5 ─────
+│ x_in = 1   │ o = 1
 └─
 ```
 

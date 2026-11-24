@@ -1,44 +1,30 @@
 open Catala_utils
 open Shared_ast
+open Catala_runtime
 
 module RuntimeError = struct
-  type span = string option * Pos.t
-  type span_list = span list
-
-  type runtime_error =
-    | EmptyError
-    | ConflictError of { spans : span_list }
-    | DivisionByZeroError of { spans : span_list }  (** TODO factorize? *)
-    | AssertionError
-
-  type message = string
-
   type t = {
-    except : runtime_error; (* TODO use actual exceptions from [Runtime]? *)
-    message : message; (* TODO use formatted stuff instead *)
+    error : Catala_runtime.error;
+    pos : Pos.t;
+    extra_pos : string Mark.pos list;
   }
 
-  let make (except : runtime_error) (message : message) = { except; message }
+  let make (error : Catala_runtime.error) pos extra_pos =
+    { error; pos; extra_pos }
 
-  (* TODO use formatter *)
-  let string_of_span (s : span) : string =
-    let _, pos = s in
-    Pos.to_string_short pos
-
-  let string_of_spans (spans : span_list) : string =
-    let span_strings = List.map string_of_span spans in
-    List.fold_left (fun acc a -> a ^ "," ^ acc) "" span_strings
-
-  let to_string { except; _ } =
-    let except_string =
-      match except with
-      | EmptyError -> "Empty"
-      | ConflictError { spans } -> "Conflict(" ^ string_of_spans spans ^ ")"
-      | DivisionByZeroError { spans } ->
-        "DivisionByZero(" ^ string_of_spans spans ^ ")"
-      | AssertionError -> "AssertionError"
+  let format fmt { error; pos; extra_pos } =
+    let open Format in
+    let pp_extra_pos fmt (msg, pos) =
+      fprintf fmt "%s:@ %a" msg (Pos.format_loc_text ()) pos
     in
-    "↯" ^ except_string ^ "↯"
+    pp_open_vbox fmt 2;
+    fprintf fmt "@[<h>↯%s↯ at %s@]" (error_to_string error)
+      (Pos.to_string_shorter pos);
+    if extra_pos = [] then pp_close_box fmt ()
+    else (
+      pp_print_space fmt ();
+      pp_print_list ~pp_sep:pp_print_space pp_extra_pos fmt extra_pos;
+      pp_close_box fmt ())
 end
 
 module SymbExpr = struct
@@ -63,26 +49,22 @@ module SymbExpr = struct
   let incomplete = Symb_incomplete
   let abs = Symb_abs
 
-  let mk_emptyerror message =
-    let err = RuntimeError.(make EmptyError message) in
+  let mk_emptyerror pos =
+    let err = RuntimeError.(make NoValue pos []) in
     Symb_error err
 
-  let mk_conflicterror message spans =
-    let open RuntimeError in
-    let conflict = ConflictError { spans } in
-    let err = make conflict message in
+  let mk_conflicterror pos extra_pos =
+    let err = RuntimeError.make Conflict pos extra_pos in
     Symb_error err
 
-  let mk_divisionbyzeroerror message spans =
+  let mk_divisionbyzeroerror pos extra_pos =
     let open RuntimeError in
-    let conflict = DivisionByZeroError { spans } in
-    let err = make conflict message in
+    let err = make DivisionByZero pos extra_pos in
     Symb_error err
 
-  let mk_assertionerror message =
+  let mk_assertionerror pos =
     let open RuntimeError in
-    let conflict = AssertionError in
-    let err = make conflict message in
+    let err = make AssertionFailed pos [] in
     Symb_error err
 
   let map_z3 (f : z3_expr -> z3_expr) = function
@@ -115,10 +97,11 @@ module SymbExpr = struct
   let simplify = map_z3 (fun e -> Z3.Expr.simplify e None)
 
   let format_reentrant fmt { name; _ } =
-    Format.fprintf fmt "<%a>#" StructField.format name
+    Format.fprintf fmt "<%a>" StructField.format name
 
   let rec format_sexpr fmt e =
     let open Format in
+    let e = Z3.Expr.simplify e None in
     let n = Z3.Expr.get_num_args e in
     if n = 0 then pp_print_string fmt (Z3.Expr.to_string e)
     else
@@ -152,7 +135,7 @@ module SymbExpr = struct
     | Symb_none -> pp_print_string fmt "None"
     | Symb_incomplete -> pp_print_string fmt "Incomplete"
     | Symb_abs -> pp_print_string fmt "Abs"
-    | Symb_error err -> pp_print_string fmt (RuntimeError.to_string err)
+    | Symb_error err -> RuntimeError.format fmt err
 
   let to_string ?(typed = false) e = Format.asprintf "%a" (format ~typed) e
 

@@ -106,222 +106,95 @@ let scope A (A_in: A_in): A =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at ugly_pattern:15.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/ugly_pattern.catala_en:24.24-25:
+│         │
+│      24 │     consequence equals 1
+│         │                        ‾
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/ugly_pattern.catala_en:30.24-25:
+│         │
+│      30 │     consequence equals 2
+│         │                        ‾
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E1
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/ugly_pattern.catala_en:30.24-25,tests/concolic/good/ugly_pattern.catala_en:24.24-25,)↯ at tests/concolic/good/ugly_pattern.catala_en:15.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E2
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E3
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E4
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E5
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E6
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E7
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E8
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E9
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 9 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ────────────────────────────────────────────────────────
+│ e_in = E1  │ ↯Conflict↯ at ugly_pattern:15.12-13
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/ugly_pattern.catala_en:24.24-25:
+│            │      │
+│            │   24 │     consequence equals 1
+│            │      │                        ‾
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/ugly_pattern.catala_en:30.24-25:
+│            │      │
+│            │   30 │     consequence equals 2
+│            │      │                        ‾
+│ ────── Test #2 ────────────────────────────────────────────────────────
+│ e_in = E2  │ o = 2
+│ ────── Test #3 ────────────────────────────────────────────────────────
+│ e_in = E3  │ o = 0
+│ ────── Test #4 ────────────────────────────────────────────────────────
+│ e_in = E4  │ o = 0
+│ ────── Test #5 ────────────────────────────────────────────────────────
+│ e_in = E5  │ o = 0
+│ ────── Test #6 ────────────────────────────────────────────────────────
+│ e_in = E6  │ o = 0
+│ ────── Test #7 ────────────────────────────────────────────────────────
+│ e_in = E7  │ o = 0
+│ ────── Test #8 ────────────────────────────────────────────────────────
+│ e_in = E8  │ o = 0
+│ ────── Test #9 ────────────────────────────────────────────────────────
+│ e_in = E9  │ o = 1
 └─
 ```
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A --optimize --conc-optim=linearize-match
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at ugly_pattern:15.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/ugly_pattern.catala_en:24.24-25:
+│         │
+│      24 │     consequence equals 1
+│         │                        ‾
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/ugly_pattern.catala_en:30.24-25:
+│         │
+│      30 │     consequence equals 2
+│         │                        ‾
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E1
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/ugly_pattern.catala_en:30.24-25,tests/concolic/good/ugly_pattern.catala_en:24.24-25,)↯ at tests/concolic/good/ugly_pattern.catala_en:15.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E9
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E3
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . e_in = E2
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 4 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ────────────────────────────────────────────────────────
+│ e_in = E1  │ ↯Conflict↯ at ugly_pattern:15.12-13
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/ugly_pattern.catala_en:24.24-25:
+│            │      │
+│            │   24 │     consequence equals 1
+│            │      │                        ‾
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/ugly_pattern.catala_en:30.24-25:
+│            │      │
+│            │   30 │     consequence equals 2
+│            │      │                        ‾
+│ ────── Test #2 ────────────────────────────────────────────────────────
+│ e_in = E9  │ o = 1
+│ ────── Test #3 ────────────────────────────────────────────────────────
+│ e_in = E3  │ o = 0
+│ ────── Test #4 ────────────────────────────────────────────────────────
+│ e_in = E2  │ o = 2
 └─
 ```
 

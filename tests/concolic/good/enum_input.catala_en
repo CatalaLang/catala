@@ -43,98 +43,25 @@ let scope A (A_in: A_in): A =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = A1 0
-└─
-┌─[RESULT]─
-│ . b_in = B1 (A1 0)
-└─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = A2 false
-└─
-┌─[RESULT]─
-│ . b_in = B1 (A1 2)
-└─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = -1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = A2 false
-└─
-┌─[RESULT]─
-│ . b_in = B2
-└─
-┌─[RESULT]─
-│ . x_in = 2
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . a_in = A2 true
-└─
-┌─[RESULT]─
-│ . b_in = B1 (A2 false)
-└─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 4 tests:
+│               Inputs │ Outputs
+│ ──────────────── Test #1 ─────
+│ x_in = 0             │ o = 0
+│ a_in = A1 0          │
+│ b_in = B1 (A1 0)     │
+│ ──────────────── Test #2 ─────
+│ x_in = 0             │ o = -1
+│ a_in = A2 false      │
+│ b_in = B1 (A1 2)     │
+│ ──────────────── Test #3 ─────
+│ x_in = 2             │ o = 2
+│ a_in = A2 false      │
+│ b_in = B2            │
+│ ──────────────── Test #4 ─────
+│ x_in = 0             │ o = 1
+│ a_in = A2 true       │
+│ b_in = B1 (A2 false) │
 └─
 ```
 

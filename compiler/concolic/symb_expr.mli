@@ -2,20 +2,10 @@ open Catala_utils
 open Shared_ast
 
 module RuntimeError : sig
-  type span = string option * Pos.t
-  type span_list = span list
-
-  type runtime_error =
-    | EmptyError
-    | ConflictError of { spans : span_list }
-    | DivisionByZeroError of { spans : span_list }
-    | AssertionError
-
-  type message = string
-
   type t = {
-    except : runtime_error; (* TODO use actual exceptions from [Runtime]? *)
-    message : message; (* TODO use formatted stuff instead *)
+    error : Catala_runtime.error;
+    pos : Pos.t;
+    extra_pos : string Mark.pos list;
   }
 end
 
@@ -41,13 +31,10 @@ module SymbExpr : sig
   val none : t
   val incomplete : t
   val abs : t
-  val mk_emptyerror : RuntimeError.message -> t
-  val mk_conflicterror : RuntimeError.message -> RuntimeError.span_list -> t
-
-  val mk_divisionbyzeroerror :
-    RuntimeError.message -> RuntimeError.span_list -> t
-
-  val mk_assertionerror : RuntimeError.message -> t
+  val mk_emptyerror : Pos.t -> t
+  val mk_conflicterror : Pos.t -> string Mark.pos list -> t
+  val mk_divisionbyzeroerror : Pos.t -> string Mark.pos list -> t
+  val mk_assertionerror : Pos.t -> t
 
   (** {2 Operations} *)
 

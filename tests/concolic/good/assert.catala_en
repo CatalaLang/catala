@@ -21,44 +21,18 @@ let scope A (A_in: A_in): A =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:↯AssertionFailed↯ at assert:9.3-14
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . b_in = true
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . b_in = false
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯AssertionError↯ at tests/concolic/good/assert.catala_en:9.3-14
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 2 tests:
+│       Inputs │ Outputs
+│ ──────── Test #1 ─────────────────────────────────
+│ b_in = true  │ o = 0
+│ ──────── Test #2 ─────────────────────────────────
+│ b_in = false │ ↯AssertionFailed↯ at assert:9.3-14
 └─
 ```
 

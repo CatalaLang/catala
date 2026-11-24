@@ -34,50 +34,15 @@ let scope A (A_in: A_in): A =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . d_in = |2010-01-01|
-└─
-┌─[RESULT]─
-│ . dur_in = [0 years, 0 months, 10 days]
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = false
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . d_in = |2024-09-14|
-└─
-┌─[RESULT]─
-│ . dur_in = [0 years, 0 months, 6 days]
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = true
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 2 tests:
+│                                Inputs │ Outputs
+│ ───────────────────────────────── Test #1 ────────
+│ dur_in = [0 years, 0 months, 10 days] │ o = false
+│ d_in = |2010-01-01|                   │
+│ ───────────────────────────────── Test #2 ────────
+│ dur_in = [0 years, 0 months, 6 days]  │ o = true
+│ d_in = |2024-09-14|                   │
 └─
 ```
 

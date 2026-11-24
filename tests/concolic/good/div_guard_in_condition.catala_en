@@ -35,68 +35,35 @@ NEGATE (y!=42)
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at div_guard_in_condition:11.54-64
+│      Null denominator:
+│      ─➤ tests/concolic/good/div_guard_in_condition.catala_en:11.56-64:
+│         │
+│      11 │   exception definition o under condition y != 42 and x/(y - 42) = 0.5 consequence equals 1
+│         │                                                        ‾‾‾‾‾‾‾‾
+│      Article
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ . y_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = -21
-└─
-┌─[RESULT]─
-│ . y_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ . y_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/div_guard_in_condition.catala_en:11.56-64,tests/concolic/good/div_guard_in_condition.catala_en:11.54-64,)↯ at tests/concolic/good/div_guard_in_condition.catala_en:11.54-64
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 3 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ────────────────────────────────────────────────────────────────────────────────────────────────
+│ x_in = 0   │ o = 0
+│ y_in = 0   │
+│ ────── Test #2 ────────────────────────────────────────────────────────────────────────────────────────────────
+│ x_in = -21 │ o = 1
+│ y_in = 0   │
+│ ────── Test #3 ────────────────────────────────────────────────────────────────────────────────────────────────
+│ x_in = 0   │ ↯DivisionByZero↯ at div_guard_in_condition:11.54-64
+│ y_in = 42  │   Null denominator:
+│            │   ─➤ tests/concolic/good/div_guard_in_condition.catala_en:11.56-64:
+│            │      │
+│            │   11 │   exception definition o under condition y != 42 and x/(y - 42) = 0.5 consequence equals 1
+│            │      │                                                        ‾‾‾‾‾‾‾‾
+│            │   Article
 └─
 ```
 

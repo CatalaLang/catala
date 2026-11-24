@@ -35,56 +35,17 @@ let scope A (A_in: A_in): A =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . m_in = 0
-└─
-┌─[RESULT]─
-│ . s_in = { S a = 0; b = { T c = true; }; }
-└─
-┌─[RESULT]─
-│ . t_in = { T c = true; }
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = true
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . m_in = 0
-└─
-┌─[RESULT]─
-│ . s_in = { S a = 2; b = { T c = false; }; }
-└─
-┌─[RESULT]─
-│ . t_in = { T c = true; }
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = false
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 2 tests:
+│                                    Inputs │ Outputs
+│ ───────────────────────────────────── Test #1 ────────
+│ m_in = 0                                  │ o = true
+│ s_in = { S a = 0; b = { T c = true; }; }  │
+│ t_in = { T c = true; }                    │
+│ ───────────────────────────────────── Test #2 ────────
+│ m_in = 0                                  │ o = false
+│ s_in = { S a = 2; b = { T c = false; }; } │
+│ t_in = { T c = true; }                    │
 └─
 ```
 

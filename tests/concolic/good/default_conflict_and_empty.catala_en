@@ -27,104 +27,57 @@ let scope A (A_in: A_in): A =
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯NoValue↯ at default_conflict_and_empty:6.12-13
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at default_conflict_and_empty:6.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/default_conflict_and_empty.catala_en:11.69-70:
+│         │
+│      11 │     exception definition o under condition x>100 consequence equals 2
+│         │                                                                     ‾
+│      Article
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/good/default_conflict_and_empty.catala_en:12.76-77:
+│         │
+│      12 │     exception definition o under condition x>200 or x=1 consequence equals 3
+│         │                                                                            ‾
+│      Article
+│
 └─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 2
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Empty↯ at tests/concolic/good/default_conflict_and_empty.catala_en:6.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 42
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 1
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 3
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 101
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 201
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯Conflict(tests/concolic/good/default_conflict_and_empty.catala_en:12.76-77,tests/concolic/good/default_conflict_and_empty.catala_en:11.69-70,)↯ at tests/concolic/good/default_conflict_and_empty.catala_en:6.12-13
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 6 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ──────────────────────────────────────────────────────────────────────────────────
+│ x_in = 0   │ o = 1
+│ ────── Test #2 ──────────────────────────────────────────────────────────────────────────────────
+│ x_in = 2   │ ↯NoValue↯ at default_conflict_and_empty:6.12-13
+│ ────── Test #3 ──────────────────────────────────────────────────────────────────────────────────
+│ x_in = 42  │ o = 0
+│ ────── Test #4 ──────────────────────────────────────────────────────────────────────────────────
+│ x_in = 1   │ o = 3
+│ ────── Test #5 ──────────────────────────────────────────────────────────────────────────────────
+│ x_in = 101 │ o = 2
+│ ────── Test #6 ──────────────────────────────────────────────────────────────────────────────────
+│ x_in = 201 │ ↯Conflict↯ at default_conflict_and_empty:6.12-13
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/default_conflict_and_empty.catala_en:11.69-70:
+│            │      │
+│            │   11 │     exception definition o under condition x>100 consequence equals 2
+│            │      │                                                                     ‾
+│            │   Article
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/good/default_conflict_and_empty.catala_en:12.76-77:
+│            │      │
+│            │   12 │     exception definition o under condition x>200 or x=1 consequence equals 3
+│            │      │                                                                            ‾
+│            │   Article
 └─
 ```
 

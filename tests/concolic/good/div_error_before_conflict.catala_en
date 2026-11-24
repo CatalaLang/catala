@@ -24,68 +24,35 @@ which is unsatisfiable.
 
 ```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯DivisionByZero↯ at div_error_before_conflict:12.44-47
+│      Null denominator:
+│      ─➤ tests/concolic/good/div_error_before_conflict.catala_en:12.46-47:
+│         │
+│      12 │     exception definition o under condition x/y = 0.5 consequence equals 2
+│         │                                              ‾
+│      Article
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ . y_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯DivisionByZero(tests/concolic/good/div_error_before_conflict.catala_en:12.46-47,tests/concolic/good/div_error_before_conflict.catala_en:12.44-47,)↯ at tests/concolic/good/div_error_before_conflict.catala_en:12.44-47
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ . y_in = 2
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = -1
-└─
-┌─[RESULT]─
-│ . y_in = -2
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─ A ─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 3 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ───────────────────────────────────────────────────────────────────────────────
+│ x_in = 0   │ ↯DivisionByZero↯ at div_error_before_conflict:12.44-47
+│ y_in = 0   │   Null denominator:
+│            │   ─➤ tests/concolic/good/div_error_before_conflict.catala_en:12.46-47:
+│            │      │
+│            │   12 │     exception definition o under condition x/y = 0.5 consequence equals 2
+│            │      │                                              ‾
+│            │   Article
+│ ────── Test #2 ───────────────────────────────────────────────────────────────────────────────
+│ x_in = 0   │ o = 0
+│ y_in = 2   │
+│ ────── Test #3 ───────────────────────────────────────────────────────────────────────────────
+│ x_in = -1  │ o = 2
+│ y_in = -2  │
 └─
 ```
 
