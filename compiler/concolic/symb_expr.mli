@@ -75,8 +75,8 @@ module SymbExpr : sig
 
   (** {2 Printing} *)
 
-  (* FIXME remove [to_string] once its not used anymore *)
   val to_string : ?typed:bool -> t -> string
-  val formatter : Format.formatter -> t -> unit
-  val formatter_typed : Format.formatter -> t -> unit
+  val format_sexpr : Format.formatter -> z3_expr -> unit
+  val format : Format.formatter -> t -> unit
+  val format_typed : Format.formatter -> t -> unit
 end

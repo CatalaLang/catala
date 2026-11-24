@@ -43,7 +43,7 @@ let remove_excepts (p : float) : ('e, 'c, 't) mutation_type =
       Message.debug "[mutation] Removing %n/%n excepts" diff len;
     remove_excepts_n := !remove_excepts_n + diff;
     Expr.edefault ~excepts ~just ~cons m
-  end
+    end
   | _ -> e
 
 let duplicate_excepts_n = ref 0
@@ -65,7 +65,7 @@ let duplicate_excepts : ('e, 'c, 't) mutation_type =
     let just = Expr.rebox just in
     let cons = Expr.rebox cons in
     Expr.edefault ~excepts ~just ~cons m
-  end
+    end
   | _ -> e
 
 let negate_justs_n = ref 0
@@ -87,7 +87,7 @@ let negate_justs : ('e, 'c, 't) mutation_type =
     if Global.options.debug then Message.debug "[mutation] Negating just";
     incr negate_justs_n;
     Expr.edefault ~excepts ~just:not_just ~cons m
-  end
+    end
   | _ -> e
 
 let apply_mutations

@@ -124,6 +124,11 @@ module Map = struct
   let values m = values m
   let format_keys ?pp_sep m = format_keys ?pp_sep m
   let filter f m = filter (fun v x -> f (get v) x) m
+  let mapi f m = mapi (fun k x -> f k x) m
+  let map f m = map (fun x -> f x) m
+  let format_values ?pp_sep = format_values ?pp_sep
+  let format_bindings ?pp_sep = format_bindings ?pp_sep
+  let format ?pp_sep ?pp_bind = format ?pp_sep ?pp_bind
 
   (* Add more as needed *)
 end

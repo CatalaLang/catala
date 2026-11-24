@@ -114,26 +114,51 @@ module SymbExpr = struct
   let map_none ~none = function Symb_none -> none | e -> e
   let simplify = map_z3 (fun e -> Z3.Expr.simplify e None)
 
-  let string_of_reentrant { name; _ } =
-    "<" ^ Mark.remove (StructField.get_info @@ name) ^ ">"
+  let format_reentrant fmt { name; _ } =
+    Format.fprintf fmt "<%a>#" StructField.format name
+
+  let rec format_sexpr fmt e =
+    let open Format in
+    let n = Z3.Expr.get_num_args e in
+    if n = 0 then pp_print_string fmt (Z3.Expr.to_string e)
+    else
+      let f = Z3.Expr.get_func_decl e in
+      let args = Z3.Expr.get_args e in
+      let f_name = Z3.Symbol.get_string (Z3.FuncDecl.get_name f) in
+      let is_binop =
+        String.length f_name <= 2
+        &&
+        let c = Char.code f_name.[0] in
+        c < 0x41 || c > 0x7A
+      in
+      if n <> 2 || not is_binop then
+        fprintf fmt "(%s %a)" f_name
+          (Format.pp_print_list ~pp_sep:pp_print_space format_sexpr)
+          args
+      else
+        let e1, e2 = match args with [e1; e2] -> e1, e2 | _ -> assert false in
+        fprintf fmt "(%a %s %a)" format_sexpr e1 f_name format_sexpr e2
 
   (* TODO formatter *)
-  let to_string ?(typed : bool = false) e =
+  let format ~typed fmt e =
+    let open Format in
     match e with
     | Symb_z3 s ->
-      let str = Z3.Expr.to_string s in
-      if typed then
-        "(" ^ str ^ ":" ^ (Z3.Sort.to_string @@ Z3.Expr.get_sort s) ^ ")"
-      else str
-    | Symb_reentrant r -> string_of_reentrant r
-    | Symb_none -> "None"
-    | Symb_incomplete -> "Incomplete"
-    | Symb_abs -> "Abs"
-    | Symb_error err -> RuntimeError.to_string err
+      if not typed then fprintf fmt "%a" format_sexpr s
+      else
+        fprintf fmt "(%a : %s)" format_sexpr s
+          (Z3.Sort.to_string (Z3.Expr.get_sort s))
+    | Symb_reentrant r -> format_reentrant fmt r
+    | Symb_none -> pp_print_string fmt "None"
+    | Symb_incomplete -> pp_print_string fmt "Incomplete"
+    | Symb_abs -> pp_print_string fmt "Abs"
+    | Symb_error err -> pp_print_string fmt (RuntimeError.to_string err)
 
-  let formatter (fmt : Format.formatter) (symb_expr : t) : unit =
-    Format.pp_print_string fmt (to_string symb_expr)
+  let to_string ?(typed = false) e = Format.asprintf "%a" (format ~typed) e
 
-  let formatter_typed (fmt : Format.formatter) (symb_expr : t) : unit =
-    Format.pp_print_string fmt (to_string ~typed:true symb_expr)
+  let format_typed (fmt : Format.formatter) (symb_expr : t) : unit =
+    format ~typed:true fmt symb_expr
+
+  let format (fmt : Format.formatter) (symb_expr : t) : unit =
+    format ~typed:false fmt symb_expr
 end

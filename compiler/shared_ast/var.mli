@@ -81,12 +81,36 @@ module Map : sig
     ('e var -> 'x -> 'x -> 'x option) -> ('e, 'x) t -> ('e, 'x) t -> ('e, 'x) t
 
   val fold : ('e var -> 'x -> 'acc -> 'acc) -> ('e, 'x) t -> 'acc -> 'acc
+  val mapi : (k0 -> 'x -> 'y) -> ('e, 'x) t -> ('e, 'y) t
+  val map : ('x -> 'y) -> ('e, 'x) t -> ('e, 'y) t
   val filter : ('e var -> 'x -> bool) -> ('e, 'x) t -> ('e, 'x) t
   val keys : ('e, 'x) t -> 'e var list
   val values : ('e, 'x) t -> 'x list
 
   val format_keys :
     ?pp_sep:(Format.formatter -> unit -> unit) ->
+    Format.formatter ->
+    ('e, 'x) t ->
+    unit
+
+  val format_values :
+    ?pp_sep:(Format.formatter -> unit -> unit) ->
+    (Format.formatter -> 'x -> unit) ->
+    Format.formatter ->
+    ('e, 'x) t ->
+    unit
+
+  val format_bindings :
+    ?pp_sep:(Format.formatter -> unit -> unit) ->
+    (Format.formatter -> (Format.formatter -> unit) -> 'x -> unit) ->
+    Format.formatter ->
+    ('e, 'x) t ->
+    unit
+
+  val format :
+    ?pp_sep:(Format.formatter -> unit -> unit) ->
+    ?pp_bind:(Format.formatter -> unit -> unit) ->
+    (Format.formatter -> 'x -> unit) ->
     Format.formatter ->
     ('e, 'x) t ->
     unit

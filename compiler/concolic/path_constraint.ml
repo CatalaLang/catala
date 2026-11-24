@@ -72,7 +72,7 @@ module PathConstraint = struct
         Message.error ~pos
           "[PathConstraint.mk_reentrant] expects reentrant symbolic expression \
            or dummy const but got %a"
-          SymbExpr.formatter expr
+          SymbExpr.format expr
     in
     Option.bind expr (fun expr -> Some { expr; pos; branch })
 
@@ -116,7 +116,8 @@ module PathConstraint = struct
       check that it stayed the same. If it was previously marked as Negated,
       thus if it was negated before the two evaluations, then check that the
       concrete value was indeed negated and mark it Done. If there are new
-      constraints after the last one, add them as Normal. Crash in other cases. *)
+      constraints after the last one, add them as Normal. Crash in other cases.
+  *)
   let rec compare_paths (path_prev : annotated_path) (path_new : naked_path) :
       annotated_path * incremental_annotated_pc list =
     match path_prev, path_new with
@@ -174,9 +175,9 @@ module PathConstraint = struct
 
     let pc_expr (fmt : formatter) (e : pc_expr) : unit =
       match e with
-      | Pc_z3 e -> pp_print_string fmt (Z3.Expr.to_string e)
+      | Pc_z3 e -> SymbExpr.format_sexpr fmt e
       | Pc_soft { symb; weight; id } ->
-        fprintf fmt "Soft(%s, %d, %s)" (Z3.Expr.to_string symb) weight id
+        fprintf fmt "Soft(%a, %d, %s)" SymbExpr.format_sexpr symb weight id
       | Pc_reentrant { symb = { name; _ }; is_empty } ->
         fprintf fmt "%s(%s)"
           (if is_empty then "Empty" else "NotEmpty")
@@ -185,20 +186,22 @@ module PathConstraint = struct
 
     let pc_debug_info (fmt : formatter) (pc : naked_pc) : unit =
       if Global.options.debug then
-        fprintf fmt "@%s {%B}" (Pos.to_string_short pc.pos) pc.branch
+        fprintf fmt "@%s {%B}" (Pos.to_string_shorter pc.pos) pc.branch
 
     let naked_pc (fmt : formatter) (pc : naked_pc) : unit =
-      fprintf fmt "%a%a" pc_expr pc.expr pc_debug_info pc
+      fprintf fmt "@[<h>%a %a@]" pc_expr pc.expr pc_debug_info pc
 
     let naked_path (fmt : formatter) (pcs : naked_path) : unit =
       pp_print_list naked_pc fmt pcs
 
     let annotated_pc (fmt : formatter) (apc : annotated_pc) : unit =
-      let print s pc = fprintf fmt s naked_pc pc in
-      match apc with
-      | Normal pc -> print "       %a" pc
-      | Done pc -> print "DONE   %a" pc
-      | Negated pc -> print "NEGATE %a" pc
+      let pfx, pc =
+        match apc with
+        | Normal pc -> "", pc
+        | Done pc -> "DONE", pc
+        | Negated pc -> "NEGATED", pc
+      in
+      fprintf fmt "%7s %a" pfx naked_pc pc
 
     let annotated_path (fmt : formatter) (pcs : annotated_path) : unit =
       if pcs = [] then pp_print_string fmt "[No constraints]"
