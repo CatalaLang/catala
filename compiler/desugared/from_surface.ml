@@ -1836,10 +1836,30 @@ let process_topdef
               topdef_arg_names;
               topdef_is_external = is_external;
             }
-        | Some def0, eopt -> (
+        | Some def0, eopt ->
           if not (Type.equal def0.Ast.topdef_type typ) then
             err "Conflicting type definitions"
-          else
+          else (
+            (* The definition in a metadata block already exports the
+               signature, which makes the private one redundant *)
+            (match
+               def0.Ast.topdef_expr, eopt, def0.topdef_visibility, is_public
+             with
+            | None, Some _, Private, true | Some _, None, Public, false ->
+              let first_pos = Mark.get (TopdefName.get_info id) in
+              let pos = Mark.get def.S.topdef_name in
+              let sig_pos, def_pos =
+                if Option.is_none eopt then pos, first_pos else first_pos, pos
+              in
+              Message.warning ~pos:sig_pos
+                ~extra_pos:["Definition", def_pos]
+                "@[<hov>This@ signature@ of@ %a@ is@ in@ a@ \
+                 @{<yellow;bold>```catala@}@ block,@ but@ its@ definition@ is@ \
+                 in@ a@ @{<yellow;bold>```catala-metadata@}@ block,@ which@ \
+                 already@ makes@ it@ public.@ To@ export@ only@ the@ \
+                 signature,@ swap@ them.@]"
+                TopdefName.format id
+            | _ -> ());
             let topdef_visibility =
               match def0.topdef_visibility, topdef_visibility with
               | Private, Private -> Private
