@@ -42,17 +42,19 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   let pint ppf n =
     if n >= 0 then Format.pp_print_int ppf n else Format.fprintf ppf "(%d)" n
   in
+  (* ints are 32 bits with js_of_ocaml and 31 bits with wasm_of_ocaml *)
+  let to_int z = if Z.numbits z <= 30 then Z.to_int z else raise Z.Overflow in
   match Mark.remove l with
   | LBool b -> Print.lit fmt (LBool b)
   | LInt i -> (
-    match Z.to_int i with
+    match to_int i with
     | n -> Format.fprintf fmt "integer_of_int %a" pint n
     | exception Z.Overflow ->
       Format.fprintf fmt "integer_of_string@ \"%s\""
         (Runtime.integer_to_string i))
   | LUnit -> Print.lit fmt LUnit
   | LRat (Q.{ num; den } as q) -> (
-    match Z.to_int num, Z.to_int den with
+    match to_int num, to_int den with
     | n, 1 -> Format.fprintf fmt "Q.of_int %a" pint n
     | n, d ->
       Format.fprintf fmt "{ Q.num = Z.of_int %a; den = Z.of_int %a }" pint n
@@ -60,7 +62,7 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
     | exception Z.Overflow ->
       Format.fprintf fmt "decimal_of_string \"%s\"" (Q.to_string q))
   | LMoney e -> (
-    match Z.to_int e with
+    match to_int e with
     | n -> Format.fprintf fmt "integer_of_int %a" pint n
     | exception Z.Overflow ->
       Format.fprintf fmt "money_of_cents_string@ \"%s\""
