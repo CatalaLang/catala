@@ -20,18 +20,18 @@ value, output `3` is found twice: once when `x = λ(). 30` and once when `x =
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─ Concolic execution ─
 │ Executed 4 tests:
-│      Inputs │ Outputs
-│ ─────── Test #1 ─────
-│ x_in = ⟨0⟩  │ x = 0
-│             │ o = 1
-│ ─────── Test #2 ─────
-│ x_in = ⟨30⟩ │ x = 30
-│             │ o = 3
-│ ─────── Test #3 ─────
-│ x_in = ⟨-1⟩ │ x = -1
-│             │ o = 2
-│ ─────── Test #4 ─────
-│ x_in = ∅    │ x = 30
-│             │ o = 3
+│     Inputs │ Outputs
+│ ────── Test #1 ─────
+│ x_in = 0   │ x = 0
+│            │ o = 1
+│ ────── Test #2 ─────
+│ x_in = 30  │ x = 30
+│            │ o = 3
+│ ────── Test #3 ─────
+│ x_in = -1  │ x = -1
+│            │ o = 2
+│ ────── Test #4 ─────
+│ x_in = ø   │ x = 30
+│            │ o = 3
 └─
 ```

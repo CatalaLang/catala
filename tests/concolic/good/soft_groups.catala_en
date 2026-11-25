@@ -18,17 +18,17 @@ $ catala Concolic -s A
 │ Executed 6 tests:
 │         Inputs │ Outputs
 │ ────────── Test #1 ────
-│ x_in = ¤0.00   │ o = 0
+│ x_in = $0.00   │ o = 0
 │ ────────── Test #2 ────
-│ x_in = ¤150.01 │ o = 1
+│ x_in = $150.01 │ o = 1
 │ ────────── Test #3 ────
-│ x_in = ¤5.58   │ o = 2
+│ x_in = $5.58   │ o = 2
 │ ────────── Test #4 ────
-│ x_in = ¤1.01   │ o = 3
+│ x_in = $1.01   │ o = 3
 │ ────────── Test #5 ────
-│ x_in = ¤0.01   │ o = 4
+│ x_in = $0.01   │ o = 4
 │ ────────── Test #6 ────
-│ x_in = ¤-0.09  │ o = 5
+│ x_in = -$0.09  │ o = 5
 └─
 ```
 
@@ -38,16 +38,16 @@ $ catala Concolic --conc-optim=soft --conc-optim=incremental -s A
 │ Executed 6 tests:
 │         Inputs │ Outputs
 │ ────────── Test #1 ────
-│ x_in = ¤0.00   │ o = 0
+│ x_in = $0.00   │ o = 0
 │ ────────── Test #2 ────
-│ x_in = ¤200.00 │ o = 1
+│ x_in = $200.00 │ o = 1
 │ ────────── Test #3 ────
-│ x_in = ¤10.00  │ o = 2
+│ x_in = $10.00  │ o = 2
 │ ────────── Test #4 ────
-│ x_in = ¤2.00   │ o = 3
+│ x_in = $2.00   │ o = 3
 │ ────────── Test #5 ────
-│ x_in = ¤0.01   │ o = 4
+│ x_in = $0.01   │ o = 4
 │ ────────── Test #6 ────
-│ x_in = ¤-0.01  │ o = 5
+│ x_in = -$0.01  │ o = 5
 └─
 ```

@@ -56,13 +56,13 @@ $ catala Concolic --conc-optim=incremental -s A
 │ Executed 3 tests:
 │     Inputs │ Outputs
 │ ────── Test #1 ───────────────────────────────────────────────────────────────────────
-│ x_in = ⟨0⟩ │ x = 0
+│ x_in = 0   │ x = 0
 │            │ o = 10
 │ ────── Test #2 ───────────────────────────────────────────────────────────────────────
-│ x_in = ⟨1⟩ │ x = 1
+│ x_in = 1   │ x = 1
 │            │ o = 20
 │ ────── Test #3 ───────────────────────────────────────────────────────────────────────
-│ x_in = ∅   │ ↯Conflict↯ at context_conflict_on_default:5.20-21
+│ x_in = ø   │ ↯Conflict↯ at context_conflict_on_default:5.20-21
 │            │   This consequence has a valid justification:
 │            │   ─➤ tests/concolic/good/context_conflict_on_default.catala_en:9.25-26:
 │            │     │

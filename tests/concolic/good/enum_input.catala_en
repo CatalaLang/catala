@@ -45,23 +45,23 @@ let scope A (A_in: A_in): A =
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─ Concolic execution ─
 │ Executed 4 tests:
-│               Inputs │ Outputs
-│ ──────────────── Test #1 ─────
-│ x_in = 0             │ o = 0
-│ a_in = A1 0          │
-│ b_in = B1 (A1 0)     │
-│ ──────────────── Test #2 ─────
-│ x_in = 0             │ o = -1
-│ a_in = A2 false      │
-│ b_in = B1 (A1 2)     │
-│ ──────────────── Test #3 ─────
-│ x_in = 2             │ o = 2
-│ a_in = A2 false      │
-│ b_in = B2            │
-│ ──────────────── Test #4 ─────
-│ x_in = 0             │ o = 1
-│ a_in = A2 true       │
-│ b_in = B1 (A2 false) │
+│                             Inputs │ Outputs
+│ ────────────────────────────── Test #1 ─────
+│ x_in = 0                           │ o = 0
+│ a_in = A1 content 0                │
+│ b_in = B1 content A1 content 0     │
+│ ────────────────────────────── Test #2 ─────
+│ x_in = 0                           │ o = -1
+│ a_in = A2 content false            │
+│ b_in = B1 content A1 content 2     │
+│ ────────────────────────────── Test #3 ─────
+│ x_in = 2                           │ o = 2
+│ a_in = A2 content false            │
+│ b_in = B2                          │
+│ ────────────────────────────── Test #4 ─────
+│ x_in = 0                           │ o = 1
+│ a_in = A2 content true             │
+│ b_in = B1 content A2 content false │
 └─
 ```
 

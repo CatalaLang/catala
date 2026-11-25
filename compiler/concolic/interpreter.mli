@@ -31,8 +31,9 @@ type step_result = {
   outputs : outputs;
 }
 
-type interp_result = {
+type interp_state = {
   stats : Stats.t;
+  ast_stats : Mutation.ast_stats_t;
   results : step_result list;
   incomplete : bool;
 }
@@ -43,5 +44,5 @@ val interpret_program_concolic :
   int option ->
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
-  interp_result
+  interp_state
 (** Concolic interpreter *)

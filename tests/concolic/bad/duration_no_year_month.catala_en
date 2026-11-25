@@ -16,20 +16,19 @@ scope B:
     definition o equals (output of A with {-- dur : 1 month}).o
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala DCalc -s A
-let scope A (A_in: A_in {dur_in: duration}): A {o: duration} =
+let scope A (A_in: A_in): A =
   let get dur : duration = A_in.dur_in in
   let set o : duration =
-    error_empty
-      ⟨ ⟨true ⊢ ⟨dur + [1 years, 0 months, 0 days]⟩⟩ | false ⊢ ∅ ⟩
+    error_empty ⟨ ⟨true ⊢ ⟨dur + [1 years, 0 months, 0 days]⟩⟩ | false ⊢ ∅ ⟩
   in
   return { A o = o; }
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Interpret -s B
-┌─[RESULT]─
+┌─[RESULT]─ B ─
 │ o = [1 year, 1 month]
 └─
 ```
@@ -37,17 +36,8 @@ $ catala Interpret -s B
 For now the concolic interpreter refuses to handle durations that are not just
 a number of days.
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . dur_in = [10 days]
-└─
 ┌─[ERROR]─
 │
 │  [DateEncoding] Duration literals containing years or months not supported

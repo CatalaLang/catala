@@ -9,92 +9,74 @@ scope A:
     exception definition o under condition x = 11 consequence equals 1
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic -O -s A
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:↯AssertionFailed↯ at one_mutation:7.5-20
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:↯AssertionFailed↯ at one_mutation:7.5-20
+│
 └─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯AssertionError↯ at tests/concolic/bad/one_mutation.catala_en:7.15-7.20
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = -1
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 3 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ───────────────────────────────────────
+│ x_in = 0   │ ↯AssertionFailed↯ at one_mutation:7.5-20
+│ ────── Test #2 ───────────────────────────────────────
+│ x_in = -1  │ o = 0
+│ ────── Test #3 ───────────────────────────────────────
+│ x_in = 11  │ ↯AssertionFailed↯ at one_mutation:7.5-20
 └─
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic -O -s A --conc-optim=mutation-one-conflict --seed=12345
 ┌─[RESULT]─
 │ [mutation] seed 12345
 └─
-┌─[RESULT]─
-│ 
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:↯AssertionFailed↯ at one_mutation:7.5-20
+│
 └─
-┌─[RESULT]─
-│ Evaluating with inputs:
+┌─[WARNING]─
+│
+│  Output of scope after evaluation:
+│    ↯Conflict↯ at one_mutation:4.12-13
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/bad/one_mutation.catala_en:9.70-71:
+│        │
+│      9 │     exception definition o under condition x = 11 consequence equals 1
+│        │                                                                      ‾
+│      This consequence has a valid justification:
+│      ─➤ tests/concolic/bad/one_mutation.catala_en:9.70-71:
+│        │
+│      9 │     exception definition o under condition x = 11 consequence equals 1
+│        │                                                                      ‾
+│
 └─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ Found error ↯AssertionError↯ at tests/concolic/bad/one_mutation.catala_en:7.15-7.20
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = -1
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 3 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ───────────────────────────────────────────────────────────────────────────
+│ x_in = 0   │ ↯AssertionFailed↯ at one_mutation:7.5-20
+│ ────── Test #2 ───────────────────────────────────────────────────────────────────────────
+│ x_in = -1  │ o = 0
+│ ────── Test #3 ───────────────────────────────────────────────────────────────────────────
+│ x_in = 11  │ ↯Conflict↯ at one_mutation:4.12-13
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/bad/one_mutation.catala_en:9.70-71:
+│            │     │
+│            │   9 │     exception definition o under condition x = 11 consequence equals 1
+│            │     │                                                                      ‾
+│            │   This consequence has a valid justification:
+│            │   ─➤ tests/concolic/bad/one_mutation.catala_en:9.70-71:
+│            │     │
+│            │   9 │     exception definition o under condition x = 11 consequence equals 1
+│            │     │                                                                      ‾
 └─
 ```
-

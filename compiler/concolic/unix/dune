@@ -1,0 +1,10 @@
+(library
+ (name profiler_unix)
+ (public_name catala-proof.profiler-unix)
+ (libraries
+  profiler
+  unix
+  json-data-encoding)
+ (flags
+  (:standard)
+  -open Json_encoding))

@@ -54,13 +54,13 @@ let scope A (A_in: A_in): A =
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─ Concolic execution ─
 │ Executed 3 tests:
-│         Inputs │ Outputs
-│ ────────── Test #1 ─────
-│ x_in = Case1 0 │ o = 31
-│ ────────── Test #2 ─────
-│ x_in = Case2   │ o = 0
-│ ────────── Test #3 ─────
-│ x_in = Case3   │ o = 31
+│                 Inputs │ Outputs
+│ ────────────────── Test #1 ─────
+│ x_in = Case1 content 0 │ o = 31
+│ ────────────────── Test #2 ─────
+│ x_in = Case2           │ o = 0
+│ ────────────────── Test #3 ─────
+│ x_in = Case3           │ o = 31
 └─
 ```
 
@@ -83,12 +83,12 @@ let scope B (B_in: B_in): B =
 $ catala Concolic --conc-optim=incremental -s B
 ┌─[RESULT]─ Concolic execution ─
 │ Executed 3 tests:
-│         Inputs │ Outputs
-│ ────────── Test #1 ─────
-│ x_in = Case1 0 │ o = 0
-│ ────────── Test #2 ─────
-│ x_in = Case2   │ o = 0
-│ ────────── Test #3 ─────
-│ x_in = Case3   │ o = 31
+│                 Inputs │ Outputs
+│ ────────────────── Test #1 ─────
+│ x_in = Case1 content 0 │ o = 0
+│ ────────────────── Test #2 ─────
+│ x_in = Case2           │ o = 0
+│ ────────────────── Test #3 ─────
+│ x_in = Case3           │ o = 31
 └─
 ```

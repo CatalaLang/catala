@@ -35,56 +35,68 @@ scope TestB:
     assertion o = 2
 ```
 
-```catala-test-inline
+```catala-test-cli
 $ catala DCalc
-let A : A_in → A =
-  λ (A_in: A_in) →
-  let f : integer → bool = A_in.f_in in
-  let x : integer = A_in.x_in in
-  let r : bool = error_empty ⟨ ⟨true ⊢ ⟨f x⟩⟩ | false ⊢ ∅ ⟩ in
-  let o : bool =
+
+type A_in = { f_in: integer → bool; x_in: integer; }
+
+type A = { o: bool; }
+
+type B_in = { x_in: integer; }
+
+type B = { o: integer; }
+
+type TestB_in = {  }
+
+type TestB = {  }
+
+let scope A (A_in: A_in): A =
+  let get f : integer → bool = A_in.f_in in
+  let get x : integer = A_in.x_in in
+  let set r : ⟪bool⟫ = ⟨ ⟨true ⊢ ⟨f x⟩⟩ | false ⊢ ∅ ⟩ in
+  let set o : bool =
     error_empty
-      ⟨ ⟨ ⟨r ⊢ ⟨true⟩⟩ | false ⊢ ∅ ⟩
+      ⟨ ⟨ ⟨error_empty r ⊢ ⟨true⟩⟩ | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
-  { A o = o; }
-in
-let positive : integer → bool = λ (x: integer) → x >= 0 in
-let B : B_in → B =
-  λ (B_in: B_in) →
-  let x : integer = B_in.x_in in
-  let r : bool =
-    error_empty
-      ⟨ ⟨true
-         ⊢ ⟨(let result : A = A { A_in f_in = positive; x_in = x; } in
-             let result1 : A = { A o = result.o; } in
-             if true then result1 else result1).
-              o⟩⟩
-      | false ⊢ ∅ ⟩
+  return { A o = o; }
+
+let topval positive : integer → bool =
+  λ (x: integer) →
+  x ≥ 0
+
+let scope B (B_in: B_in): B =
+  let get x : integer = B_in.x_in in
+  let set r : ⟪bool⟫ =
+    ⟨ ⟨true
+       ⊢ ⟨(let result : A = A { A_in f_in = positive; x_in = x; } in
+           let result1 : A = { A o = result.o; } in
+           result1).
+            o⟩⟩
+    | false ⊢ ∅ ⟩
   in
-  let o : integer =
+  let set o : integer =
     error_empty
-      ⟨ ⟨ ⟨r && x > 10 ⊢ ⟨1⟩⟩, ⟨r && x <= 10 ⊢ ⟨2⟩⟩, ⟨r && x < -10 ⊢ ⟨-3⟩⟩
+      ⟨ ⟨ ⟨(error_empty r) && x > 10 ⊢ ⟨1⟩⟩,
+          ⟨(error_empty r) && x ≤ 10 ⊢ ⟨2⟩⟩,
+          ⟨(error_empty r) && x < -10 ⊢ ⟨-3⟩⟩
         | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
-  { B o = o; }
-in
-let TestB : TestB_in → TestB =
-  λ (TestB_in: TestB_in) →
-  let o : integer =
-    error_empty
-      ⟨ ⟨true
-         ⊢ ⟨(let result : B = B { B_in x_in = 10; } in
-             let result1 : B = { B o = result.o; } in
-             if true then result1 else result1).
-              o⟩⟩
-      | false ⊢ ∅ ⟩
+  return { B o = o; }
+
+let scope TestB (TestB_in: TestB_in): TestB =
+  let set o : ⟪integer⟫ =
+    ⟨ ⟨true
+       ⊢ ⟨(let result : B = B { B_in x_in = 10; } in
+           let result1 : B = { B o = result.o; } in
+           result1).
+            o⟩⟩
+    | false ⊢ ∅ ⟩
   in
-  let assert__1 : unit = assert ((o = 2)) in
-  {TestB}
-in
-A
+  let assert assert__1 : unit = assert (error_empty o = 2) in
+  return {TestB}
+
 ```
 
 Scope A takes a function as input. The concrete interpreter always gives it the
@@ -96,13 +108,13 @@ then it fails with an emtpy error.
 For now, the concolic interpreter detects functions that do not encode context
 variables, and refuses to procede:
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[ERROR]─
 │
 │  This input of the scope is a function. This case is not handled by the concolic interpreter for now. You may want to call this scope from an other scope and provide a specific function as argument.
 │
-├─➤ tests/concolic/bad/func.catala_en:9.11-9.12:
+├─➤ tests/concolic/bad/func.catala_en:9.11-12:
 │   │
 │ 9 │     input f content boolean depends on x content integer
 │   │           ‾
@@ -113,9 +125,9 @@ $ catala Concolic --conc-optim=incremental -s A
 However, the concrete interpreter can handle `B` which calls scope `A` with a
 specific function and input.
 
-```catala-test-inline
+```catala-test-cli
 $ catala Interpret -s TestB
-┌─[RESULT]─
+┌─[RESULT]─ TestB ─
 │ Computation successful!
 └─
 ```
@@ -124,61 +136,16 @@ And now the concolic interpreter can do that as well, and even gather a
 constraint from it and negate it!
 Note that there are a few too many warnings for now.
 
-```catala-test-inline
+```catala-test-cli
 $ catala Concolic --conc-optim=incremental -s B
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 0
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 2
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = 11
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 1
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Evaluating with inputs:
-└─
-┌─[RESULT]─
-│ . x_in = -1
-└─
-┌─[RESULT]─
-│ Output of scope after evaluation:
-└─
-┌─[RESULT]─
-│ . o = 0
-└─
-┌─[RESULT]─
-│ 
-└─
-┌─[RESULT]─
-│ Concolic interpreter done
-└─
-┌─[RESULT]─
-│ Computation successful!
+┌─[RESULT]─ Concolic execution ─
+│ Executed 3 tests:
+│     Inputs │ Outputs
+│ ────── Test #1 ────
+│ x_in = 0   │ o = 2
+│ ────── Test #2 ────
+│ x_in = 11  │ o = 1
+│ ────── Test #3 ────
+│ x_in = -1  │ o = 0
 └─
 ```
-

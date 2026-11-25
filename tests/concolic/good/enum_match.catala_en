@@ -38,16 +38,16 @@ let scope A (A_in: A_in): A =
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─ Concolic execution ─
 │ Executed 5 tests:
-│          Inputs │ Outputs
-│ ─────────── Test #1 ────
-│ x_in = E1 0     │ o = 1
-│ ─────────── Test #2 ────
-│ x_in = E1 -1    │ o = 0
-│ ─────────── Test #3 ────
-│ x_in = E2 false │ o = 3
-│ ─────────── Test #4 ────
-│ x_in = E2 true  │ o = 2
-│ ─────────── Test #5 ────
-│ x_in = E3       │ o = 4
+│                  Inputs │ Outputs
+│ ─────────────────── Test #1 ────
+│ x_in = E1 content 0     │ o = 1
+│ ─────────────────── Test #2 ────
+│ x_in = E1 content -1    │ o = 0
+│ ─────────────────── Test #3 ────
+│ x_in = E2 content false │ o = 3
+│ ─────────────────── Test #4 ────
+│ x_in = E2 content true  │ o = 2
+│ ─────────────────── Test #5 ────
+│ x_in = E3               │ o = 4
 └─
 ```

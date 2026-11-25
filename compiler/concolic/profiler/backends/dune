@@ -1,0 +1,12 @@
+(library
+ (name profiler_backends)
+ (public_name catala-proof.profiler-backends)
+ (libraries
+  profiler
+  profiler_unix
+  ptime
+  json-data-encoding
+  yojson)
+ (flags
+  (:standard)
+  -open Json_encoding))

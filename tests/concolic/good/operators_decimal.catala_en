@@ -38,15 +38,15 @@ $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─ Concolic execution ─
 │ Executed 2 tests:
 │       Inputs │ Outputs
-│ ──────── Test #1 ──────
-│ x_in = 0.    │ o = 0.
-│ y_in = 0.    │
-│ z_in = 0.    │
-│ t_in = 0.    │
-│ ──────── Test #2 ──────
-│ x_in = -0.25 │ o = -1.
+│ ──────── Test #1 ───────
+│ x_in = 0.0   │ o = 0.0
+│ y_in = 0.0   │
+│ z_in = 0.0   │
+│ t_in = 0.0   │
+│ ──────── Test #2 ───────
+│ x_in = -0.25 │ o = -1.0
 │ y_in = -0.5  │
-│ z_in = 0.    │
+│ z_in = 0.0   │
 │ t_in = -0.5  │
 └─
 ```

@@ -36,13 +36,13 @@ let scope A (A_in: A_in): A =
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─ Concolic execution ─
 │ Executed 2 tests:
-│                                Inputs │ Outputs
-│ ───────────────────────────────── Test #1 ────────
-│ dur_in = [0 years, 0 months, 10 days] │ o = false
-│ d_in = |2010-01-01|                   │
-│ ───────────────────────────────── Test #2 ────────
-│ dur_in = [0 years, 0 months, 6 days]  │ o = true
-│ d_in = |2024-09-14|                   │
+│              Inputs │ Outputs
+│ ─────────────── Test #1 ────────
+│ dur_in = [10 days]  │ o = false
+│ d_in = |2010-01-01| │
+│ ─────────────── Test #2 ────────
+│ dur_in = [6 days]   │ o = true
+│ d_in = |2024-09-14| │
 └─
 ```
 

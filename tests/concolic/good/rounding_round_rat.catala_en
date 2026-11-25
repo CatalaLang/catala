@@ -26,19 +26,19 @@ scope A:
 $ catala Concolic --conc-optim=incremental -s A
 ┌─[RESULT]─ Concolic execution ─
 │ Executed 6 tests:
-│     Inputs │ Outputs
-│ ────── Test #1 ─────
-│ x_in = 0.  │ o = 2
-│ ────── Test #2 ─────
-│ x_in = 2.  │ o = 4
-│ ────── Test #3 ─────
-│ x_in = 3.  │ o = -1
-│ ────── Test #4 ─────
-│ x_in = 1.  │ o = 3
-│ ────── Test #5 ─────
-│ x_in = -1. │ o = 1
-│ ────── Test #6 ─────
-│ x_in = -2. │ o = 0
+│      Inputs │ Outputs
+│ ─────── Test #1 ─────
+│ x_in = 0.0  │ o = 2
+│ ─────── Test #2 ─────
+│ x_in = 2.0  │ o = 4
+│ ─────── Test #3 ─────
+│ x_in = 3.0  │ o = -1
+│ ─────── Test #4 ─────
+│ x_in = 1.0  │ o = 3
+│ ─────── Test #5 ─────
+│ x_in = -1.0 │ o = 1
+│ ─────── Test #6 ─────
+│ x_in = -2.0 │ o = 0
 └─
 ```
 
