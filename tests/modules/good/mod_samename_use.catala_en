@@ -1,0 +1,36 @@
+> Using Mod_samename
+
+> Using Mod_samename_middle
+
+```catala
+#[test]
+declaration scope Test:
+  output o content Mod_samename
+  output l content list of Mod_samename
+  output m content Mod_samename
+
+scope Test:
+  definition o equals output of Mod_samename.Mod_samename
+  definition l equals [o; Mod_samename { -- r: 1 }]
+  definition m equals (output of Mod_samename_middle.Mod_samename_middle).m
+```
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[RESULT]─ Test ─
+│ o = Mod_samename {
+│       -- r: 42
+│     }
+│ l = [
+│       Mod_samename {
+│         -- r: 42
+│       };
+│       Mod_samename {
+│         -- r: 1
+│       };
+│     ]
+│ m = Mod_samename {
+│       -- r: 7
+│     }
+└─
+```

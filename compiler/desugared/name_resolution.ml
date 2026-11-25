@@ -1188,6 +1188,10 @@ let typedef_info = function
   | TAbstract t -> AbstractType.get_info t
   | TScope (s, _) -> ScopeName.get_info s
 
+let exposed_type = function
+  | TScope (_, { out_struct_name; _ }) -> TStruct out_struct_name
+  | tdef -> tdef
+
 let typedef_path = function
   | TStruct t -> StructName.path t
   | TEnum t -> EnumName.path t
@@ -1665,7 +1669,7 @@ let form_context (surface, mod_uses) surface_modules : context =
                   ModuleName.Map.find modl surface_modules
                 in
                 match Ident.Map.find_opt id mctx.typedefs with
-                | None | Some (TScope _) -> None
+                | None -> None
                 | Some tdef ->
                   let defname, _ = typedef_info tdef in
                   (* The feature is disabled if the module is aliased, except
@@ -1677,7 +1681,7 @@ let form_context (surface, mod_uses) surface_modules : context =
                     (defname = ModuleName.to_string modl
                     || module_content.Surface.Ast.module_is_stdlib)
                     && tdef_is_public { ctxt with local = mctx } defname
-                  then Some tdef
+                  then Some (exposed_type tdef)
                   else None)
               mod_uses
           in
@@ -1738,14 +1742,14 @@ let form_context (surface, mod_uses) surface_modules : context =
         in
         let mctx = ModuleName.Map.find modl ctxt.modules in
         match Ident.Map.find_opt id mctx.typedefs with
-        | None | Some (TScope _) -> None
+        | None -> None
         | Some tdef ->
           let defname, _ = typedef_info tdef in
           if
             (defname = ModuleName.to_string modl
             || module_content.Surface.Ast.module_is_stdlib)
             && tdef_is_public { ctxt with local = mctx } defname
-          then Some tdef
+          then Some (exposed_type tdef)
           else None (* some *))
       mod_uses
   in

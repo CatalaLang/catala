@@ -1,0 +1,11 @@
+> Module Mod_samename
+
+```catala-metadata
+declaration scope Mod_samename:
+  output r content integer
+```
+
+```catala
+scope Mod_samename:
+  definition r equals 42
+```

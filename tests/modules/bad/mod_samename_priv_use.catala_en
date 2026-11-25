@@ -1,0 +1,39 @@
+> Using Mod_samename_priv
+
+```catala
+declaration scope Test:
+  output o content Mod_samename_priv
+
+scope Test:
+  definition o equals output of Mod_samename_priv.Mod_samename_priv
+```
+
+```catala-test-cli
+$ catala test-scope Test
+┌─[ERROR]─ 1/2 ─
+│
+│  Type Mod_samename_priv is private and cannot be used here.
+│
+├─➤ tests/modules/bad/mod_samename_priv_use.catala_en:5.20-37:
+│   │
+│ 5 │   output o content Mod_samename_priv
+│   │                    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ The type definition is private because it is inside a ```catala block and
+│ not a ```catala-metadata block:
+├─➤ tests/modules/bad/mod_samename_priv.catala_en:4.19-36:
+│   │
+│ 4 │ declaration scope Mod_samename_priv:
+│   │                   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[ERROR]─ 2/2 ─
+│
+│  "o": unknown identifier for a variable of scope Test
+│
+├─➤ tests/modules/bad/mod_samename_priv_use.catala_en:8.14-15:
+│   │
+│ 8 │   definition o equals output of Mod_samename_priv.Mod_samename_priv
+│   │              ‾
+└─
+#return code 123#
+```
