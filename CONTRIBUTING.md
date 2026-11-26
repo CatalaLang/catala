@@ -3,9 +3,10 @@
 The project is open to external contributions, in the spirit of open source.
 If you want to open a pull request, please follow the instructions below.
 
-To ask a question to the Catala team, please open an issue on this repository.
-You can also join the [Zulip chat](https://zulip.catala-lang.org/) to ask
-any questions about the project.
+Before engaging in a significant contribution, it is recommended to reach out
+to the maintainers. Ask questions to the Catala team by:
+- [opening an issue](https://github.com/CatalaLang/catala/issues/new) on this repository
+- joining the [Zulip chat](https://zulip.catala-lang.org/)
 
 If you want to contribute to the project on a longer-term basis, or if you have
 specific competences as a socio-fiscal lawyer or a programming language specialist,
@@ -21,44 +22,61 @@ distributed under the Apache2 license.
 
 Before writing Catala code, please read the [Catala book](https://book.catala-lang.org). You can run the
 programs of the tutorial yourself by following the instruction in the [README of
-the `examples` repository](https://github.com/CatalaLang/catala-examples/README.md).
-Then, it is suggested that you create a new example directory again according to
+the `examples` repository](https://github.com/CatalaLang/catala-examples/blob/master/README.md).
+Then, it is suggested that you create a new example directory according to
 the instructions of this README.
 
 ## Working on the compiler
 
-The Catala compiler is a standard dune-managed OCaml project.
+The Catala compiler is a standard OCaml project that builds using dune.
 You can look at the
-[online OCaml documentation](https://catala-lang.org/ocaml_docs/) for the
+[online OCaml documentation](https://assets.catala-lang.org/api-doc/catala/) for the
 different modules' interfaces as well as high-level architecture documentation.
 
-### Installing and using nix
+Note that `catala` and `clerk` can be extended using a [plugin
+system](https://assets.catala-lang.org/api-doc/catala/plugins.html): some
+extensions may be very useful but have a less generic scope than the core
+project. In this case, you may be encouraged to write them as an independent
+plugin that lives in a separate repository, that we will be glad to link to.
 
-We provide a nix environement to develop the Catala compiler. It is available
-after [installing nix](https://nixos.org/download.html). You can then just
-use `nix develop` to enter the environment.
+### Coding guidelines
 
-Requirements of catala that are not inside [nixpkgs](https://github.com/nixos/nixpkgs) are available inside the `.nix` directory of the repo. The main part is inside the `.nix/packages.nix`, where all the packages are either added (because absent from nixpkgs) using `ocamlPackage.callPackage`; or modified from nixpkgs, for instance cmdliner is currently pinned at version 1.1.0.
+- Please ensure to submit commits formatted using the included `ocamlformat`
+  configuration. The `make build` target ensures that.
 
+  In case the formatting rules or ocamlformat version changed remotely, you can
+  use [this
+  script](https://gist.github.com/AltGr/2891a61f721c8fd85b1da71e10c691b6) to
+  reformat your branch patch by patch before rebasing.
 
-### Automatic formatting
+- Please avoid tautological or overly verbose comments.
 
-Please ensure to submit commits formatted using the included `ocamlformat`
-configuration. The `make build` target should ensure that.
+### On the use of “AI”
 
-In case the formatting rules or ocamlformat version changed remotely, you can
-use [this script](https://gist.github.com/AltGr/2891a61f721c8fd85b1da71e10c691b6) to
-reformat your branch patch by patch before rebasing.
+We accept AI-assisted contributions, on the following conditions:
+- the contributor has a good understanding of all the changes
+- they write the pull-request description themselves
+- the code changes are limited to the scope of the announced purpose
 
+To ensure the continued quality of the code of the project, maintainers review
+every pull request with care. This implies some effort that unfortunately cannot
+scale if the contributors cannot make the effort of merely describing the work.
 
-### Pull Requests Policies
+Regardless of the tools they used to write it, contributors are accountable for
+the code they submit ; its quality and merits will be evaluated with the same
+standards.
+
+### Pull Requests Policy
 
 Pull requests must be approved by, at least, one knowledgable
 contributor before merging.
 
+Pull-request branches should not contain merges, and be rebased upon master
+whenever possible.
+
 Unless there exists legitimate reasons, every commit of the pull
-request must compile, and, the final commit must successfully pass the
-CI check.
+request should compile, and the final commit must successfully pass the
+CI checks.
 
 All requested changes should ideally be included in the PR. However,
 if the PR is merged while there are still open discussions or if there
@@ -73,32 +91,6 @@ Whenever major changes are requested, both PR's author and reviewer(s)
 may reach an agreement to delay the resolution (e.g., in a future PR)
 in which case it must be documented as an issue in order to properly
 track it.
-
-
-### Contribution example: adding a builtin function
-
-The language provides a limited number of builtin functions, which are sometimes
-needed for things that can't easily be expressed in Catala itself; in case you
-need more, here is how one can be added:
-
-- Choose a name wisely. Be ready to patch any code that already used the name
-  for scope parameters, variables or structure fields, since it won't compile
-  anymore.
-- Add an element to the `builtin_expression` type in `surface/ast.ml`
-- Add your builtin in the `builtins` list in `surface/lexer.cppo.ml`, and with
-  proper translations in all of the language-specific modules
-  `surface/lexer_en.cppo.ml`, `surface/lexer_fr.cppo.ml`, etc. Don't forget the
-  macro at the beginning of `lexer.cppo.ml`.
-- The rest can all be done by following the type errors downstream:
-  - Add a corresponding element to the lower-level AST in `shared_ast/definitions.ml`, type `Op.t`
-  - Extend the generic operations on operators in `shared_ast/operators.ml` as well as the type information for the operator
-  - Extend the translation accordingly in `desugared/from_surface.ml`
-  - Extend the printer (`shared_ast/print.ml`)
-  - Finally, provide the implementations:
-    - in `dcalc/interpreter.ml`, function `evaluate_operator`
-    - in `../runtimes/ocaml/runtime.ml`
-    - in `../runtimes/python/catala/src/catala/runtime.py`
-- Update the syntax guide in `doc/syntax/syntax.tex` with your new builtin
 
 ### Contribution example: internationalization of the Catala syntax
 
