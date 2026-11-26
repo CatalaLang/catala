@@ -53,6 +53,7 @@ end) : sig
   val aggregate :
     cpu:bool option -> P.t -> Profiler.verbosity -> Profiler.id -> unit
 
+  val stop_and_report : cpu:bool option -> P.t -> Profiler.report
   val report : cpu:bool option -> P.t -> Profiler.report option
 
   val stamp :

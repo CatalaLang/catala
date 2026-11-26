@@ -168,6 +168,7 @@ module type DRIVER = sig
   val span : cpu:bool option -> state -> verbosity -> span -> ids -> unit
   val inc : state -> report -> unit
   val report : cpu:bool option -> state -> report option
+  val stop_and_report : cpu:bool option -> state -> report
   val close : state -> unit
 end
 
@@ -262,6 +263,10 @@ let inc p report =
   iter ~cpu:None p (fun (module I) -> I.Driver.inc I.state report)
 
 let report ?cpu (module I : INSTANCE) = I.Driver.report ~cpu I.state
+
+let stop_and_report ?cpu (module I : INSTANCE) =
+  I.Driver.stop_and_report ~cpu I.state
+
 let stop p = iter ~cpu:None p (fun (module I) -> I.Driver.stop I.state)
 
 let section p start id f =

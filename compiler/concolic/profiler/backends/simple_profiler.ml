@@ -325,6 +325,18 @@ struct
   let aggregate ~cpu t verbosity id =
     P.set_state t @@ aggregate ~cpu (P.get_state t) verbosity id
 
+  let stop_and_report ~cpu:_ t =
+    let state = P.get_state t in
+    let rec loop stack =
+      match stack with
+      | Toplevel { aggregated; recorded } ->
+        P.set_state t @@ empty (P.get_state t).max_verbosity;
+        let report = { aggregated; recorded = List.rev recorded } in
+        filter_verbosity (P.get_state t).max_verbosity report
+      | Cons (_, s) -> loop s
+    in
+    loop state.stack
+
   let report ~cpu:_ t =
     match (P.get_state t).stack with
     | Toplevel { aggregated; recorded }
@@ -384,7 +396,11 @@ module Headless = struct
     let output_report = None
   end)
 
-  let close _ = ()
+  let rec close (s : state) =
+    if !s.scopes = [] then stop s
+    else (
+      stop s;
+      close s)
 end
 
 let headless = (module Headless : DRIVER with type config = verbosity)
@@ -469,6 +485,7 @@ let make_driver ~file_format =
     end)
 
     let close ({ output; _ } as state) =
+      stop state;
       match output with
       | Open (fn, fp, ppf) ->
         Format.pp_print_newline ppf ();

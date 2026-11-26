@@ -122,7 +122,6 @@ module SymbExpr = struct
         let e1, e2 = match args with [e1; e2] -> e1, e2 | _ -> assert false in
         fprintf fmt "(%a %s %a)" format_sexpr e1 f_name format_sexpr e2
 
-  (* TODO formatter *)
   let format ~typed fmt e =
     let open Format in
     match e with

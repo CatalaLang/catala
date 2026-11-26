@@ -1,6 +1,6 @@
 (library
  (name profiler_backends)
- (public_name catala-proof.profiler-backends)
+ (public_name catala.profiler-backends)
  (libraries
   profiler
   profiler_unix

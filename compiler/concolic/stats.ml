@@ -67,6 +67,4 @@ let format (fmt : Format.formatter) (stats : t) =
       (fun acc exe -> max acc exe.num_constraints)
       0 stats.executions
   in
-  fprintf fmt "@[<v 2>after %d execution steps:@ max constraints: %d@]"
-    (List.length stats.executions)
-    max_constraints
+  fprintf fmt "max constraints: %d" max_constraints

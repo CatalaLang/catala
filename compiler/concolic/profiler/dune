@@ -1,6 +1,6 @@
 (library
  (name profiler)
- (public_name catala-proof.profiler)
+ (public_name catala.profiler)
  (libraries
    json-data-encoding
    lwt))

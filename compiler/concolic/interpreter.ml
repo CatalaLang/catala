@@ -29,14 +29,21 @@ module Optimizations = Concolic_optimizations
 module Runtime = Catala_runtime
 open Conc_types
 
-let profiler = Profiler.unplugged ()
+let profiler = Profiler.main
 
 module Prof = (val Profiler.wrap profiler)
 
 let prof_instance =
-  Profiler.instance Profiler_backends.Simple_profiler.headless Debug
-
-let () = Prof.plug prof_instance
+  let instance =
+    match Sys.getenv_opt "PROFILER_FILE" with
+    | None -> Profiler.instance Profiler_backends.Simple_profiler.headless Debug
+    | Some pf ->
+      Format.eprintf "%s@." pf;
+      Profiler.instance
+        Profiler_backends.Simple_profiler.auto_write_as_txt_to_file (pf, Debug)
+  in
+  Prof.plug instance;
+  instance
 
 let set_conc_info
     (type m)
@@ -826,7 +833,6 @@ let propagate_generic_error
   match Mark.remove e, e_symb with
   | EGenericError, Symb_error _ ->
     let e_constraints = get_constraints_r e in
-
     Message.debug "Propagating error %a" SymbExpr.format e_symb;
     let constraints = e_constraints @ other_constraints in
     (* Add the new constraints but don't change the symbolic expression *)
@@ -1432,7 +1438,6 @@ let rec evaluate_expr :
           propagate_generic_error result (args_constraints @ f_constraints)
           @@ fun result ->
           let r_symb = get_symb_expr result in
-
           Message.debug
             "EApp>EAbs extracted symbolic expression from result: %a"
             SymbExpr.format r_symb;
@@ -2219,10 +2224,11 @@ end) : SOLVER = struct
         (constraints : s_expr list)
         (_ : PathConstraint.soft list)
         stats : Stats.t * z3_solver_result =
-      let solver = S.make ctx in
-      S.add solver constraints;
+      let solver = Prof.record_f "make solver" @@ fun () -> S.make ctx in
+      (Prof.record_f "add solver constraints"
+      @@ fun () -> S.add solver constraints);
       Message.debug "@[<hov 2>Solver is:@ %a@]" S.format solver;
-      match S.check solver [] with
+      match Prof.record_f "checking" @@ fun () -> S.check solver [] with
       | SATISFIABLE ->
         (* TODO: update stats*)
         stats, Z3Sat (S.get_model solver)
@@ -2255,9 +2261,12 @@ end) : SOLVER = struct
     let solve ctx (local_constraints : s_expr list) : z3_solver_result =
       let solver = get_solver ctx in
       Message.debug "Using incremental Z3 solver";
-      S.push solver;
-      S.add solver local_constraints;
-      let status = S.check solver local_constraints in
+      (Prof.record_f "push solver" @@ fun () -> S.push solver);
+      (Prof.record_f "add solver constraints"
+      @@ fun () -> S.add solver local_constraints);
+      let status =
+        Prof.record_f "checking" @@ fun () -> S.check solver local_constraints
+      in
       Message.debug "@[<hov 2>Solver is:@ %a@]" S.format solver;
       let result =
         match status with
@@ -2830,6 +2839,7 @@ type step_result = {
 
 type interp_state = {
   stats : Stats.t;
+  step : int;
   ast_stats : Mutation.ast_stats_t;
   results : step_result list;
   incomplete : bool;
@@ -2862,7 +2872,7 @@ let print_interp_state
     ~print_stats
     ~soft_constraints
     ~mutation
-    { stats; ast_stats; results; incomplete = _ } =
+    { stats; step; ast_stats; results; incomplete = _ } =
   let open Format in
   let inputs_outputs_sl =
     List.mapi
@@ -2897,7 +2907,7 @@ let print_interp_state
   in
   let format_results fmt =
     pp_open_vbox fmt 0;
-    fprintf fmt "Executed %d tests:@," stats.total_tests;
+    fprintf fmt "Executed %d tests in %d steps:@," stats.total_tests step;
     fprintf fmt "%*s │ Outputs@,%a" mid "Inputs"
       (pp_print_list ~pp_sep:pp_print_cut (fun fmt (i, (l, r)) ->
            let s = Format.sprintf " Test #%i " (succ i) in
@@ -2952,11 +2962,18 @@ let print_interp_state
   in
   let format_report =
     if print_stats then
-      Some
-        (fun fmt ->
-          Format.fprintf fmt "@,%a"
-            (Profiler_backends.Simple_profiler.pp_report ?t0:None)
-            (Option.get (Profiler.report ~cpu:true prof_instance)))
+      begin match Sys.getenv_opt "PROFILER_FILE" with
+      | Some f ->
+        Message.log "Profiling result in %s file" f;
+        None
+      | None ->
+        Some
+          (fun fmt ->
+            let r = Profiler.stop_and_report ~cpu:true prof_instance in
+            Format.fprintf fmt "@,%a"
+              (Profiler_backends.Simple_profiler.pp_report ?t0:None)
+              r)
+      end
     else None
   in
   Message.results ~title:"Concolic execution"
@@ -2977,14 +2994,18 @@ let concolic_interp
     s_in
     scope_e
     mark_e : interp_state =
+  let eval_with_inputs i =
+    Prof.record_f "full evaluation"
+    @@ fun () -> eval_conc_with_input ctx lang s_in scope_e mark_e i
+  in
   let rec concolic_loop
       (interp_state : interp_state)
       (current_path : PathConstraint.annotated_path) : interp_state =
     let path_len = List.length current_path in
-    if Optimizations.tests_vs_time optims then
-      (* Full sequential report *)
-      Format.ksprintf Prof.record "step: %d path constraints" path_len
-    else (* Aggregated loop steps *) Prof.aggregate "step";
+    let interp_state = { interp_state with step = succ interp_state.step } in
+    (* Format.ksprintf Prof.record "step %d: %d path constraints" interp_state.step *)
+    (*   path_len; *)
+    Prof.aggregate "concolip evaluation loop";
     let interp_state =
       {
         interp_state with
@@ -3004,7 +3025,7 @@ let concolic_interp
     in
     match solver_result with
     | Solver.Sat (Some m) ->
-      Prof.stamp "sat";
+      Prof.mark ["sat"];
       Message.debug "@[<v 2>Solver returned a model:@ %a@]" Solver.format_model
         m;
       let inputs : inputs =
@@ -3014,10 +3035,7 @@ let concolic_interp
       (* if Optimizations.tests_vs_time optims then *)
       (*   Message.result "time of test: %a" Stats.Print.period *)
       (*     (Stats.running_period stats); *)
-      let res =
-        Prof.record_f "symbolic evaluation"
-        @@ fun () -> eval_conc_with_input ctx lang s_in scope_e mark_e inputs
-      in
+      let res = eval_with_inputs inputs in
       let outputs : outputs =
         match Mark.remove res with
         | EStruct { fields; _ } -> Ok (fields : conc_result StructField.Map.t)
@@ -3025,9 +3043,8 @@ let concolic_interp
           (* TODO better error messages *)
           (* TODO test the different cases *)
           let err = get_symb_expr_r res in
-          Message.warning "@[<hov 2>Output of scope after evaluation:@,%a@]"
+          Message.debug "@[<hov 2>Output of scope after evaluation:@,%a@]"
             SymbExpr.format err;
-
           Error (Format.asprintf "%a" SymbExpr.format err)
         | _ ->
           Message.error ~pos:(Expr.pos scope_e)
@@ -3042,6 +3059,9 @@ let concolic_interp
           results = r :: interp_state.results;
         }
       in
+      (* (print_interp_state ~print_stats:false ~soft_constraints:false *)
+      (*    ~mutation:false) *)
+      (*   interp_state; *)
       let incomplete =
         List.exists PathConstraint.is_incomplete (get_constraints_r res)
       in
@@ -3105,7 +3125,7 @@ let concolic_interp
         if new_path_constraints = [] then interp_state
         else concolic_loop interp_state new_path_constraints
     | Solver.Unsat -> begin
-      Prof.stamp "unsat";
+      Prof.mark ["unsat"];
       Message.debug "Solver returned Unsat";
       match current_path with
       | [] -> failwith "[CONC] Failed to solve without constraints"
@@ -3130,12 +3150,17 @@ let concolic_interp
       failwith "[CONC] Constraints satisfiable but no model was produced"
     | Solver.Unknown info ->
       Prof.stop ();
-      Message.error ~internal:true
-        "@[<v 2>[CONC] Unknown solver result, debug info:@ %a@]"
+      Message.error "@[<v 2>[CONC] Unknown solver result, debug info:@ %a@]"
         Solver.format_unknown_info info
   in
   let state =
-    { stats = Stats.empty; ast_stats; results = []; incomplete = false }
+    {
+      stats = Stats.empty;
+      step = 0;
+      ast_stats;
+      results = [];
+      incomplete = false;
+    }
   in
   let res = concolic_loop state [] in
   { res with results = List.rev res.results }
@@ -3148,6 +3173,7 @@ let interpret_program_concolic
     (p : (dcalc, m) gexpr program)
     s : interp_state =
   Message.debug "=== Start concolic interpretation... ===";
+  Prof.record "concolic interpretation start";
   Optimizations.check_optims_coherent optims;
   (* output_name, out_fmt : string * Format.formatter) *)
   let ctx =
@@ -3228,16 +3254,14 @@ let interpret_program_concolic
     end) in
     (* add soft constraints to solver if it is incremental *)
     List.iter (Solver.push ctx) soft_constraints;
-    let found_incomplete = ref false in
+    Prof.stop ();
     let result =
-      Prof.aggregate_f "interpretation loop"
-      @@ fun () ->
       concolic_interp
         (module Solver : SOLVER)
         ctx optims soft_constraints ast_stats p.lang input_marks s_in scope_e
         mark_e
     in
-    if !found_incomplete then
+    if result.incomplete then
       Message.warning
         "Please note that the concolic execution may be incomplete: it could \
          systematically explore the whole program.";
@@ -3248,6 +3272,18 @@ let interpret_program_concolic
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
 
+let handle_error () =
+  Prof.close_and_unplug prof_instance;
+  let r = Profiler.stop_and_report ~cpu:true prof_instance in
+  Message.warning "%a" (Profiler_backends.Simple_profiler.pp_report ?t0:None) r
+
+let () =
+  Sys.set_signal Sys.sigint
+    (Signal_handle
+       (fun _ ->
+         handle_error ();
+         exit 1))
+
 let interpret_program_concolic
     (type m)
     (print_stats : bool)
@@ -3256,8 +3292,11 @@ let interpret_program_concolic
     (p : (dcalc, m) gexpr program)
     s : interp_state =
   let final_state =
-    Prof.record_f "concolic interpretation start"
-    @@ fun () -> interpret_program_concolic optims mutation_seed p s
+    try interpret_program_concolic optims mutation_seed p s
+    with e ->
+      let bt = Printexc.get_raw_backtrace () in
+      handle_error ();
+      Printexc.raise_with_backtrace e bt
   in
   print_interp_state ~print_stats
     ~soft_constraints:(Optimizations.soft_constraints optims)

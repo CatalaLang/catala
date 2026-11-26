@@ -33,6 +33,7 @@ type step_result = {
 
 type interp_state = {
   stats : Stats.t;
+  step : int;
   ast_stats : Mutation.ast_stats_t;
   results : step_result list;
   incomplete : bool;

@@ -1,4 +1,4 @@
 (library
  (name concolic)
- (public_name catala-proof.concolic)
+ (public_name catala.concolic)
  (libraries catala_utils shared_ast z3 scalc str profiler_backends))

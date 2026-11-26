@@ -1,6 +1,6 @@
 (library
  (name profiler_unix)
- (public_name catala-proof.profiler-unix)
+ (public_name catala.profiler-unix)
  (libraries
   profiler
   unix

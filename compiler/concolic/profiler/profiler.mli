@@ -179,6 +179,8 @@ module type DRIVER = sig
   val report : cpu:bool option -> state -> report option
   (** Consume the last toplevel report, if any. *)
 
+  val stop_and_report : cpu:bool option -> state -> report
+
   val close : state -> unit
   (** Flush and/or close output. *)
 end
@@ -198,6 +200,7 @@ val instance : 'a driver -> 'a -> instance
     [params] *)
 
 val time : cpu:bool option -> instance -> time
+val stop_and_report : ?cpu:bool -> instance -> report
 val report : ?cpu:bool -> instance -> report option
 val report_s : instance -> report Lwt.t
 val close : instance -> unit
