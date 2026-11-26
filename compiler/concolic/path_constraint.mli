@@ -13,10 +13,12 @@ module PathConstraint : sig
     | Pc_reentrant of reentrant
     | Pc_incomplete
 
+  module Set : Set.S with type elt = pc_expr
+
   (* path constraint cannot be empty (this looks like a GADT but it would be
      overkill I think) *)
   type naked_pc = { expr : pc_expr; pos : Pos.t; branch : bool }
-  type naked_path = naked_pc list
+  type naked_path = { path : naked_pc list; pc_set : Set.t }
 
   type annotated_pc =
     | Negated of naked_pc
@@ -26,6 +28,7 @@ module PathConstraint : sig
             should not be negated *)
     | Normal of naked_pc  (** all other constraints *)
 
+  val empty_path : naked_path
   val is_incomplete : naked_pc -> bool
 
   type annotated_path = annotated_pc list
@@ -50,7 +53,8 @@ module PathConstraint : sig
       check that it stayed the same. If it was previously marked as Negated,
       thus if it was negated before the two evaluations, then check that the
       concrete value was indeed negated and mark it Done. If there are new
-      constraints after the last one, add them as Normal. Crash in other cases. *)
+      constraints after the last one, add them as Normal. Crash in other cases.
+  *)
 
   val make_expected_path :
     annotated_path -> annotated_path * incremental_annotated_pc list

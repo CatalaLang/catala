@@ -60,6 +60,9 @@ module SymbExpr : sig
   val simplify : t -> t
   (** Call Z3 simplification function if possible. *)
 
+  val compare : t -> t -> int
+  val compare_reentrant : reentrant -> reentrant -> int
+
   (** {2 Printing} *)
 
   val to_string : ?typed:bool -> t -> string

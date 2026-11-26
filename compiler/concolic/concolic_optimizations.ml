@@ -87,17 +87,21 @@ let check_easy_unsat opt ctx (pcs : PathConstraint.pc_expr list) : bool =
         | _ -> false
       in
       match List.find_opt check l with Some _ -> true | None -> false
-    end
+      end
     | _ -> false
   end
 
 let remove_trivial_constraints opt (pcs : naked_path) : naked_path =
   if not (trivial opt) then pcs
   else begin
-    let f pc =
-      match pc.expr with Pc_z3 s -> not (Z3.Boolean.is_true s) | _ -> true
+    let fe e =
+      match e with Pc_z3 s -> not (Z3.Boolean.is_true s) | _ -> true
     in
-    List.filter f pcs
+    let f pc = fe pc.expr in
+    {
+      path = List.filter f pcs.path;
+      pc_set = PathConstraint.Set.filter fe pcs.pc_set;
+    }
   end
 
 let all_match_cases_take_unit_and_map_to_boolean_literals cases =
@@ -216,7 +220,7 @@ let rec optimize_rec : flag list -> conc_expr -> conc_boxed_expr =
         Message.debug "After packing %a" (Shared_ast.Print.expr ())
           (Expr.unbox new_default);
       e'
-    end
+      end
     | e -> e
   in
   Expr.Box.app1 e reduce mark

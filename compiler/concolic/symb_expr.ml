@@ -96,6 +96,21 @@ module SymbExpr = struct
   let map_none ~none = function Symb_none -> none | e -> e
   let simplify = map_z3 (fun e -> Z3.Expr.simplify e None)
 
+  let compare_reentrant r r' =
+    let c = StructField.compare r.name r'.name in
+    if c = 0 then Z3.Expr.compare r.symbol r'.symbol else c
+
+  let compare (l : t) (r : t) : int =
+    match l, r with
+    | Symb_z3 z, Symb_z3 z' -> Z3.Expr.compare z z'
+    | Symb_reentrant (r : reentrant), Symb_reentrant r' ->
+      compare_reentrant r r'
+    | Symb_none, Symb_none -> 0
+    | Symb_incomplete, Symb_incomplete -> 0
+    | Symb_abs, Symb_abs -> 0
+    | Symb_error err, Symb_error err' -> Stdlib.compare err err'
+    | _ -> Stdlib.compare l r
+
   let format_reentrant fmt { name; _ } =
     Format.fprintf fmt "<%a>" StructField.format name
 

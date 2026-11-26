@@ -14,10 +14,28 @@ module PathConstraint = struct
     | Pc_reentrant of reentrant
     | Pc_incomplete
 
+  module Set = Set.Make (struct
+    type t = pc_expr
+
+    let compare l r =
+      match l, r with
+      | Pc_z3 s, Pc_z3 s' -> Z3.Expr.compare s s'
+      | Pc_soft { symb; _ }, Pc_soft { symb = symb'; _ } ->
+        Z3.Expr.compare symb symb'
+      | ( Pc_reentrant { symb; is_empty },
+          Pc_reentrant { symb = symb'; is_empty = is_empty' } ) ->
+        if is_empty = is_empty' then SymbExpr.compare_reentrant symb symb'
+        else Stdlib.compare is_empty is_empty'
+      | Pc_incomplete, Pc_incomplete -> 0
+      | _ -> Stdlib.compare l r
+  end)
+
   (* path constraint cannot be empty (this looks like a GADT but it would be
      overkill I think) *)
   type naked_pc = { expr : pc_expr; pos : Pos.t; branch : bool }
-  type naked_path = naked_pc list
+  type naked_path = { path : naked_pc list; pc_set : Set.t }
+
+  let empty_path = { path = []; pc_set = Set.empty }
 
   let mk_z3 (expr : SymbExpr.t) (pos : Pos.t) (branch : bool) : naked_pc =
     let expr =
@@ -121,32 +139,33 @@ module PathConstraint = struct
   let rec compare_paths (path_prev : annotated_path) (path_new : naked_path) :
       annotated_path * incremental_annotated_pc list =
     match path_prev, path_new with
-    | [], [] -> [], []
-    | [], c' :: p' ->
-      let res, diff = compare_paths [] p' in
+    | [], { path = []; _ } -> [], []
+    | [], { path = c' :: p'; _ } ->
+      let res, diff = compare_paths [] { path_new with path = p' } in
       ( Normal c' :: res,
         (* the new path can be longer *)
         IncrPush (Normal c') :: diff )
-    | _ :: _, [] -> failwith "[compare_paths] old path is longer than new path"
-    | Normal c :: p, c' :: p' ->
+    | _ :: _, { path = []; _ } ->
+      failwith "[compare_paths] old path is longer than new path"
+    | Normal c :: p, { path = c' :: p'; _ } ->
       if path_constraint_equal c c' then
-        let res, diff = compare_paths p p' in
+        let res, diff = compare_paths p { path_new with path = p' } in
         Normal c :: res, diff
       else
         failwith
           "[compare_paths] a constraint that should not change has changed"
-    | Negated c :: p, c' :: p' ->
+    | Negated c :: p, { path = c' :: p'; _ } ->
       if c.branch <> c'.branch then
         (* the branch has been successfully negated and is now done *)
         (* TODO we should have a way to know if c and c' are the same except for
            their [branch] *)
-        let res, diff = compare_paths p p' in
+        let res, diff = compare_paths p { path_new with path = p' } in
         Done c' :: res, diff
       else
         failwith "[compare_paths] the negated condition lead to the same path"
-    | Done c :: p, c' :: p' ->
+    | Done c :: p, { path = c' :: p'; _ } ->
       if c = c' then
-        let res, diff = compare_paths p p' in
+        let res, diff = compare_paths p { path_new with path = p' } in
         Done c :: res, diff
       else
         failwith
@@ -186,13 +205,13 @@ module PathConstraint = struct
 
     let pc_debug_info (fmt : formatter) (pc : naked_pc) : unit =
       if Global.options.debug then
-        fprintf fmt "@%s {%B}" (Pos.to_string_shorter pc.pos) pc.branch
+        (Pos.format_loc_text ()) fmt (Pos.overwrite_law_info pc.pos [])
 
     let naked_pc (fmt : formatter) (pc : naked_pc) : unit =
-      fprintf fmt "@[<h>%a %a@]" pc_expr pc.expr pc_debug_info pc
+      fprintf fmt "@[<v 2>%a@ %a@]" pc_expr pc.expr pc_debug_info pc
 
     let naked_path (fmt : formatter) (pcs : naked_path) : unit =
-      pp_print_list naked_pc fmt pcs
+      pp_print_list naked_pc fmt pcs.path
 
     let annotated_pc (fmt : formatter) (apc : annotated_pc) : unit =
       let pfx, pc =
