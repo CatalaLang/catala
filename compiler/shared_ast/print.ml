@@ -1206,7 +1206,7 @@ module UserFacing = struct
           match Mark.remove e with
           | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmpty | EAbs _
           | EExternal _ ->
-            aux_value ppf e;
+            expr () ppf e;
             true
           | _ -> false
 
