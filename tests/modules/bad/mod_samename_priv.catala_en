@@ -1,9 +1,0 @@
-> Module Mod_samename_priv
-
-```catala
-declaration scope Mod_samename_priv:
-  output r content integer
-
-scope Mod_samename_priv:
-  definition r equals 42
-```

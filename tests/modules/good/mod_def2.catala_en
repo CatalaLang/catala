@@ -6,6 +6,9 @@ declaration scope Si :
 
 declaration scope S :
     output x content list of Si
+
+declaration scope Mod_def2 :
+    output y content integer
 ```
 
 ```catala
@@ -14,4 +17,7 @@ scope Si:
 
 scope S :
     definition x equals [ (output of Si)]
+
+scope Mod_def2 :
+    definition y equals 2
 ```
