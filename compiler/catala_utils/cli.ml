@@ -494,6 +494,14 @@ module Flags = struct
     & info ["wrap"; "w"]
         ~doc:"Wraps literate programming output with a minimal preamble."
 
+  let no_wrap =
+    value
+    & flag
+    & info ["no-wrap"]
+        ~doc:
+          "Only output the body of the HTML page, without the document \
+           preamble and stylesheet."
+
   let print_only_law =
     value
     & flag

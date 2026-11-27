@@ -1,0 +1,18 @@
+# Documentation d'un module en français
+
+> Module Not_english
+
+```catala-metadata
+déclaration structure Foyer:
+  donnée enfants contenu entier
+```
+
+```catala-test-cli
+$ catala doc -o -
+┌─[ERROR]─
+│
+│  Only modules written in English can be documented for now.
+│
+└─
+#return code 123#
+```

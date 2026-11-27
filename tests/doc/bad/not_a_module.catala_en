@@ -1,0 +1,16 @@
+# A file without a module directive
+
+```catala-metadata
+declaration structure S:
+  data x content integer
+```
+
+```catala-test-cli
+$ catala doc -o -
+┌─[ERROR]─
+│
+│  This file does not define a module, so it has no public interface to document. Add a '> Module Name' directive at its start.
+│
+└─
+#return code 123#
+```

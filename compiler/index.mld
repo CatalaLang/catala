@@ -118,6 +118,7 @@ Two more modules contain additional features for the compiler:
 
 {ul
 {li {{: literate.html} Literate programming}}
+{li {{: api_doc.html} API documentation}}
 {li {{: catala_utils.html} Compiler utilities}}
 }
 

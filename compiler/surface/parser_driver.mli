@@ -27,6 +27,15 @@ val lines :
 (** Raw file parser that doesn't interpret any includes and returns the flat law
     structure as is *)
 
+val get_interface :
+  Ast.program ->
+  Ast.module_use list * (Ast.code_item Mark.pos * visibility) list
+(** Extracts the interface of an already parsed program: the used modules, and
+    the declarations it contains, in order. Declarations from metadata blocks
+    are [Public]; type and scope declarations from other blocks are kept as
+    [Private]; topdefs from other blocks are dropped and the definitions of the
+    remaining ones are removed. *)
+
 val load_interface :
   ?default_module_name:string ->
   is_stdlib:bool ->

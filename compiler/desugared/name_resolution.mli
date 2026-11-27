@@ -214,6 +214,10 @@ val module_ctx : context -> Surface.Ast.path -> Uid.Path.t * context
 (** Returns the context corresponding to the given module path; raises a user
     error if the module is not found *)
 
+val tdef_is_public : context -> Ident.t -> bool
+(** Whether the type or scope of this name, in the local module, is declared in
+    a metadata block *)
+
 val process_type : context -> Surface.Ast.typ -> typ
 (** Convert a surface base type to an AST type *)
 

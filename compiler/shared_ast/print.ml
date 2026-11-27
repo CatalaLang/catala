@@ -91,19 +91,23 @@ let external_ref fmt er =
   | External_value v -> TopdefName.format fmt v
   | External_scope s -> ScopeName.format fmt s
 
-let attr ppf = function
-  | Pos.Law_pos _ -> ()
-  | Src (path, value, _pos) ->
+let attr ppf =
+  let src_attr ppf path value =
     Format.fprintf ppf "#[%a"
       (Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.pp_print_char ppf '.')
          Format.pp_print_string)
-      (Mark.remove path);
+      path;
     (match value with
     | Unit -> ()
     | String (str, _) -> Format.fprintf ppf " = %S" str
     | _ -> Format.fprintf ppf " = <expr>");
     Format.fprintf ppf "]@ "
+  in
+  function
+  | Pos.Law_pos _ -> ()
+  | Src (path, value, _pos) -> src_attr ppf (Mark.remove path) value
+  | Src_doc (_, value, _pos) -> src_attr ppf ["doc"] value
   | DebugPrint { label } ->
     Format.fprintf ppf "#[debug.print%a]@ "
       (fun ppf -> function
@@ -116,6 +120,14 @@ let attr ppf = function
   | _ -> Format.fprintf ppf "#[?]@ "
 
 let attrs ppf x = List.iter (attr ppf) (Pos.attrs x)
+
+let src_attr_name ppf = function
+  | Src ((path, _), _, _) ->
+    Format.fprintf ppf "attribute @{<magenta>#[%s]@}" (String.concat "." path)
+  | Src_doc (Doc_attribute, _, _) ->
+    Format.fprintf ppf "attribute @{<magenta>#[doc]@}"
+  | Src_doc (Doc_comment, _, _) -> Format.pp_print_string ppf "doc comment"
+  | _ -> Format.pp_print_string ppf "attribute"
 
 let tvar ppf tv =
   let name = Bindlib.name_of tv in

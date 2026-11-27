@@ -1,0 +1,77 @@
+# Docstrings of constants and functions declared separately from their definition
+
+> Module Doc_topdefs
+
+```catala-metadata
+## Documented on the signature.
+declaration f content integer
+  depends on
+    ## Documented on the signature.
+    x content integer,
+    y content integer
+```
+
+```catala
+## Ignored: outside of metadata blocks.
+declaration f content integer
+  depends on x content integer, y content integer
+  equals x + y
+```
+
+```catala-metadata
+## Defined along with its declaration.
+declaration g content integer equals 1
+```
+
+```catala-metadata
+## Signature and definition both in metadata blocks.
+declaration h content integer
+```
+
+```catala-metadata
+declaration h content integer equals 2
+```
+
+```catala-test-cli
+$ catala doc --no-wrap -o -
+<div class="page">
+<nav>
+<a class="module" href="#top">Doc_topdefs</a>
+<h3>Constants and functions</h3>
+<ul>
+<li><a href="#topdef-f">f</a></li>
+<li><a href="#topdef-g">g</a></li>
+<li><a href="#topdef-h">h</a></li>
+</ul>
+</nav>
+<main>
+<header id="top">
+<h1>Doc_topdefs</h1>
+<p class="meta">Catala module</p>
+</header>
+<section class="item" id="topdef-f">
+<h3><a href="#topdef-f">f</a></h3>
+<div class="doc"><p>Documented on the signature.</p></div>
+<div class="decl">
+<div class="line"><span class="kw">declaration</span> <span class="name">f</span> <span class="kw">content</span> <span class="builtin">integer</span> <span class="kw">depends on</span></div>
+<div class="member" id="topdef-f.x"><div class="line"><span class="name">x</span> <span class="kw">content</span> <span class="builtin">integer</span>,</div><div class="doc"><p>Documented on the signature.</p></div></div>
+<div class="member" id="topdef-f.y"><div class="line"><span class="name">y</span> <span class="kw">content</span> <span class="builtin">integer</span></div></div>
+</div>
+</section>
+<section class="item" id="topdef-g">
+<h3><a href="#topdef-g">g</a></h3>
+<div class="doc"><p>Defined along with its declaration.</p></div>
+<div class="decl">
+<div class="line"><span class="kw">declaration</span> <span class="name">g</span> <span class="kw">content</span> <span class="builtin">integer</span></div>
+</div>
+</section>
+<section class="item" id="topdef-h">
+<h3><a href="#topdef-h">h</a></h3>
+<div class="doc"><p>Signature and definition both in metadata blocks.</p></div>
+<div class="decl">
+<div class="line"><span class="kw">declaration</span> <span class="name">h</span> <span class="kw">content</span> <span class="builtin">integer</span></div>
+</div>
+</section>
+</main>
+</div>
+```

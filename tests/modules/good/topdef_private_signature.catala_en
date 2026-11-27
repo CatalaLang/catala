@@ -1,0 +1,56 @@
+> Module Topdef_private_signature
+
+```catala
+declaration signature_first content integer
+```
+
+```catala-metadata
+declaration signature_first content integer equals 1
+
+declaration definition_first content integer equals 2
+```
+
+```catala
+declaration definition_first content integer
+```
+
+```catala-test-cli
+$ catala typecheck
+┌─[WARNING]─
+│
+│  This signature of signature_first is in a ```catala block, but its
+│  definition is in a ```catala-metadata block, which already makes it
+│  public. To export only the signature, swap them.
+│
+├─➤ tests/modules/good/topdef_private_signature.catala_en:4.13-28:
+│   │
+│ 4 │ declaration signature_first content integer
+│   │             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ Definition
+├─➤ tests/modules/good/topdef_private_signature.catala_en:8.13-28:
+│   │
+│ 8 │ declaration signature_first content integer equals 1
+│   │             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[WARNING]─
+│
+│  This signature of definition_first is in a ```catala block, but its
+│  definition is in a ```catala-metadata block, which already makes it
+│  public. To export only the signature, swap them.
+│
+├─➤ tests/modules/good/topdef_private_signature.catala_en:14.13-29:
+│    │
+│ 14 │ declaration definition_first content integer
+│    │             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+│
+│ Definition
+├─➤ tests/modules/good/topdef_private_signature.catala_en:10.13-29:
+│    │
+│ 10 │ declaration definition_first content integer equals 2
+│    │             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+└─
+┌─[RESULT]─
+│ Typechecking successful!
+└─
+```

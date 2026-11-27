@@ -30,8 +30,10 @@ module Passes = struct
     debug_pass_name "surface";
     Surface.Parser_driver.parse_top_level_file options.Global.input_src
 
-  let desugared ?allow_external options ~includes ~stdlib :
-      Desugared.Ast.program * Desugared.Name_resolution.context =
+  let name_resolution options ~includes ~stdlib :
+      Surface.Ast.program
+      * Surface.Ast.module_content ModuleName.Map.t
+      * Desugared.Name_resolution.context =
     let prg = surface options in
     let mod_uses, modules =
       Surface.Parser_driver.load_modules options includes ~stdlib prg
@@ -40,8 +42,12 @@ module Passes = struct
     Message.debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context (prg, mod_uses) modules in
     Message.report_delayed_errors_if_any ();
+    prg, ModuleName.Map.map fst modules, ctx
+
+  let desugared ?allow_external options ~includes ~stdlib :
+      Desugared.Ast.program * Desugared.Name_resolution.context =
+    let prg, modules, ctx = name_resolution options ~includes ~stdlib in
     Message.debug "Desugaring...";
-    let modules = ModuleName.Map.map fst modules in
     let prg =
       Desugared.From_surface.translate_program ctx ?allow_external modules prg
     in
@@ -452,6 +458,46 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.print_only_law
         $ Cli.Flags.wrap_weaved_output)
+
+  let doc options includes stdlib output no_wrap =
+    let prg, modules, ctx = Passes.name_resolution options ~includes ~stdlib in
+    (* The documentation is extracted from the surface program, but desugaring
+       reports errors that name resolution doesn't, such as multiple
+       definitions of a topdef, which [Api_doc.Extract] relies on not
+       happening. The desugared program itself is not needed. External modules
+       are allowed, since documenting them needs no implementation. *)
+    let _ =
+      Desugared.From_surface.translate_program ctx ~allow_external:true modules
+        prg
+    in
+    Message.report_delayed_errors_if_any ();
+    Message.debug "Extracting the public interface";
+    let doc = Api_doc.Extract.extract prg ctx in
+    (* Pages are named after their module, which is what links point to *)
+    let output =
+      match output with
+      | None -> Some (Global.raw_file (doc.module_name ^ ".html"))
+      | some -> some
+    in
+    get_output_format options output
+    @@ fun _ fmt -> Api_doc.Html.render ~wrap:(not no_wrap) fmt doc
+
+  let doc_cmd =
+    Cmd.v
+      (Cmd.info "doc" ~man:Cli.man_base
+         ~doc:
+           "Generates an HTML page documenting the public interface of a \
+            Catala module: the declarations of its $(i,catala-metadata) blocks \
+            and their docstrings, as a standalone page. By default, the page \
+            is written to $(i,<Module>.html) in the current directory, which \
+            is also where links to other modules point.")
+      Term.(
+        const doc
+        $ global_options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.stdlib_dir
+        $ Cli.Flags.output
+        $ Cli.Flags.no_wrap)
 
   let latex
       options
@@ -1408,6 +1454,7 @@ module Commands = struct
       c_cmd;
       latex_cmd;
       html_cmd;
+      doc_cmd;
       scopelang_cmd;
       dcalc_cmd;
       lcalc_cmd;

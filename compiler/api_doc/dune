@@ -1,0 +1,8 @@
+(library
+ (name api_doc)
+ (public_name catala.api_doc)
+ (libraries catala_utils shared_ast surface desugared))
+
+(documentation
+ (package catala)
+ (mld_files api_doc))
