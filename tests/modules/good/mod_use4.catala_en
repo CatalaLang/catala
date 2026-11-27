@@ -4,9 +4,11 @@
 #[test]
 declaration scope T:
     output r content Mod_def2.S
+    output o content Mod_def2
 
 scope T:
     definition r equals (output of Mod_def2.S)
+    definition o equals (output of Mod_def2.Mod_def2)
 ```
 
 ```catala-test-cli
@@ -18,6 +20,9 @@ $ catala test-scope T
 │           -- x: 1
 │         };
 │       ]
+│     }
+│ o = Mod_def2 {
+│       -- y: 2
 │     }
 └─
 ```
