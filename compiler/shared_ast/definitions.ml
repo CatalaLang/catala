@@ -459,11 +459,21 @@ type attr_path = string list Mark.pos
 type attr_value = ..
 type attr_value += String of string Mark.pos | Unit
 
+type doc_syntax =
+  | Doc_comment  (** [## text] *)
+  | Doc_attribute  (** [#[doc = "text"]] *)
+
 type Pos.attr +=
   | Src of attr_path * attr_value * Pos.t
+        (** An attribute as written, before it is checked and translated *)
+  | Src_doc of doc_syntax * attr_value * Pos.t
+        (** A piece of a docstring as written, before it is checked and
+            translated into [Doc]. Both syntaxes have the same meaning. *)
   | DebugPrint of { label : string option }
   | Test
   | Doc of string * Pos.t
+        (** A piece of a docstring: one per [##] line, or one per [#[doc]]
+            attribute. *)
   | ImplicitPosArg
   | ErrorMessage of string
   | JsonPayload of string
