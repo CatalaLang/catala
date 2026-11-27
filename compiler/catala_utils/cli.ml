@@ -53,22 +53,13 @@ let all_lints =
     UnusedVariable;
   ]
 
-let lint_of_string s =
-  List.find_opt (fun l -> String.equal (lint_name l) s) all_lints
-
 let lint_args lints =
-  let enabled, disabled =
-    List.partition_map
-      (fun (l, b) ->
-        let name = lint_name l in
-        if b then Left name else Right name)
-      lints
-  in
-  let arg flag = function
-    | [] -> []
-    | names -> [Format.sprintf "--%s=%s" flag (String.concat "," names)]
-  in
-  arg "enable-lint" enabled @ arg "disable-lint" disabled
+  List.map
+    (fun (l, b) ->
+      Format.sprintf "--%s-lint=%s"
+        (if b then "enable" else "disable")
+        (lint_name l))
+    lints
 
 open Cmdliner
 
@@ -77,17 +68,7 @@ open Cmdliner
 let when_opt = Arg.enum ["auto", Auto; "always", Always; "never", Never]
 
 let lint_opt =
-  let parser s =
-    match lint_of_string s with
-    | Some l -> Ok l
-    | None ->
-      Error
-        (Format.sprintf "unknown lint %S, must be %s" s
-           (Arg.doc_alts ~quoted:true (List.map lint_name all_lints)))
-  in
-  Arg.Conv.make ~docv:"LINT" ~parser
-    ~pp:(fun ppf l -> Format.pp_print_string ppf (lint_name l))
-    ()
+  Arg.enum ~docv:"LINT" (List.map (fun l -> lint_name l, l) all_lints)
 
 let raw_file =
   Arg.conv ~docv:"FILE"
@@ -294,11 +275,7 @@ module Flags = struct
           ~doc:"Disable all the warnings emitted by the compiler."
 
     let lints =
-      let names flag ~doc =
-        Term.(
-          const List.flatten
-          $ (value & opt_all (list lint_opt) [] & info [flag] ~docv:"LINT" ~doc))
-      in
+      let names flag ~doc = value & opt_all lint_opt [] & info [flag] ~doc in
       (* Disabling comes last, so that it takes precedence *)
       let make enable disable =
         List.map (fun l -> l, true) enable
