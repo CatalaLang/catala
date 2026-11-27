@@ -134,9 +134,11 @@ let merge_defaults
    results (and as long as none of these exceptions have exceptions themselves)
 
    NOTE: the choice of the exception that will be triggered and show in the
-   trace is arbitrary (but deterministic). *)
-let collapse_similar_outcomes (type m) (excepts : m S.expr list) : m S.expr list
-    =
+   trace is arbitrary (but deterministic).
+   With [--trace], all the applying ones are shown. Each returned exception is
+   paired with whether it results from collapsing. *)
+let collapse_similar_outcomes (type m) (excepts : m S.expr list) :
+    (m S.expr * bool) list =
   let module ExprMap = Map.Make (struct
     type t = m S.expr
 
@@ -169,14 +171,15 @@ let collapse_similar_outcomes (type m) (excepts : m S.expr list) : m S.expr list
               []
               (ExprMap.find cons cons_map)
           in
-          ExprMap.add cons [] cons_map, collapsed_exc @ excepts
-        | e -> cons_map, e :: excepts)
+          ( ExprMap.add cons [] cons_map,
+            List.map (fun e -> e, true) collapsed_exc @ excepts )
+        | e -> cons_map, (e, false) :: excepts)
       excepts (cons_map, [])
   in
   (* Detect static conflicts and warn about them *)
   let just_map =
     List.fold_left
-      (fun map ex ->
+      (fun map (ex, _) ->
         let just =
           match ex with
           | EDefault { cons = EDefault _, _; _ }, _ -> None
@@ -381,9 +384,26 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm S.expr) : 'm Ast.expr boxed =
     | _ -> e
     end
   | EDefault { excepts; just; cons } ->
-    let excepts = collapse_similar_outcomes excepts in
-    let f_exn e = translate_expr ctx e in
-    Expr.edefault ~excepts:(List.map f_exn excepts)
+    (* For [--trace], evaluate every condition so all applying rules are shown:
+       [(... | j_1 -> c_1)] becomes [let b_1 = j_1 in (... | b_1 -> c_1)] *)
+    let rec bind_conditions = function
+      | EDefault { excepts = [inner]; just; cons }, m ->
+        let b = Var.make "b" in
+        let pos = Expr.pos just in
+        Expr.make_let_in (b, pos) (TLit TBool, pos) (translate_expr ctx just)
+          (Expr.edefault
+             ~excepts:[bind_conditions inner]
+             ~just:(Expr.evar b (Mark.get just))
+             ~cons:(translate_expr ctx cons) m)
+          (Expr.mark_pos m)
+      | e -> translate_expr ctx e
+    in
+    let f_exn = function
+      | e, true when Option.is_some Global.options.trace -> bind_conditions e
+      | e, _ -> translate_expr ctx e
+    in
+    Expr.edefault
+      ~excepts:(List.map f_exn (collapse_similar_outcomes excepts))
       ~just:(translate_expr ctx just) ~cons:(translate_expr ctx cons) m
   | EPureDefault e -> Expr.epuredefault (translate_expr ctx e) m
   | ELocation (ScopelangScopeVar { name = a }) ->

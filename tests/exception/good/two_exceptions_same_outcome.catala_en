@@ -38,3 +38,85 @@ $ catala test-scope A
 │ x = 0
 └─
 ```
+
+```catala-test-cli
+$ catala interpret -s A --trace
+→ Entering scope A
+─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:4.27-28:
+  │
+4 │ #[test] declaration scope A:
+  │                           ‾
+Test
+  ≔ Scope variable definition y: 0
+  ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:6.12-13:
+    │
+  6 │   internal y content integer
+    │            ‾
+  Test
+    ⊕ Definition fulfilled
+    ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:13.14-15:
+       │
+    13 │   definition y equals 0
+       │              ‾
+    Test
+    ⊸ Consequence:
+    ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:13.23-24:
+       │
+    13 │   definition y equals 0
+       │                       ‾
+    Test
+  ≔ Scope variable definition z: 0
+  ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:7.12-13:
+    │
+  7 │   internal z content integer
+    │            ‾
+  Test
+    ⊕ Definition fulfilled
+    ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:14.14-15:
+       │
+    14 │   definition z equals 0
+       │              ‾
+    Test
+    ⊸ Consequence:
+    ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:14.23-24:
+       │
+    14 │   definition z equals 0
+       │                       ‾
+    Test
+  ≔ Scope variable definition x: 0
+  ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:5.10-11:
+    │
+  5 │   output x content integer
+    │          ‾
+  Test
+    ⊕ Definition fulfilled
+    ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:17.32-37:
+       │
+    17 │   definition x under condition y = 0 consequence equals 0
+       │                                ‾‾‾‾‾
+    Test
+    ⊸ Consequence:
+    ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:17.57-58:
+       │
+    17 │   definition x under condition y = 0 consequence equals 0
+       │                                                         ‾
+    Test
+    ⊕ Definition fulfilled
+    ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:20.32-37:
+       │
+    20 │   definition x under condition z = 0 consequence equals 0
+       │                                ‾‾‾‾‾
+    Test
+    ⊸ Consequence:
+    ─➤ tests/exception/good/two_exceptions_same_outcome.catala_en:20.57-58:
+       │
+    20 │   definition x under condition z = 0 consequence equals 0
+       │                                                         ‾
+    Test
+← Exiting Scope A: A {
+                     -- x: 0
+                   }
+┌─[RESULT]─ A ─
+│ x = 0
+└─
+```
