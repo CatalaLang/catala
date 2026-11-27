@@ -165,10 +165,7 @@ let path_constraint_equal c c' : bool =
 let add : type a. a path -> a * naked_pc -> a path =
  fun pc (m, c) ->
   if Set.mem c.expr pc.pc_set then pc
-  else (
-    Message.debug "adding %a" format_pc c;
-    Message.debug "%s" Printexc.(get_callstack 10 |> raw_backtrace_to_string);
-    { path = (m, c) :: pc.path; pc_set = Set.add c.expr pc.pc_set })
+  else { path = (m, c) :: pc.path; pc_set = Set.add c.expr pc.pc_set }
 
 let singleton c = add empty ((), c)
 

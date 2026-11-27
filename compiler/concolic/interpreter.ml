@@ -1976,7 +1976,7 @@ and handle_default ctx lang m pos nonempty_count excepts just cons =
        * - a new constraint corresponding to [just] itself
        *)
       let constraints =
-        PC.(append exc_constraints (add j_constraints not_j_path_constraint))
+        PC.(append (add j_constraints not_j_path_constraint) exc_constraints)
       in
       add_conc_info_m m SymbExpr.none ~constraints EEmpty
     | _ ->
