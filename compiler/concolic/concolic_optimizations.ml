@@ -1,7 +1,7 @@
 open Catala_utils
 open Shared_ast
 open Path_constraint
-open PathConstraint
+module PathConstraint = Path_constraint
 open Conc_types
 
 type flag =
@@ -94,14 +94,10 @@ let check_easy_unsat opt ctx (pcs : PathConstraint.pc_expr list) : bool =
 let remove_trivial_constraints opt (pcs : naked_path) : naked_path =
   if not (trivial opt) then pcs
   else begin
-    let fe e =
-      match e with Pc_z3 s -> not (Z3.Boolean.is_true s) | _ -> true
+    let f c =
+      match c.expr with Pc_z3 s -> not (Z3.Boolean.is_true s) | _ -> true
     in
-    let f pc = fe pc.expr in
-    {
-      path = List.filter f pcs.path;
-      pc_set = PathConstraint.Set.filter fe pcs.pc_set;
-    }
+    PathConstraint.filter f pcs
   end
 
 let all_match_cases_take_unit_and_map_to_boolean_literals cases =

@@ -1,4 +1,4 @@
-open Path_constraint
+module PathConstraint = Path_constraint
 open Conc_types
 
 type flag =

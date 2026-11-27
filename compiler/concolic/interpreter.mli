@@ -19,14 +19,13 @@
 
 open Shared_ast
 module Optimizations = Concolic_optimizations
-open Path_constraint
 open Conc_types
 
 type inputs = conc_boxed_expr StructField.Map.t
 type outputs = (conc_result StructField.Map.t, string) Result.t
 
 type step_result = {
-  path : PathConstraint.annotated_path;
+  path : Path_constraint.annotated_path;
   inputs : inputs;
   outputs : outputs;
 }

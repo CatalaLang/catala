@@ -1,12 +1,11 @@
 open Shared_ast
 open Symb_expr
-open Path_constraint
 
 type s_expr = SymbExpr.z3_expr
 
 type _conc_info = {
   symb_expr : SymbExpr.t;
-  constraints : PathConstraint.naked_path;
+  constraints : Path_constraint.naked_path;
   ty : typ option;
 }
 

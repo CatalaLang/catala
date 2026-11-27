@@ -24,7 +24,7 @@ open Op
 module Concrete = Shared_ast.Interpreter
 open Z3_utils
 open Symb_expr
-open Path_constraint
+module PC = Path_constraint
 module Optimizations = Concolic_optimizations
 module Runtime = Catala_runtime
 open Conc_types
@@ -48,7 +48,7 @@ let prof_instance =
 let set_conc_info
     (type m)
     (symb_expr : SymbExpr.t)
-    (constraints : PathConstraint.naked_path)
+    (constraints : PC.naked_path)
     (mk : m mark) : conc_info mark =
   let symb_expr = SymbExpr.simplify symb_expr in
   let custom = { symb_expr; constraints; ty = None } in
@@ -66,7 +66,7 @@ let set_conc_info
 let add_conc_info_m
     (former_mark : conc_info mark)
     (symb_expr : SymbExpr.t)
-    ?(constraints : PathConstraint.naked_path option)
+    ?(constraints : PC.naked_path option)
     (x : 'a) : ('a, conc_info) marked =
   let (Custom { pos; custom }) = former_mark in
   let symb_expr = SymbExpr.simplify symb_expr in
@@ -82,7 +82,7 @@ let add_conc_info_m
     from former expression *)
 let add_conc_info_e
     (symb_expr : SymbExpr.t)
-    ?(constraints : PathConstraint.naked_path option)
+    ?(constraints : PC.naked_path option)
     (x : ('a, conc_info) marked) : ('a, conc_info) marked =
   match constraints with
   | None -> add_conc_info_m (Mark.get x) symb_expr (Mark.remove x)
@@ -199,7 +199,7 @@ let del_genericerror e =
     expression and no constraints *)
 let init_conc_expr (e : (('c, 'e) conc_interpr_kind, 'm) gexpr) : conc_expr =
   let e = Concrete.addcustom e in
-  let f = set_conc_info SymbExpr.none PathConstraint.empty_path in
+  let f = set_conc_info SymbExpr.none PC.empty in
   Expr.unbox (Expr.map_marks ~f e)
 
 (* taken from z3backend but with the right types *)
@@ -613,7 +613,7 @@ let get_symb_expr (e : conc_expr) : SymbExpr.t =
 let get_symb_expr_r (e : conc_result) : SymbExpr.t = _get_symb_expr_unsafe e
 
 let _get_constraints_unsafe (e : ((yes, 'e) conc_interpr_kind, conc_info) gexpr)
-    : PathConstraint.naked_path =
+    : PC.naked_path =
   let (Custom { custom; _ }) = Mark.get e in
   custom.constraints
 
@@ -621,15 +621,14 @@ let _get_constraints_unsafe (e : ((yes, 'e) conc_interpr_kind, conc_info) gexpr)
    signature of this function helps making sure that errors are always properly
    propagated during execution. By forcing [get_constraints_r] to be called
    explicitely if the expression is a result. *)
-let get_constraints (e : conc_expr) : PathConstraint.naked_path =
-  _get_constraints_unsafe e
+let get_constraints (e : conc_expr) : PC.naked_path = _get_constraints_unsafe e
 
-let get_constraints_r (e : conc_result) : PathConstraint.naked_path =
+let get_constraints_r (e : conc_result) : PC.naked_path =
   _get_constraints_unsafe e
 
 (** Concatenate the constraints from a list of evaluated expressions [es]. [es]
     is expected to be in the order of evaluation of the expressions. *)
-let gather_constraints (es : conc_expr list) =
+let gather_constraints (es : conc_expr list) : PC.naked_path =
   (* NOTE The expression evaluated last has its constraint on top, hence the
      list reversal. The constraints inside each expression are expected to be in
      the right order, with the "most recent" constraint first. Thus, the most
@@ -637,7 +636,7 @@ let gather_constraints (es : conc_expr list) =
      top of the output list. *)
   let es_rev = List.rev es in
   let constraints = List.map get_constraints es_rev in
-  List.flatten (List.map (fun pc -> pc.PathConstraint.path) constraints)
+  List.fold_left PC.rev_append PC.empty constraints
 
 let get_type (e : conc_expr) : typ option =
   let (Custom { custom; _ }) = Mark.get e in
@@ -819,7 +818,7 @@ let replace_EVar_mark
       let symb_expr = get_symb_expr arg in
       (* Message.debug "EApp>binder put mark %a on
         var " SymbExpr.format symb_expr (* (Print.UserFacing.expr) e *);*)
-      add_conc_info_e symb_expr ~constraints:PathConstraint.empty_path e
+      add_conc_info_e symb_expr ~constraints:PC.empty e
     (* NOTE CONC we keep the position from the var, as in concrete
        interpreter *)
     | None -> e)
@@ -827,14 +826,14 @@ let replace_EVar_mark
 
 let propagate_generic_error
     (e : conc_result)
-    (other_constraints : PathConstraint.naked_path)
+    (other_constraints : PC.naked_path)
     (f : conc_expr -> conc_result) : conc_result =
   let e_symb = get_symb_expr_r e in
   match Mark.remove e, e_symb with
   | EGenericError, Symb_error _ ->
     let e_constraints = get_constraints_r e in
     Message.debug "Propagating error %a" SymbExpr.format e_symb;
-    let constraints = e_constraints @ other_constraints in
+    let constraints = PC.append e_constraints other_constraints in
     (* Add the new constraints but don't change the symbolic expression *)
     add_conc_info_e SymbExpr.none ~constraints e
   | _, Symb_error _ ->
@@ -854,7 +853,7 @@ let propagate_generic_error_list l other_constraints f =
     | e :: r ->
       propagate_generic_error e constraints
         (* FIXME this seems very slow *)
-        (fun e -> aux (e :: acc) (get_constraints e @ constraints) r)
+        (fun e -> aux (e :: acc) (PC.append (get_constraints e) constraints) r)
   in
   aux [] other_constraints l
 
@@ -896,7 +895,7 @@ let op1
   let e = get_symb_expr e in
   let symb_expr = SymbExpr.app_z3 (symbolic_f ctx.ctx_z3) e in
   (* TODO handle errors *)
-  add_conc_info_m m symb_expr ~constraints:[] concrete
+  add_conc_info_m m symb_expr ~constraints:PC.empty concrete
 
 let op2
     ctx
@@ -911,7 +910,7 @@ let op2
     SymbExpr.format_typed e2;
   let symb_expr = SymbExpr.app2_z3 (symbolic_f ctx.ctx_z3) e1 e2 in
   (* TODO handle errors *)
-  add_conc_info_m m symb_expr ~constraints:[] concrete
+  add_conc_info_m m symb_expr ~constraints:PC.empty concrete
 
 let op2list
     ctx
@@ -942,19 +941,17 @@ let handle_division
     let den_not_zero =
       SymbExpr.app_z3 (Z3.Boolean.mk_not ctx.ctx_z3) den_zero
     in
-    let den_not_zero_pc =
-      PathConstraint.mk_z3 den_not_zero (Expr.pos e2) false
-    in
+    let den_not_zero_pc = PC.mk_z3 den_not_zero (Expr.pos e2) false in
     let symb_expr = SymbExpr.app2_z3 (symbolic_f ctx.ctx_z3) e1_symb e2_symb in
     (* TODO handle errors *)
     (* A successful division adds one constraint : the denominator is not zero.
        The constraints from e1 and e2 are ignored here because those are fully
        evaluated expressions, and their constraints are handled by [EAppOp]. *)
-    let constraints = [den_not_zero_pc] in
+    let constraints = PC.singleton den_not_zero_pc in
     add_conc_info_m m symb_expr ~constraints concrete
   with Runtime.(Error (DivisionByZero, _, _)) ->
-    let den_zero_pc = PathConstraint.mk_z3 den_zero (Expr.pos e2) true in
-    division0_err m [den_zero_pc] ["Null denominator", Expr.pos e2]
+    let den_zero_pc = PC.(singleton (mk_z3 den_zero (Expr.pos e2) true)) in
+    division0_err m den_zero_pc ["Null denominator", Expr.pos e2]
 
 (* Call-by-value: the arguments are expected to be already evaluated here *)
 let evaluate_operator
@@ -1014,7 +1011,7 @@ let evaluate_operator
     let l = Runtime.integer_of_int (List.length es) in
     let symb_expr = SymbExpr.incomplete in
     (* no constraints generated *)
-    add_conc_info_m m symb_expr ~constraints:[] (ELit (LInt l))
+    add_conc_info_m m symb_expr ~constraints:PC.empty (ELit (LInt l))
     (* TODO INC *)
   | Tag _, _ -> failwith "Tag evaluation not implemented"
   | (FromClosureEnv | ToClosureEnv), _ ->
@@ -1026,7 +1023,7 @@ let evaluate_operator
     let s_e2 = get_symb_expr e2 in
     let symb_expr = SymbExpr.app2_z3 (Z3.Boolean.mk_eq ctx.ctx_z3) s_e1 s_e2 in
     (* TODO catch errors here, or maybe propagate [None]? *)
-    add_conc_info_m m symb_expr ~constraints:[] concrete
+    add_conc_info_m m symb_expr ~constraints:PC.empty concrete
   | Lt, [e1; e2] ->
     (* TODO CONC incompleteness warning for comparisons? eg on day < month *)
     let concrete = ELit (LBool (handle_compare ctx.ctx_decl opos e1 e2 < 0)) in
@@ -1050,7 +1047,7 @@ let evaluate_operator
                   (EApp { f; args = [e']; tys = [Expr.maybe_ty (Mark.get e')] })))
            es)
     in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete
+    add_conc_info_m m SymbExpr.incomplete ~constraints:PC.empty concrete
   | Map2, [f; (EArray es1, _); (EArray es2, _)] ->
     let concrete =
       EArray
@@ -1070,16 +1067,17 @@ let evaluate_operator
                      })))
            es1 es2)
     in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete
+    add_conc_info_m m SymbExpr.incomplete ~constraints:PC.empty concrete
   | Reduce, [_; default; (EArray [], _)] ->
     let concrete = Mark.remove default in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete |> make_ok
+    add_conc_info_m m SymbExpr.incomplete ~constraints:PC.empty concrete
+    |> make_ok
   | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
     let concrete =
       Mark.remove
         (List.fold_left
            (fun acc x ->
-             propagate_generic_error acc []
+             propagate_generic_error acc PC.empty
              @@ fun acc ->
              evaluate_expr
                (Mark.copy f
@@ -1095,10 +1093,11 @@ let evaluate_operator
                      })))
            (make_ok x0) xn)
     in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete
+    add_conc_info_m m SymbExpr.incomplete ~constraints:PC.empty concrete
   | Concat, [(EArray es1, _); (EArray es2, _)] ->
     let concrete = EArray (es1 @ es2) in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete |> make_ok
+    add_conc_info_m m SymbExpr.incomplete ~constraints:PC.empty concrete
+    |> make_ok
   | Filter, [f; (EArray es, _)] ->
     let concrete =
       EArray
@@ -1119,13 +1118,14 @@ let evaluate_operator
                   (should not happen if the term was well-typed)")
            es)
     in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete |> make_ok
+    add_conc_info_m m SymbExpr.incomplete ~constraints:PC.empty concrete
+    |> make_ok
   | Fold, [f; init; (EArray es, _)] ->
     let concrete =
       Mark.remove
         (List.fold_left
            (fun acc e' ->
-             propagate_generic_error acc []
+             propagate_generic_error acc PC.empty
              @@ fun acc ->
              evaluate_expr
                (Mark.copy e'
@@ -1141,7 +1141,7 @@ let evaluate_operator
                      })))
            (make_ok init) es)
     in
-    add_conc_info_m m SymbExpr.incomplete ~constraints:[] concrete
+    add_conc_info_m m SymbExpr.incomplete ~constraints:PC.empty concrete
   | Find, [_f; (EArray _es, _)] ->
     failwith "Find evaluation not implemented yet"
   | Sort _, _ :: _ -> failwith "sort evaluation not implemented yet"
@@ -1390,11 +1390,12 @@ let rec evaluate_expr :
       let e = Concrete.evaluate_expr ctx.ctx_decl lang e in
       add_conc_info_e Symb_incomplete e |> make_ok
     | EApp { f = e1; args; _ } -> (
+      Prof.mark ["EApp"];
       let e1 =
         Prof.span_f ["EApp"; "eval lambda"]
         @@ fun () -> evaluate_expr ctx lang e1
       in
-      propagate_generic_error e1 []
+      propagate_generic_error e1 PC.empty
       @@ fun e1 ->
       let f_constraints = get_constraints e1 in
       let args =
@@ -1428,7 +1429,7 @@ let rec evaluate_expr :
                (fun fmt arg ->
                  Format.fprintf fmt "%a (#constrs:%i)" SymbExpr.format
                    (get_symb_expr arg)
-                   (List.length (get_constraints arg))))
+                   (PC.length (get_constraints arg))))
             vars_args_map;
           let marked_eb =
             Expr.map_top_down ~f:(replace_EVar_mark vars_args_map) eb
@@ -1445,7 +1446,8 @@ let rec evaluate_expr :
           in
           Message.debug "EApp>EAbs substituted binder evaluated";
           (* TODO [Expr.subst]? *)
-          propagate_generic_error result (args_constraints @ f_constraints)
+          let constraints = PC.append args_constraints f_constraints in
+          propagate_generic_error result constraints
           @@ fun result ->
           let r_symb = get_symb_expr result in
           Message.debug
@@ -1459,7 +1461,7 @@ let rec evaluate_expr :
            *   (where the ones of the arguments are neither passed down, nor
            *   re-generated as this is cbv)
            *)
-          let constraints = r_constraints @ args_constraints @ f_constraints in
+          let constraints = PC.append r_constraints constraints in
           add_conc_info_e r_symb ~constraints result |> make_ok
           (* NOTE that here the position comes from [result], while in other
              cases of this function the position comes from the input
@@ -1480,7 +1482,7 @@ let rec evaluate_expr :
            happen if the term was well-typed")
     | EAppOp { op; args; _ } ->
       let args = List.map (evaluate_expr ctx lang) args in
-      propagate_generic_error_list args []
+      propagate_generic_error_list args PC.empty
       @@ fun args ->
       let args_constraints = gather_constraints args in
       let result = evaluate_operator (evaluate_expr ctx lang) ctx op m args in
@@ -1493,7 +1495,7 @@ let rec evaluate_expr :
        * - those generated by the evaluation of the arguments
        * - those possibly generated by the application of the operator to the
        *   arguments *)
-      let constraints = r_constraints @ args_constraints in
+      let constraints = PC.append r_constraints args_constraints in
       add_conc_info_e r_symb ~constraints result |> make_ok
     | EAbs _ ->
       (* Give Symb_abs symbolic expression if it is not already something else.
@@ -1502,13 +1504,13 @@ let rec evaluate_expr :
     | ELit l as e ->
       let symb_expr = symb_of_lit ctx l in
       (* no constraints generated *)
-      add_conc_info_m m symb_expr ~constraints:[] e
+      add_conc_info_m m symb_expr ~constraints:PC.empty e
     (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
     | EStruct { fields = es; name } ->
       let fields, es = List.split (StructField.Map.bindings es) in
       (* compute all subexpressions *)
       let es = List.map (evaluate_expr ctx lang) es in
-      propagate_generic_error_list es []
+      propagate_generic_error_list es PC.empty
       @@ fun es ->
       (* make symbolic expression using the symbolic sub-expressions *)
       (* TODO INC *)
@@ -1530,7 +1532,7 @@ let rec evaluate_expr :
            })
       |> make_ok
     | EStructAccess { e; name = s; field } -> (
-      propagate_generic_error (evaluate_expr ctx lang e) []
+      propagate_generic_error (evaluate_expr ctx lang e) PC.empty
       @@ fun e ->
       match Mark.remove e with
       | EStruct { fields = es; name } ->
@@ -1571,7 +1573,7 @@ let rec evaluate_expr :
     | EBad -> assert false
     | EPos _ -> failwith "EPos not implemented"
     | EInj { name; e; cons } ->
-      propagate_generic_error (evaluate_expr ctx lang e) []
+      propagate_generic_error (evaluate_expr ctx lang e) PC.empty
       @@ fun e ->
       let concrete = EInj { name; e; cons } in
 
@@ -1585,7 +1587,7 @@ let rec evaluate_expr :
          it makes me generate many cases. See the [enum_wildcard] test for an
          example. TODO issue #130 asks for this feature ; use it once it is
          added. *)
-      propagate_generic_error (evaluate_expr ctx lang e) []
+      propagate_generic_error (evaluate_expr ctx lang e) PC.empty
       @@ fun e ->
       match Mark.remove e with
       | EInj { e = e1; cons; name = name' } ->
@@ -1626,8 +1628,7 @@ let rec evaluate_expr :
         let arm_conditions = make_z3_arm_conditions ctx name cons e_symb in
         let arm_path_constraints =
           List.map
-            (fun (s, b) ->
-              PathConstraint.mk_z3 (SymbExpr.simplify s) (Expr.pos e) b)
+            (fun (s, b) -> PC.mk_z3 (SymbExpr.simplify s) (Expr.pos e) b)
             arm_conditions
         in
         (* then we can evaluate the branch that was taken *)
@@ -1637,7 +1638,8 @@ let rec evaluate_expr :
         in
         let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
         let result = evaluate_expr ctx lang new_e in
-        propagate_generic_error result (arm_path_constraints @ e_constraints)
+        propagate_generic_error result
+          (PC.add_all e_constraints arm_path_constraints)
         @@ fun result ->
         let r_concrete = Mark.remove result in
         let r_symb = get_symb_expr result in
@@ -1648,7 +1650,8 @@ let rec evaluate_expr :
          * - those generated by the evaluation of [es_n e1]
          *)
         let constraints =
-          r_constraints @ arm_path_constraints @ e_constraints
+          PC.append e_constraints
+            (PC.add_all r_constraints arm_path_constraints)
         in
         add_conc_info_m m r_symb ~constraints r_concrete |> make_ok
       | _ ->
@@ -1656,7 +1659,7 @@ let rec evaluate_expr :
           "Expected a term having a sum type as an argument to a match (should \
            not happen if the term was well-typed")
     | EIfThenElse { cond; etrue; efalse } -> (
-      propagate_generic_error (evaluate_expr ctx lang cond) []
+      propagate_generic_error (evaluate_expr ctx lang cond) PC.empty
       @@ fun cond ->
       let c_symb = get_symb_expr cond in
       let c_constraints = get_constraints cond in
@@ -1665,11 +1668,10 @@ let rec evaluate_expr :
         Message.debug "EIfThenElse>true adding %a to constraints"
           SymbExpr.format c_symb;
         let c_symb = SymbExpr.simplify c_symb in
-        let c_path_constraint =
-          PathConstraint.mk_z3 c_symb (Expr.pos cond) true
-        in
+        let c_path_constraint = PC.mk_z3 c_symb (Expr.pos cond) true in
         let etrue = evaluate_expr ctx lang etrue in
-        propagate_generic_error etrue (c_path_constraint :: c_constraints)
+        let with_true = PC.add c_constraints c_path_constraint in
+        propagate_generic_error etrue with_true
         @@ fun etrue ->
         let e_symb = get_symb_expr etrue in
         let e_constraints = get_constraints etrue in
@@ -1680,9 +1682,10 @@ let rec evaluate_expr :
          * - a new constraint corresponding to [cond] itself
          * - those generated by the evaluation of [etrue]
          *)
-        let constraints =
-          e_constraints @ (c_path_constraint :: c_constraints)
-        in
+        let constraints = PC.append e_constraints with_true in
+        Message.debug "@[<v 2>PATH CONSTRAINTS:@ %a@]" PC.format_naked_path
+          constraints;
+        Message.debug "#### %d" (PC.length constraints);
         add_conc_info_m e_mark e_symb ~constraints e_concr |> make_ok
       | ELit (LBool false) ->
         Message.debug "EIfThenElse>false adding %a to constraints"
@@ -1692,11 +1695,10 @@ let rec evaluate_expr :
         in
         let not_c_symb = SymbExpr.simplify not_c_symb in
         (* TODO catch error... should not happen *)
-        let not_c_path_constraint =
-          PathConstraint.mk_z3 not_c_symb (Expr.pos cond) false
-        in
+        let not_c_path_constraint = PC.mk_z3 not_c_symb (Expr.pos cond) false in
         let efalse = evaluate_expr ctx lang efalse in
-        propagate_generic_error efalse (not_c_path_constraint :: c_constraints)
+        let with_neg_pc = PC.add c_constraints not_c_path_constraint in
+        propagate_generic_error efalse with_neg_pc
         @@ fun efalse ->
         let e_symb = get_symb_expr efalse in
         let e_constraints = get_constraints efalse in
@@ -1707,9 +1709,7 @@ let rec evaluate_expr :
          * - a new constraint corresponding to [cond] itself
          * - those generated by the evaluation of [efalse]
          *)
-        let constraints =
-          e_constraints @ (not_c_path_constraint :: c_constraints)
-        in
+        let constraints = PC.append e_constraints with_neg_pc in
         add_conc_info_m e_mark e_symb ~constraints e_concr |> make_ok
       | _ ->
         Message.error ~pos:(Expr.pos cond)
@@ -1717,7 +1717,7 @@ let rec evaluate_expr :
            not happen if the term was well-typed)")
     | EArray es ->
       let es = List.map (evaluate_expr ctx lang) es in
-      propagate_generic_error_list es []
+      propagate_generic_error_list es PC.empty
       @@ fun es ->
       let constraints = gather_constraints es in
       let es_concr = EArray es in
@@ -1725,7 +1725,7 @@ let rec evaluate_expr :
       (* TODO INC *)
     | EAssert e' ->
       (* TODO CONC REU *)
-      propagate_generic_error (evaluate_expr ctx lang e') []
+      propagate_generic_error (evaluate_expr ctx lang e') PC.empty
       @@ fun e ->
       begin
         let e_symb = get_symb_expr e in
@@ -1733,13 +1733,13 @@ let rec evaluate_expr :
         match Mark.remove e with
         | ELit (LBool true) ->
           let concrete = ELit LUnit in
-          let e_symb_pc = PathConstraint.mk_z3 e_symb (Expr.pos e') true in
+          let e_symb_pc = PC.mk_z3 e_symb (Expr.pos e') true in
           (* the constraints generated by an assertion when [e] is true are :
            * - those generated by the evaluation of [e]
            * - a new constraint corresponding to [e]
            *)
           (* NOTE that there is no symbolic expression on asserts *)
-          let constraints = e_symb_pc :: e_constraints in
+          let constraints = PC.add e_constraints e_symb_pc in
           add_conc_info_m m SymbExpr.none ~constraints concrete |> make_ok
         | ELit (LBool false) ->
           (* FIXME use [partially_evaluate_expr_for_assertion_failure_message]
@@ -1747,10 +1747,8 @@ let rec evaluate_expr :
           let not_e_symb =
             SymbExpr.app_z3 (Z3.Boolean.mk_not ctx.ctx_z3) e_symb
           in
-          let not_e_symb_pc =
-            PathConstraint.mk_z3 not_e_symb (Expr.pos e') false
-          in
-          let constraints = not_e_symb_pc :: e_constraints in
+          let not_e_symb_pc = PC.mk_z3 not_e_symb (Expr.pos e') false in
+          let constraints = PC.add e_constraints not_e_symb_pc in
           assertion_err m constraints
           (* "Assertion failed:@\n%a" (Print.UserFacing.expr lang) e'
              (partially_evaluate_expr_for_assertion_failure_message ctx lang
@@ -1766,7 +1764,7 @@ let rec evaluate_expr :
       failwith "EFatalError not implemented"
       (* raise (Runtime.Error (err, [Expr.pos_to_runtime pos])) *)
     | EErrorOnEmpty e' -> (
-      propagate_generic_error (evaluate_expr ctx lang e') []
+      propagate_generic_error (evaluate_expr ctx lang e') PC.empty
       @@ fun e' ->
       match e' with
       | EEmpty, m -> empty_err m (get_constraints e')
@@ -1787,7 +1785,7 @@ let rec evaluate_expr :
       (* failwith "[evaluate_expr] no more thunk" (* FIXME CONTEXT *) *)
       (* FIXME add metadata to find this case instead of this big match *)
       let app = evaluate_expr ctx lang except in
-      propagate_generic_error app []
+      propagate_generic_error app PC.empty
       @@ fun app ->
       let pos = Expr.pos except in
       let abs_symb = get_symb_expr abs in
@@ -1797,32 +1795,35 @@ let rec evaluate_expr :
       match Mark.remove app with
       | EEmpty ->
         Message.debug "Context>empty";
-        let is_empty : PathConstraint.naked_path =
-          PathConstraint.mk_reentrant abs_symb ctx.ctx_dummy_const pos true
-          |> Option.to_list
+        let with_possible_is_empty =
+          match PC.mk_reentrant abs_symb ctx.ctx_dummy_const pos true with
+          | None -> app_constraints
+          | Some c -> PC.add app_constraints c
         in
         let result = evaluate_expr ctx lang cons in
-        propagate_generic_error result (is_empty @ app_constraints)
+        propagate_generic_error result with_possible_is_empty
         @@ fun result ->
         let r_symb = get_symb_expr result in
         let r_constraints = get_constraints result in
         (* TODO check that constraints from app should stay as well, just in
            case *)
-        let constraints = r_constraints @ is_empty @ app_constraints in
+        let constraints = PC.append r_constraints with_possible_is_empty in
         add_conc_info_e r_symb ~constraints result |> make_ok
       | _ ->
         Message.debug "Context>non-empty";
-        let not_is_empty : PathConstraint.naked_path =
-          PathConstraint.mk_reentrant abs_symb ctx.ctx_dummy_const pos false
-          |> Option.to_list
+        let with_possible_not_is_empty : PC.naked_path =
+          match PC.mk_reentrant abs_symb ctx.ctx_dummy_const pos true with
+          | None -> app_constraints
+          | Some c -> PC.add app_constraints c
         in
         (* the only constraint is the new one encoding the fact that there is a
            reentrant value, and the symbolic expression is that of the
            reentering value *)
         (* TODO check that constraints from app should stay as well, just in
            case *)
-        let constraints = not_is_empty @ app_constraints in
-        add_conc_info_e SymbExpr.none ~constraints app |> make_ok)
+        add_conc_info_e SymbExpr.none ~constraints:with_possible_not_is_empty
+          app
+        |> make_ok)
     | EDefault { excepts = [outer]; just = ELit (LBool true), _; cons }
       when SymbExpr.is_reentrant (get_symb_expr outer) -> (
       (* FIXME add metadata to find this case instead of this match? *)
@@ -1835,7 +1836,7 @@ let rec evaluate_expr :
         | _ -> failwith "no"
       in
       let eval_inner = evaluate_expr ctx lang inner in
-      propagate_generic_error eval_inner []
+      propagate_generic_error eval_inner PC.empty
       @@ fun eval_inner ->
       let pos = Expr.pos eval_inner in
       let eval_inner_constraints =
@@ -1844,34 +1845,37 @@ let rec evaluate_expr :
       match Mark.remove eval_inner with
       | EEmpty ->
         Message.debug "Context>empty";
-        let is_empty : PathConstraint.naked_path =
-          PathConstraint.mk_reentrant outer_symb ctx.ctx_reentrant_const pos
-            true
-          |> Option.to_list
+        let with_possible_is_empty =
+          match PC.mk_reentrant outer_symb ctx.ctx_reentrant_const pos true with
+          | None -> eval_inner_constraints
+          | Some c -> PC.add eval_inner_constraints c
         in
         let result = evaluate_expr ctx lang cons in
-        propagate_generic_error result (is_empty @ eval_inner_constraints)
+        propagate_generic_error result with_possible_is_empty
         @@ fun result ->
         let r_symb = get_symb_expr result in
         let r_constraints = get_constraints result in
         (* TODO check that constraints from app should stay as well, just in
            case *)
-        let constraints = r_constraints @ is_empty @ eval_inner_constraints in
+        let constraints = PC.append r_constraints with_possible_is_empty in
         add_conc_info_e r_symb ~constraints result |> make_ok
       | _ ->
         Message.debug "Context>non-empty";
-        let not_is_empty : PathConstraint.naked_path =
-          PathConstraint.mk_reentrant outer_symb ctx.ctx_reentrant_const pos
-            false
-          |> Option.to_list
+        let with_possible_not_is_empty =
+          match
+            PC.mk_reentrant outer_symb ctx.ctx_reentrant_const pos false
+          with
+          | None -> eval_inner_constraints
+          | Some c -> PC.add eval_inner_constraints c
         in
         (* the only constraint is the new one encoding the fact that there is a
            reentrant value, and the symbolic expression is that of the
            reentering value *)
         (* TODO check that constraints from app should stay as well, just in
            case *)
-        let constraints = not_is_empty @ eval_inner_constraints in
-        add_conc_info_e SymbExpr.none ~constraints eval_inner |> make_ok)
+        add_conc_info_e SymbExpr.none ~constraints:with_possible_not_is_empty
+          eval_inner
+        |> make_ok)
     | EDefault { excepts; just; cons } ->
       let count_nonempty_greedy l =
         let l = List.map (evaluate_expr ctx lang) l in
@@ -1913,7 +1917,7 @@ let rec evaluate_expr :
   ret
 
 and handle_default ctx lang m pos nonempty_count excepts just cons =
-  propagate_generic_error_list excepts []
+  propagate_generic_error_list excepts PC.empty
   @@ fun excepts ->
   let exc_constraints = gather_constraints excepts in
   match nonempty_count with
@@ -1933,7 +1937,7 @@ and handle_default ctx lang m pos nonempty_count excepts just cons =
        * - those generated by the evaluation of the excepts
        * - those generated by the evaluation of [just]
        *)
-      let constraints = j_constraints @ exc_constraints in
+      let constraints = PC.append j_constraints exc_constraints in
       add_conc_info_m m SymbExpr.none ~constraints EEmpty
     | ELit (LBool true) ->
       Message.debug "EDefault>true adding %a to constraints" SymbExpr.format
@@ -1941,12 +1945,12 @@ and handle_default ctx lang m pos nonempty_count excepts just cons =
       let j_symb = SymbExpr.simplify j_symb in
       (* TODO catch error... should not happen *)
       (* TODO factorize the simplifications? *)
-      let j_path_constraint =
-        PathConstraint.mk_z3 j_symb (Expr.pos just) true
-      in
+      let j_path_constraint = PC.mk_z3 j_symb (Expr.pos just) true in
       let cons = evaluate_expr ctx lang cons in
-      propagate_generic_error cons
-        ((j_path_constraint :: j_constraints) @ exc_constraints)
+      let constraints =
+        PC.(append (add j_constraints j_path_constraint) exc_constraints)
+      in
+      propagate_generic_error cons constraints
       @@ fun cons ->
       let c_symb = get_symb_expr cons in
       let c_constraints = get_constraints cons in
@@ -1958,16 +1962,12 @@ and handle_default ctx lang m pos nonempty_count excepts just cons =
        * - a new constraint corresponding to [just] itself
        * - those generated by the evaluation of [cons]
        *)
-      let constraints =
-        c_constraints @ (j_path_constraint :: j_constraints) @ exc_constraints
-      in
+      let constraints = PC.append c_constraints constraints in
       add_conc_info_m c_mark c_symb ~constraints c_concr |> make_ok
     | ELit (LBool false) ->
       let not_j_symb = SymbExpr.app_z3 (Z3.Boolean.mk_not ctx.ctx_z3) j_symb in
       let not_j_symb = SymbExpr.simplify not_j_symb in
-      let not_j_path_constraint =
-        PathConstraint.mk_z3 not_j_symb (Expr.pos just) false
-      in
+      let not_j_path_constraint = PC.mk_z3 not_j_symb (Expr.pos just) false in
       Message.debug "EDefault>false adding %a to constraints" SymbExpr.format
         not_j_symb;
       (* the constraints generated by the default when [just] is false are :
@@ -1976,7 +1976,7 @@ and handle_default ctx lang m pos nonempty_count excepts just cons =
        * - a new constraint corresponding to [just] itself
        *)
       let constraints =
-        (not_j_path_constraint :: j_constraints) @ exc_constraints
+        PC.(append exc_constraints (add j_constraints not_j_path_constraint))
       in
       add_conc_info_m m SymbExpr.none ~constraints EEmpty
     | _ ->
@@ -2036,10 +2036,9 @@ let make_input_mark ctx m field (ty : typ) : conc_info mark =
       SymbExpr.mk_z3 symbol
   in
   let pos = Expr.mark_pos m in
-  Custom { pos; custom = { symb_expr; constraints = []; ty = Some ty } }
+  Custom { pos; custom = { symb_expr; constraints = PC.empty; ty = Some ty } }
 
-let soft_constraints_of_input_mark ctx (m : conc_info mark) :
-    PathConstraint.pc_expr list =
+let soft_constraints_of_input_mark ctx (m : conc_info mark) : PC.pc_expr list =
   let (Custom { custom = { ty; symb_expr; _ }; _ }) = m in
   let ty = Option.get ty in
   (* by construction ty is not None *)
@@ -2069,7 +2068,7 @@ let soft_constraints_of_input_mark ctx (m : conc_info mark) :
     List.map
       (fun (x, id) ->
         let x = SymbExpr.mk_z3 x in
-        (PathConstraint.mk_soft x 1 (Some id) pos false).expr)
+        (PC.mk_soft x 1 (Some id) pos false).expr)
       [
         non_negative, "3non-negative";
         round_unit, "2unit";
@@ -2079,7 +2078,7 @@ let soft_constraints_of_input_mark ctx (m : conc_info mark) :
   | _ -> []
 
 let make_soft_constraints ctx (input_marks : conc_info mark StructField.Map.t) :
-    PathConstraint.pc_expr list =
+    PC.pc_expr list =
   StructField.Map.fold
     (fun _ m acc -> soft_constraints_of_input_mark ctx m @ acc)
     input_marks []
@@ -2111,7 +2110,7 @@ let eval_conc_with_input
         (* box instead of rebox because the term is supposed to be closed *)
       ~args:[Expr.estruct ~name ~fields mark]
       ~tys:[Option.get (get_type e)] (* these are supposed to be typed?? *)
-      (set_conc_info SymbExpr.none [] (Mark.get e))
+      (set_conc_info SymbExpr.none PC.empty (Mark.get e))
   in
   Message.debug "...inputs applied...";
   evaluate_expr ctx lang (Expr.unbox to_interpret)
@@ -2134,13 +2133,13 @@ module type SOLVER = sig
     model_empty_reentrants : StructField.Set.t;
   }
 
-  type input = PathConstraint.pc_expr list
+  type input = PC.pc_expr list
   type solver_result = Sat of model option | Unsat | Unknown of unknown_info
 
   val format_model : Format.formatter -> model -> unit
   val solve : context -> input -> Stats.t -> Stats.t * solver_result
-  val push : context -> PathConstraint.pc_expr -> unit
-  val pop : context -> PathConstraint.pc_expr -> unit
+  val push : context -> PC.pc_expr -> unit
+  val pop : context -> PC.pc_expr -> unit
 
   val inputs_of_model :
     context ->
@@ -2216,7 +2215,7 @@ end) : SOLVER = struct
     val solve :
       Z3.context ->
       s_expr list ->
-      PathConstraint.soft list ->
+      PC.soft list ->
       Stats.t ->
       Stats.t * z3_solver_result
 
@@ -2225,11 +2224,8 @@ end) : SOLVER = struct
   end
 
   module SimpleZ3Solver (S : Z3SolverModuleType) : Z3SolverType = struct
-    let solve
-        ctx
-        (constraints : s_expr list)
-        (_ : PathConstraint.soft list)
-        stats : Stats.t * z3_solver_result =
+    let solve ctx (constraints : s_expr list) (_ : PC.soft list) stats :
+        Stats.t * z3_solver_result =
       let solver = Prof.record_f "make solver" @@ fun () -> S.make ctx in
       (Prof.record_f "add solver constraints"
       @@ fun () -> S.add solver constraints);
@@ -2292,10 +2288,9 @@ end) : SOLVER = struct
 
     module StringMap = String.Map
 
-    let group_softs (softs : PathConstraint.soft list) :
-        PathConstraint.soft list StringMap.t =
+    let group_softs (softs : PC.soft list) : PC.soft list StringMap.t =
       List.fold_left
-        (fun acc (s : PathConstraint.soft) ->
+        (fun acc (s : PC.soft) ->
           StringMap.update s.id
             (function None -> Some [s] | Some l -> Some (s :: l))
             acc)
@@ -2306,9 +2301,7 @@ end) : SOLVER = struct
       | Some _ -> stats, acc
       | None -> begin
         Message.debug "Trying soft group %s" name;
-        let soft_exprs =
-          List.map (fun (s : PathConstraint.soft) -> s.symb) group
-        in
+        let soft_exprs = List.map (fun (s : PC.soft) -> s.symb) group in
         let result_soft = solve ctx soft_exprs in
         match result_soft with
         | Z3Sat _ ->
@@ -2326,7 +2319,7 @@ end) : SOLVER = struct
         | Z3Unknown _ as r -> stats, Some r
         end
 
-    let solve ctx _ (softs : PathConstraint.soft list) (stats : Stats.t) :
+    let solve ctx _ (softs : PC.soft list) (stats : Stats.t) :
         Stats.t * z3_solver_result =
       Message.debug "Trying solver without softs...";
       let result = solve ctx [] in
@@ -2361,7 +2354,7 @@ end) : SOLVER = struct
 
   module Z3Solver = (val z3Solver)
 
-  type input = PathConstraint.pc_expr list
+  type input = PC.pc_expr list
 
   type model = {
     model_z3 : Z3.Model.model;
@@ -2426,14 +2419,13 @@ end) : SOLVER = struct
 
   type solver_result = Sat of model option | Unsat | Unknown of unknown_info
 
-  let split_input (l : input) :
-      s_expr list * PathConstraint.soft list * StructField.Set.t =
+  let split_input (l : input) : s_expr list * PC.soft list * StructField.Set.t =
     let rec aux
         l
         (acc_z3 : s_expr list)
-        (acc_soft : PathConstraint.soft list)
+        (acc_soft : PC.soft list)
         (acc_reentrant : StructField.Set.t) =
-      let open PathConstraint in
+      let open PC in
       match l with
       | [] -> acc_z3, acc_soft, acc_reentrant
       | Pc_z3 e :: l' -> aux l' (e :: acc_z3) acc_soft acc_reentrant
@@ -2499,7 +2491,7 @@ end) : SOLVER = struct
       in
       aux (Optimizations.timeout_retry Settings.optims) ctx constraints
 
-  let push ctx (pc : PathConstraint.pc_expr) =
+  let push ctx (pc : PC.pc_expr) =
     match pc with
     | Pc_z3 pc -> Z3Solver.push ctx.ctx_z3 pc
     | Pc_soft _ -> () (* Z3Solver.push_soft ctx.ctx_z3 sc *)
@@ -2508,7 +2500,7 @@ end) : SOLVER = struct
       Message.error ~internal:true
         "[Solver.push] should not get Pc_incomplete as argument"
 
-  let pop ctx (pc : PathConstraint.pc_expr) =
+  let pop ctx (pc : PC.pc_expr) =
     match pc with
     | Pc_z3 _ | Pc_soft _ -> Z3Solver.pop ctx.ctx_z3 ()
     | Pc_reentrant _ -> ()
@@ -2523,7 +2515,8 @@ end) : SOLVER = struct
     Custom
       {
         pos;
-        custom = { symb_expr = SymbExpr.none; constraints = []; ty = Some ty };
+        custom =
+          { symb_expr = SymbExpr.none; constraints = PC.empty; ty = Some ty };
       }
 
   (** Get a default literal value from a literal type *)
@@ -2780,14 +2773,13 @@ end
 (** Remove marks from an annotated path, to get a list of path constraints to
     feed in the solver. In doing so, actually negate constraints marked as
     Negated. This function shall be called on an output of
-    [PathConstraint.make_expected_path]. *)
-let pc_expr_of_apc ctx (apc : PathConstraint.annotated_pc) :
-    PathConstraint.pc_expr (* FIXME Solver.input *) =
-  let open PathConstraint in
+    [PC.make_expected_path]. *)
+let pc_expr_of_apc ctx (apc : PC.annotated_pc) :
+    PC.pc_expr (* FIXME Solver.input *) =
   match apc with
-  | Normal c -> c.expr
-  | Done c -> c.expr
-  | Negated c ->
+  | Normal, c -> c.expr
+  | Done, c -> c.expr
+  | Negated, c ->
     begin match c.expr with
     | Pc_z3 e -> Pc_z3 (Z3.Boolean.mk_not ctx.ctx_z3 e)
     | Pc_soft _ ->
@@ -2798,23 +2790,22 @@ let pc_expr_of_apc ctx (apc : PathConstraint.annotated_pc) :
         "[pc_expr_of_apc] should not get Pc_incomplete as argument"
     end
 
-let constraint_list_of_path ctx (path : PathConstraint.annotated_path) :
-    PathConstraint.pc_expr list (* FIXME Solver.input? *) =
-  List.map (pc_expr_of_apc ctx) path
+let constraint_list_of_path ctx (path : PC.annotated_path) :
+    PC.pc_expr list (* FIXME Solver.input? *) =
+  List.map (pc_expr_of_apc ctx) (PC.constraints path)
 
 let apply_diff
     ctx
-    f_push
-    f_pop
-    (diff : PathConstraint.incremental_annotated_pc list) : unit =
+    (module Solver : SOLVER)
+    (diff : PC.incremental_annotated_pc list) : unit =
   Message.debug "applying diff";
   let f = function
-    | PathConstraint.IncrPush apc ->
+    | PC.IncrPush apc ->
       let expr = pc_expr_of_apc ctx apc in
-      f_push ctx expr
-    | PathConstraint.IncrPop apc ->
+      Solver.push ctx expr
+    | PC.IncrPop apc ->
       let expr = pc_expr_of_apc ctx apc in
-      f_pop ctx expr
+      Solver.pop ctx expr
   in
   List.iter f diff
 
@@ -2838,7 +2829,7 @@ type inputs = conc_boxed_expr StructField.Map.t
 type outputs = (conc_result StructField.Map.t, string) Result.t
 
 type step_result = {
-  path : PathConstraint.annotated_path;
+  path : PC.annotated_path;
   inputs : inputs;
   outputs : outputs;
 }
@@ -3006,8 +2997,8 @@ let concolic_interp
   in
   let rec concolic_loop
       (interp_state : interp_state)
-      (current_path : PathConstraint.annotated_path) : interp_state =
-    let path_len = List.length current_path in
+      (current_path : PC.annotated_path) : interp_state =
+    let path_len = PC.length current_path in
     let interp_state = { interp_state with step = succ interp_state.step } in
     (* Format.ksprintf Prof.record "step %d: %d path constraints" interp_state.step *)
     (*   path_len; *)
@@ -3018,8 +3009,8 @@ let concolic_interp
         stats = Stats.add_stat_exec interp_state.stats path_len;
       }
     in
-    Message.debug "Trying new path constraints:@ @[<v>%a@]"
-      PathConstraint.Print.annotated_path current_path;
+    Message.debug "@[<v 2>Trying new path constraints:@ %a@]"
+      PC.format_annotated_path current_path;
     let solver_constraints =
       soft_constraints @ constraint_list_of_path ctx current_path
     in
@@ -3067,93 +3058,96 @@ let concolic_interp
       in
       let () =
         let cstrs = get_constraints_r res in
-        if List.length cstrs > 10 then begin
+        if PC.length cstrs > 10 then begin
           let _ = Global.enforce_options ~debug:true () in
-          Format.eprintf "@[<v>%a@]" PathConstraint.Print.naked_path cstrs;
+          Format.eprintf "@[<v>%a@]" PC.format_naked_path cstrs;
           exit 0
         end
       in
-      let incomplete =
-        List.exists PathConstraint.is_incomplete (get_constraints_r res)
-      in
-      if incomplete then begin
-        Prof.stamp "incomplete";
-        Message.warning
-          "Concolic@ evaluation@ found@ an@ expression@ that@ cannot@ be@ \
-           encoded@ (a@ list@ or@ a@ date).@ The@ current@ path@ will@ be@ \
-           dropped.";
-        match current_path with
-        | [] ->
-          Message.result
-            "Incomplete execution finished with no more constraints.";
-          (* add empty steps for stats *)
-          interp_state
-        | apc :: new_path_constraints ->
-          let new_expected_path, diff =
-            Prof.record_f "choose new path constraints"
-            @@ fun () -> PathConstraint.make_expected_path new_path_constraints
-          in
-          let () =
-            Prof.record_f "apply diff"
-            @@ fun () ->
-            let diff = PathConstraint.IncrPop apc :: diff in
-            apply_diff ctx Solver.push Solver.pop diff
-          in
-          let interp_state = { interp_state with incomplete = true } in
-          (* closing toplevel execution recording *)
-          Prof.stop ();
-          if new_expected_path = [] then interp_state
-          else concolic_loop interp_state new_expected_path
-      end
-      else
-        let new_path_constraints, (diff_compare, diff_expected) =
+      let incomplete = PC.exists PC.is_incomplete (get_constraints_r res) in
+      if not incomplete then (
+        let new_path_constraints, diff_compare, diff_expected =
           Prof.record_f "choose new path constraints"
           @@ fun () ->
           let res_path_constraints = get_constraints_r res in
           let res_path_constraints =
             Optimizations.remove_trivial_constraints optims res_path_constraints
           in
-          Message.debug "@[<v 2>Path constraints after evaluation:@ %a@]"
-            PathConstraint.Print.naked_path res_path_constraints;
+          Message.debug "@[<v 2>Expected path:@ %a@]" PC.format_annotated_path
+            current_path;
+          Message.debug "@[<v 2>Evaluated path:@ %a@]" PC.format_naked_path
+            res_path_constraints;
           (* TODO find a better way than all those revs *)
           let new_path_constraints, diff_compare =
-            PathConstraint.compare_paths (List.rev current_path)
-              (List.rev res_path_constraints)
+            PC.compare_paths current_path res_path_constraints
           in
+          Message.debug "@[<v 2>After [compare_path]:@ %a@]"
+            PC.format_annotated_path new_path_constraints;
           let new_path_constraints, diff_expected =
-            PathConstraint.make_expected_path (List.rev new_path_constraints)
+            PC.make_expected_path new_path_constraints
           in
-          new_path_constraints, (diff_compare, diff_expected)
+          Message.debug "@[<v 2>After [make_expected]:@ %a@]"
+            PC.format_annotated_path new_path_constraints;
+          new_path_constraints, diff_compare, diff_expected
         in
         let () =
           Prof.record_f "apply diff"
           @@ fun () ->
           let diff = diff_compare @ diff_expected in
-          apply_diff ctx Solver.push Solver.pop diff
+          apply_diff ctx (module Solver) diff
         in
         (* closing toplevel execution recording *)
         Prof.stop ();
-        if new_path_constraints = [] then interp_state
-        else concolic_loop interp_state new_path_constraints
+        if PC.is_empty new_path_constraints then interp_state
+        else concolic_loop interp_state new_path_constraints)
+      else begin
+        Prof.stamp "incomplete";
+        Message.warning
+          "Concolic@ evaluation@ found@ an@ expression@ that@ cannot@ be@ \
+           encoded@ (a@ list@ or@ a@ date).@ The@ current@ path@ will@ be@ \
+           dropped.";
+        match PC.pop current_path with
+        | None ->
+          Message.result
+            "Incomplete execution finished with no more constraints.";
+          (* add empty steps for stats *)
+          interp_state
+        | Some (apc, new_path_constraints) ->
+          let new_expected_path, diff =
+            Prof.record_f "choose new path constraints"
+            @@ fun () -> PC.make_expected_path new_path_constraints
+          in
+          let () =
+            Prof.record_f "apply diff"
+            @@ fun () ->
+            let diff = PC.IncrPop apc :: diff in
+            apply_diff ctx (module Solver) diff
+          in
+          let interp_state = { interp_state with incomplete = true } in
+          (* closing toplevel execution recording *)
+          Prof.stop ();
+          if PC.is_empty new_expected_path then interp_state
+          else concolic_loop interp_state new_expected_path
+      end
     | Solver.Unsat -> begin
       Prof.mark ["unsat"];
       Message.debug "Solver returned Unsat";
-      match current_path with
-      | [] -> failwith "[CONC] Failed to solve without constraints"
-      | apc :: new_path_constraints ->
+      match PC.pop current_path with
+      | None -> failwith "[CONC] Failed to solve without constraints"
+      | Some (apc, new_path_constraints) ->
         let new_expected_path, diff =
           Prof.record_f "choose new path constraints"
-          @@ fun () -> PathConstraint.make_expected_path new_path_constraints
+          @@ fun () -> PC.make_expected_path new_path_constraints
         in
         let () =
           Prof.record_f "apply diff"
           @@ fun () ->
-          let diff = PathConstraint.IncrPop apc :: diff in
-          apply_diff ctx Solver.push Solver.pop diff
+          let diff = PC.IncrPop apc :: diff in
+          apply_diff ctx (module Solver) diff
         in
         (* closing toplevel execution recording *)
         Prof.stop ();
-        if new_expected_path = [] then interp_state
+        if PC.is_empty new_expected_path then interp_state
         else concolic_loop interp_state new_expected_path
       end
     | Solver.Sat None ->
@@ -3173,7 +3167,7 @@ let concolic_interp
       incomplete = false;
     }
   in
-  let res = concolic_loop state [] in
+  let res = concolic_loop state PC.empty_annotated in
   { res with results = List.rev res.results }
 
 (** Main function *)
@@ -3258,7 +3252,7 @@ let interpret_program_concolic
     Message.debug "initial soft constraints: [%a]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         PathConstraint.Print.pc_expr)
+         PC.format_pc_expr)
       soft_constraints;
     let module Solver = Solver (struct
       let optims = optims
