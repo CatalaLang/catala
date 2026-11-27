@@ -249,12 +249,12 @@ module Reachability =
       let analyze _ x = x
     end)
 
-let detect_dead_code (p : program) : unit =
+let detect_dead_code (p : program) deps : unit =
   (* Dead code detection for scope variables based on an intra-scope dependency
      analysis. *)
   ScopeName.Map.iter
     (fun scope_name scope ->
-      let scope_dependencies = Dependency.build_scope_dependencies scope in
+      let scope_dependencies = ScopeName.Map.find scope_name deps in
       let is_alive (v : Dependency.ScopeDependencies.vertex) =
         match v with
         | Assertion _ -> true
@@ -328,10 +328,10 @@ module DependencyPath = Graph.Path.Check (Dependency.ScopeDependencies)
 
 (** A variable state that doesn't depend on the previous state discards it,
     which is probably a mistake. *)
-let detect_states_ignoring_previous (p : program) : unit =
+let detect_states_ignoring_previous (p : program) deps : unit =
   ScopeName.Map.iter
     (fun scope_name scope ->
-      let scope_dependencies = Dependency.build_scope_dependencies scope in
+      let scope_dependencies = ScopeName.Map.find scope_name deps in
       let path = DependencyPath.create scope_dependencies in
       let check_state var prev state =
         let scope_def =
@@ -375,10 +375,14 @@ let detect_states_ignoring_previous (p : program) : unit =
     p.program_root.module_scopes
 
 let lint_program (p : program) : unit =
+  let deps =
+    ScopeName.Map.map Dependency.build_scope_dependencies
+      p.program_root.module_scopes
+  in
   detect_empty_definitions p;
-  detect_dead_code p;
+  detect_dead_code p deps;
   detect_unused_struct_fields p;
   detect_unused_enum_constructors p;
   detect_identical_rules p;
   detect_unused_local_variables p;
-  detect_states_ignoring_previous p
+  detect_states_ignoring_previous p deps
