@@ -12,15 +12,6 @@ Should be "catala Typecheck", see test err3
 $ catala ocaml
 ┌─[WARNING]─
 │
-│  The structure "Structure" is never used; maybe it's unnecessary?
-│
-├─➤ tests/typing/bad/common.catala_en:7.23-32:
-│   │
-│ 7 │ declaration structure Structure:
-│   │                       ‾‾‾‾‾‾‾‾‾
-└─
-┌─[WARNING]─
-│
 │  The constructor "Dec" of enumeration "Enum" is never used;
 │  maybe it's unnecessary?
 │
@@ -38,6 +29,15 @@ $ catala ocaml
 │   │
 │ 5 │   -- Dat content date
 │   │      ‾‾‾
+└─
+┌─[WARNING]─
+│
+│  The structure "Structure" is never used; maybe it's unnecessary?
+│
+├─➤ tests/typing/bad/common.catala_en:7.23-32:
+│   │
+│ 7 │ declaration structure Structure:
+│   │                       ‾‾‾‾‾‾‾‾‾
 └─
 ┌─[ERROR]─
 │

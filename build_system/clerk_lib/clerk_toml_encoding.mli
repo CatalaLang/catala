@@ -133,6 +133,20 @@ val obj10 :
   'j field ->
   ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h * 'i * 'j) descr
 
+val obj11 :
+  'a field ->
+  'b field ->
+  'c field ->
+  'd field ->
+  'e field ->
+  'f field ->
+  'g field ->
+  'h field ->
+  'i field ->
+  'j field ->
+  'k field ->
+  ('a * 'b * 'c * 'd * 'e * 'f * 'g * 'h * 'i * 'j * 'k) descr
+
 val merge_objs : 'a descr -> 'b descr -> ('a * 'b) descr
 
 (** Union *)

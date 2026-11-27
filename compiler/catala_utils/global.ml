@@ -17,6 +17,17 @@
 type file = string
 type raw_file = file
 type backend_lang = [ `En | `Fr | `Pl ]
+
+type lint =
+  | All
+  | EmptyDefinition
+  | IdenticalRules
+  | StateIgnoresPrevious
+  | UnusedEnumConstructor
+  | UnusedLocalVariable
+  | UnusedStructField
+  | UnusedVariable
+
 type when_enum = Auto | Always | Never
 type message_format_enum = Human | GNU | Lsp
 type format_enum = Human | JSON
@@ -38,6 +49,7 @@ type options = {
   mutable output_format : format_enum;
   mutable plugins_dirs : file list;
   mutable disable_warnings : bool;
+  mutable lints : (lint * bool) list;
   mutable max_prec_digits : int;
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
@@ -66,6 +78,7 @@ let options =
     output_format = Human;
     plugins_dirs = [];
     disable_warnings = false;
+    lints = [];
     max_prec_digits = 20;
     path_rewrite = (fun _ -> assert false);
     stop_on_error = false;
@@ -88,6 +101,7 @@ let enforce_options
     ?output_format
     ?plugins_dirs
     ?disable_warnings
+    ?lints
     ?max_prec_digits
     ?path_rewrite
     ?stop_on_error
@@ -108,6 +122,7 @@ let enforce_options
   Option.iter (fun x -> options.output_format <- x) output_format;
   Option.iter (fun x -> options.plugins_dirs <- x) plugins_dirs;
   Option.iter (fun x -> options.disable_warnings <- x) disable_warnings;
+  Option.iter (fun x -> options.lints <- x) lints;
   Option.iter (fun x -> options.max_prec_digits <- x) max_prec_digits;
   Option.iter (fun x -> options.path_rewrite <- x) path_rewrite;
   Option.iter (fun x -> options.stop_on_error <- x) stop_on_error;
@@ -122,3 +137,7 @@ let enforce_options
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
 let raw_file f = f
 let has_localised_stdlib = function `En | `Fr -> true | _ -> false
+
+let lint_setting settings l =
+  let last l = List.assoc_opt l (List.rev settings) in
+  match last l with None -> last All | s -> s

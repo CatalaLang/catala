@@ -101,22 +101,22 @@ $ catala scopelang
    └─ First tests
 ┌─[WARNING]─
 │
-│  The structure "Str" is never used; maybe it's unnecessary?
-│
-├─➤ tests/attributes/good/simple.catala_en:26.23-26:
-│    │
-│ 26 │ declaration structure Str:
-│    │                       ‾‾‾
-└─ Some simple attribute tests
-   └─ First tests
-┌─[WARNING]─
-│
 │  The enumeration "Enu" is never used; maybe it's unnecessary?
 │
 ├─➤ tests/attributes/good/simple.catala_en:39.25-28:
 │    │
 │ 39 │ declaration enumeration Enu:
 │    │                         ‾‾‾
+└─ Some simple attribute tests
+   └─ First tests
+┌─[WARNING]─
+│
+│  The structure "Str" is never used; maybe it's unnecessary?
+│
+├─➤ tests/attributes/good/simple.catala_en:26.23-26:
+│    │
+│ 26 │ declaration structure Str:
+│    │                       ‾‾‾
 └─ Some simple attribute tests
    └─ First tests
 #[enum00]

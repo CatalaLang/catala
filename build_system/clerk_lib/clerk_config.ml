@@ -40,6 +40,7 @@ type global = {
   target_dir : File.t;
   catala_exe : File.t option;
   catala_opts : string list;
+  lints : (Global.lint * bool) list;
   default_targets : string list;
   include_sources : bool;
 }
@@ -103,6 +104,7 @@ let default_global =
     exclude_dirs = [];
     catala_exe = None;
     catala_opts = [];
+    lints = [];
     default_targets = [];
     build_dir = "_build";
     target_dir = "_targets";
@@ -121,6 +123,11 @@ let default_config =
 
 let project_encoding () =
   let open Clerk_toml_encoding in
+  let lints =
+    list
+      (union
+         (string_cases (List.map (fun l -> Cli.lint_name l, l) Cli.all_lints)))
+  in
   conv
     (fun {
            project_name;
@@ -128,17 +135,23 @@ let project_encoding () =
            exclude_dirs;
            catala_exe;
            catala_opts;
+           lints;
            default_targets;
            build_dir;
            target_dir;
            include_sources;
          } ->
+      let enabled, disabled =
+        List.partition_map (fun (l, b) -> if b then Left l else Right l) lints
+      in
       ( project_name,
         (if include_dirs = default_global.include_dirs then None
          else Some include_dirs),
         proj_empty_list exclude_dirs,
         catala_exe,
         proj_empty_list catala_opts,
+        proj_empty_list enabled,
+        proj_empty_list disabled,
         proj_empty_list default_targets,
         build_dir,
         target_dir,
@@ -148,11 +161,14 @@ let project_encoding () =
            exclude_dirs,
            catala_exe,
            catala_opts,
+           enable_lints,
+           disable_lints,
            default_targets,
            build_dir,
            target_dir,
            include_sources )
        ->
+      let set b l = List.map (fun l -> l, b) (inj_empty_list l) in
       {
         project_name;
         include_dirs =
@@ -162,17 +178,21 @@ let project_encoding () =
         exclude_dirs = inj_empty_list exclude_dirs;
         catala_exe;
         catala_opts = inj_empty_list catala_opts;
+        (* Disabling comes last, so that it takes precedence *)
+        lints = set true enable_lints @ set false disable_lints;
         default_targets = inj_empty_list default_targets;
         build_dir;
         target_dir;
         include_sources;
       })
-  @@ obj9
+  @@ obj11
        (opt_field ~name:"name" @@ string)
        (opt_field ~name:"include_dirs" @@ list string)
        (opt_field ~name:"exclude_dirs" @@ list string)
        (opt_field ~name:"catala_exe" @@ string)
        (opt_field ~name:"catala_opts" @@ list string)
+       (opt_field ~name:"enable_lints" lints)
+       (opt_field ~name:"disable_lints" lints)
        (opt_field ~name:"default_targets" @@ list string)
        (dft_field ~name:"build_dir" ~default:default_global.build_dir string)
        (dft_field ~name:"target_dir" ~default:default_global.target_dir string)

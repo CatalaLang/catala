@@ -31,11 +31,44 @@ let message_format_opt = ["human", (Human : message_format_enum); "gnu", GNU]
 let trace_format_opt = ["human", (Human : format_enum); "json", JSON]
 let output_format_opt = ["human", (Human : format_enum); "json", JSON]
 
+let lint_name = function
+  | All -> "all"
+  | EmptyDefinition -> "empty-definition"
+  | IdenticalRules -> "identical-rules"
+  | StateIgnoresPrevious -> "state-ignores-previous"
+  | UnusedEnumConstructor -> "unused-enum-constructor"
+  | UnusedLocalVariable -> "unused-local-variable"
+  | UnusedStructField -> "unused-struct-field"
+  | UnusedVariable -> "unused-variable"
+
+let all_lints =
+  [
+    All;
+    EmptyDefinition;
+    IdenticalRules;
+    StateIgnoresPrevious;
+    UnusedEnumConstructor;
+    UnusedLocalVariable;
+    UnusedStructField;
+    UnusedVariable;
+  ]
+
+let lint_args lints =
+  List.map
+    (fun (l, b) ->
+      Format.sprintf "--%s-lint=%s"
+        (if b then "enable" else "disable")
+        (lint_name l))
+    lints
+
 open Cmdliner
 
 (* Arg converters for our custom types *)
 
 let when_opt = Arg.enum ["auto", Auto; "always", Always; "never", Never]
+
+let lint_opt =
+  Arg.enum ~docv:"LINT" (List.map (fun l -> lint_name l, l) all_lints)
 
 let raw_file =
   Arg.conv ~docv:"FILE"
@@ -241,6 +274,27 @@ module Flags = struct
       & info ["disable-warnings"]
           ~doc:"Disable all the warnings emitted by the compiler."
 
+    let lints =
+      let names flag ~doc = value & opt_all lint_opt [] & info [flag] ~doc in
+      (* Disabling comes last, so that it takes precedence *)
+      let make enable disable =
+        List.map (fun l -> l, true) enable
+        @ List.map (fun l -> l, false) disable
+      in
+      let alts = Arg.doc_alts (List.map lint_name all_lints) in
+      Term.(
+        const make
+        $ names "enable-lint"
+            ~doc:
+              (Format.sprintf "Enable the given lints. $(docv) must be %s." alts)
+        $ names "disable-lint"
+            ~doc:
+              (Format.sprintf
+                 "Disable the given lints. $(docv) must be %s. Takes \
+                  precedence over $(b,--enable-lint), and named lints take \
+                  precedence over $(b,all)."
+                 alts))
+
     let max_prec_digits =
       value
       & opt int 20
@@ -330,6 +384,7 @@ module Flags = struct
           output_format
           plugins_dirs
           disable_warnings
+          lints
           max_prec_digits
           directory
           stop_on_error
@@ -378,7 +433,7 @@ module Flags = struct
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         Global.enforce_options ~language ~debug ~color ~message_format ~trace
-          ~trace_format ~output_format ~plugins_dirs ~disable_warnings
+          ~trace_format ~output_format ~plugins_dirs ~disable_warnings ~lints
           ~max_prec_digits ~path_rewrite ~stop_on_error ~no_fail_on_assert
           ~whole_program ~bin_dir ~gen_external ~dynlink ()
       in
@@ -393,6 +448,7 @@ module Flags = struct
         $ output_format
         $ plugins_dirs
         $ disable_warnings
+        $ lints
         $ max_prec_digits
         $ directory
         $ stop_on_error

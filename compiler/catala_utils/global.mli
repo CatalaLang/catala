@@ -27,6 +27,17 @@ type raw_file = private file
 
 type backend_lang = [ `En | `Fr | `Pl ]
 
+(** Lints performed on desugared programs; [All] stands for all of them *)
+type lint =
+  | All
+  | EmptyDefinition
+  | IdenticalRules
+  | StateIgnoresPrevious
+  | UnusedEnumConstructor
+  | UnusedLocalVariable
+  | UnusedStructField
+  | UnusedVariable
+
 (** The usual auto/always/never option argument *)
 type when_enum = Auto | Always | Never
 
@@ -59,6 +70,7 @@ type options = private {
   mutable output_format : format_enum;
   mutable plugins_dirs : file list;
   mutable disable_warnings : bool;
+  mutable lints : (lint * bool) list;
   mutable max_prec_digits : int;
   mutable path_rewrite : raw_file -> file;
   mutable stop_on_error : bool;
@@ -88,6 +100,7 @@ val enforce_options :
   ?output_format:format_enum ->
   ?plugins_dirs:file list ->
   ?disable_warnings:bool ->
+  ?lints:(lint * bool) list ->
   ?max_prec_digits:int ->
   ?path_rewrite:(raw_file -> file) ->
   ?stop_on_error:bool ->
@@ -112,3 +125,7 @@ val raw_file : string -> raw_file
 val has_localised_stdlib : backend_lang -> bool
 (** Returns true for languages which should use a specialised stdlib ; when
     false, the English stdlib must be used as fallback. *)
+
+val lint_setting : (lint * bool) list -> lint -> bool option
+(** [lint_setting settings l] is the last setting for [l] (or for [All]), or
+    [None] if neither is set *)

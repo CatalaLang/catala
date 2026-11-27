@@ -6,3 +6,37 @@ in behavior visible for the end-users of the tooling.
 * [#1177](https://github.com/CatalaLang/catala/pull/1177) Fixes a
   "code too large" error in Java that occurs when trying to compile a
   file that has too many tests.
+* [#1175](https://github.com/CatalaLang/catala/pull/1175) Lints can be turned
+  on or off with `--enable-lint=NAME` and `--disable-lint=NAME` (or `all`).
+* [#1175](https://github.com/CatalaLang/catala/pull/1175) Lints can be toggled
+  with `--enable-lint`/`--disable-lint` (`catala` and `clerk`),
+  `enable_lints`/`disable_lints` in `clerk.toml`, or locally with the
+  `#[lint.enable]`/`#[lint.disable]` attributes.
+
+* [#1152](https://github.com/CatalaLang/catala/pull/1152) Fixes:
+  - `clerk build` ignoring the `--trace` option;
+  - Makes trace mechanism reentrant in the java backend.
+
+* [#1142](https://github.com/CatalaLang/catala/pull/1142) Traces now report
+  the declaration position of local variables and tuples
+* [#1145](https://github.com/CatalaLang/catala/pull/1145) Traces now tell
+  which variable an assignment of a scope call input defines
+
+* [#1137](https://github.com/CatalaLang/catala/pull/1137) Fix a bug in
+  the java backend that was missing a duration division operator
+
+* [#1132](https://github.com/CatalaLang/catala/pull/1132) Fix issues
+  in the Java generation: generated class names could clash in some
+  situations, maven groupId was based on verbatim clerk project's name
+  which could be syntactically invalid.
+
+* [#1129](https://github.com/CatalaLang/catala/pull/1129) Auto-completion is now
+  [available](https://book.catala-lang.org/en/1-1-1-linux-mac-wsl.html?highlight=complet#setting-up-shell-completion)
+  in the CLI.
+
+* [#1118](https://github.com/CatalaLang/catala/pull/1118) Clerk variable
+  overrides can now refer to the original value of the variable.
+
+* [#1113](https://github.com/CatalaLang/catala/pull/1113) Add the
+  `use_libraries` field to `clerk.toml`, allowing external modules to rely on
+  external backend-specific libraries.
