@@ -106,44 +106,9 @@ The Catala language should be adapted to any legislative text that follows a
 general-to-specifics statutes order. Therefore, there exists multiple versions
 of the Catala surface syntax, adapted to the language of the legislative text.
 
-Currently, Catala supports English, French and Polish legislative text via the
-`--language=en`, `--language=fr` or `--language=pl` options.
-
-To add support for a new language:
-
-- the basic syntax localisation is defined in
-  `compiler/surface/lexer_xx.cppo.ml` where `xx` is the language code (`en`,
-  `fr`...)
-- copy the files from another language, e.g.
-  [english](compiler/surface/lexer_en.cppo.ml), then replace the strings with your
-  translations. Be careful with the following:
-
-  - The file must be encoded in latin-1
-  - For a given token `FOO`, define `MS_FOO` to be the string version of the
-    keyword. Due to the encoding, use `\xNN` [escape
-    sequences](https://ocaml.org/manual/lex.html#escape-sequence) for utf8
-    characters.
-  - If the string contains spaces or non-latin1 characters, you need to define
-    `MR_FOO` as well with a regular expression in [sedlex
-    format](https://github.com/ocaml-community/sedlex#lexer-specifications).
-    Replace spaces with `", space_plus, "`, and unicode characters with `", 0xNNNN, "` where `NNNN` is the hexadecimal unicode codepoint.
-
-  **Hint:** You may get syntax errors with unhelpful locations because of
-  `sedlex`. In that case the command `ocamlc _build/default/compiler/surface/lexer_xx.ml` may point you to the source of the
-  error.
-
-- add your translation to the compilation rules:
-  - in `compiler/surface/dune`, copying another `parser_xx.cppo.ml` rule
-  - in the `extensions` list in `compiler/driver.ml`
-  - add a corresponding variant to `compiler/utils/cli.ml` `backend_lang`, try
-    to run `make build` and follow all type errors and `match non exhaustive`
-    warnings to be sure it is well handled everywhere.
-- you may want to add syntax highlighting support, see `syntax_highlighting/`
-  and the rules in `Makefile`
-- add examples and documentation!
-
-Feel free to open a pull request for discussion even if you couldn't go through
-all these steps, the `lexer_xx.cppo.ml` file is the important part.
+Currently, Catala supports English, French and Polish legislative
+text. To add support for a new language in Catala, please refer to the
+(`languages/README.md`)[languages/README.md] file.
 
 ### Contribution example: writing custom backends as plugins
 

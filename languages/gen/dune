@@ -1,0 +1,26 @@
+(library
+ (name utils)
+ (modules utils))
+
+(executable
+ (name macros)
+ (flags
+  (:standard -warn-error +a))
+ (modules macros)
+ (libraries utils catala.languages))
+
+(executable
+ (name ocaml)
+ (flags
+  (:standard -warn-error +a))
+ (modules ocaml)
+ (libraries utils full_atd))
+
+(executable
+ (name dune_surface)
+ (modules dune_surface)
+ (libraries catala.languages))
+
+(executable
+ (name dune_lib)
+ (modules dune_lib))

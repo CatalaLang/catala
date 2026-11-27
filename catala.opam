@@ -24,7 +24,7 @@ bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
   "ocaml" {>= "4.14.0" }
   "ocamlfind" {!= "1.9.5"}
-  "dune" {>= "3.13"}
+  "dune" {>= "3.14"}
   "cppo" {>= "1"}
   "menhir" {>= "20200211"}
   "menhirLib" {>= "20200211"}
@@ -47,6 +47,8 @@ depends: [
   "odoc" {with-doc}
   "ocamlformat" {?cataladevmode & cataladevmode & = "0.29.0"}
   "obelisk" {?cataladevmode & cataladevmode}
+  "atdgen" {?cataladevmode & cataladevmode}
+  "atdgen-runtime" {?cataladevmode & cataladevmode}
   "conf-ninja" {post | with-test}
   # --- the following are "optional runtime dependencies" ---
   # they're listed here mostly for documentation ; one can export
